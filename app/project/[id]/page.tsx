@@ -52,7 +52,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDetectingCitations, setIsDetectingCitations] = useState(false);
-  const [lastDetectionResult, setLastDetectionResult] = useState<{detected: number, total: number} | null>(null);
+  const [lastDetectionResult, setLastDetectionResult] = useState<{detectedCount: number, totalCount: number} | null>(null);
   const [hasContentToScan, setHasContentToScan] = useState(false);
   const [showPlagiarismModal, setShowPlagiarismModal] = useState(false);
   const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
@@ -618,10 +618,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         const data = await response.json();
         setLastDetectionResult(data);
         
-        if (data.detected > 0) {
-          setShowSuccessMessage(`✅ Successfully detected ${data.detected} citations from ${data.total} sections`);
+        if (data.detectedCount > 0) {
+          setShowSuccessMessage(`✅ Successfully detected ${data.detectedCount} citations from your content`);
         } else {
-          setShowSuccessMessage(`No citations detected in ${data.total} sections. Try adding more specific academic content.`);
+          setShowSuccessMessage(`No citations detected in your content. Try adding more specific academic content.`);
         }
         setTimeout(() => setShowSuccessMessage(''), 5000);
         
@@ -960,7 +960,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <h4 className="text-xl font-bold text-gray-900">{project.citations?.length || 0}</h4>
                   <p className="text-sm text-gray-600">Total Citations</p>
                   <p className="text-xs text-gray-500">
-                    {lastDetectionResult ? `${lastDetectionResult.detected} auto-detected` : '0 auto-detected'}
+                    {lastDetectionResult ? `${lastDetectionResult.detectedCount} auto-detected` : '0 auto-detected'}
                   </p>
                 </div>
                 <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
