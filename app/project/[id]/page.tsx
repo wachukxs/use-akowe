@@ -18,6 +18,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const { data: session, status } = useSession();
   const [project, setProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  
+  // Update ref whenever activeSection changes
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
@@ -43,6 +48,46 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [localSectionContent, setLocalSectionContent] = useState<string>('');
   const [realTimeWordCount, setRealTimeWordCount] = useState<number>(0);
   const [showManualCitationModal, setShowManualCitationModal] = useState(false);
+  const [formattingState, setFormattingState] = useState({
+    bold: false,
+    italic: false,
+    unorderedList: false,
+    orderedList: false
+  });
+
+  // Track active formatting for new text input
+  const [activeFormatting, setActiveFormatting] = useState({
+    bold: false,
+    italic: false,
+    unorderedList: false,
+    orderedList: false
+  });
+
+  // Simple formatting functions that actually work
+  const toggleBold = () => {
+    setActiveFormatting(prev => ({ ...prev, bold: !prev.bold }));
+  };
+
+  const toggleItalic = () => {
+    setActiveFormatting(prev => ({ ...prev, italic: !prev.italic }));
+  };
+
+  const toggleUnorderedList = () => {
+    setActiveFormatting(prev => ({ 
+      ...prev, 
+      unorderedList: !prev.unorderedList,
+      orderedList: false // Turn off ordered list
+    }));
+  };
+
+  const toggleOrderedList = () => {
+    setActiveFormatting(prev => ({ 
+      ...prev, 
+      orderedList: !prev.orderedList,
+      unorderedList: false // Turn off unordered list
+    }));
+  };
+
   const [manualCitation, setManualCitation] = useState({
     title: '',
     authors: '',
@@ -199,7 +244,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         const data = await response.json();
         const proj = data.project || data;
         setProject(proj);
-        if (proj?.sections?.length > 0) {
+        // Only set active section if none is currently selected
+        if (proj?.sections?.length > 0 && !activeSectionRef.current) {
           setActiveSection(proj.sections[0].id);
         }
       }
@@ -213,6 +259,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   // Debounced section change handler
   const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isTypingRef = useRef<boolean>(false);
+  const activeSectionRef = useRef<string | null>(null);
   
   const handleSectionChange = useCallback(async (sectionId: string, content: string) => {
     if (!project) return;
@@ -286,6 +333,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             wordCount: currentWordCount
           };
         });
+        
+        // Ensure active section doesn't change during save
+        // Use the ref to get the current active section value
+        const currentActiveSection = activeSectionRef.current;
+        if (currentActiveSection && currentActiveSection !== sectionId) {
+          setActiveSection(currentActiveSection);
+        }
         
         // Mark that user is no longer typing
         isTypingRef.current = false;
@@ -416,6 +470,234 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   const loadMoreCitations = () => {
     discoverCitations(currentCitationOffset, true);
+  };
+
+  // Function to check current formatting state
+  const checkFormattingState = () => {
+    const selection = window.getSelection();
+    
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      let element = range.commonAncestorContainer;
+      
+      // Walk up to find the element
+      while (element && element.nodeType !== Node.ELEMENT_NODE) {
+        element = element.parentNode as Node;
+      }
+      
+      if (element) {
+        let currentElement = element as Element;
+        let isBold = false;
+        let isItalic = false;
+        let isUnorderedList = false;
+        let isOrderedList = false;
+        
+        // Check formatting by walking up the DOM tree
+        while (currentElement && currentElement !== document.body) {
+          if (currentElement.tagName === 'B' || currentElement.tagName === 'STRONG') {
+            isBold = true;
+          }
+          if (currentElement.tagName === 'I' || currentElement.tagName === 'EM') {
+            isItalic = true;
+          }
+          if (currentElement.tagName === 'UL') {
+            isUnorderedList = true;
+          }
+          if (currentElement.tagName === 'OL') {
+            isOrderedList = true;
+          }
+          currentElement = currentElement.parentElement as Element;
+        }
+        
+        setFormattingState({
+          bold: isBold,
+          italic: isItalic,
+          unorderedList: isUnorderedList,
+          orderedList: isOrderedList
+        });
+        
+        // Also update active formatting for consistency
+        setActiveFormatting({
+          bold: isBold,
+          italic: isItalic,
+          unorderedList: isUnorderedList,
+          orderedList: isOrderedList
+        });
+      }
+    } else {
+      // No selection, reset formatting state
+      setFormattingState({
+        bold: false,
+        italic: false,
+        unorderedList: false,
+        orderedList: false
+      });
+      setActiveFormatting({
+        bold: false,
+        italic: false,
+        unorderedList: false,
+        orderedList: false
+      });
+    }
+  };
+
+  // Enhanced formatting functions that work with contentEditable
+  const applyBold = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, wrap it in bold
+        const strong = document.createElement('strong');
+        try {
+          range.surroundContents(strong);
+        } catch (e) {
+          const contents = range.extractContents();
+          strong.appendChild(contents);
+          range.insertNode(strong);
+        }
+      } else {
+        // No selection, insert bold tags for new text
+        const strong = document.createElement('strong');
+        strong.innerHTML = '&nbsp;';
+        range.insertNode(strong);
+        range.setStartAfter(strong);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    checkFormattingState();
+  };
+
+  const applyItalic = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, wrap it in italic
+        const em = document.createElement('em');
+        try {
+          range.surroundContents(em);
+        } catch (e) {
+          const contents = range.extractContents();
+          em.appendChild(contents);
+          range.insertNode(em);
+        }
+      } else {
+        // No selection, insert italic tags for new text
+        const em = document.createElement('em');
+        em.innerHTML = '&nbsp;';
+        range.insertNode(em);
+        range.setStartAfter(em);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    checkFormattingState();
+  };
+
+  const applyUnorderedList = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, convert to list
+        const ul = document.createElement('ul');
+        const li = document.createElement('li');
+        li.textContent = selectedText;
+        ul.appendChild(li);
+        range.deleteContents();
+        range.insertNode(ul);
+      } else {
+        // No selection, create new list
+        const ul = document.createElement('ul');
+        const li = document.createElement('li');
+        li.innerHTML = '&nbsp;';
+        ul.appendChild(li);
+        range.insertNode(ul);
+        range.setStart(li, 0);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    checkFormattingState();
+  };
+
+  const applyOrderedList = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, convert to numbered list
+        const ol = document.createElement('ol');
+        const li = document.createElement('li');
+        li.textContent = selectedText;
+        ol.appendChild(li);
+        range.deleteContents();
+        range.insertNode(ol);
+      } else {
+        // No selection, create new numbered list
+        const ol = document.createElement('ol');
+        const li = document.createElement('li');
+        li.innerHTML = '&nbsp;';
+        ol.appendChild(li);
+        range.insertNode(ol);
+        range.setStart(li, 0);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    checkFormattingState();
+  };
+
+  const applyHeader = (level: number) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, wrap it in header
+        const header = document.createElement(`h${level}`);
+        header.textContent = selectedText;
+        range.deleteContents();
+        range.insertNode(header);
+      } else {
+        // No selection, create new header
+        const header = document.createElement(`h${level}`);
+        header.innerHTML = '&nbsp;';
+        range.insertNode(header);
+        range.setStart(header, 0);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+    checkFormattingState();
+  };
+
+  // Simple text input handler
+  const handleTextInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const content = target.innerHTML;
+    
+    // Update word count
+    setRealTimeWordCount(countWords(cleanupSectionContent(content)));
+    if (activeSection) {
+      handleSectionChange(activeSection, content);
+    }
   };
 
   // Function to update editor content from external sources (AI/citations)
@@ -875,6 +1157,25 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   }, [project, activeSection]);
 
+  // Add selection change listener for better formatting detection
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const editor = document.querySelector('[contenteditable="true"]');
+        if (editor && editor.contains(range.commonAncestorContainer)) {
+          checkFormattingState();
+        }
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, []);
+
   if (isLoading) {
   return (
       <div className="flex h-screen">
@@ -908,10 +1209,112 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   }
 
   return (
+    <>
+      <style jsx>{`
+        .prose ul {
+          list-style-type: disc;
+          margin-left: 1.5rem;
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .prose ol {
+          list-style-type: decimal;
+          margin-left: 1.5rem;
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .prose li {
+          margin-bottom: 0.25rem;
+        }
+        .prose strong, .prose b {
+          font-weight: 600;
+        }
+        .prose em, .prose i {
+          font-style: italic;
+        }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+          font-weight: 600;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        .prose h1 {
+          font-size: 1.875rem;
+          line-height: 1.2;
+        }
+        .prose h2 {
+          font-size: 1.5rem;
+          line-height: 1.3;
+        }
+        .prose h3 {
+          font-size: 1.25rem;
+          line-height: 1.4;
+        }
+        .prose h4 {
+          font-size: 1.125rem;
+          line-height: 1.4;
+        }
+        .prose h5 {
+          font-size: 1rem;
+          line-height: 1.5;
+        }
+        .prose h6 {
+          font-size: 0.875rem;
+          line-height: 1.5;
+        }
+        /* Ensure contentEditable formatting works properly */
+        [contenteditable="true"] {
+          outline: none;
+        }
+        [contenteditable="true"]:focus {
+          outline: none;
+        }
+        [contenteditable="true"] strong, [contenteditable="true"] b {
+          font-weight: 600;
+        }
+        [contenteditable="true"] em, [contenteditable="true"] i {
+          font-style: italic;
+        }
+        [contenteditable="true"] ul {
+          list-style-type: disc;
+          margin-left: 1.5rem;
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+        [contenteditable="true"] ol {
+          list-style-type: decimal;
+          margin-left: 1.5rem;
+          margin-top: 0.5rem;
+          margin-bottom: 0.5rem;
+        }
+        [contenteditable="true"] li {
+          margin-bottom: 0.25rem;
+        }
+        [contenteditable="true"] h1 {
+          font-size: 1.875rem;
+          font-weight: 600;
+          line-height: 1.2;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        [contenteditable="true"] h2 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          line-height: 1.3;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        [contenteditable="true"] h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          line-height: 1.4;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+      `}</style>
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       
-      <div className={`flex-1 ml-64 overflow-y-auto transition-all duration-300 ${isAIDrawerOpen ? 'mr-96' : ''}`}>
+      <div className={`flex-1 ml-56 overflow-y-auto transition-all duration-300 ${isAIDrawerOpen ? 'mr-72' : ''}`}>
         <div className="max-w-7xl mx-auto p-8">
           {/* Project Header */}
           <div className="mb-6">
@@ -923,129 +1326,178 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
 
           <div className="grid grid-cols-12 gap-8">
-            {/* Left Column - Sections List */}
-            <div className="col-span-3">
-              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Sections</h3>
-                  <button 
-                    onClick={addNewSection}
-                    className="p-1 hover:bg-gray-100 rounded-full"
-                  >
-                    <Plus className="h-5 w-5 text-gray-500" />
-              </button>
-            </div>
-                <div className="space-y-2">
-                  {project.sections?.map((section) => (
-                    <div
-                  key={section.id}
-                      className={`w-full px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 group ${
-                    activeSection === section.id
-                          ? 'bg-purple-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                      <button
-                        onClick={() => setActiveSection(section.id)}
-                        className="flex items-center gap-2 flex-1 text-left"
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                      {editingSectionId === section.id ? (
-                          <input
-                            type="text"
-                            value={editingTitle}
-                            onChange={(e) => setEditingTitle(e.target.value)}
-                            onBlur={() => {
-                              if (editingTitle.trim()) {
-                                updateSectionTitle(section.id, editingTitle);
-                              } else {
-                                setEditingSectionId(null);
-                              }
-                            }}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && editingTitle.trim()) {
-                                updateSectionTitle(section.id, editingTitle);
-                              } else if (e.key === 'Escape') {
-                                setEditingSectionId(null);
-                                setEditingTitle(section.title);
-                              }
-                            }}
-                            className="bg-transparent border-none outline-none flex-1 text-sm"
-                            autoFocus
-                            style={{ minWidth: '100px' }}
-                          />
-                        ) : (
-                          <span 
-                            className="flex-1 cursor-pointer hover:bg-gray-200 px-1 py-0.5 rounded"
-                            onDoubleClick={() => {
-                              setEditingSectionId(section.id);
-                              setEditingTitle(section.title);
-                            }}
-                          >
-                            {section.title}
-                          </span>
-                        )}
-                          </button>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                          onClick={() => {
-                            setEditingSectionId(section.id);
-                            setEditingTitle(section.title);
-                          }}
-                          className="p-1 hover:bg-gray-200 rounded"
-                        >
-                          <Edit3 className="h-3 w-3" />
-                            </button>
-                            <button
-                          onClick={() => setSectionToDelete(section.id)}
-                          className="p-1 hover:bg-red-200 rounded text-red-600"
-                            >
-                          <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
-                    </div>
-              ))}
-            </div>
-          </div>
-
-              {/* Quick Actions */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                <div className="space-y-3">
-            <Button
-                    onClick={() => discoverCitations()}
-                    disabled={isDiscoveringCitations}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-                  >
-                    <BookOpen className="h-4 w-4" />
-                    {isDiscoveringCitations ? 'Finding...' : 'Find Citations'}
-            </Button>
-                  <Button
-                    onClick={() => setShowManualCitationModal(true)}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Manual Citation
-                  </Button>
-                    <Button
-                    onClick={detectCitations}
-                      disabled={isDetectingCitations || !hasContentToScan}
-                    className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white flex items-center gap-2"
-                  >
-                    <BookMarked className="h-4 w-4" />
-                    {isDetectingCitations ? 'Scanning...' : hasContentToScan ? 'Scan for Citations' : 'No Content to Scan'}
-                    </Button>
-            <Button
-                    onClick={checkPlagiarism}
-              disabled={isCheckingPlagiarism}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
-                  >
-                    <Shield className="h-4 w-4" />
-                    {isCheckingPlagiarism ? 'Checking...' : 'Check Plagiarism'}
-            </Button>
+            {/* Left Column - Sections and Actions */}
+            <div className="col-span-3 space-y-8">
+              {/* Sections Panel */}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="p-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">Paper Sections</h3>
+                    <button 
+                      onClick={addNewSection}
+                      className="p-2 hover:bg-purple-50 rounded-lg transition-colors group"
+                      title="Add new section"
+                    >
+                      <Plus className="h-4 w-4 text-purple-600 group-hover:text-purple-700" />
+                    </button>
+                  </div>
                 </div>
-          </div>
-        </div>
+                <div className="p-4">
+                  <div className="space-y-1">
+                    {project.sections?.map((section) => (
+                      <div
+                        key={section.id}
+                        className={`w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group ${
+                          activeSection === section.id
+                            ? 'bg-purple-600 text-white shadow-md'
+                            : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            activeSection === section.id ? 'bg-white' : 'bg-purple-400'
+                          }`} />
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <button
+                              onClick={() => setActiveSection(section.id)}
+                              className="flex-1 text-left min-w-0"
+                            >
+                              {editingSectionId === section.id ? (
+                                <input
+                                  type="text"
+                                  value={editingTitle}
+                                  onChange={(e) => setEditingTitle(e.target.value)}
+                                  onBlur={() => {
+                                    if (editingTitle.trim()) {
+                                      updateSectionTitle(section.id, editingTitle);
+                                    } else {
+                                      setEditingSectionId(null);
+                                    }
+                                  }}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && editingTitle.trim()) {
+                                      updateSectionTitle(section.id, editingTitle);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingSectionId(null);
+                                      setEditingTitle(section.title);
+                                    }
+                                  }}
+                                  className="bg-transparent border-none outline-none w-full text-sm font-medium"
+                                  autoFocus
+                                  style={{ minWidth: '100px' }}
+                                />
+                              ) : (
+                                <span 
+                                  className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded font-medium block whitespace-nowrap overflow-hidden"
+                                  onDoubleClick={() => {
+                                    setEditingSectionId(section.id);
+                                    setEditingTitle(section.title);
+                                  }}
+                                  title={section.title}
+                                >
+                                  {section.title}
+                                </span>
+                              )}
+                            </button>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                              <button
+                                onClick={() => {
+                                  setEditingSectionId(section.id);
+                                  setEditingTitle(section.title);
+                                }}
+                                className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                                title="Edit section name"
+                              >
+                                <Edit3 className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => setSectionToDelete(section.id)}
+                                className="p-1.5 hover:bg-red-100 rounded text-red-600 transition-colors"
+                                title="Delete section"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Research & Quality Tools */}
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="p-4 border-b border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900">Tools</h3>
+                  <p className="text-xs text-gray-500 mt-1">Research & quality tools</p>
+                </div>
+                <div className="p-4 space-y-1">
+                  <div 
+                    onClick={() => discoverCitations()}
+                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                      isDiscoveringCitations 
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                        : 'hover:bg-purple-50 text-gray-700 hover:text-purple-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      <span className="text-sm font-medium">Find Citations</span>
+                    </div>
+                    {isDiscoveringCitations && (
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                  
+                  <div 
+                    onClick={() => setShowManualCitationModal(true)}
+                    className="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      <span className="text-sm font-medium">Add Citation</span>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    onClick={detectCitations}
+                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                      isDetectingCitations || !hasContentToScan
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <BookMarked className="h-4 w-4" />
+                      <span className="text-sm font-medium">Scan Content</span>
+                    </div>
+                    {isDetectingCitations && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                  
+                  <div className="border-t border-gray-100 my-2"></div>
+                  
+                  <div 
+                    onClick={checkPlagiarism}
+                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                      isCheckingPlagiarism 
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                        : 'hover:bg-green-50 text-gray-700 hover:text-green-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      <span className="text-sm font-medium">Check Plagiarism</span>
+                    </div>
+                    {isCheckingPlagiarism && (
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Right Column - Editor */}
             <div className="col-span-9">
@@ -1063,47 +1515,91 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       </button>
                 </div>
                     <div className="border border-gray-200 rounded-lg">
-                      {/* Simple Toolbar */}
-                      <div className="border-b border-gray-200 p-2 flex items-center gap-2 bg-gray-50">
-                        <button
-                          onClick={() => document.execCommand('bold')}
-                          className="p-1 hover:bg-gray-200 rounded"
-                          title="Bold"
-                        >
-                          <Bold className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => document.execCommand('italic')}
-                          className="p-1 hover:bg-gray-200 rounded"
-                          title="Italic"
-                        >
-                          <Italic className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => document.execCommand('insertUnorderedList')}
-                          className="p-1 hover:bg-gray-200 rounded"
-                          title="Bullet List"
-                        >
-                          <List className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            const selection = window.getSelection();
-                            if (selection && selection.rangeCount > 0) {
-                              const range = selection.getRangeAt(0);
-                              const heading = document.createElement('h3');
-                              heading.textContent = selection.toString() || 'Heading';
-                              range.deleteContents();
-                              range.insertNode(heading);
-                            }
-                          }}
-                          className="p-1 hover:bg-gray-200 rounded"
-                          title="Heading"
-                        >
-                          <Hash className="h-4 w-4" />
-                        </button>
+                      {/* Rich Text Toolbar */}
+                      <div className="border-b border-gray-200 p-3 flex items-center gap-2 bg-gray-50">
+                        {/* Text Formatting */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={applyBold}
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.bold 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
+                            title="Bold (Ctrl+B)"
+                          >
+                            <Bold className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={applyItalic}
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.italic 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
+                            title="Italic (Ctrl+I)"
+                          >
+                            <Italic className="h-4 w-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        
+                        {/* Lists */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={applyUnorderedList}
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.unorderedList 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
+                            title="Bullet List"
+                          >
+                            <List className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={applyOrderedList}
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.orderedList 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
+                            title="Numbered List"
+                          >
+                            <Hash className="h-4 w-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        
+                        {/* Headers */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => applyHeader(1)}
+                            className="p-2 rounded transition-colors hover:bg-gray-200"
+                            title="Header 1"
+                          >
+                            <span className="text-sm font-bold">H1</span>
+                          </button>
+                          <button
+                            onClick={() => applyHeader(2)}
+                            className="p-2 rounded transition-colors hover:bg-gray-200"
+                            title="Header 2"
+                          >
+                            <span className="text-sm font-bold">H2</span>
+                          </button>
+                          <button
+                            onClick={() => applyHeader(3)}
+                            className="p-2 rounded transition-colors hover:bg-gray-200"
+                            title="Header 3"
+                          >
+                            <span className="text-sm font-bold">H3</span>
+                          </button>
+                        </div>
+                        
                         <div className="flex-1"></div>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 font-medium">
                           {realTimeWordCount} words
                         </span>
             </div>
@@ -1112,14 +1608,47 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <div
                         contentEditable
                         suppressContentEditableWarning
-                        onInput={(e) => {
-                          const content = e.currentTarget.innerHTML;
-                          // Update real-time word count immediately for responsive UI
-                          setRealTimeWordCount(countWords(cleanupSectionContent(content)));
-                          handleSectionChange(activeS.id, content);
+                        onInput={handleTextInput}
+                        onMouseUp={checkFormattingState}
+                        onMouseDown={checkFormattingState}
+                        onKeyUp={(e) => {
+                          checkFormattingState();
+                          // Handle keyboard shortcuts
+                          if (e.ctrlKey || e.metaKey) {
+                            if (e.key === 'b') {
+                              e.preventDefault();
+                              applyBold();
+                            } else if (e.key === 'i') {
+                              e.preventDefault();
+                              applyItalic();
+                            }
+                          }
                         }}
-                        className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed"
-                      style={{ fontFamily: 'inherit' }}
+                        onKeyDown={(e) => {
+                          checkFormattingState();
+                        }}
+                        onFocus={checkFormattingState}
+                        onBlur={() => {
+                          // Reset formatting state when editor loses focus
+                          setFormattingState({
+                            bold: false,
+                            italic: false,
+                            unorderedList: false,
+                            orderedList: false
+                          });
+                          // Also reset active formatting
+                          setActiveFormatting({
+                            bold: false,
+                            italic: false,
+                            unorderedList: false,
+                            orderedList: false
+                          });
+                        }}
+                        className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed prose prose-sm max-w-none"
+                      style={{ 
+                        fontFamily: 'inherit',
+                        lineHeight: '1.6'
+                      }}
                         key={activeS.id}
                         ref={(el) => {
                           if (el && !el.dataset.initialized) {
@@ -1179,7 +1708,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* AI Assistant Side Panel */}
       {isAIDrawerOpen && (
-        <div className="fixed top-0 right-0 w-96 h-full bg-white border-l border-gray-200 z-40 flex flex-col shadow-2xl">
+        <div className="fixed top-0 right-0 w-72 h-full bg-white border-l border-gray-200 z-40 flex flex-col shadow-2xl">
           {/* Header */}
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
             <div className="flex items-center justify-between">
@@ -1210,7 +1739,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
           {/* Chat Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
             {/* Welcome Message */}
             {aiMessages.length === 0 && (
               <div className="space-y-4">
@@ -1381,7 +1910,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Input Area */}
-          <div className="p-4 bg-white border-t border-gray-200">
+          <div className="p-3 bg-white border-t border-gray-200">
             {/* Usage Info */}
             <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-center justify-between text-xs">
@@ -1924,9 +2453,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
                     <span className="text-white text-xs">i</span>
-                  </div>
-                )}
-              </div>
+        </div>
+      )}
+    </div>
               <div className="flex-1">
                 <p className="text-sm font-medium leading-relaxed">{showSuccessMessage}</p>
               </div>
@@ -1941,5 +2470,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         </div>
       )}
     </div>
+    </>
   );
 }
