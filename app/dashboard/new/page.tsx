@@ -1,0 +1,472 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Sidebar from '@/components/Sidebar';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
+import { ProjectType } from '@/types';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Sparkles, Lightbulb, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+
+const projectTypes: { 
+  type: ProjectType; 
+  label: string; 
+  description: string; 
+  icon: React.ElementType; 
+  color: string;
+  typicalWordCount: { min: number; max: number };
+  commonMethodologies: string[];
+  citationStyles: string[];
+  insights: string[];
+}[] = [
+  {
+    type: 'essay',
+    label: 'Essay',
+    description: 'Short academic papers and assignments',
+    icon: FileText,
+    color: 'from-blue-500 to-cyan-500',
+    typicalWordCount: { min: 1000, max: 5000 },
+    commonMethodologies: ['Literature review', 'Argumentative analysis', 'Comparative study'],
+    citationStyles: ['APA', 'MLA', 'Chicago'],
+    insights: ['Focus on clear argumentation', 'Strong thesis statement required', 'Usually 3-5 main points']
+  },
+  {
+    type: 'thesis',
+    label: 'Thesis',
+    description: 'Graduate research and thesis projects',
+    icon: GraduationCap,
+    color: 'from-purple-500 to-pink-500',
+    typicalWordCount: { min: 15000, max: 50000 },
+    commonMethodologies: ['Qualitative research', 'Quantitative research', 'Mixed methods', 'Case study'],
+    citationStyles: ['APA', 'Chicago', 'Harvard'],
+    insights: ['Requires original research contribution', 'Extensive literature review needed', 'Methodology section is crucial']
+  },
+  {
+    type: 'journal',
+    label: 'Journal Article',
+    description: 'Research papers for publication',
+    icon: BookOpen,
+    color: 'from-orange-500 to-yellow-500',
+    typicalWordCount: { min: 3000, max: 8000 },
+    commonMethodologies: ['Experimental design', 'Survey research', 'Meta-analysis', 'Systematic review'],
+    citationStyles: ['APA', 'IEEE', 'Chicago'],
+    insights: ['Must follow journal guidelines', 'Abstract and keywords important', 'Peer review process expected']
+  },
+  {
+    type: 'research',
+    label: 'Research Paper',
+    description: 'Comprehensive research documents',
+    icon: FlaskConical,
+    color: 'from-indigo-600 to-purple-600',
+    typicalWordCount: { min: 5000, max: 15000 },
+    commonMethodologies: ['Empirical research', 'Theoretical analysis', 'Comparative study', 'Longitudinal study'],
+    citationStyles: ['APA', 'MLA', 'Chicago', 'Harvard'],
+    insights: ['Rigorous methodology required', 'Data analysis section important', 'Clear research questions needed']
+  },
+];
+
+export default function NewProjectPage() {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [projectName, setProjectName] = useState('');
+  const [selectedType, setSelectedType] = useState<ProjectType>('essay');
+  const [topic, setTopic] = useState('');
+  const [targetWordCount, setTargetWordCount] = useState(3000);
+  const [citationStyle, setCitationStyle] = useState('APA');
+  const [methodology, setMethodology] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<any>(null);
+  const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+  // Get current project type details
+  const currentType = projectTypes.find(type => type.type === selectedType);
+
+  // Auto-update word count and citation style based on project type
+  useEffect(() => {
+    if (currentType) {
+      setTargetWordCount(currentType.typicalWordCount.min);
+      setCitationStyle(currentType.citationStyles[0]);
+    }
+  }, [selectedType]);
+
+  // Generate AI suggestions for the project
+  const generateAISuggestions = async () => {
+    if (!topic.trim() || !projectName.trim()) {
+      alert('Please enter a project name and topic first');
+      return;
+    }
+
+    setIsGeneratingSuggestions(true);
+    try {
+      const response = await fetch('/api/ai/outline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: topic,
+          projectType: selectedType,
+          projectName: projectName,
+          methodology: methodology
+        }),
+      });
+
+      if (response.ok) {
+        const suggestions = await response.json();
+        setAiSuggestions(suggestions);
+      } else {
+        console.error('Failed to generate AI suggestions');
+      }
+    } catch (error) {
+      console.error('Error generating AI suggestions:', error);
+    } finally {
+      setIsGeneratingSuggestions(false);
+    }
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const errors: string[] = [];
+    
+    if (!projectName.trim()) errors.push('Project name is required');
+    if (!topic.trim()) errors.push('Research topic is required');
+    if (!methodology.trim()) errors.push('Research methodology is required');
+    if (targetWordCount < 100) errors.push('Target word count should be at least 100');
+    if (targetWordCount > 100000) errors.push('Target word count seems too high (max 100,000)');
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  const handleCreate = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsCreating(true);
+    
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: projectName.trim(),
+          type: selectedType,
+          topic: topic.trim(),
+          targetWordCount: targetWordCount,
+          citationStyle: citationStyle,
+          methodology: methodology.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        router.push(`/project/${data.project._id}`);
+      } else {
+        const error = await response.json();
+        alert(`Error creating project: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('An error occurred while creating the project');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      
+      <div className="flex-1 ml-64 overflow-auto">
+        <div className="max-w-6xl mx-auto p-8">
+          {/* Header */}
+          <div className="mb-8">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-2"
+            >
+              ← Back
+            </button>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Create New Project
+            </h1>
+            <p className="text-gray-600">
+              Start a new academic writing project with AI-powered guidance
+            </p>
+          </div>
+
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <Card className="p-4 mb-6 border-red-200 bg-red-50">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-red-800 mb-2">Please fix the following issues:</h3>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    {validationErrors.map((error, index) => (
+                      <li key={index}>• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column - Form Fields */}
+            <div className="space-y-6">
+              {/* Project Name */}
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Project Name *
+                  </label>
+                  <button type="button" className="relative group" aria-label="What is project name?">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                      A clear title that reflects your research focus.
+                    </span>
+                  </button>
+                </div>
+                <Input
+                  type="text"
+                  placeholder="e.g., Climate Change Impact Study"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  className="text-lg"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Choose a clear, descriptive name that reflects your research focus
+                </p>
+              </Card>
+
+              {/* Topic */}
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Research Topic *
+                  </label>
+                  <button type="button" className="relative group" aria-label="What is research topic?">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                      Be specific so Akowe can tailor suggestions.
+                    </span>
+                  </button>
+                </div>
+                <Input
+                  type="text"
+                  placeholder="e.g., &quot;Impact of rising sea levels on coastal communities&quot;"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  className="text-lg"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Be specific about what you&apos;re researching. This helps Akowe provide better suggestions.
+                </p>
+              </Card>
+
+              {/* Target Word Count */}
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Target Word Count
+                  </label>
+                  <button type="button" className="relative group" aria-label="What is target word count?">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                      Choose a target within the typical range for your type.
+                    </span>
+                  </button>
+                </div>
+                <Input
+                  type="number"
+                  placeholder="3000"
+                  value={targetWordCount}
+                  onChange={(e) => setTargetWordCount(parseInt(e.target.value) || 0)}
+                  className="text-lg"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Typical range for {selectedType}: {currentType?.typicalWordCount.min.toLocaleString()} - {currentType?.typicalWordCount.max.toLocaleString()} words
+                </p>
+              </Card>
+
+              {/* Citation Style */}
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Citation Style
+                  </label>
+                  <button type="button" className="relative group" aria-label="What is citation style?">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                      Pick the style your department or journal requires.
+                    </span>
+                  </button>
+                </div>
+                <select
+                  value={citationStyle}
+                  onChange={(e) => setCitationStyle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                >
+                  {currentType?.citationStyles.map(style => (
+                    <option key={style} value={style}>{style}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-2">
+                  Common for {selectedType}: {currentType?.citationStyles.join(', ')}
+                </p>
+              </Card>
+
+              {/* Methodology */}
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Research Methodology *
+                  </label>
+                  <button type="button" className="relative group" aria-label="What is research methodology?">
+                    <Info className="w-4 h-4 text-gray-400" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                      Describe your approach, e.g. qualitative, quantitative, mixed methods.
+                    </span>
+                  </button>
+                </div>
+                <Input
+                  type="text"
+                  placeholder="e.g., Qualitative case study, Literature review, Experimental design"
+                  value={methodology}
+                  onChange={(e) => setMethodology(e.target.value)}
+                  className="text-lg"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Common methodologies: {currentType?.commonMethodologies.join(', ')}
+                </p>
+              </Card>
+            </div>
+
+            {/* Right Column - Project Type & Insights */}
+            <div className="space-y-6">
+              {/* Project Type Selection */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Project Type</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {projectTypes.map((type) => {
+                    const Icon = type.icon;
+                    const isSelected = selectedType === type.type;
+                    
+                    return (
+                      <button
+                        key={type.type}
+                        onClick={() => setSelectedType(type.type)}
+                        className={`text-left p-4 rounded-lg border-2 transition-all ${
+                          isSelected
+                            ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${type.color} flex items-center justify-center`}>
+                            <Icon className="text-white" size={20} />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900">{type.label}</h4>
+                            <p className="text-sm text-gray-600">{type.description}</p>
+                          </div>
+                          {isSelected && <CheckCircle2 className="w-5 h-5 text-indigo-500" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+
+              {/* Project Insights */}
+              {currentType && (
+                <Card className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Lightbulb className="w-5 h-5 text-yellow-500" />
+                    <h3 className="text-lg font-semibold text-gray-900">Key Insights for {currentType.label}</h3>
+                  </div>
+                  <ul className="space-y-2">
+                    {currentType.insights.map((insight, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>{insight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              )}
+
+              {/* AI Suggestions */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-500" />
+                    <h3 className="text-lg font-semibold text-gray-900">Akowe Smart Suggestions</h3>
+                  </div>
+                  <Button
+                    onClick={generateAISuggestions}
+                    disabled={isGeneratingSuggestions || !topic.trim() || !projectName.trim()}
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  >
+                    {isGeneratingSuggestions ? 'Akowe is thinking...' : 'Get Akowe Help'}
+                  </Button>
+                </div>
+                
+                {aiSuggestions ? (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900">Suggested Outline:</h4>
+                    <div className="space-y-2">
+                      {aiSuggestions.map((section: any, index: number) => (
+                        <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                          <h5 className="font-medium text-gray-900">{section.title}</h5>
+                          <p className="text-sm text-gray-600">{section.summary}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Enter your project details and click "Get Akowe Help" to receive personalized suggestions for your research structure and approach.
+                  </p>
+                )}
+              </Card>
+            </div>
+          </div>
+
+          {/* Create Button */}
+          <div className="mt-8 flex justify-end gap-4">
+            <Button
+              variant="secondary"
+              onClick={() => router.back()}
+              className="px-6"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={validationErrors.length > 0 || isCreating}
+              className="min-w-[180px] bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+            >
+              {isCreating ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating Project...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Create Project
+                </div>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
