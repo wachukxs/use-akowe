@@ -41,6 +41,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [totalWordCount, setTotalWordCount] = useState(0);
   const [localWordCount, setLocalWordCount] = useState(0);
   const [localSectionContent, setLocalSectionContent] = useState<string>('');
+  const [realTimeWordCount, setRealTimeWordCount] = useState<number>(0);
   const [showManualCitationModal, setShowManualCitationModal] = useState(false);
   const [manualCitation, setManualCitation] = useState({
     title: '',
@@ -225,19 +226,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       return; // No change, don't save
     }
 
-    // Update local word count immediately for responsive UI
+    // Update local word count immediately for responsive UI (without updating project state)
     const updatedSections = (project.sections || []).map(section =>
       section.id === sectionId
         ? { ...section, content, updatedAt: new Date() }
         : section
     );
-    const updatedProject = { ...project, sections: updatedSections };
-    const newWordCount = calculateTotalWordCount(updatedProject);
+    const newWordCount = calculateTotalWordCount({ ...project, sections: updatedSections });
     setLocalWordCount(newWordCount);
 
     // Update local section content for immediate word count display
     if (sectionId === activeSection) {
       setLocalSectionContent(content);
+      setRealTimeWordCount(countWords(cleanupSectionContent(content)));
     }
 
     // Clear existing timeout
@@ -249,12 +250,23 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     debounceTimeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
       try {
+        // Recalculate sections with current project state to ensure we have the latest data
+        const currentProject = project;
+        if (!currentProject) return;
+        
+        const currentUpdatedSections = (currentProject.sections || []).map(section =>
+          section.id === sectionId
+            ? { ...section, content, updatedAt: new Date() }
+            : section
+        );
+        const currentWordCount = calculateTotalWordCount({ ...currentProject, sections: currentUpdatedSections });
+        
         await fetch(`/api/projects/${resolvedParams.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            sections: updatedSections,
-            wordCount: newWordCount
+            sections: currentUpdatedSections,
+            wordCount: currentWordCount
           }),
         });
 
@@ -329,7 +341,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     if (!project) return;
     
     if (offset === 0) {
-      setIsDiscoveringCitations(true);
+    setIsDiscoveringCitations(true);
       setCurrentCitationOffset(0);
     } else {
       setIsLoadingMoreCitations(true);
@@ -362,7 +374,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         setCurrentCitationOffset(offset + 8);
         
         if (offset === 0) {
-          setShowCitationDiscovery(true);
+        setShowCitationDiscovery(true);
         }
       }
     } catch (error) {
@@ -377,6 +389,40 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     discoverCitations(currentCitationOffset, true);
   };
 
+  // Function to update editor content from external sources (AI/citations)
+  const updateEditorContent = (newContent: string) => {
+    const editorElement = document.querySelector('[contenteditable="true"]') as HTMLElement;
+    if (editorElement) {
+      // Save cursor position before update
+      const selection = window.getSelection();
+      const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+      const cursorOffset = range ? range.startOffset : 0;
+      
+      editorElement.innerHTML = newContent;
+      
+      // Restore cursor position after update
+      if (range && selection) {
+        try {
+          const newRange = document.createRange();
+          const textNode = editorElement.firstChild;
+          if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+            newRange.setStart(textNode, Math.min(cursorOffset, textNode.textContent?.length || 0));
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+          }
+        } catch (e) {
+          // If cursor restoration fails, just place at end
+          const newRange = document.createRange();
+          newRange.selectNodeContents(editorElement);
+          newRange.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
+      }
+    }
+  };
+
   const addCitationToEditor = async (citation: any) => {
     if (!project || !activeSection) return;
 
@@ -387,8 +433,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     const section = project.sections.find(s => s.id === activeSection);
     if (!section) return;
 
-    const newContent = section.content + (section.content ? ' ' : '') + citationText;
+    const currentContent = cleanupSectionContent(section.content || '');
+    const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
+    
+    // Update both the project state and local section content for real-time editor update
     handleSectionChange(activeSection, newContent);
+    setLocalSectionContent(newContent);
+    setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+    
+    // Update editor content directly with cursor preservation
+    updateEditorContent(newContent);
+    
     setShowCitationDiscovery(false);
     setShowSuccessMessage('Citation added to editor!');
     setTimeout(() => setShowSuccessMessage(''), 3000);
@@ -641,14 +696,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         
         if (data.detectedCount > 0) {
           setShowSuccessMessage(`✅ Successfully detected ${data.detectedCount} citations from your content`);
-        } else {
+      } else {
           setShowSuccessMessage(`No citations detected in your content. Try adding more specific academic content.`);
         }
         setTimeout(() => setShowSuccessMessage(''), 5000);
       } else {
         let errorMessage = 'Citation detection failed';
         try {
-          const errorData = await response.json();
+        const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
         } catch (parseError) {
           console.error('Error parsing error response:', parseError);
@@ -705,7 +760,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     if (project && activeSection) {
       const activeS = project.sections?.find(s => s.id === activeSection);
       if (activeS) {
-        setLocalSectionContent(activeS.content || '');
+        const content = activeS.content || '';
+        setLocalSectionContent(content);
+        setRealTimeWordCount(countWords(cleanupSectionContent(content)));
       }
     }
   }, [project, activeSection]);
@@ -939,7 +996,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         </button>
                         <div className="flex-1"></div>
                         <span className="text-xs text-gray-500">
-                          {countWords(cleanupSectionContent(localSectionContent || ''))} words
+                          {realTimeWordCount} words
                         </span>
             </div>
 
@@ -952,21 +1009,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           handleSectionChange(activeS.id, content);
                         }}
                         className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed"
-                        style={{ fontFamily: 'inherit' }}
+                      style={{ fontFamily: 'inherit' }}
                         key={activeS.id}
                         ref={(el) => {
-                          if (el) {
-                            const newContent = cleanupSectionContent(activeS.content || '') || '<p><br></p>';
-                            const currentContent = el.innerHTML;
-                            
-                            // Only update if this is initialization OR if content has significantly changed
-                            // (e.g., from citation detection, not from user typing)
-                            if (!el.dataset.initialized || 
-                                (currentContent && newContent && 
-                                 Math.abs(currentContent.length - newContent.length) > 50)) {
-                              el.innerHTML = newContent;
-                              el.dataset.initialized = 'true';
-                            }
+                          if (el && !el.dataset.initialized) {
+                            // Use activeS.content directly to avoid race condition with localSectionContent
+                            const sectionContent = activeS?.content || '';
+                            const newContent = cleanupSectionContent(sectionContent) || '<p><br></p>';
+                            el.innerHTML = newContent;
+                            el.dataset.initialized = 'true';
                           }
                         }}
               />
@@ -1027,26 +1078,26 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <Bot className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Akowe Assistant</h3>
+            <h3 className="text-lg font-semibold">Akowe Assistant</h3>
                   <p className="text-purple-100 text-sm">Your AI writing companion</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setAiMessages([])}
                   className="text-purple-200 hover:text-white text-sm px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
                 >
                   Clear
                 </button>
-                <button 
-                  onClick={() => setIsAIDrawerOpen(false)}
+                  <button 
+                onClick={() => setIsAIDrawerOpen(false)}
                   className="text-purple-200 hover:text-white p-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                  >
+                <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Chat Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
@@ -1068,7 +1119,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <li>• Generating content for sections</li>
                         <li>• Research and citation suggestions</li>
                       </ul>
-                    </div>
+              </div>
                   </div>
                 </div>
 
@@ -1118,19 +1169,31 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       )}
                       <div
                         className={`p-3 rounded-2xl ${
-                          message.type === 'user'
+                        message.type === 'user'
                             ? 'bg-purple-600 text-white rounded-br-md'
                             : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md shadow-sm'
-                        }`}
-                      >
+                      }`}
+                    >
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                        {message.type === 'assistant' && (
-                          <button 
-                            onClick={() => {
-                              if (activeS) {
+                      {message.type === 'assistant' && (
+                  <button 
+                          onClick={() => {
+                            if (activeS) {
                                 const currentContent = cleanupSectionContent(activeS.content || '');
-                                const newContent = currentContent + (currentContent ? '\n\n' : '') + message.content;
-                                handleSectionChange(activeS.id, newContent);
+                                // Better context-aware insertion: add proper spacing and formatting
+                                const separator = currentContent.trim() ? '\n\n' : '';
+                                const formattedContent = message.content.trim();
+                                const newContent = currentContent + separator + formattedContent;
+                                
+                              handleSectionChange(activeS.id, newContent);
+                                
+                                // Update local section content immediately for real-time editor update
+                                setLocalSectionContent(newContent);
+                                setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+                                
+                                // Update editor content directly with cursor preservation
+                                updateEditorContent(newContent);
+                                
                                 setShowSuccessMessage('✅ AI response inserted into section!');
                                 setTimeout(() => setShowSuccessMessage(''), 3000);
                               }
@@ -1138,19 +1201,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             className="mt-2 text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
                           >
                             <Plus className="h-3 w-3" />
-                            Insert into section
-                          </button>
-                        )}
+                          Insert into section
+                  </button>
+                      )}
                       </div>
                       <p className="text-xs text-gray-400 mt-1 px-1">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                    </div>
                   </div>
-                ))}
+                </div>
+              ))}
                 
-                {aiIsLoading && (
-                  <div className="flex justify-start">
+              {aiIsLoading && (
+                <div className="flex justify-start">
                     <div className="max-w-[85%]">
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
@@ -1159,7 +1222,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <span className="text-xs text-gray-500 font-medium">Akowe</span>
                       </div>
                       <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-3 shadow-sm">
-                        <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -1167,11 +1230,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </div>
                           <span className="text-sm text-gray-600">Thinking...</span>
                         </div>
-                      </div>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </div>
             )}
           </div>
 
@@ -1185,17 +1248,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </span>
                 <button className="text-yellow-700 hover:text-yellow-800 font-medium">
                   Upgrade
-                </button>
+                  </button>
+                </div>
               </div>
-            </div>
-            
+
             {/* Input Field */}
             <div className="flex gap-2">
               <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={aiInput}
-                  onChange={(e) => setAiInput(e.target.value)}
+                  <input
+                    type="text"
+                    value={aiInput}
+                    onChange={(e) => setAiInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAIWrite(activeS?.id || '')}
                   placeholder={`Ask about "${activeS?.title || 'Introduction'}"...`}
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
@@ -1205,9 +1268,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   disabled={aiIsLoading || !aiInput.trim()}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
                 >
-                  <Send className="h-4 w-4" />
+                <Send className="h-4 w-4" />
                 </button>
-              </div>
+            </div>
             </div>
             <p className="text-xs text-gray-500 mt-2 px-1">
               Press Enter to send, Shift+Enter for new line
@@ -1228,12 +1291,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <h3 className="text-2xl font-bold">Research Citations</h3>
                   <p className="text-purple-100 mt-1">Found {discoveredCitations.length} relevant citations for your research</p>
                 </div>
-                <button
-                  onClick={() => setShowCitationDiscovery(false)}
+              <button
+                onClick={() => setShowCitationDiscovery(false)}
                   className="text-white hover:text-purple-200 transition-colors"
-                >
+              >
                   <X className="h-6 w-6" />
-                </button>
+              </button>
               </div>
             </div>
 
@@ -1312,7 +1375,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             <div className="flex items-center gap-1">
                               <span className="font-medium">Authors:</span>
                               <span>
-                                {Array.isArray(citation.authors) 
+                        {Array.isArray(citation.authors) 
                                   ? citation.authors.slice(0, 3).join(', ') + (citation.authors.length > 3 ? ' et al.' : '')
                                   : citation.authors || 'Unknown Author'}
                               </span>
@@ -1334,19 +1397,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </div>
                         </div>
                         <div className="flex gap-2 ml-4">
-                          {citation.url && (
-                            <a
-                              href={citation.url}
-                              target="_blank" 
-                              rel="noopener noreferrer"
+                      {citation.url && (
+                        <a
+                          href={citation.url}
+                            target="_blank" 
+                            rel="noopener noreferrer"
                               className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                               title="View Source"
-                            >
+                        >
                               <Link className="h-4 w-4" />
-                            </a>
-                          )}
+                        </a>
+                      )}
                           <button
-                            onClick={() => addCitationToEditor(citation)}
+                        onClick={() => addCitationToEditor(citation)}
                             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                           >
                             <Plus className="h-4 w-4" />
@@ -1377,8 +1440,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </code>
                         </div>
                       )}
-                    </div>
-                  ))}
+                </div>
+              ))}
                   
                   {/* Find More Button */}
                   {!citationSearchQuery && citationFilter === 'all' && citationSortBy === 'relevance' && (
@@ -1402,7 +1465,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       </button>
                     </div>
                   )}
-                </div>
+            </div>
               ) : (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1646,12 +1709,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-500">Source: {match.source}</p>
-                        {match.url && (
-                          <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                      <p className="text-xs text-gray-500">Source: {match.source}</p>
+                      {match.url && (
+                        <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
                             View Source →
-                          </a>
-                        )}
+                        </a>
+                      )}
                       </div>
                     </div>
                   ))}
