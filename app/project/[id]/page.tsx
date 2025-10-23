@@ -39,6 +39,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [totalWordCount, setTotalWordCount] = useState(0);
+  const [localWordCount, setLocalWordCount] = useState(0);
   const [showManualCitationModal, setShowManualCitationModal] = useState(false);
   const [manualCitation, setManualCitation] = useState({
     title: '',
@@ -174,6 +175,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     if (project) {
       const wordCount = calculateTotalWordCount(project);
       setTotalWordCount(wordCount);
+      setLocalWordCount(wordCount);
       
       // Check if there's content to scan for citations
       const hasContent = project.sections?.some(section => 
@@ -218,6 +220,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       return; // No change, don't save
     }
 
+    // Update local word count immediately for responsive UI
+    const updatedSections = (project.sections || []).map(section =>
+      section.id === sectionId
+        ? { ...section, content, updatedAt: new Date() }
+        : section
+    );
+    const updatedProject = { ...project, sections: updatedSections };
+    const newWordCount = calculateTotalWordCount(updatedProject);
+    setLocalWordCount(newWordCount);
+
     // Clear existing timeout
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
@@ -227,38 +239,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     debounceTimeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
       try {
-        // Create updated sections for saving without updating state
-        const updatedSections = (project.sections || []).map(section =>
-          section.id === sectionId
-            ? { ...section, content, updatedAt: new Date() }
-            : section
-        );
-
-        const updatedProject = { ...project, sections: updatedSections };
-        const wordCount = calculateTotalWordCount(updatedProject);
-
         await fetch(`/api/projects/${resolvedParams.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             sections: updatedSections,
-            wordCount: wordCount
+            wordCount: newWordCount
           }),
         });
 
-        // Update state only after successful save, but don't trigger re-render of editor
-        setProject(prevProject => {
-          if (!prevProject) return prevProject;
-          return { 
-            ...prevProject, 
-            wordCount,
-            sections: prevProject.sections?.map(section =>
-              section.id === sectionId
-                ? { ...section, content, updatedAt: new Date() }
-                : section
-            ) || []
-          };
-        });
+        // Don't update state during auto-save to prevent cursor reset
+        // The content is already saved to the backend, state will be updated on next page load
       } catch (error) {
         console.error('Error saving section:', error);
       } finally {
@@ -537,10 +528,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         .map(section => cleanupSectionContent(section.content || ''))
         .join('\n\n');
 
+      // Check if there's content to analyze
+      if (!allContent.trim()) {
+        setShowSuccessMessage('No content available to check for plagiarism. Please add some content to your sections first.');
+        setTimeout(() => setShowSuccessMessage(''), 5000);
+        setIsCheckingPlagiarism(false);
+        return;
+      }
+
       const response = await fetch('/api/plagiarism/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: allContent }),
+        body: JSON.stringify({ 
+          projectId: resolvedParams.id,
+          text: allContent 
+        }),
       });
 
         if (response.ok) {
@@ -724,7 +726,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{project.name}</h1>
             <p className="text-gray-600">
-              {project.type} • {totalWordCount} / {project.targetWordCount} words • {project.citationStyle}
+              {project.type} • {localWordCount} / {project.targetWordCount} words • {project.citationStyle}
             </p>
             <div className="h-1 bg-gradient-to-r from-purple-500 to-red-500 rounded-full my-4" />
               </div>
@@ -944,10 +946,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
                   <div
                     className="bg-purple-500 h-2.5 rounded-full"
-                    style={{ width: `${Math.min(100, (totalWordCount / (project.targetWordCount || 1)) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (localWordCount / (project.targetWordCount || 1)) * 100)}%` }}
                   ></div>
                 </div>
-                <p className="text-sm text-gray-600">{totalWordCount} words written</p>
+                <p className="text-sm text-gray-600">{localWordCount} words written</p>
               </div>
 
               {/* Summary Statistics */}
@@ -964,7 +966,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   </p>
                 </div>
                 <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-                  <h4 className="text-xl font-bold text-gray-900">{Math.round((totalWordCount / (project.targetWordCount || 1)) * 100)}%</h4>
+                  <h4 className="text-xl font-bold text-gray-900">{Math.round((localWordCount / (project.targetWordCount || 1)) * 100)}%</h4>
                   <p className="text-sm text-gray-600">Progress</p>
                   <p className="text-xs text-gray-500">Word count target</p>
                 </div>
@@ -1091,8 +1093,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button 
                             onClick={() => {
                               if (activeS) {
-                                const newContent = (activeS.content || '') + (activeS.content ? '\n\n' : '') + message.content;
+                                const currentContent = cleanupSectionContent(activeS.content || '');
+                                const newContent = currentContent + (currentContent ? '\n\n' : '') + message.content;
                                 handleSectionChange(activeS.id, newContent);
+                                setShowSuccessMessage('✅ AI response inserted into section!');
+                                setTimeout(() => setShowSuccessMessage(''), 3000);
                               }
                             }}
                             className="mt-2 text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
