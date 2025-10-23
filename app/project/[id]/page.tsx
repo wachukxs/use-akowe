@@ -119,6 +119,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     return cleanText.trim().split(/\s+/).filter(word => word.length > 0).length;
   };
 
+
   const cleanupSectionContent = (content: string): string => {
     if (!content) return '';
     
@@ -182,6 +183,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   }, [project]);
 
+
   const fetchProject = async () => {
     try {
       const response = await fetch(`/api/projects/${resolvedParams.id}`);
@@ -216,26 +218,25 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       return; // No change, don't save
     }
 
-    // Update the project state immediately for responsive UI
-    const updatedSections = (project.sections || []).map(section =>
-      section.id === sectionId
-        ? { ...section, content, updatedAt: new Date() }
-        : section
-    );
-
-    const updatedProject = { ...project, sections: updatedSections };
-    const wordCount = calculateTotalWordCount(updatedProject);
-    setProject({ ...updatedProject, wordCount });
-
     // Clear existing timeout
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    // Only save after user stops typing for 3 seconds
+    // Only save after user stops typing for 3 seconds - don't update state to prevent cursor reset
     debounceTimeoutRef.current = setTimeout(async () => {
       setIsSaving(true);
       try {
+        // Create updated sections for saving without updating state
+        const updatedSections = (project.sections || []).map(section =>
+          section.id === sectionId
+            ? { ...section, content, updatedAt: new Date() }
+            : section
+        );
+
+        const updatedProject = { ...project, sections: updatedSections };
+        const wordCount = calculateTotalWordCount(updatedProject);
+
         await fetch(`/api/projects/${resolvedParams.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -243,6 +244,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             sections: updatedSections,
             wordCount: wordCount
           }),
+        });
+
+        // Update state only after successful save, but don't trigger re-render of editor
+        setProject(prevProject => {
+          if (!prevProject) return prevProject;
+          return { 
+            ...prevProject, 
+            wordCount,
+            sections: prevProject.sections?.map(section =>
+              section.id === sectionId
+                ? { ...section, content, updatedAt: new Date() }
+                : section
+            ) || []
+          };
         });
       } catch (error) {
         console.error('Error saving section:', error);
@@ -909,11 +924,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           handleSectionChange(activeS.id, content);
                         }}
                         className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed"
-                      style={{ fontFamily: 'inherit' }}
-                        dangerouslySetInnerHTML={{ 
-                          __html: cleanupSectionContent(activeS.content || '') || `<p><br></p>` 
+                        style={{ fontFamily: 'inherit' }}
+                        key={activeS.id}
+                        ref={(el) => {
+                          if (el && !el.dataset.initialized) {
+                            el.innerHTML = cleanupSectionContent(activeS.content || '') || '<p><br></p>';
+                            el.dataset.initialized = 'true';
+                          }
                         }}
-                        key={`${activeS.id}-${activeS.title}`}
               />
                     </div>
                   </div>
