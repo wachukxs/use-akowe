@@ -28,6 +28,29 @@ export default function DashboardPage() {
     }
   }, [session]);
 
+  // Refresh projects when user returns to dashboard (e.g., from project page)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (session?.user?.email) {
+        fetchProjects();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && session?.user?.email) {
+        fetchProjects();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [session]);
+
   const fetchProjects = async () => {
     try {
       const response = await fetch('/api/projects');

@@ -40,6 +40,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [totalWordCount, setTotalWordCount] = useState(0);
   const [localWordCount, setLocalWordCount] = useState(0);
+  const [localSectionContent, setLocalSectionContent] = useState<string>('');
   const [showManualCitationModal, setShowManualCitationModal] = useState(false);
   const [manualCitation, setManualCitation] = useState({
     title: '',
@@ -185,7 +186,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   }, [project]);
 
-
   const fetchProject = async () => {
     try {
       const response = await fetch(`/api/projects/${resolvedParams.id}`);
@@ -229,6 +229,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     const updatedProject = { ...project, sections: updatedSections };
     const newWordCount = calculateTotalWordCount(updatedProject);
     setLocalWordCount(newWordCount);
+
+    // Update local section content for immediate word count display
+    if (sectionId === activeSection) {
+      setLocalSectionContent(content);
+    }
 
     // Clear existing timeout
     if (debounceTimeoutRef.current) {
@@ -620,15 +625,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         const data = await response.json();
         setLastDetectionResult(data);
         
+        // Update project state immediately with the returned data
+        if (data.project) {
+          setProject(data.project);
+          // Update word count with new project data
+          const wordCount = calculateTotalWordCount(data.project);
+          setTotalWordCount(wordCount);
+          setLocalWordCount(wordCount);
+        }
+        
         if (data.detectedCount > 0) {
           setShowSuccessMessage(`✅ Successfully detected ${data.detectedCount} citations from your content`);
         } else {
           setShowSuccessMessage(`No citations detected in your content. Try adding more specific academic content.`);
         }
         setTimeout(() => setShowSuccessMessage(''), 5000);
-        
-        // Refresh project data to show updated citations
-        await fetchProject();
       } else {
         let errorMessage = 'Citation detection failed';
         try {
@@ -684,6 +695,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  // Update local section content when active section changes
+  useEffect(() => {
+    if (project && activeSection) {
+      const activeS = project.sections?.find(s => s.id === activeSection);
+      if (activeS) {
+        setLocalSectionContent(activeS.content || '');
+      }
+    }
+  }, [project, activeSection]);
+
   if (isLoading) {
   return (
       <div className="flex h-screen">
@@ -697,6 +718,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
     );
   }
+
+  const activeS = project?.sections?.find(s => s.id === activeSection);
 
   if (!project) {
     return (
@@ -713,8 +736,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           </div>
     );
   }
-
-  const activeS = project.sections?.find(s => s.id === activeSection);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -913,7 +934,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         </button>
                         <div className="flex-1"></div>
                         <span className="text-xs text-gray-500">
-                          {countWords(cleanupSectionContent(activeS.content || ''))} words
+                          {countWords(cleanupSectionContent(localSectionContent || ''))} words
                         </span>
             </div>
 
@@ -929,9 +950,18 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         style={{ fontFamily: 'inherit' }}
                         key={activeS.id}
                         ref={(el) => {
-                          if (el && !el.dataset.initialized) {
-                            el.innerHTML = cleanupSectionContent(activeS.content || '') || '<p><br></p>';
-                            el.dataset.initialized = 'true';
+                          if (el) {
+                            const newContent = cleanupSectionContent(activeS.content || '') || '<p><br></p>';
+                            const currentContent = el.innerHTML;
+                            
+                            // Only update if this is initialization OR if content has significantly changed
+                            // (e.g., from citation detection, not from user typing)
+                            if (!el.dataset.initialized || 
+                                (currentContent && newContent && 
+                                 Math.abs(currentContent.length - newContent.length) > 50)) {
+                              el.innerHTML = newContent;
+                              el.dataset.initialized = 'true';
+                            }
                           }
                         }}
               />
