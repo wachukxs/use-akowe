@@ -321,19 +321,31 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: aiInput,
-          projectId: resolvedParams.id
+          projectId: resolvedParams.id,
+          currentSectionContent: cleanupSectionContent(section.content || ''),
+          sectionTitle: section.title,
+          insertionMode: 'integrate'
         }),
       });
       
       if (response.ok) {
         const data = await response.json();
         
+        // Debug logging
+        console.log('AI Assistant Response:', {
+          isIntegrated: data.isIntegrated,
+          insertionMode: 'integrate',
+          hasCurrentContent: !!cleanupSectionContent(section.content || ''),
+          responseLength: data.response?.length
+        });
+        
         // Add assistant response to chat
         const assistantMessage = {
           id: Date.now() + 1,
           type: 'assistant' as const,
           content: data.response,
-          timestamp: new Date()
+          timestamp: new Date(),
+          isIntegrated: data.isIntegrated || false
         };
         setAiMessages(prev => [...prev, assistantMessage]);
         
@@ -443,27 +455,106 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const addCitationToEditor = async (citation: any) => {
     if (!project || !activeSection) return;
 
-    const authorsText = Array.isArray(citation.authors) 
-      ? citation.authors.join(', ') 
-      : citation.authors || 'Unknown Author';
-    const citationText = `(${authorsText}, ${citation.year})`;
     const section = project.sections.find(s => s.id === activeSection);
     if (!section) return;
 
     const currentContent = cleanupSectionContent(section.content || '');
-    const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
     
-    // Update both the project state and local section content for real-time editor update
+    // If section is empty or very short, use simple append
+    if (!currentContent.trim() || currentContent.length < 50) {
+    const authorsText = Array.isArray(citation.authors) 
+      ? citation.authors.join(', ') 
+      : citation.authors || 'Unknown Author';
+    const citationText = `(${authorsText}, ${citation.year})`;
+      const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
+
     handleSectionChange(activeSection, newContent);
-    setLocalSectionContent(newContent);
-    setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
-    
-    // Update editor content directly with cursor preservation
-    updateEditorContent(newContent);
-    
+      setLocalSectionContent(newContent);
+      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      updateEditorContent(newContent);
+      
     setShowCitationDiscovery(false);
     setShowSuccessMessage('Citation added to editor!');
     setTimeout(() => setShowSuccessMessage(''), 3000);
+      return;
+    }
+
+    // For longer content, use intelligent integration
+    try {
+      const response = await fetch('/api/citations/integrate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sectionContent: currentContent,
+          citation: citation,
+          citationStyle: project.citationStyle || 'APA',
+          sectionTitle: section.title
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const integratedContent = data.integratedContent;
+        
+        // Update both the project state and local section content for real-time editor update
+        handleSectionChange(activeSection, integratedContent);
+        setLocalSectionContent(integratedContent);
+        setRealTimeWordCount(countWords(cleanupSectionContent(integratedContent)));
+        
+        // Update editor content directly with cursor preservation
+        updateEditorContent(integratedContent);
+        
+        setShowCitationDiscovery(false);
+        
+        // Provide context-aware success message based on integration type
+        let successMessage = '✅ Citation added to section!';
+        if (data.integrationType === 'TEMPLATE_REPLACEMENT') {
+          successMessage = '✅ Citation integrated with new content!';
+        } else if (data.integrationType === 'CONTENT_EXPANSION') {
+          successMessage = '✅ Citation added with enhanced content!';
+        } else if (data.integrationType === 'NATURAL_INTEGRATION') {
+          successMessage = '✅ Citation intelligently placed in section!';
+        } else if (data.integrationType === 'CONTENT_CONDENSATION') {
+          successMessage = '✅ Citation integrated with improved content!';
+        }
+        
+        setShowSuccessMessage(successMessage);
+        setTimeout(() => setShowSuccessMessage(''), 3000);
+      } else {
+        // Fallback to simple append if integration fails
+        const authorsText = Array.isArray(citation.authors) 
+          ? citation.authors.join(', ') 
+          : citation.authors || 'Unknown Author';
+        const citationText = `(${authorsText}, ${citation.year})`;
+        const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
+        
+        handleSectionChange(activeSection, newContent);
+        setLocalSectionContent(newContent);
+        setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+        updateEditorContent(newContent);
+        
+        setShowCitationDiscovery(false);
+        setShowSuccessMessage('Citation added to editor!');
+        setTimeout(() => setShowSuccessMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error integrating citation:', error);
+      // Fallback to simple append
+      const authorsText = Array.isArray(citation.authors) 
+        ? citation.authors.join(', ') 
+        : citation.authors || 'Unknown Author';
+      const citationText = `(${authorsText}, ${citation.year})`;
+      const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
+      
+      handleSectionChange(activeSection, newContent);
+      setLocalSectionContent(newContent);
+      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      updateEditorContent(newContent);
+      
+      setShowCitationDiscovery(false);
+      setShowSuccessMessage('Citation added to editor!');
+      setTimeout(() => setShowSuccessMessage(''), 3000);
+    }
   };
 
   // Citation filtering and sorting functions
@@ -1023,6 +1114,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         suppressContentEditableWarning
                         onInput={(e) => {
                           const content = e.currentTarget.innerHTML;
+                          // Update real-time word count immediately for responsive UI
+                          setRealTimeWordCount(countWords(cleanupSectionContent(content)));
                           handleSectionChange(activeS.id, content);
                         }}
                         className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed"
@@ -1196,11 +1289,40 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <button 
                           onClick={() => {
                             if (activeS) {
-                                const currentContent = cleanupSectionContent(activeS.content || '');
-                                // Better context-aware insertion: add proper spacing and formatting
-                                const separator = currentContent.trim() ? '\n\n' : '';
-                                const formattedContent = message.content.trim();
-                                const newContent = currentContent + separator + formattedContent;
+                                // Use the isIntegrated flag from the API response
+                                const isIntegratedResponse = (message as any).isIntegrated;
+                                
+                                // Debug logging
+                                console.log('Insert into section:', {
+                                  isIntegrated: isIntegratedResponse,
+                                  currentContent: cleanupSectionContent(activeS.content || ''),
+                                  messageContent: message.content
+                                });
+                                
+                                let newContent;
+                                if (isIntegratedResponse) {
+                                  // Use the integrated content directly - AI has already analyzed and integrated
+                                  newContent = message.content.trim();
+                                } else {
+                                  // For non-integrated responses, try to be smarter about placement
+                                  const currentContent = cleanupSectionContent(activeS.content || '');
+                                  
+                                  // Check if current content is mostly template text
+                                  const isTemplateContent = currentContent.includes('Begin your') || 
+                                                          currentContent.includes('Comprehensive review') ||
+                                                          currentContent.includes('Organization Strategies') ||
+                                                          currentContent.includes('Writing Tips');
+                                  
+                                  if (isTemplateContent) {
+                                    // Replace template content entirely
+                                    newContent = message.content.trim();
+                                  } else {
+                                    // Add to existing substantive content
+                                    const separator = currentContent.trim() ? '\n\n' : '';
+                                    const formattedContent = message.content.trim();
+                                    newContent = currentContent + separator + formattedContent;
+                                  }
+                                }
                                 
                               handleSectionChange(activeS.id, newContent);
                                 
@@ -1211,7 +1333,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 // Update editor content directly with cursor preservation
                                 updateEditorContent(newContent);
                                 
-                                setShowSuccessMessage('✅ AI response inserted into section!');
+                                const successMessage = isIntegratedResponse 
+                                  ? '✅ AI response intelligently integrated into section!'
+                                  : '✅ AI response added to section!';
+                                setShowSuccessMessage(successMessage);
                                 setTimeout(() => setShowSuccessMessage(''), 3000);
                               }
                             }}
