@@ -212,9 +212,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   // Debounced section change handler
   const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isTypingRef = useRef<boolean>(false);
   
   const handleSectionChange = useCallback(async (sectionId: string, content: string) => {
     if (!project) return;
+
+    // Mark that user is currently typing
+    isTypingRef.current = true;
 
     // Find the current section to check if content actually changed
     const currentSection = project.sections?.find(s => s.id === sectionId);
@@ -244,6 +248,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     // Clear existing timeout
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
+      // Reset typing flag since we're starting a new debounce cycle
+      isTypingRef.current = true;
     }
 
     // Only save after user stops typing for 3 seconds - don't update state to prevent cursor reset
@@ -270,8 +276,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           }),
         });
 
-        // Don't update state during auto-save to prevent cursor reset
-        // The content is already saved to the backend, state will be updated on next page load
+        // Update project state after successful save
+        // This ensures content is available when switching sections
+        setProject(prevProject => {
+          if (!prevProject) return null;
+          return {
+            ...prevProject,
+            sections: currentUpdatedSections,
+            wordCount: currentWordCount
+          };
+        });
+        
+        // Mark that user is no longer typing
+        isTypingRef.current = false;
       } catch (error) {
         console.error('Error saving section:', error);
       } finally {
