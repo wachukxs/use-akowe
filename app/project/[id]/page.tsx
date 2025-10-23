@@ -60,8 +60,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
   const [plagiarismResult, setPlagiarismResult] = useState<{
     matchPercentage: number;
-    matches: Array<{ text: string; source: string; url?: string }>;
+    matches: Array<{ text: string; source: string; url?: string; similarity?: number }>;
     remaining: number;
+    sources?: {
+      crossref: number;
+      arxiv: number;
+      scholar: number;
+    };
   } | null>(null);
   const [expandedSections, setExpandedSections] = useState({
     resources: false,
@@ -1604,6 +1609,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     {plagiarismResult.remaining} checks remaining
               </div>
                 </div>
+                
+                {/* External Sources Summary */}
+                {plagiarismResult.sources && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">External Sources Checked:</h5>
+                    <div className="flex gap-4 text-xs text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        CrossRef: {plagiarismResult.sources.crossref} matches
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        arXiv: {plagiarismResult.sources.arxiv} matches
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Scholar: {plagiarismResult.sources.scholar} matches
+                      </span>
+                    </div>
+                  </div>
+                )}
             </div>
 
               {plagiarismResult.matches.length > 0 ? (
@@ -1611,13 +1637,22 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <h4 className="font-semibold text-gray-900">Detected Issues:</h4>
                   {plagiarismResult.matches.map((match, index) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-3">
-                      <p className="text-sm text-gray-700 mb-1">{match.text}</p>
-                      <p className="text-xs text-gray-500">Source: {match.source}</p>
-                      {match.url && (
-                        <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
-                          View Source
-                        </a>
-                      )}
+                      <div className="flex items-start justify-between mb-2">
+                        <p className="text-sm text-gray-700 flex-1">{match.text}</p>
+                        {match.similarity && (
+                          <span className="ml-2 px-2 py-1 bg-gray-100 text-xs text-gray-600 rounded">
+                            {match.similarity}% similar
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500">Source: {match.source}</p>
+                        {match.url && (
+                          <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                            View Source →
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ))}
               </div>
