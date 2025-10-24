@@ -57,8 +57,8 @@ Built a full-stack AI-powered academic writing platform with colorful Notion-sty
 
 ### Pricing Plans Implemented
 - **Free**: $0 - 500 AI words/day, 2 PDFs, 1 plagiarism check/month
-- **Pro**: $15/month - Unlimited AI, 50 PDFs, unlimited checks, GPT-4
-- **Team**: $99/month - All Pro + 10 users + collaboration
+- **Pro**: $10/month (annual billing) - Unlimited AI, 50 PDFs, unlimited checks, GPT-4
+- **Team**: Coming Soon - All Pro + 10 users + collaboration
 
 ### Technical Stack
 - **Frontend**: Next.js 14, React 19, TypeScript, Tailwind CSS 4
@@ -129,21 +129,12 @@ Since `.env.local` is gitignored, create it manually:
 # Copy this to .env.local in the root directory
 
 # MongoDB - Use local or Atlas
-MONGODB_URI=mongodb://localhost:27017/akowe
 
 # NextAuth - Required
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-random-secret-at-least-32-chars
 
-# OpenAI - Required for AI features
-OPENAI_API_KEY=sk-your-actual-api-key
 
-# Google OAuth - Optional
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# OpenAlex - Use your email for polite usage
-OPENALEX_EMAIL=your-email@example.com
 ```
 
 ### 2. Start Development Server

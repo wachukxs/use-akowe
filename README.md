@@ -95,13 +95,13 @@ npm run dev
 - 1 plagiarism check/month
 - Basic citation support
 
-### Pro Plan ($15/month)
+### Pro Plan ($10/month with annual billing)
 - Unlimited AI words
 - 50 PDFs/project
 - Unlimited plagiarism checks
 - GPT-4 access
 
-### Team Plan ($99/month for 10 users)
+### Team Plan (Coming Soon)
 - All Pro features
 - Shared workspaces
 - Admin controls

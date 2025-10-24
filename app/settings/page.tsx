@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true); // Default to annual billing
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -99,8 +100,11 @@ export default function SettingsPage() {
     },
     {
       name: 'Pro',
-      price: '$15',
-      period: 'per month',
+      monthlyPrice: '$19',
+      monthlyPeriod: 'per month',
+      annualPrice: '$120',
+      annualPeriod: 'per year',
+      annualSavings: 'Save $108 per year',
       type: 'pro' as PlanType,
       icon: Crown,
       color: 'from-primary to-accent-purple',
@@ -117,8 +121,8 @@ export default function SettingsPage() {
     },
     {
       name: 'Team',
-      price: '$99',
-      period: 'per month',
+      price: 'Coming Soon',
+      period: '',
       type: 'team' as PlanType,
       icon: Users,
       color: 'from-accent-teal to-accent-blue',
@@ -130,6 +134,7 @@ export default function SettingsPage() {
             'Shared citation library',
             'Team analytics',
           ],
+      comingSoon: true,
     },
   ];
 
@@ -226,6 +231,42 @@ export default function SettingsPage() {
               Choose Your Plan
             </h2>
             
+            {/* Billing Toggle */}
+            <div className="mb-6 flex items-center justify-center gap-4">
+              <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+                Monthly
+              </span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Toggle clicked, current isAnnual:', isAnnual);
+                    setIsAnnual(!isAnnual);
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer z-10 ${
+                    isAnnual ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                  aria-label={`Switch to ${isAnnual ? 'monthly' : 'annual'} billing`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
+                      isAnnual ? 'translate-x-6 bg-blue-600 shadow-lg border-2 border-white' : 'translate-x-1 bg-white shadow-sm border border-gray-300'
+                    }`}
+                  />
+                </button>
+              </div>
+              <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+                Annual
+              </span>
+              {isAnnual && (
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                  Save 47%
+                </span>
+              )}
+            </div>
+            
             {/* AI Words Explainer */}
             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-start gap-3">
@@ -266,12 +307,36 @@ export default function SettingsPage() {
                     </h3>
                     
                     <div className="mb-6">
-                      <span className="text-4xl font-bold text-gray-900">
-                        {plan.price}
-                      </span>
-                      <span className="text-gray-600 ml-2">
-                        {plan.period}
-                      </span>
+                      {plan.monthlyPrice ? (
+                        <div>
+                          <div className="flex items-baseline gap-2 mb-1">
+                            <span className="text-4xl font-bold text-gray-900">
+                              {isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                            </span>
+                            {/* Debug info */}
+                            <span className="text-xs text-gray-400 ml-2">
+                              ({isAnnual ? 'annual' : 'monthly'})
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {isAnnual ? plan.annualPeriod : plan.monthlyPeriod}
+                          </div>
+                          {isAnnual && plan.annualSavings && (
+                            <div className="text-sm text-green-600 mt-1 font-medium">
+                              {plan.annualSavings}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <span className="text-4xl font-bold text-gray-900">
+                            {plan.price}
+                          </span>
+                          <span className="text-gray-600 ml-2">
+                            {plan.period}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <ul className="space-y-3 mb-6">
@@ -286,10 +351,10 @@ export default function SettingsPage() {
                     <Button
                       className="w-full"
                       variant={plan.popular ? 'primary' : 'outline'}
-                      onClick={() => plan.type !== 'free' && handleUpgrade(plan.type)}
-                      disabled={plan.type === 'free'}
+                      onClick={() => plan.type !== 'free' && !plan.comingSoon && handleUpgrade(plan.type)}
+                      disabled={plan.type === 'free' || plan.comingSoon}
                     >
-                      {plan.type === 'free' ? 'Current Plan' : 'Upgrade'}
+                      {plan.type === 'free' ? 'Current Plan' : plan.comingSoon ? 'Coming Soon' : 'Upgrade'}
                     </Button>
                   </Card>
                 );

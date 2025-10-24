@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -10,6 +10,7 @@ import { Zap, BookOpen, Shield, Download, Check, ArrowRight, Star } from 'lucide
 export default function HomePage() {
   const router = useRouter();
   const { status } = useSession();
+  const [isAnnual, setIsAnnual] = useState(true); // Default to annual billing
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -265,6 +266,33 @@ export default function HomePage() {
             </div>
           </div>
           
+          {/* Billing Toggle */}
+          <div className="mb-8 flex items-center justify-center gap-4">
+            <span className={`text-lg font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+              Monthly
+            </span>
+            <button
+              onClick={() => setIsAnnual(!isAnnual)}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
+                isAnnual ? 'bg-blue-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full transition-transform ${
+                  isAnnual ? 'translate-x-6 bg-blue-600 shadow-lg border-2 border-white' : 'translate-x-1 bg-white shadow-sm border border-gray-300'
+                }`}
+              />
+            </button>
+            <span className={`text-lg font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+              Annual
+            </span>
+            {isAnnual && (
+              <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+                Save 47%
+              </span>
+            )}
+          </div>
+          
           <div className="grid md:grid-cols-3 gap-10">
             <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-200 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500">
               <h3 className="text-3xl font-bold text-gray-900 mb-4">Free</h3>
@@ -305,7 +333,17 @@ export default function HomePage() {
                 </span>
               </div>
               <h3 className="text-3xl font-bold text-gray-900 mb-4">Pro</h3>
-              <div className="text-6xl font-bold text-gray-900 mb-6">$15</div>
+              <div className="text-6xl font-bold text-gray-900 mb-2">
+                {isAnnual ? '$10' : '$19'}
+              </div>
+              <div className="text-sm text-gray-600 mb-4">
+                {isAnnual ? 'per month with annual billing' : 'per month'}
+              </div>
+              {isAnnual && (
+                <div className="text-sm text-green-600 mb-4 font-medium">
+                  Save $108 per year
+                </div>
+              )}
               <p className="text-gray-600 text-lg mb-10">Unlimited AI and features</p>
               <ul className="space-y-6 mb-10">
                 <li className="flex items-center text-gray-600 text-lg">
@@ -344,7 +382,8 @@ export default function HomePage() {
             
             <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-200 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500">
               <h3 className="text-3xl font-bold text-gray-900 mb-4">Team</h3>
-              <div className="text-6xl font-bold text-gray-900 mb-6">$99</div>
+              <div className="text-6xl font-bold text-gray-900 mb-2">Coming Soon</div>
+              <div className="text-sm text-gray-600 mb-4">Team collaboration features</div>
               <p className="text-gray-600 text-lg mb-10">For research teams</p>
               <ul className="space-y-6 mb-10">
                 <li className="flex items-center text-gray-600 text-lg">
@@ -364,8 +403,8 @@ export default function HomePage() {
                   Custom integrations
                 </li>
               </ul>
-              <button className="w-full border-2 border-blue-200 text-blue-600 py-5 rounded-2xl font-semibold text-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-300">
-                Contact Sales
+              <button className="w-full border-2 border-gray-200 text-gray-500 py-5 rounded-2xl font-semibold text-lg cursor-not-allowed" disabled>
+                Coming Soon
               </button>
             </div>
           </div>
@@ -393,7 +432,9 @@ export default function HomePage() {
                   <th className="px-6 py-6 text-center">
                     <div className="flex flex-col items-center">
                       <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">Akowe</span>
-                      <span className="text-sm text-gray-600 mt-1">$15/month</span>
+                      <span className="text-sm text-gray-600 mt-1">
+                        {isAnnual ? '$10/month' : '$19/month'}
+                      </span>
                     </div>
                   </th>
                   <th className="px-6 py-6 text-center">
@@ -450,7 +491,14 @@ export default function HomePage() {
                 <tr className="border-t border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50">
                   <td className="px-6 py-6 text-gray-900 font-bold text-lg">Price per Month</td>
                   <td className="px-6 py-6 text-center">
-                    <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">$15</span>
+                    <div className="flex flex-col items-center">
+                      <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
+                        {isAnnual ? '$10' : '$19'}
+                      </span>
+                      <span className="text-xs text-gray-500 mt-1">
+                        {isAnnual ? 'Annual billing' : 'Monthly billing'}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-6 text-center">
                     <span className="text-2xl font-semibold text-gray-700">$25-30</span>
