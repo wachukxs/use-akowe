@@ -8,7 +8,8 @@ import { Project } from '@/types';
 import { 
   BookOpen, GripVertical, Plus, Download, CheckCircle2, FileText, X, Send, Bot, 
   Edit3, Trash2, ChevronDown, ChevronRight, Target, Clock, BookMarked, Search, 
-  Shield, Bold, Italic, Underline, List, Hash, Quote, Link, Sparkles, Copy, Save, Undo, Redo
+  Shield, Bold, Italic, Underline, List, Hash, Quote, Link, Sparkles, Copy, Save, Undo, Redo,
+  Calculator, BarChart3
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
@@ -132,6 +133,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     resources: false,
     akowe: false,
   });
+  
+  // Math and Chart modal states
+  const [showMathModal, setShowMathModal] = useState(false);
+  const [showChartModal, setShowChartModal] = useState(false);
+  const [mathPreview, setMathPreview] = useState('');
+  const [mathExplanation, setMathExplanation] = useState('');
+  const [isGeneratingExplanation, setIsGeneratingExplanation] = useState(false);
+  const [isAddingCitation, setIsAddingCitation] = useState(false);
 
   // Helper functions for contentEditable content
   const extractTextFromContent = (content: string): string => {
@@ -293,6 +302,63 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       setHasContentToScan(hasContent);
     }
   }, [project]);
+
+  // Render math equations with KaTeX
+  useEffect(() => {
+    const renderMath = async () => {
+      if (typeof window !== 'undefined' && (window as any).katex) {
+        const mathElements = document.querySelectorAll('.math-equation');
+        mathElements.forEach((element) => {
+          const mathText = element.textContent?.trim();
+          if (mathText && mathText.startsWith('$') && mathText.endsWith('$')) {
+            try {
+              const latex = mathText.slice(1, -1); // Remove $ symbols
+              const rendered = (window as any).katex.renderToString(latex, {
+                throwOnError: false,
+                displayMode: true
+              });
+              element.innerHTML = rendered;
+            } catch (error) {
+              console.warn('KaTeX rendering failed:', error);
+            }
+          }
+        });
+      }
+    };
+
+    // Render math after a short delay to ensure DOM is ready
+    const timer = setTimeout(renderMath, 100);
+    return () => clearTimeout(timer);
+  }, [project]);
+
+  // Render live preview math
+  useEffect(() => {
+    const renderPreview = () => {
+      if (typeof window !== 'undefined' && (window as any).katex && mathPreview) {
+        const previewElement = document.getElementById('math-preview');
+        if (previewElement) {
+          try {
+            const rendered = (window as any).katex.renderToString(mathPreview, {
+              throwOnError: false,
+              displayMode: true
+            });
+            previewElement.innerHTML = rendered;
+          } catch (error) {
+            console.warn('KaTeX preview rendering failed:', error);
+            previewElement.innerHTML = `$${mathPreview}$`;
+          }
+        }
+      }
+    };
+
+    const timer = setTimeout(renderPreview, 100);
+    return () => clearTimeout(timer);
+  }, [mathPreview]);
+
+  // Debug mathExplanation state changes
+  useEffect(() => {
+    console.log('🧠 DEBUG: mathExplanation state changed:', mathExplanation);
+  }, [mathExplanation]);
 
   const fetchProject = async () => {
     try {
@@ -922,6 +988,204 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  // Generate AI explanation for math equation
+  const generateMathExplanation = async (latexCode: string, retryCount = 0) => {
+    console.log('🧠 DEBUG: generateMathExplanation called');
+    console.log('🧠 DEBUG: latexCode:', latexCode);
+    console.log('🧠 DEBUG: latexCode.trim():', latexCode.trim());
+    console.log('🧠 DEBUG: retryCount:', retryCount);
+    
+    if (!latexCode.trim()) {
+      console.log('🧠 DEBUG: Empty latexCode, returning early');
+      return;
+    }
+    
+    console.log('🧠 DEBUG: Setting isGeneratingExplanation to true');
+    setIsGeneratingExplanation(true);
+    
+    try {
+      const requestBody = {
+        prompt: `Please provide a clear, concise explanation of this mathematical equation: ${latexCode}. Explain what each part represents, the mathematical concept it demonstrates, and provide a brief example of when this equation might be used. Keep the explanation academic but accessible, suitable for a research paper.`,
+        context: 'math_explanation',
+        projectId: project?._id,
+      };
+      
+      console.log('🧠 DEBUG: Making API request to /api/ai/write');
+      console.log('🧠 DEBUG: Request body:', requestBody);
+      
+      const response = await fetch('/api/ai/write', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('🧠 DEBUG: Response received');
+      console.log('🧠 DEBUG: Response status:', response.status);
+      console.log('🧠 DEBUG: Response ok:', response.ok);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🧠 DEBUG: Response data:', data);
+        console.log('🧠 DEBUG: data.text:', data.text);
+        console.log('🧠 DEBUG: data.content:', data.content);
+        console.log('🧠 DEBUG: data keys:', Object.keys(data));
+        
+        const explanationText = data.text || data.content || '';
+        console.log('🧠 DEBUG: Setting explanation text:', explanationText);
+        setMathExplanation(explanationText);
+        console.log('🧠 DEBUG: setMathExplanation called with:', explanationText);
+      } else if (response.status === 429) {
+        console.warn('⚠️ Rate limit hit, retryCount:', retryCount);
+        if (retryCount < 2) {
+          console.log('🧠 DEBUG: Retrying in 2 seconds...');
+          setTimeout(() => {
+            generateMathExplanation(latexCode, retryCount + 1);
+          }, 2000);
+          return;
+        } else {
+          setMathExplanation('Rate limit reached. Please wait a moment before generating another explanation, or try again later.');
+        }
+      } else {
+        console.error('❌ Failed to generate math explanation');
+        console.error('❌ Response status:', response.status);
+        console.error('❌ Response statusText:', response.statusText);
+        setMathExplanation('Unable to generate explanation at this time. Please try again later.');
+      }
+    } catch (error) {
+      console.error('❌ Error generating math explanation:', error);
+      console.error('❌ Error stack:', (error as Error).stack);
+      setMathExplanation('Unable to generate explanation at this time.');
+    } finally {
+      console.log('🧠 DEBUG: Setting isGeneratingExplanation to false');
+      setIsGeneratingExplanation(false);
+    }
+  };
+
+  // Math insertion function that saves to database immediately
+  const insertMathIntoEditor = async (mathElement: string, latexCode: string) => {
+    console.log('🔧 DEBUG: insertMathIntoEditor called');
+    console.log('🔧 DEBUG: mathElement:', mathElement);
+    console.log('🔧 DEBUG: latexCode:', latexCode);
+    
+    try {
+      const editorElement = document.querySelector('[contentEditable]') as HTMLElement;
+      console.log('🔧 DEBUG: editorElement found:', !!editorElement);
+      
+      if (!editorElement) {
+        console.error('❌ ContentEditable element not found');
+        return;
+      }
+
+      // Focus the editor first to ensure we have a selection
+      console.log('🔧 DEBUG: Focusing editor element');
+      editorElement.focus();
+      
+      const selection = window.getSelection();
+      console.log('🔧 DEBUG: selection object:', selection);
+      console.log('🔧 DEBUG: selection.rangeCount:', selection?.rangeCount);
+      
+      let range: Range;
+      
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+        console.log('🔧 DEBUG: Using existing selection range');
+        console.log('🔧 DEBUG: Selection position:', range.startOffset, 'in', range.startContainer.nodeName);
+      } else {
+        console.log('🔧 DEBUG: Creating new selection at end of editor');
+        // If no selection, create one at the end of the editor
+        range = document.createRange();
+        
+        // Find the last text node or element in the editor
+        const walker = document.createTreeWalker(
+          editorElement,
+          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+          null
+        );
+        
+        let lastNode: Node = editorElement;
+        let node: Node | null;
+        while (node = walker.nextNode()) {
+          lastNode = node;
+        }
+        
+        if (lastNode.nodeType === Node.TEXT_NODE) {
+          range.setStart(lastNode, lastNode.textContent?.length || 0);
+          range.setEnd(lastNode, lastNode.textContent?.length || 0);
+        } else {
+          range.setStartAfter(lastNode);
+          range.setEndAfter(lastNode);
+        }
+        
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        console.log('🔧 DEBUG: New selection created at end, offset:', range.startOffset);
+      }
+      
+      console.log('🔧 DEBUG: Range created:', range);
+      console.log('🔧 DEBUG: Range start container:', range.startContainer);
+      console.log('🔧 DEBUG: Range start offset:', range.startOffset);
+      
+      // Clear any existing content in the range
+      console.log('🔧 DEBUG: Clearing existing content in range');
+      range.deleteContents();
+      
+      // Create and insert the math element
+      console.log('🔧 DEBUG: Creating math element from HTML');
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = mathElement;
+      const mathNode = tempDiv.firstElementChild; // Use firstElementChild instead of firstChild
+      
+      console.log('🔧 DEBUG: mathNode created:', !!mathNode);
+      console.log('🔧 DEBUG: mathNode type:', mathNode?.nodeType);
+      console.log('🔧 DEBUG: mathNode content:', mathNode?.textContent);
+      console.log('🔧 DEBUG: mathNode outerHTML:', mathNode?.outerHTML);
+      
+      if (mathNode) {
+        console.log('🔧 DEBUG: Inserting math node into range');
+        range.insertNode(mathNode);
+        
+        // Move cursor after the inserted math
+        console.log('🔧 DEBUG: Moving cursor after inserted math');
+        range.setStartAfter(mathNode);
+        range.setEndAfter(mathNode);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        
+        // Trigger input event to update the editor state
+        console.log('🔧 DEBUG: Dispatching input event');
+        const inputEvent = new Event('input', { bubbles: true });
+        editorElement.dispatchEvent(inputEvent);
+        
+        // Get the updated content and save to database after a short delay
+        if (activeSection) {
+          console.log('🔧 DEBUG: Waiting for DOM update before database save');
+          // Small delay to ensure DOM is updated
+          setTimeout(async () => {
+            console.log('🔧 DEBUG: Saving to database, activeSection:', activeSection);
+            const updatedContent = editorElement.innerHTML;
+            console.log('🔧 DEBUG: Updated content length:', updatedContent.length);
+            console.log('🔧 DEBUG: Updated content preview:', updatedContent.substring(0, 200) + '...');
+            
+            await handleSectionChange(activeSection, updatedContent);
+            console.log('🔧 DEBUG: Database save completed');
+          }, 100);
+        }
+        
+        checkFormattingState();
+        console.log('✅ Math equation inserted successfully');
+      } else {
+        console.error('❌ Failed to create math node');
+      }
+    } catch (error) {
+      console.error('❌ Math insertion failed:', error);
+      console.error('❌ Error stack:', (error as Error).stack);
+    }
+  };
+
+  // Math Block helper functions
+
   // Simple text input handler
   const handleTextInput = (e: React.FormEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -974,28 +1238,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     const section = project.sections.find(s => s.id === activeSection);
     if (!section) return;
 
+    // Set loading state immediately
+    setIsAddingCitation(true);
+
     const currentContent = cleanupSectionContent(section.content || '');
     
-    // If section is empty or very short, use simple append
-    if (!currentContent.trim() || currentContent.length < 50) {
-    const authorsText = Array.isArray(citation.authors) 
-      ? citation.authors.join(', ') 
-      : citation.authors || 'Unknown Author';
-    const citationText = `(${authorsText}, ${citation.year})`;
-      const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
-
-    handleSectionChange(activeSection, newContent);
-      setLocalSectionContent(newContent);
-      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
-      updateEditorContent(newContent);
-      
-    setShowCitationDiscovery(false);
-    setShowSuccessMessage('Citation added to editor!');
-    setTimeout(() => setShowSuccessMessage(''), 3000);
-      return;
-    }
-
-    // For longer content, use intelligent integration
+    // Use intelligent integration for all content lengths
     try {
       const response = await fetch('/api/citations/integrate', {
         method: 'POST',
@@ -1070,6 +1318,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       setShowCitationDiscovery(false);
       setShowSuccessMessage('Citation added to editor!');
       setTimeout(() => setShowSuccessMessage(''), 3000);
+    } finally {
+      // Always reset loading state
+      setIsAddingCitation(false);
     }
   };
 
@@ -2005,6 +2256,26 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </button>
                         </div>
                         
+                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        
+                        {/* Math and Charts */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setShowMathModal(true)}
+                            className="p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button hover:bg-gray-200"
+                            title="Insert Math Equation"
+                          >
+                            <Calculator className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setShowChartModal(true)}
+                            className="p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button hover:bg-gray-200"
+                            title="Insert Chart"
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        
                         <div className="flex-1"></div>
                         <span className="text-xs text-gray-500 font-medium">
                           {realTimeWordCount} words
@@ -2623,10 +2894,24 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       )}
                           <button
                         onClick={() => addCitationToEditor(citation)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                            disabled={isAddingCitation}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                              isAddingCitation 
+                                ? 'bg-gray-400 cursor-not-allowed text-white' 
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
                           >
-                            <Plus className="h-4 w-4" />
-                            Add Citation
+                            {isAddingCitation ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                Adding...
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="h-4 w-4" />
+                                Add Citation
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
@@ -3118,6 +3403,216 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               >
                 <X className="h-4 w-4" />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Simple Math Modal */}
+      {showMathModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-2xl mx-4 shadow-2xl w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Insert Math Equation</h3>
+                <button
+                  onClick={() => {
+                    setShowMathModal(false);
+                    setMathPreview('');
+                    setMathExplanation('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* LaTeX Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  LaTeX Equation
+                </label>
+                <input
+                  type="text"
+                  value={mathPreview}
+                  onChange={(e) => setMathPreview(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  placeholder="e.g., \\frac{a}{b}, x^2 + y^2 = z^2, E = mc^2"
+                />
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs text-gray-500">
+                    Use LaTeX syntax. Examples: \frac&#123;a&#125;&#123;b&#125;, x^2, \sum_&#123;i=1&#125;^n, \int_0^\infty
+                  </p>
+                  <a 
+                    href="/latex-guide" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-700 underline"
+                  >
+                    Full Guide
+                  </a>
+                </div>
+              </div>
+
+                {/* Live Preview */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Preview
+                  </label>
+                  <div className="p-6 border border-gray-200 rounded-lg bg-gray-50 min-h-[80px] flex items-center justify-center">
+                    {mathPreview ? (
+                      <div
+                        id="math-preview"
+                        className="text-2xl text-gray-900"
+                      >
+                        ${mathPreview}$
+                      </div>
+                    ) : (
+                      <div className="text-2xl text-gray-400">Your equation will appear here...</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* AI Explanation */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      AI Explanation
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        console.log('🧠 DEBUG: Generate Explanation button clicked');
+                        console.log('🧠 DEBUG: mathPreview:', mathPreview);
+                        console.log('🧠 DEBUG: isGeneratingExplanation:', isGeneratingExplanation);
+                        generateMathExplanation(mathPreview);
+                      }}
+                      disabled={!mathPreview.trim() || isGeneratingExplanation}
+                      className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGeneratingExplanation ? 'Generating...' : 'Generate Explanation'}
+                    </button>
+                  </div>
+                  <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 min-h-[100px]">
+                    {mathExplanation ? (
+                      <div className="text-sm text-gray-800 leading-relaxed">
+                        {mathExplanation}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500 italic">
+                        Click "Generate Explanation" to get an AI-powered explanation of your equation.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              {/* Quick Examples */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quick Examples
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: 'Fraction', value: '\\frac{a}{b}' },
+                    { label: 'Power', value: 'x^2 + y^2' },
+                    { label: 'Square Root', value: '\\sqrt{x^2 + y^2}' },
+                    { label: 'Sum', value: '\\sum_{i=1}^n x_i' },
+                    { label: 'Integral', value: '\\int_0^\\infty f(x) dx' },
+                    { label: 'Greek', value: '\\alpha + \\beta = \\gamma' }
+                  ].map((example) => (
+                    <button
+                      key={example.label}
+                      onClick={() => setMathPreview(example.value)}
+                      className="p-3 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                    >
+                      <div className="font-medium text-sm">{example.label}</div>
+                      <div className="text-xs text-gray-600 font-mono">{example.value}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-6 border-t border-gray-200">
+              <Button
+                onClick={() => {
+                  setShowMathModal(false);
+                  setMathPreview('');
+                  setMathExplanation('');
+                }}
+                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  console.log('🎯 DEBUG: Insert Equation button clicked');
+                  console.log('🎯 DEBUG: mathPreview:', mathPreview);
+                  console.log('🎯 DEBUG: mathPreview.trim():', mathPreview.trim());
+                  
+                  if (mathPreview.trim()) {
+                    console.log('🎯 DEBUG: Creating math block');
+                    // Create simple math block with LaTeX - insert the raw LaTeX
+                    const mathBlock = `
+                      <div class="math-equation" style="margin: 16px 0; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; text-align: center;">
+                        <div style="font-size: 1.2em; font-family: 'Times New Roman', serif; color: #374151;">
+                          $${mathPreview}$
+                        </div>
+                      </div>
+                    `;
+                    
+                    console.log('🎯 DEBUG: mathBlock created:', mathBlock);
+                    console.log('🎯 DEBUG: Calling insertMathIntoEditor');
+                    
+                    await insertMathIntoEditor(mathBlock, mathPreview);
+                    
+                    console.log('🎯 DEBUG: insertMathIntoEditor completed');
+                  } else {
+                    console.log('🎯 DEBUG: mathPreview is empty, skipping insertion');
+                  }
+                  
+                  console.log('🎯 DEBUG: Closing modal and resetting state');
+                  setShowMathModal(false);
+                  setMathPreview('');
+                  setMathExplanation('');
+                }}
+                disabled={!mathPreview.trim()}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Insert Equation
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chart Modal */}
+      {showChartModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-4xl mx-4 shadow-2xl w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900">Insert Chart</h3>
+              <button
+                onClick={() => setShowChartModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="text-center py-12">
+              <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 mb-2">Chart Feature Coming Soon</h4>
+              <p className="text-gray-600 mb-6">
+                We're working on an intuitive chart builder. For now, you can insert images of charts.
+              </p>
+              <Button
+                onClick={() => setShowChartModal(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Got it
+              </Button>
             </div>
           </div>
         </div>
