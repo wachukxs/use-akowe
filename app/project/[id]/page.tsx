@@ -1904,14 +1904,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={undo}
-                            className="p-2 md:p-2 hover:bg-gray-200 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                            className="p-2 md:p-2 hover:bg-gray-200 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Undo (Ctrl+Z)"
                           >
                             <Undo className="h-4 w-4" />
                           </button>
                           <button
                             onClick={redo}
-                            className="p-2 md:p-2 hover:bg-gray-200 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                            className="p-2 md:p-2 hover:bg-gray-200 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Redo (Ctrl+Shift+Z)"
                           >
                             <Redo className="h-4 w-4" />
@@ -1924,7 +1924,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={applyBold}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.bold 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -1935,7 +1935,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </button>
                           <button
                             onClick={applyItalic}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.italic 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -1946,7 +1946,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </button>
                           <button
                             onClick={applyUnderline}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.underline 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -1963,7 +1963,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={applyUnorderedList}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.unorderedList 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -1974,7 +1974,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </button>
                           <button
                             onClick={applyOrderedList}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.orderedList 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -1991,7 +1991,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => applyHeader(1)}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.h1 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -2002,7 +2002,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </button>
                           <button
                             onClick={() => applyHeader(2)}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.h2 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -2013,7 +2013,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </button>
                           <button
                             onClick={() => applyHeader(3)}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.h3 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
@@ -2024,7 +2024,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </button>
                           <button
                             onClick={applyNormal}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
                               formattingState.normal 
                                 ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
