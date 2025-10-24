@@ -189,10 +189,10 @@ export default function SettingsPage() {
                   </div>
                   <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-primary to-accent-purple"
+                      className="h-full bg-blue-600 transition-all duration-300"
                       style={{
                         width: usage.limits.aiWordsPerDay === Infinity 
-                          ? '0%' 
+                          ? '100%' 
                           : `${Math.min((usage.aiWordsGenerated / usage.limits.aiWordsPerDay) * 100, 100)}%`
                       }}
                     />
