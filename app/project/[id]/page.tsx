@@ -1574,7 +1574,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       
-      <div className={`flex-1 ml-56 overflow-y-auto transition-all duration-300 ${isAIDrawerOpen ? 'mr-72' : ''}`}>
+      <div className={`flex-1 ml-56 overflow-y-auto transition-all duration-300 ${isAIDrawerOpen ? 'mr-80' : ''}`}>
         <div className="max-w-7xl mx-auto p-8">
           {/* Project Header */}
           <div className="mb-6">
@@ -1585,9 +1585,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             <div className="h-1 bg-gradient-to-r from-blue-500 to-slate-500 rounded-full my-4" />
               </div>
 
-          <div className="grid grid-cols-12 gap-8">
+          <div className={`grid gap-8 ${isAIDrawerOpen ? 'grid-cols-12' : 'grid-cols-12'}`}>
             {/* Left Column - Sections and Actions */}
-            <div className="col-span-3 space-y-8">
+            <div className={`space-y-8 ${isAIDrawerOpen ? 'col-span-3' : 'col-span-3'}`}>
               {/* Sections Panel */}
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div className="p-4 border-b border-gray-100">
@@ -1764,7 +1764,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Right Column - Editor */}
-            <div className="col-span-9">
+            <div className={`${isAIDrawerOpen ? 'col-span-9' : 'col-span-9'}`}>
               {activeS && (
                 <div className="bg-white rounded-lg border border-gray-200 mb-8">
                   <div className="p-6">
@@ -2124,7 +2124,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* AI Assistant Side Panel */}
       {isAIDrawerOpen && (
-        <div className="fixed top-0 right-0 w-72 h-full bg-white border-l border-gray-200 z-40 flex flex-col shadow-2xl">
+        <div className="fixed top-0 right-0 w-80 h-full bg-white border-l border-gray-200 z-40 flex flex-col shadow-2xl">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-slate-600 text-white p-4">
             <div className="flex items-center justify-between">
