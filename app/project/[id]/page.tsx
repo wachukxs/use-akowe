@@ -1374,6 +1374,18 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  // Smart encouragement logic based on progress
+  const getEncouragementMessage = (progress: number) => {
+    if (progress === 0) return "Ready to start writing? Let's begin!";
+    if (progress < 10) return "Great start! Every word counts";
+    if (progress < 25) return "You're building momentum! Keep going";
+    if (progress < 50) return "You're making solid progress!";
+    if (progress < 75) return "You're over halfway there!";
+    if (progress < 90) return "Almost there! Push through!";
+    if (progress < 100) return "Excellent work! You're nearly done!";
+    return "Congratulations! You've reached your goal!";
+  };
+
   // Auto-detect export settings from project data
   const detectExportSettings = (project: any) => {
     if (!project) return { citationStyle: 'apa', template: 'research-paper' };
@@ -1490,16 +1502,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   }, []);
 
   if (isLoading) {
-  return (
+    return (
       <div className="flex h-screen">
-      <Sidebar />
+        <Sidebar />
         <div className="flex-1 ml-64 flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">Loading...</p>
-                </div>
-                </div>
-              </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -1514,10 +1526,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Project not found</h1>
             <Button onClick={() => router.push('/dashboard')}>
               Back to Dashboard
-                </Button>
-              </div>
-            </div>
+            </Button>
           </div>
+        </div>
+      </div>
     );
   }
 
@@ -1640,7 +1652,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
           <div className={`grid gap-8 ${isAIDrawerOpen ? 'grid-cols-12' : 'grid-cols-12'}`}>
             {/* Left Column - Sections and Actions */}
-            <div className={`space-y-8 ${isAIDrawerOpen ? 'col-span-3' : 'col-span-3'}`}>
+            <div className={`space-y-8 ${isAIDrawerOpen ? 'col-span-3' : 'col-span-3'} sticky top-4 self-start`}>
               {/* Sections Panel */}
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div className="p-4 border-b border-gray-100">
@@ -2156,13 +2168,42 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               {/* Writing Progress */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Writing Progress</h3>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                  <div
-                    className="bg-blue-500 h-2.5 rounded-full"
-                    style={{ width: `${Math.min(100, (localWordCount / (project.targetWordCount || 1)) * 100)}%` }}
-                  ></div>
+                
+                {/* Progress Bar with Visual Enhancement */}
+                <div className="mb-4">
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-slate-500 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (localWordCount / (project.targetWordCount || 1)) * 100)}%` }}
+                    ></div>
+                  </div>
+                  
+                  {/* Progress Stats */}
+                  <div className="flex justify-between text-sm text-gray-600 mb-3">
+                    <span className="font-medium">{localWordCount.toLocaleString()} words</span>
+                    <span className="text-gray-500">{project.targetWordCount?.toLocaleString() || 0} target</span>
+                  </div>
+                  
+                  {/* Progress Percentage and Next Milestone */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {Math.round((localWordCount / (project.targetWordCount || 1)) * 100)}%
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600">Next milestone</div>
+                      <div className="text-sm font-medium text-blue-600">
+                        {Math.ceil((localWordCount / (project.targetWordCount || 1)) * 100 / 25) * 25}%
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600">{localWordCount} words written</p>
+                
+                {/* Smart Encouragement Message */}
+                <div className="bg-gradient-to-r from-blue-50 to-slate-50 border border-blue-200 rounded-lg p-4 text-center">
+                  <p className="text-sm font-medium text-gray-800">
+                    {getEncouragementMessage(Math.round((localWordCount / (project.targetWordCount || 1)) * 100))}
+                  </p>
+                </div>
               </div>
 
               {/* Summary Statistics */}
@@ -2180,19 +2221,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
                   <h4 className="text-xl font-bold text-gray-900">{Math.round((localWordCount / (project.targetWordCount || 1)) * 100)}%</h4>
-                  <p className="text-sm text-gray-600">Progress</p>
+                  <p className="text-sm text-gray-600">Complete</p>
                   <p className="text-xs text-gray-500">Word count target</p>
                 </div>
               </div>
-
-              {/* Progress Banner */}
-              <div className="bg-gradient-to-r from-blue-500 via-slate-500 to-blue-600 text-white p-6 rounded-xl text-center">
-                <p className="font-semibold">Excellent progress! You're on a roll</p>
-                  </div>
-                  </div>
-                </div>
-                  </div>
-                </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* AI Assistant Side Panel */}
       {isAIDrawerOpen && (
