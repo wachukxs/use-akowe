@@ -1381,16 +1381,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         credentials: 'include'
       });
 
-      if (!response.ok) throw new Error('Export failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Export failed: ${response.status} ${errorText}`);
+      }
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
       a.download = `${project.name}.${format}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       setShowSuccessMessage(`Project exported as ${format.toUpperCase()} successfully!`);
@@ -1756,6 +1759,25 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <span className="text-sm font-medium">Check Plagiarism</span>
                     </div>
                     {isCheckingPlagiarism && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                  
+                  <div className="border-t border-gray-100 my-2"></div>
+                  
+                  <div 
+                    onClick={() => setShowExportModal(true)}
+                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                      isExporting 
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Download className="h-4 w-4" />
+                      <span className="text-sm font-medium">Export Project</span>
+                    </div>
+                    {isExporting && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     )}
                   </div>
@@ -2603,9 +2625,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               <button
                   onClick={() => handleExport('pdf')}
                   disabled={isExporting}
-                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-3"
+                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-blue-50 flex items-center gap-3 transition-colors"
                 >
-                  <FileText className="h-5 w-5 text-red-500" />
+                  <FileText className="h-5 w-5 text-blue-600" />
                   <div className="text-left">
                     <div className="font-medium">PDF Document</div>
                     <div className="text-sm text-gray-500">Portable Document Format</div>
@@ -2615,9 +2637,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <button
                   onClick={() => handleExport('docx')}
                   disabled={isExporting}
-                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-3"
+                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-blue-50 flex items-center gap-3 transition-colors"
                 >
-                  <FileText className="h-5 w-5 text-blue-500" />
+                  <FileText className="h-5 w-5 text-blue-600" />
                   <div className="text-left">
                     <div className="font-medium">Word Document</div>
                     <div className="text-sm text-gray-500">Microsoft Word Format</div>
@@ -2627,9 +2649,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <button
                   onClick={() => handleExport('txt')}
                   disabled={isExporting}
-                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-3"
+                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-blue-50 flex items-center gap-3 transition-colors"
                 >
-                  <FileText className="h-5 w-5 text-gray-500" />
+                  <FileText className="h-5 w-5 text-blue-600" />
                   <div className="text-left">
                     <div className="font-medium">Plain Text</div>
                     <div className="text-sm text-gray-500">Simple text format</div>

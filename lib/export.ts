@@ -1,16 +1,12 @@
 import { Project } from '@/types';
 
-// Helper to convert Lexical JSON to HTML
-export function lexicalToHTML(content: string): string {
+// Helper to convert content to HTML (simplified for contentEditable)
+export function contentToHTML(content: string): string {
   if (!content) return '';
   
-  try {
-    // Simplified conversion - in production, use proper Lexical serialization
-    JSON.parse(content);
-    return '<p>' + content + '</p>';
-  } catch {
-    return '<p>' + content + '</p>';
-  }
+  // Since we're using contentEditable, content is already HTML
+  // Just ensure it's properly wrapped
+  return content.trim();
 }
 
 // Generate HTML document from project
@@ -18,7 +14,7 @@ export function generateProjectHTML(project: Project): string {
   const sections = project.sections
     .sort((a, b) => a.order - b.order)
     .map(section => {
-      const content = lexicalToHTML(section.content);
+      const content = contentToHTML(section.content);
       return `
         <section class="section">
           <h2>${section.title}</h2>
