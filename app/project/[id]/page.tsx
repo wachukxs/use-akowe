@@ -112,6 +112,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   const [selectedCitationStyle, setSelectedCitationStyle] = useState<'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee'>('apa');
   const [selectedTemplate, setSelectedTemplate] = useState<'research-paper' | 'thesis' | 'report' | 'conference-paper'>('research-paper');
+  const [isAutoDetected, setIsAutoDetected] = useState({ citationStyle: false, template: false });
   const [isDetectingCitations, setIsDetectingCitations] = useState(false);
   const [lastDetectionResult, setLastDetectionResult] = useState<{detectedCount: number, totalCount: number} | null>(null);
   const [hasContentToScan, setHasContentToScan] = useState(false);
@@ -1373,6 +1374,39 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  // Auto-detect export settings from project data
+  const detectExportSettings = (project: any) => {
+    if (!project) return { citationStyle: 'apa', template: 'research-paper' };
+    
+    // Detect template based on project type
+    const detectTemplate = (type: string) => {
+      switch (type) {
+        case 'thesis': return 'thesis';
+        case 'journal': return 'conference-paper';
+        case 'research': return 'research-paper';
+        case 'essay': return 'research-paper';
+        default: return 'research-paper';
+      }
+    };
+    
+    // Normalize citation style
+    const normalizeCitationStyle = (style: string) => {
+      const styleMap: Record<string, 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee'> = {
+        'APA': 'apa',
+        'MLA': 'mla',
+        'Chicago': 'chicago',
+        'IEEE': 'ieee',
+        'Harvard': 'harvard'
+      };
+      return styleMap[style] || 'apa';
+    };
+    
+    return {
+      citationStyle: normalizeCitationStyle(project.citationStyle),
+      template: detectTemplate(project.type)
+    };
+  };
+
   // Export functions
   const handleExport = async (format: 'pdf' | 'docx' | 'txt' | 'latex') => {
     if (!project) return;
@@ -1425,6 +1459,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       }
     }
   }, [project, activeSection]);
+
+  // Auto-detect export settings when project loads
+  useEffect(() => {
+    if (project) {
+      const detectedSettings = detectExportSettings(project);
+      setSelectedCitationStyle(detectedSettings.citationStyle as 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee');
+      setSelectedTemplate(detectedSettings.template as 'research-paper' | 'thesis' | 'report' | 'conference-paper');
+      setIsAutoDetected({ citationStyle: true, template: true });
+    }
+  }, [project]);
 
   // Add selection change listener for better formatting detection
   useEffect(() => {
@@ -2631,10 +2675,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               {/* Export Options */}
               <div className="mb-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Citation Style</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    Citation Style
+                    {isAutoDetected.citationStyle && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        Auto-detected
+                      </span>
+                    )}
+                  </label>
                   <select
                     value={selectedCitationStyle}
-                    onChange={(e) => setSelectedCitationStyle(e.target.value as any)}
+                    onChange={(e) => {
+                      setSelectedCitationStyle(e.target.value as any);
+                      setIsAutoDetected(prev => ({ ...prev, citationStyle: false }));
+                    }}
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     disabled={isExporting}
                   >
@@ -2647,10 +2701,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Academic Template</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    Academic Template
+                    {isAutoDetected.template && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        Auto-detected
+                      </span>
+                    )}
+                  </label>
                   <select
                     value={selectedTemplate}
-                    onChange={(e) => setSelectedTemplate(e.target.value as any)}
+                    onChange={(e) => {
+                      setSelectedTemplate(e.target.value as any);
+                      setIsAutoDetected(prev => ({ ...prev, template: false }));
+                    }}
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     disabled={isExporting}
                   >

@@ -3,6 +3,40 @@ import { Project } from '@/types';
 // Citation style types
 export type CitationStyle = 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee';
 
+// Automatic detection functions
+export function detectAcademicTemplate(projectType: string): AcademicTemplate {
+  switch (projectType) {
+    case 'thesis':
+      return 'thesis';
+    case 'journal':
+      return 'conference-paper';
+    case 'research':
+      return 'research-paper';
+    case 'essay':
+      return 'research-paper';
+    default:
+      return 'research-paper';
+  }
+}
+
+export function normalizeCitationStyle(storedStyle: string): CitationStyle {
+  const styleMap: Record<string, CitationStyle> = {
+    'APA': 'apa',
+    'MLA': 'mla',
+    'Chicago': 'chicago',
+    'IEEE': 'ieee',
+    'Harvard': 'harvard'
+  };
+  return styleMap[storedStyle] || 'apa';
+}
+
+export function detectExportSettings(project: Project): { template: AcademicTemplate; citationStyle: CitationStyle } {
+  const template = detectAcademicTemplate(project.type);
+  const citationStyle = normalizeCitationStyle(project.citationStyle);
+  
+  return { template, citationStyle };
+}
+
 // Helper to convert content to HTML (simplified for contentEditable)
 export function contentToHTML(content: string): string {
   if (!content) return '';

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import ProjectModel from '@/models/Project';
-import { generateProjectHTML, generateAcademicHTML, generateLaTeX, CitationStyle, AcademicTemplate } from '@/lib/export';
+import { generateProjectHTML, generateAcademicHTML, generateLaTeX, CitationStyle, AcademicTemplate, detectExportSettings } from '@/lib/export';
 import { Project } from '@/types';
 import puppeteer from 'puppeteer';
 // @ts-ignore - html-docx-js doesn't have TypeScript definitions
@@ -22,8 +22,10 @@ export async function GET(
 
     const searchParams = request.nextUrl.searchParams;
     const format = searchParams.get('format') || 'html';
-    const citationStyle = (searchParams.get('citationStyle') as CitationStyle) || 'apa';
-    const template = (searchParams.get('template') as AcademicTemplate) || 'research-paper';
+    
+    // Get URL parameters for manual overrides
+    const manualCitationStyle = searchParams.get('citationStyle') as CitationStyle;
+    const manualTemplate = searchParams.get('template') as AcademicTemplate;
 
     await connectDB();
 
@@ -36,11 +38,21 @@ export async function GET(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
+    // Auto-detect settings from project data
+    const detectedSettings = detectExportSettings({
+      ...project,
+      _id: String(project._id),
+    } as unknown as Project);
+
+    // Use manual overrides if provided, otherwise use detected settings
+    const finalCitationStyle = manualCitationStyle || detectedSettings.citationStyle;
+    const finalTemplate = manualTemplate || detectedSettings.template;
+
     // Generate HTML with academic template and citation style
     const html = generateAcademicHTML({
       ...project,
       _id: String(project._id),
-    } as unknown as Project, template, citationStyle);
+    } as unknown as Project, finalTemplate, finalCitationStyle);
 
     if (format === 'pdf') {
       try {
@@ -113,7 +125,7 @@ export async function GET(
         const latex = generateLaTeX({
           ...project,
           _id: String(project._id),
-        } as unknown as Project, template, citationStyle);
+        } as unknown as Project, finalTemplate, finalCitationStyle);
         
         return new NextResponse(latex, {
           headers: {
