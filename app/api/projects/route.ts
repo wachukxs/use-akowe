@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
+import User from '@/models/User';
+import { PLAN_LIMITS, PlanType } from '@/types';
 
 // Helper function to create contextual writing guidance
 function getContextualGuidance(type: string, citationStyle: string, methodology: string, topic: string, targetWordCount: number) {
@@ -788,6 +790,28 @@ export async function POST(request: NextRequest) {
     }
 
     await connectDB();
+    
+    // Check project limits for free users
+    const user = await User.findOne({ email: session.user.email });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
+    const limits = PLAN_LIMITS[user.plan as PlanType];
+    if (limits.maxProjects && limits.maxProjects !== Infinity) {
+      const currentProjectCount = await Project.countDocuments({ userId: session.user.email });
+      if (currentProjectCount >= limits.maxProjects) {
+        return NextResponse.json(
+          { 
+            error: 'Project limit reached',
+            limit: limits.maxProjects,
+            current: currentProjectCount,
+            message: `Free plan allows ${limits.maxProjects} projects maximum. Upgrade to Pro for unlimited projects.`
+          },
+          { status: 429 }
+        );
+      }
+    }
     
     // Create initial sections based on project type
     const initialSections = createInitialSections(type, name, topic, citationStyle, methodology, targetWordCount);

@@ -257,9 +257,9 @@ export default function HomePage() {
                   <span className="text-white text-lg">💡</span>
                 </div>
                 <div className="text-left">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">What are AI words & auto-complete?</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">What are AI words?</h3>
                   <p className="text-gray-600 text-lg leading-relaxed">
-                    <strong>AI words</strong> include chat responses, AI-written content, and outlines. <strong>AI auto-complete</strong> suggests the next sentence as you type (free users get 100 suggestions to try it out). Your own writing doesn&apos;t count—only AI-generated content does.
+                    <strong>AI words</strong> include AI Assistant responses, AI-written content, and outlines. Your own writing doesn&apos;t count—only AI-generated content does.
                   </p>
                 </div>
               </div>
@@ -303,10 +303,10 @@ export default function HomePage() {
                   <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
                   1,500 AI words per day
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
+                {/* <li className="flex items-center text-gray-600 text-lg">
                   <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
                   100 AI auto-complete (one-time)
-                </li>
+                </li> */}
                 <li className="flex items-center text-gray-600 text-lg">
                   <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
                   3 plagiarism checks per day
@@ -350,10 +350,10 @@ export default function HomePage() {
                   <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
                   Unlimited AI words
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
+                {/* <li className="flex items-center text-gray-600 text-lg">
                   <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
                   Unlimited AI auto-complete
-                </li>
+                </li> */}
                 <li className="flex items-center text-gray-600 text-lg">
                   <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
                   Unlimited plagiarism checks
