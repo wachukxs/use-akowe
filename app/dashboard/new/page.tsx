@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { ProjectType } from '@/types';
-import { FileText, BookOpen, GraduationCap, FlaskConical, Sparkles, Lightbulb, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Sparkles, Lightbulb, Info, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
 const projectTypes: { 
   type: ProjectType; 
@@ -77,6 +77,8 @@ export default function NewProjectPage() {
   const [citationStyle, setCitationStyle] = useState('APA');
   const [methodology, setMethodology] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [limitError, setLimitError] = useState<string>('');
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -165,7 +167,12 @@ export default function NewProjectPage() {
         router.push(`/project/${data.project._id}`);
       } else {
         const error = await response.json();
-        alert(`Error creating project: ${error.error || 'Unknown error'}`);
+        if (error.error === 'Project limit reached') {
+          setLimitError(error.message || 'You have reached the maximum number of projects for your plan.');
+          setShowLimitModal(true);
+        } else {
+          alert(`Error creating project: ${error.error || 'Unknown error'}`);
+        }
       }
     } catch (error) {
       console.error('Error creating project:', error);
@@ -466,6 +473,54 @@ export default function NewProjectPage() {
           </div>
         </div>
       </div>
+      
+      {/* Project Limit Modal */}
+      {showLimitModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowLimitModal(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <X className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Project Limit Reached
+              </h3>
+              
+              <p className="text-gray-600 mb-6">
+                {limitError}
+              </p>
+              
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowLimitModal(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setShowLimitModal(false);
+                    router.push('/settings');
+                  }}
+                  className="flex-1"
+                >
+                  Upgrade Plan
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
