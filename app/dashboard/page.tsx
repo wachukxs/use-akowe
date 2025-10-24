@@ -84,7 +84,7 @@ export default function DashboardPage() {
         <Sidebar />
         <div className="flex-1 ml-64 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
@@ -125,7 +125,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-100'
+                  viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-100'
                 }`}
               >
                 <Grid size={20} />
@@ -133,7 +133,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setViewMode('list')}
                 className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-100'
+                  viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-100'
                 }`}
               >
                 <List size={20} />
@@ -144,8 +144,8 @@ export default function DashboardPage() {
           {/* Projects Grid */}
           {filteredProjects.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="text-indigo-600" size={48} />
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="text-blue-600" size={48} />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 {searchQuery ? 'No projects found' : 'No projects yet'}
@@ -156,7 +156,7 @@ export default function DashboardPage() {
               {!searchQuery && (
                 <button
                   onClick={() => router.push('/dashboard/new')}
-                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg transition-all"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-slate-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-slate-700 hover:shadow-lg transition-all"
                 >
                   Create New Project
                 </button>

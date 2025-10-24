@@ -20,7 +20,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-gray-200">
         <Link href="/dashboard">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-600 via-blue-600 to-slate-700 bg-clip-text text-transparent">
             Akowe
           </h1>
           <p className="text-xs text-gray-500 mt-1">Write research that holds up</p>
@@ -31,7 +31,7 @@ export default function Sidebar() {
       <div className="p-4">
         <Link href="/dashboard/new">
           <button 
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-slate-600 text-white rounded-lg hover:from-blue-700 hover:to-slate-700 hover:shadow-lg transition-all cursor-pointer"
             onClick={() => console.log('Create New Project button clicked!')}
           >
             <PlusCircle size={20} />
@@ -53,7 +53,7 @@ export default function Sidebar() {
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-lg transition-all',
                 isActive
-                  ? 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-600 font-medium'
+                  ? 'bg-gradient-to-r from-blue-100 to-slate-100 text-blue-600 font-medium'
                   : 'text-gray-600 hover:bg-gray-100'
               )}
             >

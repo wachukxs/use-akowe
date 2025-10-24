@@ -1369,7 +1369,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       <Sidebar />
         <div className="flex-1 ml-64 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">Loading...</p>
                 </div>
                 </div>
@@ -1509,7 +1509,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             <p className="text-gray-600">
               {project.type} • {localWordCount} / {project.targetWordCount} words • {project.citationStyle}
             </p>
-            <div className="h-1 bg-gradient-to-r from-purple-500 to-red-500 rounded-full my-4" />
+            <div className="h-1 bg-gradient-to-r from-blue-500 to-slate-500 rounded-full my-4" />
               </div>
 
           <div className="grid grid-cols-12 gap-8">
@@ -1522,10 +1522,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     <h3 className="text-lg font-semibold text-gray-900">Paper Sections</h3>
                     <button 
                       onClick={addNewSection}
-                      className="p-2 hover:bg-purple-50 rounded-lg transition-colors group"
+                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
                       title="Add new section"
                     >
-                      <Plus className="h-4 w-4 text-purple-600 group-hover:text-purple-700" />
+                      <Plus className="h-4 w-4 text-blue-600 group-hover:text-blue-700" />
                     </button>
                   </div>
                 </div>
@@ -1536,13 +1536,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         key={section.id}
                         className={`w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group ${
                           activeSection === section.id
-                            ? 'bg-purple-600 text-white shadow-md'
+                            ? 'bg-blue-600 text-white shadow-md active-section-hover'
                             : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            activeSection === section.id ? 'bg-white' : 'bg-purple-400'
+                            activeSection === section.id ? 'bg-white' : 'bg-blue-400'
                           }`} />
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <button
@@ -1625,7 +1625,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
                       isDiscoveringCitations 
                         ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                        : 'hover:bg-purple-50 text-gray-700 hover:text-purple-700'
+                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -1633,7 +1633,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <span className="text-sm font-medium">Find Citations</span>
                     </div>
                     {isDiscoveringCitations && (
-                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     )}
                   </div>
                   
@@ -1695,7 +1695,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <h2 className="text-lg font-semibold text-gray-900">{activeS.title}</h2>
                       <button
                         onClick={() => setIsAIDrawerOpen(true)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                       >
                         <Bot className="h-4 w-4" />
                         Ask Akowe
@@ -1730,7 +1730,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={applyBold}
                             className={`p-2 rounded transition-colors ${
                               formattingState.bold 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Bold (Ctrl+B)"
@@ -1741,7 +1741,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={applyItalic}
                             className={`p-2 rounded transition-colors ${
                               formattingState.italic 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Italic (Ctrl+I)"
@@ -1752,7 +1752,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={applyUnderline}
                             className={`p-2 rounded transition-colors ${
                               formattingState.underline 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Underline (Ctrl+U)"
@@ -1769,7 +1769,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={applyUnorderedList}
                             className={`p-2 rounded transition-colors ${
                               formattingState.unorderedList 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Bullet List"
@@ -1780,7 +1780,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={applyOrderedList}
                             className={`p-2 rounded transition-colors ${
                               formattingState.orderedList 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Numbered List"
@@ -1797,7 +1797,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={() => applyHeader(1)}
                             className={`p-2 rounded transition-colors ${
                               formattingState.h1 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Header 1"
@@ -1808,7 +1808,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={() => applyHeader(2)}
                             className={`p-2 rounded transition-colors ${
                               formattingState.h2 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Header 2"
@@ -1819,7 +1819,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={() => applyHeader(3)}
                             className={`p-2 rounded transition-colors ${
                               formattingState.h3 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Header 3"
@@ -1830,7 +1830,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             onClick={applyNormal}
                             className={`p-2 rounded transition-colors ${
                               formattingState.normal 
-                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
                                 : 'hover:bg-gray-200'
                             }`}
                             title="Normal Text"
@@ -2009,7 +2009,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <h3 className="font-semibold text-gray-900 mb-4">Writing Progress</h3>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
                   <div
-                    className="bg-purple-500 h-2.5 rounded-full"
+                    className="bg-blue-500 h-2.5 rounded-full"
                     style={{ width: `${Math.min(100, (localWordCount / (project.targetWordCount || 1)) * 100)}%` }}
                   ></div>
                 </div>
@@ -2037,7 +2037,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Progress Banner */}
-              <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white p-6 rounded-xl text-center">
+              <div className="bg-gradient-to-r from-blue-500 via-slate-500 to-blue-600 text-white p-6 rounded-xl text-center">
                 <p className="font-semibold">Excellent progress! You're on a roll</p>
                   </div>
                   </div>
@@ -2049,7 +2049,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {isAIDrawerOpen && (
         <div className="fixed top-0 right-0 w-72 h-full bg-white border-l border-gray-200 z-40 flex flex-col shadow-2xl">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
+          <div className="bg-gradient-to-r from-blue-600 to-slate-600 text-white p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -2057,19 +2057,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div>
             <h3 className="text-lg font-semibold">Akowe Assistant</h3>
-                  <p className="text-purple-100 text-sm">Your AI writing companion</p>
+                  <p className="text-blue-100 text-sm">Your AI writing companion</p>
                 </div>
               </div>
                 <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setAiMessages([])}
-                  className="text-purple-200 hover:text-white text-sm px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
+                  className="text-blue-200 hover:text-white text-sm px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
                 >
                   Clear
                 </button>
                   <button 
                 onClick={() => setIsAIDrawerOpen(false)}
-                  className="text-purple-200 hover:text-white p-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
+                  className="text-blue-200 hover:text-white p-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
                   >
                 <X className="h-5 w-5" />
                   </button>
@@ -2084,8 +2084,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               <div className="space-y-4">
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-4 w-4 text-purple-600" />
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-4 w-4 text-blue-600" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-gray-700 leading-relaxed">
@@ -2107,19 +2107,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <div className="grid gap-2">
                     <button 
                       onClick={() => setAiInput('Help me improve the structure of this section')}
-                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-sm"
+                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm"
                     >
                       <span className="font-medium text-gray-900">📝</span> Improve section structure
                     </button>
                     <button 
                       onClick={() => setAiInput('Suggest better wording for this paragraph')}
-                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-sm"
+                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm"
                     >
                       <span className="font-medium text-gray-900">✨</span> Enhance wording
                     </button>
                     <button 
                       onClick={() => setAiInput('Generate a conclusion for this section')}
-                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-sm"
+                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm"
                     >
                       <span className="font-medium text-gray-900">🎯</span> Generate conclusion
                     </button>
@@ -2139,8 +2139,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     <div className={`max-w-[85%] ${message.type === 'user' ? 'order-2' : 'order-1'}`}>
                       {message.type === 'assistant' && (
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                            <Bot className="h-3 w-3 text-purple-600" />
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Bot className="h-3 w-3 text-blue-600" />
                           </div>
                           <span className="text-xs text-gray-500 font-medium">Akowe</span>
                         </div>
@@ -2148,7 +2148,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <div
                         className={`p-3 rounded-2xl ${
                         message.type === 'user'
-                            ? 'bg-purple-600 text-white rounded-br-md'
+                            ? 'bg-blue-600 text-white rounded-br-md'
                             : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md shadow-sm'
                       }`}
                     >
@@ -2208,7 +2208,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 setTimeout(() => setShowSuccessMessage(''), 3000);
                               }
                             }}
-                            className="mt-2 text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                            className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                           >
                             <Plus className="h-3 w-3" />
                           Insert into section
@@ -2226,17 +2226,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <div className="flex justify-start">
                     <div className="max-w-[85%]">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                          <Bot className="h-3 w-3 text-purple-600" />
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Bot className="h-3 w-3 text-blue-600" />
                         </div>
                         <span className="text-xs text-gray-500 font-medium">Akowe</span>
                       </div>
                       <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-3 shadow-sm">
                       <div className="flex items-center space-x-2">
                           <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                           </div>
                           <span className="text-sm text-gray-600">Thinking...</span>
                         </div>
@@ -2271,12 +2271,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     onChange={(e) => setAiInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAIWrite(activeS?.id || '')}
                   placeholder={`Ask about "${activeS?.title || 'Introduction'}"...`}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
                 <button
                   onClick={() => handleAIWrite(activeS?.id || '')}
                   disabled={aiIsLoading || !aiInput.trim()}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
                 >
                 <Send className="h-4 w-4" />
                 </button>
@@ -2295,15 +2295,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6">
+            <div className="bg-gradient-to-r from-blue-600 to-slate-600 text-white p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-2xl font-bold">Research Citations</h3>
-                  <p className="text-purple-100 mt-1">Found {discoveredCitations.length} relevant citations for your research</p>
+                  <p className="text-blue-100 mt-1">Found {discoveredCitations.length} relevant citations for your research</p>
                 </div>
               <button
                 onClick={() => setShowCitationDiscovery(false)}
-                  className="text-white hover:text-purple-200 transition-colors"
+                  className="text-white hover:text-blue-200 transition-colors"
               >
                   <X className="h-6 w-6" />
               </button>
@@ -2322,7 +2322,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       value={citationSearchQuery}
                       onChange={(e) => setCitationSearchQuery(e.target.value)}
                       placeholder="Search citations by title, author, journal, or keywords..."
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -2332,7 +2332,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <select
                     value={citationFilter}
                     onChange={(e) => setCitationFilter(e.target.value as any)}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                   >
                     <option value="all">All Citations</option>
                     <option value="recent">Recent (Last 5 years)</option>
@@ -2342,7 +2342,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <select
                     value={citationSortBy}
                     onChange={(e) => setCitationSortBy(e.target.value as any)}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                   >
                     <option value="relevance">Sort by Relevance</option>
                     <option value="year">Sort by Year</option>
@@ -2362,7 +2362,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 {citationSearchQuery && (
                   <button
                     onClick={() => setCitationSearchQuery('')}
-                    className="text-purple-600 hover:text-purple-700 font-medium"
+                    className="text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Clear search
                   </button>
@@ -2392,7 +2392,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             </div>
                             <div className="flex items-center gap-1">
                               <span className="font-medium">Year:</span>
-                              <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
                                 {citation.year || 'N/A'}
                               </span>
                             </div>
@@ -2412,7 +2412,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           href={citation.url}
                             target="_blank" 
                             rel="noopener noreferrer"
-                              className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="View Source"
                         >
                               <Link className="h-4 w-4" />
@@ -2420,7 +2420,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       )}
                           <button
                         onClick={() => addCitationToEditor(citation)}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                           >
                             <Plus className="h-4 w-4" />
                             Add Citation
@@ -2459,11 +2459,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <button
                         onClick={loadMoreCitations}
                         disabled={isLoadingMoreCitations}
-                        className="bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-50 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-400 px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
+                        className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-400 px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
                       >
                         {isLoadingMoreCitations ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                             Loading 8 more...
                           </>
                         ) : (
@@ -2491,7 +2491,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   {citationSearchQuery && (
                     <button
                       onClick={() => setCitationSearchQuery('')}
-                      className="text-purple-600 hover:text-purple-700 font-medium"
+                      className="text-blue-600 hover:text-blue-700 font-medium"
                     >
                       Clear search to see all citations
                     </button>
@@ -2582,7 +2582,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="text"
                     value={manualCitation.title}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Research paper title"
                   />
                 </div>
@@ -2592,7 +2592,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="text"
                     value={manualCitation.authors}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, authors: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Smith, J., Johnson, A."
                   />
                 </div>
@@ -2602,7 +2602,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="number"
                     value={manualCitation.year}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, year: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="2023"
                   />
                 </div>
@@ -2612,7 +2612,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="text"
                     value={manualCitation.journal}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, journal: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Journal Name"
                   />
                 </div>
@@ -2622,7 +2622,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="text"
                     value={manualCitation.doi}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, doi: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="10.1000/182"
                   />
                 </div>
@@ -2632,7 +2632,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="url"
                     value={manualCitation.url}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, url: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="https://example.com"
                   />
                 </div>
@@ -2640,7 +2640,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               <Button
                   onClick={addManualCitation}
                   disabled={!manualCitation.title.trim() || !manualCitation.authors.trim()}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Add Citation
               </Button>

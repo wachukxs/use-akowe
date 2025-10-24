@@ -132,3 +132,9 @@ body {
   line-height: 1.4 !important;
   color: hsl(var(--foreground)) !important;
 }
+
+/* Active Section Hover Fix */
+.active-section-hover:hover {
+  background-color: rgb(29 78 216) !important; /* blue-700 */
+  color: white !important;
+}
