@@ -183,6 +183,49 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   };
 
 
+  // Simple markdown to HTML converter
+  const parseMarkdown = (text: string): string => {
+    if (!text) return '';
+    
+    let html = text;
+    
+    // Headers
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    
+    // Bold and italic
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Lists
+    html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+    html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
+    html = html.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+    
+    // Wrap consecutive list items in ul/ol
+    html = html.replace(/(<li>.*<\/li>)/g, (match) => {
+      // Check if it's a numbered list (contains digits)
+      const isNumbered = /^\d+\./.test(match);
+      const listTag = isNumbered ? 'ol' : 'ul';
+      return `<${listTag}>${match}</${listTag}>`;
+    });
+    
+    // Code blocks
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Line breaks
+    html = html.replace(/\n/g, '<br>');
+    
+    // Wrap in paragraphs if not already wrapped
+    if (!html.includes('<h1>') && !html.includes('<h2>') && !html.includes('<h3>') && !html.includes('<ul>') && !html.includes('<ol>')) {
+      html = html.split('<br>').map(line => line.trim() ? `<p>${line}</p>` : '').join('');
+    }
+    
+    return html;
+  };
+
   const cleanupSectionContent = (content: string): string => {
     if (!content) return '';
     
@@ -197,11 +240,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         return extracted;
       }
     } catch (e) {
-      // Not JSON, could be HTML or plain text
+      // Not JSON, could be HTML, markdown, or plain text
       if (content.includes('<') && content.includes('>')) {
         // It's HTML, return as is
         return content;
       }
+      
+      // Check if it looks like markdown (has markdown syntax)
+      if (content.includes('#') || content.includes('*') || content.includes('-') || content.includes('`')) {
+        return parseMarkdown(content);
+      }
+      
       // Plain text, return as is
       return content;
     }
