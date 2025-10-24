@@ -53,7 +53,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     italic: false,
     underline: false,
     unorderedList: false,
-    orderedList: false
+    orderedList: false,
+    h1: false,
+    h2: false,
+    h3: false,
+    normal: false
   });
 
   // Track active formatting for new text input
@@ -62,7 +66,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     italic: false,
     underline: false,
     unorderedList: false,
-    orderedList: false
+    orderedList: false,
+    h1: false,
+    h2: false,
+    h3: false,
+    normal: false
   });
 
   // Simple formatting functions that actually work
@@ -490,9 +498,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           const isItalic = document.queryCommandState('italic');
           const isUnderline = document.queryCommandState('underline');
           
-          // For lists, we need to check the DOM structure
+          // For lists, headers, and normal text, we need to check the DOM structure
           let isUnorderedList = false;
           let isOrderedList = false;
+          let isH1 = false;
+          let isH2 = false;
+          let isH3 = false;
+          let isNormal = false;
           let element = range.commonAncestorContainer;
           
           // Walk up to find the element
@@ -512,6 +524,22 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 isOrderedList = true;
                 break;
               }
+              if (currentElement.tagName === 'H1') {
+                isH1 = true;
+                break;
+              }
+              if (currentElement.tagName === 'H2') {
+                isH2 = true;
+                break;
+              }
+              if (currentElement.tagName === 'H3') {
+                isH3 = true;
+                break;
+              }
+              if (currentElement.tagName === 'DIV' && !isUnorderedList && !isOrderedList && !isH1 && !isH2 && !isH3) {
+                isNormal = true;
+                break;
+              }
               currentElement = currentElement.parentElement as Element;
             }
           }
@@ -521,7 +549,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             italic: isItalic,
             underline: isUnderline,
             unorderedList: isUnorderedList,
-            orderedList: isOrderedList
+            orderedList: isOrderedList,
+            h1: isH1,
+            h2: isH2,
+            h3: isH3,
+            normal: isNormal
           });
           
           // Also update active formatting for consistency
@@ -530,7 +562,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             italic: isItalic,
             underline: isUnderline,
             unorderedList: isUnorderedList,
-            orderedList: isOrderedList
+            orderedList: isOrderedList,
+            h1: isH1,
+            h2: isH2,
+            h3: isH3,
+            normal: isNormal
           });
         }
       } else {
@@ -540,14 +576,22 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           italic: false,
           underline: false,
           unorderedList: false,
-          orderedList: false
+          orderedList: false,
+          h1: false,
+          h2: false,
+          h3: false,
+          normal: false
         });
         setActiveFormatting({
           bold: false,
           italic: false,
           underline: false,
           unorderedList: false,
-          orderedList: false
+          orderedList: false,
+          h1: false,
+          h2: false,
+          h3: false,
+          normal: false
         });
       }
     } catch (error) {
@@ -558,14 +602,22 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         italic: false,
         underline: false,
         unorderedList: false,
-        orderedList: false
+        orderedList: false,
+        h1: false,
+        h2: false,
+        h3: false,
+        normal: false
       });
       setActiveFormatting({
         bold: false,
         italic: false,
         underline: false,
         unorderedList: false,
-        orderedList: false
+        orderedList: false,
+        h1: false,
+        h2: false,
+        h3: false,
+        normal: false
       });
     }
   };
@@ -622,7 +674,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       console.warn('insertHTML failed, trying manual approach:', error);
     }
 
-    // Fallback to manual DOM manipulation (same as before)
+    // Fallback to manual DOM manipulation
     try {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
@@ -683,7 +735,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       console.warn('insertHTML failed, trying manual approach:', error);
     }
 
-    // Fallback to manual DOM manipulation (same as before)
+    // Fallback to manual DOM manipulation
     try {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
@@ -757,7 +809,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       console.warn('insertHTML failed, trying manual approach:', error);
     }
 
-    // Fallback to manual DOM manipulation (same as before)
+    // Fallback to manual DOM manipulation
     try {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
@@ -784,6 +836,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       }
     } catch (error) {
       console.warn('Manual header creation failed:', error);
+    }
+  };
+
+  // Convert to normal paragraph
+  const applyNormal = () => {
+    try {
+      // Use formatBlock to convert to div (normal paragraph)
+      const success = document.execCommand('formatBlock', false, 'div');
+      if (success) {
+        checkFormattingState();
+      }
+    } catch (error) {
+      console.warn('Normal formatting failed:', error);
     }
   };
 
@@ -1730,24 +1795,47 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => applyHeader(1)}
-                            className="p-2 rounded transition-colors hover:bg-gray-200"
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.h1 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
                             title="Header 1"
                           >
                             <span className="text-sm font-bold">H1</span>
                           </button>
                           <button
                             onClick={() => applyHeader(2)}
-                            className="p-2 rounded transition-colors hover:bg-gray-200"
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.h2 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
                             title="Header 2"
                           >
                             <span className="text-sm font-bold">H2</span>
                           </button>
                           <button
                             onClick={() => applyHeader(3)}
-                            className="p-2 rounded transition-colors hover:bg-gray-200"
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.h3 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
                             title="Header 3"
                           >
                             <span className="text-sm font-bold">H3</span>
+                          </button>
+                          <button
+                            onClick={applyNormal}
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.normal 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
+                            title="Normal Text"
+                          >
+                            <span className="text-sm font-medium">Normal</span>
                           </button>
                         </div>
                         
@@ -1788,6 +1876,80 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         }}
                         onKeyDown={(e) => {
                           checkFormattingState();
+                          
+                          // Handle Enter key for better UX
+                          if (e.key === 'Enter') {
+                            const selection = window.getSelection();
+                            if (selection && selection.rangeCount > 0) {
+                              const range = selection.getRangeAt(0);
+                              let element = range.commonAncestorContainer;
+                              
+                              // Walk up to find the element
+                              while (element && element.nodeType !== Node.ELEMENT_NODE) {
+                                element = element.parentNode as Node;
+                              }
+                              
+                              if (element) {
+                                let currentElement = element as Element;
+                                
+                                // Check if we're in a header
+                                while (currentElement && currentElement !== document.body) {
+                                  if (currentElement.tagName === 'H1' || 
+                                      currentElement.tagName === 'H2' || 
+                                      currentElement.tagName === 'H3') {
+                                    // In a header - create normal paragraph after
+                                    e.preventDefault();
+                                    const newDiv = document.createElement('div');
+                                    newDiv.innerHTML = '&nbsp;';
+                                    currentElement.parentNode?.insertBefore(newDiv, currentElement.nextSibling);
+                                    
+                                    // Position cursor in new paragraph
+                                    const newRange = document.createRange();
+                                    newRange.setStart(newDiv, 0);
+                                    newRange.collapse(true);
+                                    selection.removeAllRanges();
+                                    selection.addRange(newRange);
+                                    return;
+                                  }
+                                  currentElement = currentElement.parentElement as Element;
+                                }
+                                
+                                // Check if we're in a list item
+                                currentElement = element as Element;
+                                while (currentElement && currentElement !== document.body) {
+                                  if (currentElement.tagName === 'LI') {
+                                    // Check if this is the last list item and it's empty
+                                    const listElement = currentElement.parentElement;
+                                    const isLastItem = listElement && 
+                                      currentElement === listElement.lastElementChild;
+                                    const isEmpty = currentElement.textContent?.trim() === '';
+                                    
+                                    // Only exit list if it's the last item AND it's empty
+                                    // This allows normal Enter behavior for creating new list items
+                                    if (isLastItem && isEmpty) {
+                                      // Exit list by creating paragraph after the list
+                                      e.preventDefault();
+                                      const div = document.createElement('div');
+                                      div.innerHTML = '&nbsp;';
+                                      listElement.parentNode?.insertBefore(div, listElement.nextSibling);
+                                      
+                                      // Position cursor in new paragraph
+                                      const newRange = document.createRange();
+                                      newRange.setStart(div, 0);
+                                      newRange.collapse(true);
+                                      selection.removeAllRanges();
+                                      selection.addRange(newRange);
+                                      return;
+                                    }
+                                    // For all other cases, let the default Enter behavior work
+                                    // (creates new list item)
+                                    break;
+                                  }
+                                  currentElement = currentElement.parentElement as Element;
+                                }
+                              }
+                            }
+                          }
                         }}
                         onFocus={checkFormattingState}
                         onBlur={() => {
@@ -1797,7 +1959,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             italic: false,
                             underline: false,
                             unorderedList: false,
-                            orderedList: false
+                            orderedList: false,
+                            h1: false,
+                            h2: false,
+                            h3: false,
+                            normal: false
                           });
                           // Also reset active formatting
                           setActiveFormatting({
@@ -1805,7 +1971,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             italic: false,
                             underline: false,
                             unorderedList: false,
-                            orderedList: false
+                            orderedList: false,
+                            h1: false,
+                            h2: false,
+                            h3: false,
+                            normal: false
                           });
                         }}
                         className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed prose prose-sm max-w-none"
