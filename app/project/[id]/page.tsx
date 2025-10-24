@@ -1748,7 +1748,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
                       isCheckingPlagiarism 
                         ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                        : 'hover:bg-green-50 text-gray-700 hover:text-green-700'
+                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -1756,7 +1756,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <span className="text-sm font-medium">Check Plagiarism</span>
                     </div>
                     {isCheckingPlagiarism && (
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     )}
                   </div>
                 </div>
@@ -2749,12 +2749,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {/* Plagiarism Results Modal */}
       {showPlagiarismModal && plagiarismResult && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Plagiarism Check Results</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Plagiarism Check Results</h3>
               <button
                 onClick={() => setShowPlagiarismModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2763,8 +2763,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               <div className="mb-4">
                 <div className="flex items-center gap-4">
                   <div className={`px-4 py-2 rounded-lg text-white font-semibold ${
-                    plagiarismResult.matchPercentage < 10 ? 'bg-green-500' :
-                    plagiarismResult.matchPercentage < 25 ? 'bg-yellow-500' : 'bg-red-500'
+                    plagiarismResult.matchPercentage < 10 ? 'bg-gradient-to-r from-blue-500 to-slate-500' :
+                    plagiarismResult.matchPercentage < 25 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-red-500 to-red-600'
                   }`}>
                     {plagiarismResult.matchPercentage}% Match
               </div>
@@ -2775,19 +2775,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 
                 {/* External Sources Summary */}
                 {plagiarismResult.sources && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <h5 className="text-sm font-medium text-gray-700 mb-2">External Sources Checked:</h5>
-                    <div className="flex gap-4 text-xs text-gray-600">
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <h5 className="text-sm font-medium text-blue-900 mb-2">External Sources Checked:</h5>
+                    <div className="flex gap-4 text-xs text-blue-700">
                       <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                         CrossRef: {plagiarismResult.sources.crossref} matches
                       </span>
                       <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
                         arXiv: {plagiarismResult.sources.arxiv} matches
                       </span>
                       <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         Scholar: {plagiarismResult.sources.scholar} matches
                       </span>
                     </div>
@@ -2799,19 +2799,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <div className="space-y-3">
                   <h4 className="font-semibold text-gray-900">Detected Issues:</h4>
                   {plagiarismResult.matches.map((match, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3">
+                    <div key={index} className="border border-blue-200 rounded-lg p-3 bg-blue-50 hover:bg-blue-100 transition-colors">
                       <div className="flex items-start justify-between mb-2">
                         <p className="text-sm text-gray-700 flex-1">{match.text}</p>
                         {match.similarity && (
-                          <span className="ml-2 px-2 py-1 bg-gray-100 text-xs text-gray-600 rounded">
+                          <span className="ml-2 px-2 py-1 bg-blue-100 text-xs text-blue-700 rounded border border-blue-200">
                             {match.similarity}% similar
                           </span>
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                      <p className="text-xs text-gray-500">Source: {match.source}</p>
+                      <p className="text-xs text-blue-600">Source: {match.source}</p>
                       {match.url && (
-                        <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                        <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-700 hover:underline transition-colors">
                             View Source →
                         </a>
                       )}
@@ -2821,7 +2821,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
             ) : (
                 <div className="text-center py-8">
-                  <div className="text-green-500 text-4xl mb-2">✓</div>
+                  <div className="text-blue-600 text-4xl mb-2">✓</div>
                   <p className="text-gray-600">No plagiarism detected! Your content is original.</p>
               </div>
             )}
@@ -2864,10 +2864,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         <div className="fixed top-4 right-4 z-50">
           <div className={`px-6 py-4 rounded-xl shadow-lg max-w-md ${
             showSuccessMessage.includes('❌') 
-              ? 'bg-red-500 text-white' 
+              ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' 
               : showSuccessMessage.includes('✅')
-              ? 'bg-green-500 text-white'
-              : 'bg-blue-500 text-white'
+              ? 'bg-gradient-to-r from-blue-500 to-slate-500 text-white'
+              : 'bg-gradient-to-r from-blue-600 to-slate-600 text-white'
           }`}>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
@@ -2876,7 +2876,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     <span className="text-white text-xs">!</span>
                   </div>
                 ) : showSuccessMessage.includes('✅') ? (
-                  <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
                   </div>
                 ) : (
