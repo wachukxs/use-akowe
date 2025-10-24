@@ -15,7 +15,7 @@ Akowe is an AI-powered academic writing and research tool optimized for essays, 
 ## Tech Stack
 
 - **Frontend**: Next.js 14, React 19, TypeScript, Tailwind CSS
-- **Editor**: Lexical
+- **Editor**: Native contentEditable with rich text formatting
 - **Backend**: Next.js API Routes, Node.js
 - **Database**: MongoDB with Mongoose
 - **Authentication**: NextAuth.js
@@ -72,7 +72,7 @@ npm run dev
   /project           # Project editor pages
   /settings          # Settings page
 /components          # React components
-  /Editor            # Lexical editor components
+  /Editor            # Editor components (removed - using native contentEditable)
   /ui                # Reusable UI components
 /lib                 # Utility functions
   mongodb.ts         # Database connection

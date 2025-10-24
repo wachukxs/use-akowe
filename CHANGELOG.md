@@ -27,7 +27,7 @@ Built a full-stack AI-powered academic writing platform with colorful Notion-sty
 - ✅ **Sign In Page** - Beautiful gradient background with form
 
 #### 3. Editor & Writing
-- ✅ Lexical rich text editor with toolbar
+- ✅ Native contentEditable rich text editor with custom toolbar
 - ✅ Bold, italic, underline, heading, list support
 - ✅ Section-based document organization
 - ✅ Auto-save functionality
@@ -62,7 +62,7 @@ Built a full-stack AI-powered academic writing platform with colorful Notion-sty
 
 ### Technical Stack
 - **Frontend**: Next.js 14, React 19, TypeScript, Tailwind CSS 4
-- **Editor**: Lexical
+- **Editor**: Native contentEditable with rich text formatting
 - **Backend**: Next.js API Routes
 - **Database**: MongoDB + Mongoose
 - **Auth**: NextAuth v5

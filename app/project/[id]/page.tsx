@@ -133,45 +133,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     akowe: false,
   });
 
-  // Helper functions
-  const extractTextFromLexical = (content: string): string => {
+  // Helper functions for contentEditable content
+  const extractTextFromContent = (content: string): string => {
     if (!content) return '';
     
-    try {
-      const parsed = JSON.parse(content);
-      if (parsed.root && parsed.root.children) {
-        return extractTextFromNodes(parsed.root.children);
-      }
-    } catch (e) {
-      return content;
-    }
-    
-    return content;
-  };
-
-  const extractTextFromNodes = (nodes: any[]): string => {
-    let text = '';
-    
-    nodes.forEach(node => {
-      if (node.type === 'paragraph' && node.children) {
-        node.children.forEach((child: any) => {
-          if (child.text) {
-            text += child.text;
-          }
-        });
-        text += '\n';
-      } else if (node.type === 'heading' && node.children) {
-        const headingLevel = node.tag || 'h1';
-        const headingText = node.children.map((child: any) => child.text || '').join('');
-        text += `${headingLevel === 'h1' ? '# ' : '## '}${headingText}\n`;
-      } else if (node.children) {
-        text += extractTextFromNodes(node.children);
-      } else if (node.text) {
-        text += node.text;
-      }
-    });
-    
-    return text.trim();
+    // For contentEditable, content is already HTML, so we can extract text directly
+    // Remove HTML tags and get plain text
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    return tempDiv.textContent || tempDiv.innerText || '';
   };
 
   const countWords = (text: string): number => {
@@ -260,8 +230,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     try {
       const parsed = JSON.parse(content);
       if (parsed.root && parsed.root.children) {
-        const extracted = extractTextFromLexical(content);
-        // If Lexical JSON is empty (just empty paragraphs), return empty string
+        const extracted = extractTextFromContent(content);
+        // If content is empty, return empty string
         if (!extracted.trim()) {
           return '';
         }
