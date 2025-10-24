@@ -1927,8 +1927,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                     // Only exit list if it's the last item AND it's empty
                                     // This allows normal Enter behavior for creating new list items
                                     if (isLastItem && isEmpty) {
-                                      // Exit list by creating paragraph after the list
+                                      // Exit list by removing empty item and creating paragraph after the list
                                       e.preventDefault();
+                                      
+                                      // Remove the empty list item
+                                      listElement.removeChild(currentElement);
+                                      
+                                      // Create normal paragraph after the list
                                       const div = document.createElement('div');
                                       div.innerHTML = '&nbsp;';
                                       listElement.parentNode?.insertBefore(div, listElement.nextSibling);
