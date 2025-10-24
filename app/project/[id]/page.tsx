@@ -1536,7 +1536,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         key={section.id}
                         className={`w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group ${
                           activeSection === section.id
-                            ? 'bg-blue-600 text-white shadow-md active-section-hover'
+                            ? 'bg-blue-600 text-white shadow-md'
                             : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       >
@@ -1547,7 +1547,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <button
                               onClick={() => setActiveSection(section.id)}
-                              className="flex-1 text-left min-w-0"
+                              className={`flex-1 text-left min-w-0 ${
+                                activeSection === section.id
+                                  ? 'active-section-button'
+                                  : ''
+                              }`}
                             >
                               {editingSectionId === section.id ? (
                                 <input

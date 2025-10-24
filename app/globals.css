@@ -133,8 +133,17 @@ body {
   color: hsl(var(--foreground)) !important;
 }
 
-/* Active Section Hover Fix */
-.active-section-hover:hover {
+/* Active Section Button Hover Fix */
+.active-section-button {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font: inherit !important;
+  cursor: pointer !important;
+}
+
+.active-section-button:hover {
   background-color: rgb(29 78 216) !important; /* blue-700 */
   color: white !important;
 }
