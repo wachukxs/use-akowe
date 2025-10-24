@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import ProjectModel from '@/models/Project';
-import { generateProjectHTML } from '@/lib/export';
+import { generateProjectHTML, generateAcademicHTML, generateLaTeX, CitationStyle, AcademicTemplate } from '@/lib/export';
 import { Project } from '@/types';
 import puppeteer from 'puppeteer';
+// @ts-ignore - html-docx-js doesn't have TypeScript definitions
+import htmlDocx from 'html-docx-js';
 
 export async function GET(
   request: NextRequest,
@@ -20,6 +22,8 @@ export async function GET(
 
     const searchParams = request.nextUrl.searchParams;
     const format = searchParams.get('format') || 'html';
+    const citationStyle = (searchParams.get('citationStyle') as CitationStyle) || 'apa';
+    const template = (searchParams.get('template') as AcademicTemplate) || 'research-paper';
 
     await connectDB();
 
@@ -32,10 +36,11 @@ export async function GET(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    const html = generateProjectHTML({
+    // Generate HTML with academic template and citation style
+    const html = generateAcademicHTML({
       ...project,
       _id: String(project._id),
-    } as unknown as Project);
+    } as unknown as Project, template, citationStyle);
 
     if (format === 'pdf') {
       try {
@@ -80,14 +85,52 @@ export async function GET(
     }
 
     if (format === 'docx') {
-      // In production, convert HTML to DOCX using html-docx-js or similar
-      // For now, return HTML
-      return new NextResponse(html, {
-        headers: {
-          'Content-Type': 'text/html',
-          'Content-Disposition': `attachment; filename="${project.name}.html"`,
-        },
-      });
+      try {
+        // Convert HTML to DOCX using html-docx-js
+        const docxBuffer = await htmlDocx.asBlob(html);
+        
+        return new NextResponse(docxBuffer, {
+          headers: {
+            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Content-Disposition': `attachment; filename="${project.name}.docx"`,
+          },
+        });
+      } catch (error) {
+        console.error('DOCX generation error:', error);
+        // Fallback to HTML if DOCX generation fails
+        return new NextResponse(html, {
+          headers: {
+            'Content-Type': 'text/html',
+            'Content-Disposition': `attachment; filename="${project.name}.html"`,
+          },
+        });
+      }
+    }
+
+    if (format === 'latex') {
+      try {
+        // Generate LaTeX document
+        const latex = generateLaTeX({
+          ...project,
+          _id: String(project._id),
+        } as unknown as Project, template, citationStyle);
+        
+        return new NextResponse(latex, {
+          headers: {
+            'Content-Type': 'text/plain',
+            'Content-Disposition': `attachment; filename="${project.name}.tex"`,
+          },
+        });
+      } catch (error) {
+        console.error('LaTeX generation error:', error);
+        // Fallback to HTML if LaTeX generation fails
+        return new NextResponse(html, {
+          headers: {
+            'Content-Type': 'text/html',
+            'Content-Disposition': `attachment; filename="${project.name}.html"`,
+          },
+        });
+      }
     }
 
     // Default: return HTML

@@ -109,6 +109,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   });
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<string | null>(null);
+  const [selectedCitationStyle, setSelectedCitationStyle] = useState<'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee'>('apa');
+  const [selectedTemplate, setSelectedTemplate] = useState<'research-paper' | 'thesis' | 'report' | 'conference-paper'>('research-paper');
   const [isDetectingCitations, setIsDetectingCitations] = useState(false);
   const [lastDetectionResult, setLastDetectionResult] = useState<{detectedCount: number, totalCount: number} | null>(null);
   const [hasContentToScan, setHasContentToScan] = useState(false);
@@ -558,10 +561,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   // Function to check current formatting state using document.queryCommandState
   const checkFormattingState = () => {
     try {
-      const selection = window.getSelection();
-      
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
+    const selection = window.getSelection();
+    
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
         const editor = document.querySelector('[contenteditable="true"]');
         
         // Only check formatting if selection is within our editor
@@ -578,23 +581,23 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           let isH2 = false;
           let isH3 = false;
           let isNormal = false;
-          let element = range.commonAncestorContainer;
-          
-          // Walk up to find the element
-          while (element && element.nodeType !== Node.ELEMENT_NODE) {
-            element = element.parentNode as Node;
-          }
-          
-          if (element) {
-            let currentElement = element as Element;
-            // Check formatting by walking up the DOM tree
-            while (currentElement && currentElement !== document.body) {
-              if (currentElement.tagName === 'UL') {
-                isUnorderedList = true;
+      let element = range.commonAncestorContainer;
+      
+      // Walk up to find the element
+      while (element && element.nodeType !== Node.ELEMENT_NODE) {
+        element = element.parentNode as Node;
+      }
+      
+      if (element) {
+        let currentElement = element as Element;
+        // Check formatting by walking up the DOM tree
+        while (currentElement && currentElement !== document.body) {
+          if (currentElement.tagName === 'UL') {
+            isUnorderedList = true;
                 break;
-              }
-              if (currentElement.tagName === 'OL') {
-                isOrderedList = true;
+          }
+          if (currentElement.tagName === 'OL') {
+            isOrderedList = true;
                 break;
               }
               if (currentElement.tagName === 'H1') {
@@ -612,54 +615,54 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               if (currentElement.tagName === 'DIV' && !isUnorderedList && !isOrderedList && !isH1 && !isH2 && !isH3) {
                 isNormal = true;
                 break;
-              }
-              currentElement = currentElement.parentElement as Element;
-            }
           }
-          
-          setFormattingState({
-            bold: isBold,
-            italic: isItalic,
-            underline: isUnderline,
-            unorderedList: isUnorderedList,
-            orderedList: isOrderedList,
-            h1: isH1,
-            h2: isH2,
-            h3: isH3,
-            normal: isNormal
-          });
-          
-          // Also update active formatting for consistency
-          setActiveFormatting({
-            bold: isBold,
-            italic: isItalic,
-            underline: isUnderline,
-            unorderedList: isUnorderedList,
-            orderedList: isOrderedList,
-            h1: isH1,
-            h2: isH2,
-            h3: isH3,
-            normal: isNormal
-          });
+          currentElement = currentElement.parentElement as Element;
+            }
         }
-      } else {
-        // No selection, reset formatting state
+        
         setFormattingState({
-          bold: false,
-          italic: false,
+          bold: isBold,
+          italic: isItalic,
+            underline: isUnderline,
+          unorderedList: isUnorderedList,
+            orderedList: isOrderedList,
+            h1: isH1,
+            h2: isH2,
+            h3: isH3,
+            normal: isNormal
+        });
+        
+        // Also update active formatting for consistency
+        setActiveFormatting({
+          bold: isBold,
+          italic: isItalic,
+            underline: isUnderline,
+          unorderedList: isUnorderedList,
+            orderedList: isOrderedList,
+            h1: isH1,
+            h2: isH2,
+            h3: isH3,
+            normal: isNormal
+        });
+      }
+    } else {
+      // No selection, reset formatting state
+      setFormattingState({
+        bold: false,
+        italic: false,
           underline: false,
-          unorderedList: false,
+        unorderedList: false,
           orderedList: false,
           h1: false,
           h2: false,
           h3: false,
           normal: false
-        });
-        setActiveFormatting({
-          bold: false,
-          italic: false,
+      });
+      setActiveFormatting({
+        bold: false,
+        italic: false,
           underline: false,
-          unorderedList: false,
+        unorderedList: false,
           orderedList: false,
           h1: false,
           h2: false,
@@ -722,16 +725,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   const applyUnorderedList = () => {
     try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const selectedText = selection.toString();
-        
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
         let htmlToInsert = '';
-        if (selectedText) {
+      if (selectedText) {
           // Text is selected, convert to list
           htmlToInsert = `<ul><li>${selectedText}</li></ul>`;
-        } else {
+      } else {
           // No selection, create new list
           htmlToInsert = '<ul><li>&nbsp;</li></ul>';
         }
@@ -739,7 +742,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         // Try insertHTML first
         const success = document.execCommand('insertHTML', false, htmlToInsert);
         if (success) {
-          checkFormattingState();
+    checkFormattingState();
           return;
         }
       }
@@ -749,32 +752,32 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
     // Fallback to manual DOM manipulation
     try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const selectedText = selection.toString();
-        
-        if (selectedText) {
-          // Text is selected, convert to list
-          const ul = document.createElement('ul');
-          const li = document.createElement('li');
-          li.textContent = selectedText;
-          ul.appendChild(li);
-          range.deleteContents();
-          range.insertNode(ul);
-        } else {
-          // No selection, create new list
-          const ul = document.createElement('ul');
-          const li = document.createElement('li');
-          li.innerHTML = '&nbsp;';
-          ul.appendChild(li);
-          range.insertNode(ul);
-          range.setStart(li, 0);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-        checkFormattingState();
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, convert to list
+        const ul = document.createElement('ul');
+        const li = document.createElement('li');
+        li.textContent = selectedText;
+        ul.appendChild(li);
+        range.deleteContents();
+        range.insertNode(ul);
+      } else {
+        // No selection, create new list
+        const ul = document.createElement('ul');
+        const li = document.createElement('li');
+        li.innerHTML = '&nbsp;';
+        ul.appendChild(li);
+        range.insertNode(ul);
+        range.setStart(li, 0);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+    checkFormattingState();
       }
     } catch (error) {
       console.warn('Manual unordered list creation failed:', error);
@@ -810,31 +813,31 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
     // Fallback to manual DOM manipulation
     try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const selectedText = selection.toString();
-        
-        if (selectedText) {
-          // Text is selected, convert to numbered list
-          const ol = document.createElement('ol');
-          const li = document.createElement('li');
-          li.textContent = selectedText;
-          ol.appendChild(li);
-          range.deleteContents();
-          range.insertNode(ol);
-        } else {
-          // No selection, create new numbered list
-          const ol = document.createElement('ol');
-          const li = document.createElement('li');
-          li.innerHTML = '&nbsp;';
-          ol.appendChild(li);
-          range.insertNode(ol);
-          range.setStart(li, 0);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, convert to numbered list
+        const ol = document.createElement('ol');
+        const li = document.createElement('li');
+        li.textContent = selectedText;
+        ol.appendChild(li);
+        range.deleteContents();
+        range.insertNode(ol);
+      } else {
+        // No selection, create new numbered list
+        const ol = document.createElement('ol');
+        const li = document.createElement('li');
+        li.innerHTML = '&nbsp;';
+        ol.appendChild(li);
+        range.insertNode(ol);
+        range.setStart(li, 0);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
         checkFormattingState();
       }
     } catch (error) {
@@ -848,7 +851,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       // Use document.execCommand for better reliability
       const success = document.execCommand('underline', false, undefined);
       if (success) {
-        checkFormattingState();
+    checkFormattingState();
       }
     } catch (error) {
       console.warn('Underline formatting failed:', error);
@@ -884,27 +887,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
     // Fallback to manual DOM manipulation
     try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const selectedText = selection.toString();
-        
-        if (selectedText) {
-          // Text is selected, wrap it in header
-          const header = document.createElement(`h${level}`);
-          header.textContent = selectedText;
-          range.deleteContents();
-          range.insertNode(header);
-        } else {
-          // No selection, create new header
-          const header = document.createElement(`h${level}`);
-          header.innerHTML = '&nbsp;';
-          range.insertNode(header);
-          range.setStart(header, 0);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      
+      if (selectedText) {
+        // Text is selected, wrap it in header
+        const header = document.createElement(`h${level}`);
+        header.textContent = selectedText;
+        range.deleteContents();
+        range.insertNode(header);
+      } else {
+        // No selection, create new header
+        const header = document.createElement(`h${level}`);
+        header.innerHTML = '&nbsp;';
+        range.insertNode(header);
+        range.setStart(header, 0);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
         checkFormattingState();
       }
     } catch (error) {
@@ -918,7 +921,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       // Use formatBlock to convert to div (normal paragraph)
       const success = document.execCommand('formatBlock', false, 'div');
       if (success) {
-        checkFormattingState();
+    checkFormattingState();
       }
     } catch (error) {
       console.warn('Normal formatting failed:', error);
@@ -1371,12 +1374,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   };
 
   // Export functions
-  const handleExport = async (format: 'pdf' | 'docx' | 'txt') => {
+  const handleExport = async (format: 'pdf' | 'docx' | 'txt' | 'latex') => {
     if (!project) return;
     
     setIsExporting(true);
+    setExportingFormat(format);
+    
     try {
-      const response = await fetch(`/api/projects/${resolvedParams.id}/export?format=${format}`, {
+      const response = await fetch(`/api/projects/${resolvedParams.id}/export?format=${format}&citationStyle=${selectedCitationStyle}&template=${selectedTemplate}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -1386,14 +1391,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         throw new Error(`Export failed: ${response.status} ${errorText}`);
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
       a.download = `${project.name}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
       setShowSuccessMessage(`Project exported as ${format.toUpperCase()} successfully!`);
@@ -1404,6 +1409,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       setTimeout(() => setShowSuccessMessage(''), 3000);
     } finally {
       setIsExporting(false);
+      setExportingFormat(null);
       setShowExportModal(false);
     }
   };
@@ -2252,7 +2258,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       }`}
                     >
                         {message.type === 'user' ? (
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                         ) : (
                           <div 
                             className="text-sm leading-relaxed prose prose-sm max-w-none"
@@ -2618,43 +2624,134 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {/* Export Modal */}
       {showExportModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
+          <div className="bg-white rounded-lg w-full max-w-lg">
             <div className="p-6">
               <h3 className="text-lg font-semibold mb-4">Export Project</h3>
+              
+              {/* Export Options */}
+              <div className="mb-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Citation Style</label>
+                  <select
+                    value={selectedCitationStyle}
+                    onChange={(e) => setSelectedCitationStyle(e.target.value as any)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={isExporting}
+                  >
+                    <option value="apa">APA (American Psychological Association)</option>
+                    <option value="mla">MLA (Modern Language Association)</option>
+                    <option value="chicago">Chicago Manual of Style</option>
+                    <option value="harvard">Harvard</option>
+                    <option value="ieee">IEEE</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Academic Template</label>
+                  <select
+                    value={selectedTemplate}
+                    onChange={(e) => setSelectedTemplate(e.target.value as any)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={isExporting}
+                  >
+                    <option value="research-paper">Research Paper</option>
+                    <option value="thesis">Thesis</option>
+                    <option value="report">Research Report</option>
+                    <option value="conference-paper">Conference Paper</option>
+                  </select>
+                </div>
+              </div>
+              
               <div className="space-y-3">
               <button
                   onClick={() => handleExport('pdf')}
                   disabled={isExporting}
-                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-blue-50 flex items-center gap-3 transition-colors"
+                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
+                    isExporting && exportingFormat === 'pdf'
+                      ? 'bg-blue-50 cursor-not-allowed'
+                      : 'hover:bg-blue-50'
+                  }`}
                 >
                   <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="text-left">
-                    <div className="font-medium">PDF Document</div>
-                    <div className="text-sm text-gray-500">Portable Document Format</div>
+                  <div className="text-left flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      PDF Document
+                      {isExporting && exportingFormat === 'pdf' && (
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {isExporting && exportingFormat === 'pdf' ? 'Generating PDF...' : 'Portable Document Format'}
+                    </div>
                 </div>
                 </button>
 
                 <button
                   onClick={() => handleExport('docx')}
                   disabled={isExporting}
-                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-blue-50 flex items-center gap-3 transition-colors"
+                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
+                    isExporting && exportingFormat === 'docx'
+                      ? 'bg-blue-50 cursor-not-allowed'
+                      : 'hover:bg-blue-50'
+                  }`}
                 >
                   <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="text-left">
-                    <div className="font-medium">Word Document</div>
-                    <div className="text-sm text-gray-500">Microsoft Word Format</div>
+                  <div className="text-left flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      Word Document
+                      {isExporting && exportingFormat === 'docx' && (
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {isExporting && exportingFormat === 'docx' ? 'Generating DOCX...' : 'Microsoft Word Format'}
+                    </div>
                 </div>
                 </button>
 
                 <button
                   onClick={() => handleExport('txt')}
                   disabled={isExporting}
-                  className="w-full p-3 border border-gray-300 rounded-lg hover:bg-blue-50 flex items-center gap-3 transition-colors"
+                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
+                    isExporting && exportingFormat === 'txt'
+                      ? 'bg-blue-50 cursor-not-allowed'
+                      : 'hover:bg-blue-50'
+                  }`}
                 >
                   <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="text-left">
-                    <div className="font-medium">Plain Text</div>
-                    <div className="text-sm text-gray-500">Simple text format</div>
+                  <div className="text-left flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      Plain Text
+                      {isExporting && exportingFormat === 'txt' && (
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {isExporting && exportingFormat === 'txt' ? 'Generating TXT...' : 'Simple text format'}
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleExport('latex')}
+                  disabled={isExporting}
+                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
+                    isExporting && exportingFormat === 'latex'
+                      ? 'bg-blue-50 cursor-not-allowed'
+                      : 'hover:bg-blue-50'
+                  }`}
+                >
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      LaTeX Document
+                      {isExporting && exportingFormat === 'latex' && (
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {isExporting && exportingFormat === 'latex' ? 'Generating LaTeX...' : 'LaTeX format for academic papers'}
+                    </div>
                   </div>
                 </button>
             </div>
