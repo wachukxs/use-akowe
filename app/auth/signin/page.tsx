@@ -98,11 +98,11 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
               Akowe
             </h1>
             <p className="text-gray-600 mt-2">Write research that holds up.</p>
@@ -139,7 +139,7 @@ export default function SignInPage() {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
                 Don&apos;t have an account?{' '}
-              <Link href="/auth/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
+              <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
                 Sign up
               </Link>
             </p>

@@ -24,18 +24,18 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-600 via-blue-600 to-slate-700 bg-clip-text text-transparent">
                 Akowe
               </h1>
             </div>
             <div className="flex items-center space-x-6">
-              <Link href="/about" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">
+              <Link href="/about" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
                 About
               </Link>
-              <Link href="/auth/signin" className="text-gray-600 hover:text-indigo-600 transition-colors font-medium">
+              <Link href="/auth/signin" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
                 Sign In
               </Link>
-              <Link href="/auth/signin" className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+              <Link href="/auth/signin" className="bg-gradient-to-r from-blue-600 to-slate-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:from-blue-700 hover:to-slate-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
                 Get Started
               </Link>
             </div>
@@ -48,7 +48,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-7xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight">
             Write research that{' '}
-            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-slate-600 to-blue-700 bg-clip-text text-transparent">
               holds up
             </span>
           </h1>
@@ -57,13 +57,13 @@ export default function HomePage() {
             compelling essays, thesis projects, and research papers with confidence and precision.
           </p>
           <div className="flex flex-col sm:flex-row gap-8 justify-center">
-            <Link href="/auth/signin" className="group bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-12 py-5 rounded-2xl text-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+            <Link href="/auth/signin" className="group bg-gradient-to-r from-blue-600 to-slate-600 text-white px-12 py-5 rounded-2xl text-xl font-semibold hover:from-blue-700 hover:to-slate-700 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
               Start Writing Free
               <ArrowRight className="ml-3 inline-block group-hover:translate-x-1 transition-transform" size={24} />
             </Link>
             <button 
               onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
-              className="border-2 border-indigo-200 text-indigo-600 px-12 py-5 rounded-2xl text-xl font-semibold hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 hover:-translate-y-1"
+              className="border-2 border-blue-200 text-blue-600 px-12 py-5 rounded-2xl text-xl font-semibold hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 hover:-translate-y-1"
             >
               Watch Demo
             </button>
@@ -118,10 +118,10 @@ export default function HomePage() {
                   </div>
                 </div>
                 {/* Overlay highlights */}
-                <div className="absolute top-20 left-8 bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse">
+                <div className="absolute top-20 left-8 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse">
                   ✨ AI Assistant
                 </div>
-                <div className="absolute top-32 left-8 bg-purple-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse" style={{animationDelay: '0.5s'}}>
+                <div className="absolute top-32 left-8 bg-slate-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse" style={{animationDelay: '0.5s'}}>
                   📊 Project Stats
                 </div>
                 <div className="absolute top-44 left-8 bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse" style={{animationDelay: '1s'}}>
@@ -133,7 +133,7 @@ export default function HomePage() {
             {/* Floating feature cards */}
             <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hidden lg:block">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-slate-600 rounded-xl flex items-center justify-center">
                   <span className="text-white text-lg">🤖</span>
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function HomePage() {
           {/* Feature highlights below the image */}
           <div className="grid md:grid-cols-3 gap-8 mt-16">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-2xl">💬</span>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">AI Assistant</h3>
@@ -204,7 +204,7 @@ export default function HomePage() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
             <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-slate-600 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <Zap className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">AI-Powered Writing</h3>
@@ -250,9 +250,9 @@ export default function HomePage() {
             </p>
             
             {/* AI Words Explainer */}
-            <div className="max-w-3xl mx-auto mb-12 p-6 bg-white rounded-2xl shadow-lg border border-indigo-100">
+            <div className="max-w-3xl mx-auto mb-12 p-6 bg-white rounded-2xl shadow-lg border border-blue-100">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-slate-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white text-lg">💡</span>
                 </div>
                 <div className="text-left">
@@ -292,14 +292,14 @@ export default function HomePage() {
                   Smart citation search
                 </li>
               </ul>
-              <button className="w-full border-2 border-indigo-200 text-indigo-600 py-5 rounded-2xl font-semibold text-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300">
+              <button className="w-full border-2 border-blue-200 text-blue-600 py-5 rounded-2xl font-semibold text-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-300">
                 Get Started
               </button>
             </div>
             
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-10 shadow-2xl border-2 border-indigo-200 hover:shadow-3xl hover:-translate-y-3 transition-all duration-500 relative">
+            <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-3xl p-10 shadow-2xl border-2 border-blue-200 hover:shadow-3xl hover:-translate-y-3 transition-all duration-500 relative">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg flex items-center">
+                <span className="bg-gradient-to-r from-blue-600 to-slate-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg flex items-center">
                   <Star className="w-5 h-5 mr-2" />
                   POPULAR
                 </span>
@@ -337,7 +337,7 @@ export default function HomePage() {
                   Priority support
                 </li>
               </ul>
-              <button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-5 rounded-2xl font-semibold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 hover:shadow-lg">
+              <button className="w-full bg-gradient-to-r from-blue-600 to-slate-600 text-white py-5 rounded-2xl font-semibold text-lg hover:from-blue-700 hover:to-slate-700 transition-all duration-300 hover:shadow-lg">
                 Upgrade to Pro
               </button>
             </div>
@@ -364,7 +364,7 @@ export default function HomePage() {
                   Custom integrations
                 </li>
               </ul>
-              <button className="w-full border-2 border-indigo-200 text-indigo-600 py-5 rounded-2xl font-semibold text-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300">
+              <button className="w-full border-2 border-blue-200 text-blue-600 py-5 rounded-2xl font-semibold text-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-300">
                 Contact Sales
               </button>
             </div>
@@ -388,11 +388,11 @@ export default function HomePage() {
           <div className="overflow-x-auto">
             <table className="w-full bg-white rounded-2xl shadow-xl border border-gray-200">
               <thead>
-                <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
+                <tr className="bg-gradient-to-r from-blue-50 to-slate-50">
                   <th className="px-6 py-6 text-left text-lg font-bold text-gray-900">Feature</th>
                   <th className="px-6 py-6 text-center">
                     <div className="flex flex-col items-center">
-                      <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Akowe</span>
+                      <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">Akowe</span>
                       <span className="text-sm text-gray-600 mt-1">$15/month</span>
                     </div>
                   </th>
@@ -417,7 +417,7 @@ export default function HomePage() {
                   <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-gray-300 mx-auto" /></td>
                   <td className="px-6 py-4 text-center text-gray-400">—</td>
                 </tr>
-                <tr className="border-t border-gray-200 bg-indigo-50/30">
+                <tr className="border-t border-gray-200 bg-blue-50/30">
                   <td className="px-6 py-4 text-gray-900 font-medium">AI Auto-Complete</td>
                   <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
                   <td className="px-6 py-4 text-center text-gray-400">—</td>
@@ -429,7 +429,7 @@ export default function HomePage() {
                   <td className="px-6 py-4 text-center text-gray-400">—</td>
                   <td className="px-6 py-4 text-center text-gray-400">—</td>
                 </tr>
-                <tr className="border-t border-gray-200 bg-indigo-50/30">
+                <tr className="border-t border-gray-200 bg-blue-50/30">
                   <td className="px-6 py-4 text-gray-900 font-medium">Plagiarism Detection</td>
                   <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
                   <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-gray-300 mx-auto" /></td>
@@ -441,7 +441,7 @@ export default function HomePage() {
                   <td className="px-6 py-4 text-center text-gray-400">—</td>
                   <td className="px-6 py-4 text-center text-gray-400">—</td>
                 </tr>
-                <tr className="border-t border-gray-200 bg-indigo-50/30">
+                <tr className="border-t border-gray-200 bg-blue-50/30">
                   <td className="px-6 py-4 text-gray-900 font-medium">Academic Focus</td>
                   <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
                   <td className="px-6 py-4 text-center text-gray-400">—</td>
@@ -450,7 +450,7 @@ export default function HomePage() {
                 <tr className="border-t border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50">
                   <td className="px-6 py-6 text-gray-900 font-bold text-lg">Price per Month</td>
                   <td className="px-6 py-6 text-center">
-                    <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">$15</span>
+                    <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">$15</span>
                   </td>
                   <td className="px-6 py-6 text-center">
                     <span className="text-2xl font-semibold text-gray-700">$25-30</span>
@@ -472,7 +472,7 @@ export default function HomePage() {
               <p className="text-lg text-gray-600">More affordable than alternatives</p>
             </div>
             <div className="text-center">
-              <div className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">
+              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent mb-3">
                 All-in-One
               </div>
               <p className="text-lg text-gray-600">Everything you need in one place</p>
@@ -491,7 +491,7 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <div className="mb-8">
-            <Link href="/about" className="text-indigo-400 hover:text-indigo-300 transition-colors text-lg font-medium">
+            <Link href="/about" className="text-blue-400 hover:text-blue-300 transition-colors text-lg font-medium">
               Learn Our Story →
             </Link>
           </div>
