@@ -1004,11 +1004,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     setIsGeneratingExplanation(true);
     
     try {
-      const requestBody = {
-        prompt: `Please provide a clear, concise explanation of this mathematical equation: ${latexCode}. Explain what each part represents, the mathematical concept it demonstrates, and provide a brief example of when this equation might be used. Keep the explanation academic but accessible, suitable for a research paper.`,
-        context: 'math_explanation',
-        projectId: project?._id,
-      };
+            const requestBody = {
+              prompt: `Provide a brief, 1-2 sentence explanation of this mathematical equation: ${latexCode}. Context: This is for a research project titled "${project?.name || 'academic research'}" in the ${activeSection ? project?.sections.find(s => s.id === activeSection)?.title || 'current section' : 'current section'}. Explain what the equation represents in simple terms relevant to this research context. Keep it concise and professional.`,
+              context: 'math_explanation',
+              projectId: project?._id,
+            };
       
       console.log('🧠 DEBUG: Making API request to /api/ai/write');
       console.log('🧠 DEBUG: Request body:', requestBody);
@@ -1044,9 +1044,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             generateMathExplanation(latexCode, retryCount + 1);
           }, 2000);
           return;
-        } else {
-          setMathExplanation('Rate limit reached. Please wait a moment before generating another explanation, or try again later.');
-        }
+                  } else {
+                    setMathExplanation('Daily AI word limit reached. Upgrade to Pro for unlimited AI assistance! 🚀');
+                  }
       } else {
         console.error('❌ Failed to generate math explanation');
         console.error('❌ Response status:', response.status);
@@ -2314,6 +2314,113 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         onKeyDown={(e) => {
                           checkFormattingState();
                           
+                          // Handle Backspace and Delete keys for math equations
+                          if (e.key === 'Backspace' || e.key === 'Delete') {
+                            const selection = window.getSelection();
+                            if (selection && selection.rangeCount > 0) {
+                              const range = selection.getRangeAt(0);
+                              let element = range.commonAncestorContainer;
+                              
+                              // Walk up to find the element
+                              while (element && element.nodeType !== Node.ELEMENT_NODE) {
+                                element = element.parentNode as Node;
+                              }
+                              
+                              if (element) {
+                                let currentElement = element as Element;
+                                
+                                // Check if we're inside a math equation
+                                while (currentElement && currentElement !== document.body) {
+                                  if (currentElement.classList && currentElement.classList.contains('math-equation')) {
+                                    // We're inside a math equation - allow normal character deletion
+                                    // Only delete the entire equation if it becomes empty after this deletion
+                                    
+                                    // Let the browser handle the normal deletion first
+                                    // We'll check if the equation becomes empty after the deletion
+                                    setTimeout(() => {
+                                      const mathEquation = currentElement as Element;
+                                      const textContent = mathEquation.textContent?.trim() || '';
+                                      
+                                      // If the equation is now empty or only contains $ symbols, remove it
+                                      if (textContent === '' || textContent === '$' || textContent === '$$') {
+                                        mathEquation.remove();
+                                        
+                                        // Trigger input event to update editor state
+                                        const inputEvent = new Event('input', { bubbles: true });
+                                        (e.target as HTMLElement).dispatchEvent(inputEvent);
+                                        
+                                        // Update word count and save
+                                        if (activeSection) {
+                                          const editorElement = document.querySelector('[contentEditable]') as HTMLElement;
+                                          if (editorElement) {
+                                            const updatedContent = editorElement.innerHTML;
+                                            handleSectionChange(activeSection, updatedContent);
+                                          }
+                                        }
+                                      }
+                                    }, 0);
+                                    
+                                    // Don't prevent default - let normal character deletion happen
+                                    return;
+                                  }
+                                  currentElement = currentElement.parentElement as Element;
+                                }
+                                
+                                // Check if cursor is right before a math equation (for Backspace)
+                                if (e.key === 'Backspace') {
+                                  const nextSibling = range.startContainer.nextSibling;
+                                  if (nextSibling && nextSibling.nodeType === Node.ELEMENT_NODE) {
+                                    const nextElement = nextSibling as Element;
+                                    if (nextElement.classList && nextElement.classList.contains('math-equation')) {
+                                      e.preventDefault();
+                                      nextElement.remove();
+                                      
+                                      // Trigger input event to update editor state
+                                      const inputEvent = new Event('input', { bubbles: true });
+                                      (e.target as HTMLElement).dispatchEvent(inputEvent);
+                                      
+                                      // Update word count and save
+                                      if (activeSection) {
+                                        const editorElement = document.querySelector('[contentEditable]') as HTMLElement;
+                                        if (editorElement) {
+                                          const updatedContent = editorElement.innerHTML;
+                                          handleSectionChange(activeSection, updatedContent);
+                                        }
+                                      }
+                                      return;
+                                    }
+                                  }
+                                }
+                                
+                                // Check if cursor is right after a math equation (for Delete)
+                                if (e.key === 'Delete') {
+                                  const prevSibling = range.startContainer.previousSibling;
+                                  if (prevSibling && prevSibling.nodeType === Node.ELEMENT_NODE) {
+                                    const prevElement = prevSibling as Element;
+                                    if (prevElement.classList && prevElement.classList.contains('math-equation')) {
+                                      e.preventDefault();
+                                      prevElement.remove();
+                                      
+                                      // Trigger input event to update editor state
+                                      const inputEvent = new Event('input', { bubbles: true });
+                                      (e.target as HTMLElement).dispatchEvent(inputEvent);
+                                      
+                                      // Update word count and save
+                                      if (activeSection) {
+                                        const editorElement = document.querySelector('[contentEditable]') as HTMLElement;
+                                        if (editorElement) {
+                                          const updatedContent = editorElement.innerHTML;
+                                          handleSectionChange(activeSection, updatedContent);
+                                        }
+                                      }
+                                      return;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          
                           // Handle Enter key for better UX
                           if (e.key === 'Enter') {
                             const selection = window.getSelection();
@@ -3473,38 +3580,48 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
 
-                {/* AI Explanation */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      AI Explanation
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        console.log('🧠 DEBUG: Generate Explanation button clicked');
-                        console.log('🧠 DEBUG: mathPreview:', mathPreview);
-                        console.log('🧠 DEBUG: isGeneratingExplanation:', isGeneratingExplanation);
-                        generateMathExplanation(mathPreview);
-                      }}
-                      disabled={!mathPreview.trim() || isGeneratingExplanation}
-                      className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isGeneratingExplanation ? 'Generating...' : 'Generate Explanation'}
-                    </button>
-                  </div>
-                  <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 min-h-[100px]">
-                    {mathExplanation ? (
-                      <div className="text-sm text-gray-800 leading-relaxed">
-                        {mathExplanation}
+                    {/* AI Explanation */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          AI Explanation
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            console.log('🧠 DEBUG: Generate Explanation button clicked');
+                            console.log('🧠 DEBUG: mathPreview:', mathPreview);
+                            console.log('🧠 DEBUG: isGeneratingExplanation:', isGeneratingExplanation);
+                            generateMathExplanation(mathPreview);
+                          }}
+                          disabled={!mathPreview.trim() || isGeneratingExplanation}
+                          className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isGeneratingExplanation ? 'Generating...' : 'Generate Explanation'}
+                        </button>
                       </div>
-                    ) : (
-                      <div className="text-sm text-gray-500 italic">
-                        Click "Generate Explanation" to get an AI-powered explanation of your equation.
+                      <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 max-h-[120px] overflow-y-auto">
+                        {mathExplanation ? (
+                          <div className="text-sm text-gray-800 leading-relaxed">
+                            {mathExplanation.replace(/\\\(|\\\)/g, '').replace(/\$+/g, '')}
+                            {mathExplanation.includes('Upgrade to Pro') && (
+                              <div className="mt-3 pt-3 border-t border-gray-300">
+                                <a
+                                  href="/settings"
+                                  className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                  Upgrade to Pro →
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-500 italic">
+                            Click "Generate Explanation" to get a brief AI explanation of your equation.
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
               {/* Quick Examples */}
               <div>
