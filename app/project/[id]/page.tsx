@@ -226,6 +226,30 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     return html;
   };
 
+  // Smart AI response processor for insertion
+  const processAIResponse = (content: string, sectionTitle: string): string => {
+    if (!content) return '';
+    
+    let processed = content.trim();
+    
+    // Remove redundant section titles that match the current section
+    const sectionTitleLower = sectionTitle.toLowerCase();
+    const titlePatterns = [
+      new RegExp(`^#\\s*${sectionTitleLower}[\\s:]*`, 'gim'),
+      new RegExp(`^<h1>\\s*${sectionTitleLower}[\\s:]*</h1>`, 'gim'),
+      new RegExp(`^${sectionTitleLower}[\\s:]+`, 'gim')
+    ];
+    
+    for (const pattern of titlePatterns) {
+      processed = processed.replace(pattern, '').trim();
+    }
+    
+    // Apply markdown parsing
+    processed = parseMarkdown(processed);
+    
+    return processed;
+  };
+
   const cleanupSectionContent = (content: string): string => {
     if (!content) return '';
     
@@ -2205,7 +2229,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md shadow-sm'
                       }`}
                     >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        {message.type === 'user' ? (
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        ) : (
+                          <div 
+                            className="text-sm leading-relaxed prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: parseMarkdown(message.content) }}
+                          />
+                        )}
                       {message.type === 'assistant' && (
                   <button 
                           onClick={() => {
@@ -2223,25 +2254,31 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 let newContent;
                                 if (isIntegratedResponse) {
                                   // Use the integrated content directly - AI has already analyzed and integrated
-                                  newContent = message.content.trim();
+                                  newContent = processAIResponse(message.content, activeS.title);
                                 } else {
                                   // For non-integrated responses, try to be smarter about placement
                                   const currentContent = cleanupSectionContent(activeS.content || '');
                                   
-                                  // Check if current content is mostly template text
+                                  // Check if current content is mostly template/guide text
                                   const isTemplateContent = currentContent.includes('Begin your') || 
                                                           currentContent.includes('Comprehensive review') ||
                                                           currentContent.includes('Organization Strategies') ||
-                                                          currentContent.includes('Writing Tips');
+                                                          currentContent.includes('Writing Tips') ||
+                                                          currentContent.includes('This section demonstrates') ||
+                                                          currentContent.includes('What to Include') ||
+                                                          currentContent.includes('Getting Started') ||
+                                                          currentContent.includes('Start writing below') ||
+                                                          currentContent.includes('Detail your') ||
+                                                          currentContent.includes('This is where you\'ll wrap up');
                                   
                                   if (isTemplateContent) {
-                                    // Replace template content entirely
-                                    newContent = message.content.trim();
+                                    // Replace template content entirely with processed AI response
+                                    newContent = processAIResponse(message.content, activeS.title);
                                   } else {
                                     // Add to existing substantive content
                                     const separator = currentContent.trim() ? '\n\n' : '';
-                                    const formattedContent = message.content.trim();
-                                    newContent = currentContent + separator + formattedContent;
+                                    const processedContent = processAIResponse(message.content, activeS.title);
+                                    newContent = currentContent + separator + processedContent;
                                   }
                                 }
                                 
