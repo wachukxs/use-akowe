@@ -8,7 +8,7 @@ import { Project } from '@/types';
 import { 
   BookOpen, GripVertical, Plus, Download, CheckCircle2, FileText, X, Send, Bot, 
   Edit3, Trash2, ChevronDown, ChevronRight, Target, Clock, BookMarked, Search, 
-  Shield, Bold, Italic, List, Hash, Quote, Link, Sparkles, Copy, Save
+  Shield, Bold, Italic, Underline, List, Hash, Quote, Link, Sparkles, Copy, Save, Undo, Redo
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
@@ -51,6 +51,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [formattingState, setFormattingState] = useState({
     bold: false,
     italic: false,
+    underline: false,
     unorderedList: false,
     orderedList: false
   });
@@ -59,6 +60,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [activeFormatting, setActiveFormatting] = useState({
     bold: false,
     italic: false,
+    underline: false,
     unorderedList: false,
     orderedList: false
   });
@@ -472,69 +474,96 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     discoverCitations(currentCitationOffset, true);
   };
 
-  // Function to check current formatting state
+  // Function to check current formatting state using document.queryCommandState
   const checkFormattingState = () => {
-    const selection = window.getSelection();
-    
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      let element = range.commonAncestorContainer;
+    try {
+      const selection = window.getSelection();
       
-      // Walk up to find the element
-      while (element && element.nodeType !== Node.ELEMENT_NODE) {
-        element = element.parentNode as Node;
-      }
-      
-      if (element) {
-        let currentElement = element as Element;
-        let isBold = false;
-        let isItalic = false;
-        let isUnorderedList = false;
-        let isOrderedList = false;
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const editor = document.querySelector('[contenteditable="true"]');
         
-        // Check formatting by walking up the DOM tree
-        while (currentElement && currentElement !== document.body) {
-          if (currentElement.tagName === 'B' || currentElement.tagName === 'STRONG') {
-            isBold = true;
+        // Only check formatting if selection is within our editor
+        if (editor && editor.contains(range.commonAncestorContainer)) {
+          // Use document.queryCommandState for more accurate state detection
+          const isBold = document.queryCommandState('bold');
+          const isItalic = document.queryCommandState('italic');
+          const isUnderline = document.queryCommandState('underline');
+          
+          // For lists, we need to check the DOM structure
+          let isUnorderedList = false;
+          let isOrderedList = false;
+          let element = range.commonAncestorContainer;
+          
+          // Walk up to find the element
+          while (element && element.nodeType !== Node.ELEMENT_NODE) {
+            element = element.parentNode as Node;
           }
-          if (currentElement.tagName === 'I' || currentElement.tagName === 'EM') {
-            isItalic = true;
+          
+          if (element) {
+            let currentElement = element as Element;
+            // Check formatting by walking up the DOM tree
+            while (currentElement && currentElement !== document.body) {
+              if (currentElement.tagName === 'UL') {
+                isUnorderedList = true;
+                break;
+              }
+              if (currentElement.tagName === 'OL') {
+                isOrderedList = true;
+                break;
+              }
+              currentElement = currentElement.parentElement as Element;
+            }
           }
-          if (currentElement.tagName === 'UL') {
-            isUnorderedList = true;
-          }
-          if (currentElement.tagName === 'OL') {
-            isOrderedList = true;
-          }
-          currentElement = currentElement.parentElement as Element;
+          
+          setFormattingState({
+            bold: isBold,
+            italic: isItalic,
+            underline: isUnderline,
+            unorderedList: isUnorderedList,
+            orderedList: isOrderedList
+          });
+          
+          // Also update active formatting for consistency
+          setActiveFormatting({
+            bold: isBold,
+            italic: isItalic,
+            underline: isUnderline,
+            unorderedList: isUnorderedList,
+            orderedList: isOrderedList
+          });
         }
-        
+      } else {
+        // No selection, reset formatting state
         setFormattingState({
-          bold: isBold,
-          italic: isItalic,
-          unorderedList: isUnorderedList,
-          orderedList: isOrderedList
+          bold: false,
+          italic: false,
+          underline: false,
+          unorderedList: false,
+          orderedList: false
         });
-        
-        // Also update active formatting for consistency
         setActiveFormatting({
-          bold: isBold,
-          italic: isItalic,
-          unorderedList: isUnorderedList,
-          orderedList: isOrderedList
+          bold: false,
+          italic: false,
+          underline: false,
+          unorderedList: false,
+          orderedList: false
         });
       }
-    } else {
-      // No selection, reset formatting state
+    } catch (error) {
+      console.warn('Formatting state check failed:', error);
+      // Reset to safe state on error
       setFormattingState({
         bold: false,
         italic: false,
+        underline: false,
         unorderedList: false,
         orderedList: false
       });
       setActiveFormatting({
         bold: false,
         italic: false,
+        underline: false,
         unorderedList: false,
         orderedList: false
       });
@@ -543,149 +572,242 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   // Enhanced formatting functions that work with contentEditable
   const applyBold = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const selectedText = selection.toString();
-      
-      if (selectedText) {
-        // Text is selected, wrap it in bold
-        const strong = document.createElement('strong');
-        try {
-          range.surroundContents(strong);
-        } catch (e) {
-          const contents = range.extractContents();
-          strong.appendChild(contents);
-          range.insertNode(strong);
-        }
-      } else {
-        // No selection, insert bold tags for new text
-        const strong = document.createElement('strong');
-        strong.innerHTML = '&nbsp;';
-        range.insertNode(strong);
-        range.setStartAfter(strong);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    try {
+      // Use document.execCommand for better reliability and browser compatibility
+      const success = document.execCommand('bold', false, undefined);
+      if (success) {
+        checkFormattingState();
       }
+    } catch (error) {
+      console.warn('Bold formatting failed:', error);
     }
-    checkFormattingState();
   };
 
   const applyItalic = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const selectedText = selection.toString();
-      
-      if (selectedText) {
-        // Text is selected, wrap it in italic
-        const em = document.createElement('em');
-        try {
-          range.surroundContents(em);
-        } catch (e) {
-          const contents = range.extractContents();
-          em.appendChild(contents);
-          range.insertNode(em);
-        }
-      } else {
-        // No selection, insert italic tags for new text
-        const em = document.createElement('em');
-        em.innerHTML = '&nbsp;';
-        range.insertNode(em);
-        range.setStartAfter(em);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    try {
+      // Use document.execCommand for better reliability and browser compatibility
+      const success = document.execCommand('italic', false, undefined);
+      if (success) {
+        checkFormattingState();
       }
+    } catch (error) {
+      console.warn('Italic formatting failed:', error);
     }
-    checkFormattingState();
   };
 
   const applyUnorderedList = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const selectedText = selection.toString();
-      
-      if (selectedText) {
-        // Text is selected, convert to list
-        const ul = document.createElement('ul');
-        const li = document.createElement('li');
-        li.textContent = selectedText;
-        ul.appendChild(li);
-        range.deleteContents();
-        range.insertNode(ul);
-      } else {
-        // No selection, create new list
-        const ul = document.createElement('ul');
-        const li = document.createElement('li');
-        li.innerHTML = '&nbsp;';
-        ul.appendChild(li);
-        range.insertNode(ul);
-        range.setStart(li, 0);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    try {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString();
+        
+        let htmlToInsert = '';
+        if (selectedText) {
+          // Text is selected, convert to list
+          htmlToInsert = `<ul><li>${selectedText}</li></ul>`;
+        } else {
+          // No selection, create new list
+          htmlToInsert = '<ul><li>&nbsp;</li></ul>';
+        }
+        
+        // Try insertHTML first
+        const success = document.execCommand('insertHTML', false, htmlToInsert);
+        if (success) {
+          checkFormattingState();
+          return;
+        }
       }
+    } catch (error) {
+      console.warn('insertHTML failed, trying manual approach:', error);
     }
-    checkFormattingState();
+
+    // Fallback to manual DOM manipulation (same as before)
+    try {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString();
+        
+        if (selectedText) {
+          // Text is selected, convert to list
+          const ul = document.createElement('ul');
+          const li = document.createElement('li');
+          li.textContent = selectedText;
+          ul.appendChild(li);
+          range.deleteContents();
+          range.insertNode(ul);
+        } else {
+          // No selection, create new list
+          const ul = document.createElement('ul');
+          const li = document.createElement('li');
+          li.innerHTML = '&nbsp;';
+          ul.appendChild(li);
+          range.insertNode(ul);
+          range.setStart(li, 0);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        checkFormattingState();
+      }
+    } catch (error) {
+      console.warn('Manual unordered list creation failed:', error);
+    }
   };
 
   const applyOrderedList = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const selectedText = selection.toString();
-      
-      if (selectedText) {
-        // Text is selected, convert to numbered list
-        const ol = document.createElement('ol');
-        const li = document.createElement('li');
-        li.textContent = selectedText;
-        ol.appendChild(li);
-        range.deleteContents();
-        range.insertNode(ol);
-      } else {
-        // No selection, create new numbered list
-        const ol = document.createElement('ol');
-        const li = document.createElement('li');
-        li.innerHTML = '&nbsp;';
-        ol.appendChild(li);
-        range.insertNode(ol);
-        range.setStart(li, 0);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    try {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString();
+        
+        let htmlToInsert = '';
+        if (selectedText) {
+          // Text is selected, convert to numbered list
+          htmlToInsert = `<ol><li>${selectedText}</li></ol>`;
+        } else {
+          // No selection, create new numbered list
+          htmlToInsert = '<ol><li>&nbsp;</li></ol>';
+        }
+        
+        // Try insertHTML first
+        const success = document.execCommand('insertHTML', false, htmlToInsert);
+        if (success) {
+          checkFormattingState();
+          return;
+        }
       }
+    } catch (error) {
+      console.warn('insertHTML failed, trying manual approach:', error);
     }
-    checkFormattingState();
+
+    // Fallback to manual DOM manipulation (same as before)
+    try {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString();
+        
+        if (selectedText) {
+          // Text is selected, convert to numbered list
+          const ol = document.createElement('ol');
+          const li = document.createElement('li');
+          li.textContent = selectedText;
+          ol.appendChild(li);
+          range.deleteContents();
+          range.insertNode(ol);
+        } else {
+          // No selection, create new numbered list
+          const ol = document.createElement('ol');
+          const li = document.createElement('li');
+          li.innerHTML = '&nbsp;';
+          ol.appendChild(li);
+          range.insertNode(ol);
+          range.setStart(li, 0);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        checkFormattingState();
+      }
+    } catch (error) {
+      console.warn('Manual ordered list creation failed:', error);
+    }
+  };
+
+  // Add underline support
+  const applyUnderline = () => {
+    try {
+      // Use document.execCommand for better reliability
+      const success = document.execCommand('underline', false, undefined);
+      if (success) {
+        checkFormattingState();
+      }
+    } catch (error) {
+      console.warn('Underline formatting failed:', error);
+    }
   };
 
   const applyHeader = (level: number) => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const selectedText = selection.toString();
-      
-      if (selectedText) {
-        // Text is selected, wrap it in header
-        const header = document.createElement(`h${level}`);
-        header.textContent = selectedText;
-        range.deleteContents();
-        range.insertNode(header);
-      } else {
-        // No selection, create new header
-        const header = document.createElement(`h${level}`);
-        header.innerHTML = '&nbsp;';
-        range.insertNode(header);
-        range.setStart(header, 0);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    try {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString();
+        
+        let htmlToInsert = '';
+        if (selectedText) {
+          // Text is selected, wrap it in header
+          htmlToInsert = `<h${level}>${selectedText}</h${level}>`;
+        } else {
+          // No selection, create new header
+          htmlToInsert = `<h${level}>&nbsp;</h${level}>`;
+        }
+        
+        // Try insertHTML first
+        const success = document.execCommand('insertHTML', false, htmlToInsert);
+        if (success) {
+          checkFormattingState();
+          return;
+        }
       }
+    } catch (error) {
+      console.warn('insertHTML failed, trying manual approach:', error);
     }
-    checkFormattingState();
+
+    // Fallback to manual DOM manipulation (same as before)
+    try {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString();
+        
+        if (selectedText) {
+          // Text is selected, wrap it in header
+          const header = document.createElement(`h${level}`);
+          header.textContent = selectedText;
+          range.deleteContents();
+          range.insertNode(header);
+        } else {
+          // No selection, create new header
+          const header = document.createElement(`h${level}`);
+          header.innerHTML = '&nbsp;';
+          range.insertNode(header);
+          range.setStart(header, 0);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        checkFormattingState();
+      }
+    } catch (error) {
+      console.warn('Manual header creation failed:', error);
+    }
+  };
+
+  // Add undo/redo functionality
+  const undo = () => {
+    try {
+      const success = document.execCommand('undo', false, undefined);
+      if (success) {
+        checkFormattingState();
+      }
+    } catch (error) {
+      console.warn('Undo failed:', error);
+    }
+  };
+
+  const redo = () => {
+    try {
+      const success = document.execCommand('redo', false, undefined);
+      if (success) {
+        checkFormattingState();
+      }
+    } catch (error) {
+      console.warn('Redo failed:', error);
+    }
   };
 
   // Simple text input handler
@@ -1517,6 +1639,26 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     <div className="border border-gray-200 rounded-lg">
                       {/* Rich Text Toolbar */}
                       <div className="border-b border-gray-200 p-3 flex items-center gap-2 bg-gray-50">
+                        {/* Undo/Redo */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={undo}
+                            className="p-2 hover:bg-gray-200 rounded transition-colors"
+                            title="Undo (Ctrl+Z)"
+                          >
+                            <Undo className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={redo}
+                            className="p-2 hover:bg-gray-200 rounded transition-colors"
+                            title="Redo (Ctrl+Shift+Z)"
+                          >
+                            <Redo className="h-4 w-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        
                         {/* Text Formatting */}
                         <div className="flex items-center gap-1">
                           <button
@@ -1540,6 +1682,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             title="Italic (Ctrl+I)"
                           >
                             <Italic className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={applyUnderline}
+                            className={`p-2 rounded transition-colors ${
+                              formattingState.underline 
+                                ? 'bg-purple-100 text-purple-700 border border-purple-300' 
+                                : 'hover:bg-gray-200'
+                            }`}
+                            title="Underline (Ctrl+U)"
+                          >
+                            <Underline className="h-4 w-4" />
                           </button>
                         </div>
                         
@@ -1621,6 +1774,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             } else if (e.key === 'i') {
                               e.preventDefault();
                               applyItalic();
+                            } else if (e.key === 'u') {
+                              e.preventDefault();
+                              applyUnderline();
+                            } else if (e.key === 'z' && !e.shiftKey) {
+                              e.preventDefault();
+                              undo();
+                            } else if (e.key === 'z' && e.shiftKey) {
+                              e.preventDefault();
+                              redo();
                             }
                           }
                         }}
@@ -1633,6 +1795,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           setFormattingState({
                             bold: false,
                             italic: false,
+                            underline: false,
                             unorderedList: false,
                             orderedList: false
                           });
@@ -1640,6 +1803,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           setActiveFormatting({
                             bold: false,
                             italic: false,
+                            underline: false,
                             unorderedList: false,
                             orderedList: false
                           });
