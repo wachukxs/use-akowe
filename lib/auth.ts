@@ -44,8 +44,6 @@ export const authOptions: NextAuthConfig = {
               console.log('Auth: Invalid password for user:', credentials.email);
               return null; // Return null instead of throwing error
             }
-
-            console.log('Auth: Successful authentication for user:', credentials.email);
             return {
               id: user._id.toString(),
               email: user.email,
@@ -61,8 +59,6 @@ export const authOptions: NextAuthConfig = {
   ],
   callbacks: {
     async signIn({ user, account, profile }: any) {
-      console.log('SignIn callback called:', { user, account, profile });
-      
       if (account?.provider === 'google') {
         await connectDB();
 
@@ -82,10 +78,8 @@ export const authOptions: NextAuthConfig = {
       } else if (account?.provider === 'credentials') {
         // For credentials provider, if user is null, it means authentication failed
         if (!user) {
-          console.log('Credentials sign-in failed - user is null');
           return false; // Explicitly deny sign-in
         }
-        console.log('Credentials sign-in successful');
         return true;
       }
 
@@ -106,7 +100,6 @@ export const authOptions: NextAuthConfig = {
         if (dbUser) {
           token.plan = dbUser.plan || 'free';
           token.billingCycle = dbUser.billingCycle || 'monthly';
-          console.log(`🔄 JWT callback: Updated plan to ${dbUser.plan} for user ${token.id}`);
         }
       }
       

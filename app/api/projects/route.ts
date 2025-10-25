@@ -749,9 +749,7 @@ export async function GET() {
 
       // If citations were cleaned, update the project in the database
       if (cleanCitations.length !== project.citations.length) {
-        console.log(`🔍 Cleaning project "${project.name}": ${cleanCitations.length} citations from ${project.citations.length}`);
-        
-        await Project.findOneAndUpdate(
+       await Project.findOneAndUpdate(
           { _id: project._id, userId: session.user.email },
           { 
             citations: cleanCitations,
@@ -764,10 +762,7 @@ export async function GET() {
 
       return project;
     }));
-
-    console.log('Projects API - Found projects:', cleanedProjects.length);
-    console.log('Projects API - Citations per project:', cleanedProjects.map(p => ({ name: p.name, citations: p.citations?.length || 0 })));
-
+    
     return NextResponse.json({ projects: cleanedProjects });
   } catch (error) {
     console.error('Error fetching projects:', error);

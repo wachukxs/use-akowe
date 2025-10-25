@@ -32,13 +32,9 @@ export async function POST(
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
-    
-    console.log('🔍 Manual citation detection triggered for project:', project.name);
-    
-    // Extract citations from all sections
+       // Extract citations from all sections
     const detectedCitations = extractCitationsFromProject(project.sections, project.citationStyle);
-    console.log('🔍 Detected citations:', detectedCitations.length);
-    
+   
     if (detectedCitations.length > 0) {
       // Clean up existing citations - remove malformed ones and template citations
       const existingCitations = project.citations || [];
@@ -61,15 +57,10 @@ export async function POST(
         
         return !hasMalformedAuthor && !isTemplateCitation;
       });
-      
-      console.log('🔍 Cleaned existing citations:', cleanExistingCitations.length, 'from', existingCitations.length);
-      
-      // Merge clean existing citations with newly detected ones
+           // Merge clean existing citations with newly detected ones
       const mergedCitations = mergeCitations(cleanExistingCitations, detectedCitations);
       
-      console.log('🔍 Final merged citations:', mergedCitations.length);
-      
-      // Update project with clean merged citations
+   // Update project with clean merged citations
       const updatedProject = await Project.findOneAndUpdate(
         { _id: id, userId: session.user.email },
         { 
@@ -108,9 +99,7 @@ export async function POST(
         
         return !hasMalformedAuthor && !isTemplateCitation;
       });
-      
-      console.log('🔍 Cleaned existing citations (no new detected):', cleanExistingCitations.length, 'from', existingCitations.length);
-      
+     
       // Update project with cleaned citations if any were removed
       if (cleanExistingCitations.length !== existingCitations.length) {
         await Project.findOneAndUpdate(

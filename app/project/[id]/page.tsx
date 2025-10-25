@@ -2831,17 +2831,22 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
           {/* Input Area */}
           <div className="p-3 bg-white border-t border-gray-200">
-            {/* Usage Info */}
-            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-yellow-800">
-                  Free Plan: 1,500 words/day
-                </span>
-                <button className="text-yellow-700 hover:text-yellow-800 font-medium">
-                  Upgrade
+            {/* Usage Info - Only show for Free plan users */}
+            {(session?.user as any)?.plan === 'free' && (
+              <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-yellow-800">
+                    Free Plan: 1,500 words/day
+                  </span>
+                  <button 
+                    onClick={() => router.push('/settings')}
+                    className="text-yellow-700 hover:text-yellow-800 font-medium"
+                  >
+                    Upgrade
                   </button>
                 </div>
               </div>
+            )}
 
             {/* Input Field */}
             <div className="flex gap-2">

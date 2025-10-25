@@ -204,22 +204,7 @@ Return the complete section content with the citation intelligently integrated. 
       integrationType = 'CONTENT_CONDENSATION';
     } else {
       integrationType = 'NATURAL_INTEGRATION';
-    }
-
-    // Debug logging
-    console.log('Citation Integration Analysis:', {
-      sectionTitle,
-      citationText,
-      citationStyle,
-      originalLength,
-      integratedLength,
-      isTemplateContent,
-      integrationType,
-      originalPreview: sectionContent.substring(0, 100) + '...',
-      integratedPreview: integratedContent.substring(0, 100) + '...',
-      integrationQuality: integratedContent.includes(citationText) ? 'SUCCESS' : 'FAILED'
-    });
-
+   }
     // Track usage
     await incrementAIWords(user._id.toString(), wordCount);
 

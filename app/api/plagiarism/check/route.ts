@@ -236,16 +236,13 @@ async function checkPlagiarism(text: string): Promise<{
     };
   }
 
-  // Check external sources in parallel
-  console.log('🔍 Starting external plagiarism checks...');
+// Check external sources in parallel
   const [crossrefMatches, arxivMatches, scholarMatches] = await Promise.all([
     checkCrossRef(textToAnalyze),
     checkArxiv(textToAnalyze),
     checkGoogleScholar(textToAnalyze)
   ]);
-  
-  console.log(`🔍 External checks complete: CrossRef(${crossrefMatches.length}), arXiv(${arxivMatches.length}), Scholar(${scholarMatches.length})`);
-  
+
   // Enhanced free plagiarism detection
   let suspiciousPhrases = 0;
   let aiPatterns = 0;

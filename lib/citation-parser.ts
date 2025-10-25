@@ -78,9 +78,6 @@ export function parseCitationsFromText(
     CITATION_PATTERNS.preciseAuthorYear,
   ].filter(Boolean);
   
-  console.log('🔍 Parsing content for citations:', content.substring(0, 100) + '...');
-  console.log('🔍 Using patterns:', patternsToTry.length);
-  
   for (const pattern of patternsToTry) {
     let match;
     while ((match = pattern.exec(content)) !== null) {
@@ -92,17 +89,13 @@ export function parseCitationsFromText(
         yearPart = match[1];
       }
       
-      console.log('🔍 Found match:', { fullMatch, authorPart, yearPart });
-      
       // Skip if author part is too long (likely captured too much)
       if (authorPart.length > 100) {
-        console.log('🔍 Skipping - author part too long:', authorPart.length, 'chars');
         continue;
       }
       
       // Skip if author part contains newlines or multiple sentences
       if (authorPart.includes('\n') || authorPart.includes('.') || authorPart.includes(';')) {
-        console.log('🔍 Skipping - author part contains invalid characters');
         continue;
       }
       
@@ -113,20 +106,17 @@ export function parseCitationsFromText(
           authorPart.toLowerCase().includes('sample') ||
           authorPart.toLowerCase().includes('template') ||
           authorPart.toLowerCase().includes('placeholder')) {
-        console.log('🔍 Skipping - template/example citation:', authorPart);
         continue;
       }
       
       // Skip if author part is too short (likely not a real citation)
       if (authorPart.length < 3) {
-        console.log('🔍 Skipping - author part too short:', authorPart);
         continue;
       }
       
       // Skip if we've already seen this citation
       const citationKey = `${authorPart}-${yearPart}`.toLowerCase();
       if (seenCitations.has(citationKey)) {
-        console.log('🔍 Skipping duplicate:', citationKey);
         continue;
       }
       seenCitations.add(citationKey);
@@ -134,8 +124,6 @@ export function parseCitationsFromText(
       // Extract author(s) and year
       const authors = extractAuthors(authorPart);
       const year = parseInt(yearPart) || new Date().getFullYear();
-      
-      console.log('🔍 Extracted:', { authors, year });
       
       // Create citation object
       const citation: ParsedCitation = {
@@ -151,20 +139,16 @@ export function parseCitationsFromText(
       };
       
       citations.push(citation);
-      console.log('🔍 Added citation:', citation);
     }
   }
   
-  console.log('🔍 Total citations found:', citations.length);
   return citations;
 }
 
-// Test function for debugging
+// Test function for debugging (silent - remove console logs for production)
 export function testCitationParsing() {
   const testContent = 'Recent research by Andre Martinez (2025) demonstrates that machine learning approaches can effectively analyze complex datasets for diagnostic and predictive purposes.';
-  console.log('🧪 Testing citation parsing with:', testContent);
   const result = parseCitationsFromText(testContent, 'APA');
-  console.log('🧪 Test result:', result);
   return result;
 }
 
@@ -275,25 +259,12 @@ export function mergeCitations(
 export function extractCitationsFromProject(sections: any[], citationStyle: string): ParsedCitation[] {
   const allCitations: ParsedCitation[] = [];
   
-  console.log('🔍 Extracting citations from project sections...');
-  console.log('🔍 Citation style:', citationStyle);
-  console.log('🔍 Sections to process:', sections.length);
-  
   for (const section of sections) {
     if (section.content) {
-      console.log(`🔍 Processing section: ${section.title}`);
-      console.log(`🔍 Content preview: ${section.content.substring(0, 200)}...`);
-      
       const sectionCitations = parseCitationsFromText(section.content, citationStyle);
-      console.log(`🔍 Found ${sectionCitations.length} citations in ${section.title}`);
-      
       allCitations.push(...sectionCitations);
-    } else {
-      console.log(`🔍 Skipping section ${section.title} - no content`);
     }
   }
-  
-  console.log('🔍 Total citations before deduplication:', allCitations.length);
   
   // Remove duplicates
   const uniqueCitations = allCitations.filter((citation, index, self) => 
@@ -302,6 +273,5 @@ export function extractCitationsFromProject(sections: any[], citationStyle: stri
     )
   );
   
-  console.log('🔍 Unique citations after deduplication:', uniqueCitations.length);
   return uniqueCitations;
 }

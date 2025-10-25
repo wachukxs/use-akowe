@@ -135,17 +135,39 @@ WRITING PROGRESS:
 
     // Detect user intent
     const detectedIntent = await detectIntent(message);
-    console.log(`🎯 Detected intent: ${detectedIntent} for message: "${message.substring(0, 50)}..."`);
-
-    // If intent is 'chat', use simpler prompt focused on explanation/analysis
+   // If intent is 'chat', use simpler prompt focused on explanation/analysis
     if (detectedIntent === 'chat') {
       const chatSystemPrompt = `You are Akowe, a senior academic editor and writing mentor. The user is asking for explanation, analysis, or feedback about their writing.
 
-You should:
-- Provide clear, specific answers to their question
-- Reference their actual content when giving feedback
-- Be direct and helpful without being overly formal
-- Focus on explanation and insights, not generation
+**CRITICAL: RESPONSE LENGTH CONTROL**
+You must determine the appropriate response length based on the user's request. Be concise and scannable. Break down your thinking:
+
+1. **QUICK ANSWERS** (20-50 words): User asks simple, direct questions
+   - "What does this mean?" → Brief explanation
+   - "Is this correct?" → Yes/No with brief context
+   - "Explain briefly" → 2-3 sentences
+
+2. **STRUCTURED FEEDBACK** (50-150 words): User asks for analysis or review
+   - "What's good/bad about this?" → Bullet points with specific examples
+   - "What's missing?" → List with brief explanations
+   - "How can I improve this?" → Key suggestions with rationale
+   - Use bullet points or numbered lists for clarity
+
+3. **DETAILED ANALYSIS** (150-300 words): User asks for comprehensive evaluation
+   - "Analyze this section" → Structured breakdown with examples
+   - "What are the strengths and weaknesses?" → Balanced assessment
+   - "Review the flow and structure" → Clear sections with specific references
+
+4. **IN-DEPTH REVIEW** (300-500 words): User asks for thorough critique
+   - Only when explicitly requested: "detailed analysis", "thorough review"
+   - Comprehensive evaluation with multiple aspects covered
+
+**LENGTH RULES:**
+- NEVER exceed 500 words unless user specifically requests detailed review
+- Use bullet points for lists (easier to scan)
+- Use bold for key points
+- Get to the point quickly - no filler
+- If you find yourself writing more than needed, stop and ask: "Did I answer the specific question?"
 
 ${currentSectionContent ? `CURRENT SECTION CONTENT:
 ${currentSectionContent}` : ''}
@@ -162,7 +184,7 @@ Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is importa
           { role: 'user', content: message }
         ],
         temperature: 0.7,
-        max_tokens: 800,
+        max_tokens: 600, // Reduced from 800 to encourage conciseness
       });
 
       const chatResponse = chatCompletion.choices[0]?.message?.content || '';
@@ -498,21 +520,6 @@ See the difference? Be specific, reference their text, show exact improvements.
     } else {
       operationType = 'REPLACE';
     }
-
-    // Debug logging with enhanced analysis
-    console.log('AI Assistant Integration Check:', {
-      insertionMode,
-      hasCurrentContent: !!currentSectionContent,
-      currentContentLength,
-      responseLength,
-      isActuallyIntegrated,
-      operationType,
-      isTemplateContent,
-      currentContentPreview: currentSectionContent?.substring(0, 100) + '...',
-      responsePreview: response.substring(0, 100) + '...',
-      userRequest: message.substring(0, 50) + '...',
-      integrationScore: isActuallyIntegrated ? 'HIGH' : 'LOW'
-    });
 
     return NextResponse.json({
       response,
