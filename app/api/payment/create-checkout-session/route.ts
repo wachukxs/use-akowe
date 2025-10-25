@@ -1,0 +1,93 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth-server';
+import { stripe, getStripePriceId } from '@/lib/stripe';
+import User from '@/models/User';
+import connectDB from '@/lib/mongodb';
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth();
+    
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { billingCycle } = body;
+
+    if (!billingCycle || !['monthly', 'annual'].includes(billingCycle)) {
+      return NextResponse.json(
+        { error: 'Invalid billing cycle. Must be "monthly" or "annual"' },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+    
+    // Get or create Stripe customer
+    const user = await User.findOne({ email: session.user.email });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    let customerId = user.stripeCustomerId;
+
+    // Create Stripe customer if doesn't exist
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: session.user.email,
+        name: user.name,
+        metadata: {
+          userId: user._id.toString(),
+        },
+      });
+
+      customerId = customer.id;
+      
+      // Save customer ID to user
+      user.stripeCustomerId = customerId;
+      await user.save();
+    }
+
+    // Get the appropriate price ID
+    const priceId = getStripePriceId(billingCycle);
+
+    if (!priceId) {
+      return NextResponse.json(
+        { error: 'Price ID not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Create checkout session
+    const checkoutSession = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/payment/cancel`,
+      metadata: {
+        userId: user._id.toString(),
+        userEmail: session.user.email,
+        billingCycle: billingCycle,
+      },
+    });
+
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+    });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    return NextResponse.json(
+      { error: 'Failed to create checkout session' },
+      { status: 500 }
+    );
+  }
+}

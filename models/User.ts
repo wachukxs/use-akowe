@@ -5,6 +5,7 @@ import { User as UserType, PlanType } from '@/types';
 interface IUser extends Omit<UserType, '_id'> {
   _id?: mongoose.Types.ObjectId;
   password?: string; // Add password field for internal use
+  billingCycle?: 'monthly' | 'annual'; // Add billing cycle field
 }
 
 const UserSchema = new Schema<IUser>(
@@ -37,6 +38,11 @@ const UserSchema = new Schema<IUser>(
     },
     stripeSubscriptionId: {
       type: String,
+    },
+    billingCycle: {
+      type: String,
+      enum: ['monthly', 'annual'],
+      default: 'monthly',
     },
   },
   {

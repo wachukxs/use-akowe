@@ -91,17 +91,33 @@ export const authOptions: NextAuthConfig = {
 
       return true;
     },
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, trigger }: any) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.plan = user.plan || 'free';
+        token.billingCycle = user.billingCycle || 'monthly';
       }
+      
+      // Always fetch the latest plan from the database when we have a user ID
+      if (token.id) {
+        await connectDB();
+        const dbUser = await User.findById(token.id);
+        if (dbUser) {
+          token.plan = dbUser.plan || 'free';
+          token.billingCycle = dbUser.billingCycle || 'monthly';
+          console.log(`🔄 JWT callback: Updated plan to ${dbUser.plan} for user ${token.id}`);
+        }
+      }
+      
       return token;
     },
     async session({ session, token }: any) {
       if (session.user && token) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
+        session.user.plan = token.plan as string || 'free';
+        session.user.billingCycle = token.billingCycle as string || 'monthly';
       }
       return session;
     },

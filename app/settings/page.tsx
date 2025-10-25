@@ -16,13 +16,15 @@ interface UsageData {
 }
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAnnual, setIsAnnual] = useState(true); // Default to annual billing
+  const [isUpgrading, setIsUpgrading] = useState(false); // Loading state for upgrade
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null); // Store subscription status
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -36,12 +38,47 @@ export default function SettingsPage() {
     }
   }, [session]);
 
+  // Refresh session when coming back from payment success
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('upgraded') === 'true') {
+      // Refresh session to get updated plan
+      if (update) {
+        update();
+      }
+      // Remove the query param from URL
+      window.history.replaceState({}, '', '/settings');
+    }
+  }, [update]);
+
   const fetchUsage = async () => {
     try {
-      const response = await fetch('/api/usage');
-      if (response.ok) {
-        const data = await response.json();
+      const [usageResponse, statusResponse] = await Promise.all([
+        fetch('/api/usage'),
+        fetch('/api/payment/subscription-status')
+      ]);
+
+      if (usageResponse.ok) {
+        const data = await usageResponse.json();
         setUsage(data);
+      }
+
+      // Check subscription status to handle edge cases
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+        setSubscriptionStatus(statusData);
+        
+        // Initialize toggle based on user's actual billing cycle
+        if (statusData.billingCycle) {
+          setIsAnnual(statusData.billingCycle === 'annual');
+        } else if ((session?.user as any)?.billingCycle) {
+          setIsAnnual((session?.user as any)?.billingCycle === 'annual');
+        }
+        
+        if (statusData.needsUpdate) {
+          // Session will be updated via the JWT callback
+          console.log('🔄 Subscription status updated:', statusData);
+        }
       }
     } catch (error) {
       console.error('Error fetching usage:', error);
@@ -50,9 +87,63 @@ export default function SettingsPage() {
     }
   };
 
-  const handleUpgrade = (planType: PlanType) => {
-    // TODO: Implement payment integration (Stripe, etc.)
-    alert(`Upgrade to ${planType} plan is coming soon! We'll integrate payment processing in the next phase.`);
+  const handleManageSubscription = async () => {
+    try {
+      const response = await fetch('/api/payment/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        alert('Failed to open billing portal. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error opening billing portal:', error);
+      alert('An error occurred. Please try again.');
+    }
+  };
+
+  const handleUpgrade = async (planType: PlanType) => {
+    if (planType === 'free') return;
+    
+    setIsUpgrading(true);
+    
+    try {
+      // Determine billing cycle based on toggle state
+      const billingCycle = isAnnual ? 'annual' : 'monthly';
+      
+      // Create checkout session
+      const response = await fetch('/api/payment/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ billingCycle }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Redirect to Stripe Checkout
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert('Failed to create checkout session. Please try again.');
+          setIsUpgrading(false);
+        }
+      } else {
+        const error = await response.json();
+        alert(`Failed to start checkout: ${error.error || 'Unknown error'}`);
+        setIsUpgrading(false);
+      }
+    } catch (error) {
+      console.error('Error starting checkout:', error);
+      alert('An error occurred while starting checkout. Please try again.');
+      setIsUpgrading(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -232,40 +323,59 @@ export default function SettingsPage() {
             </h2>
             
             {/* Billing Toggle */}
-            <div className="mb-6 flex items-center justify-center gap-4">
-              <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
-                Monthly
-              </span>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Toggle clicked, current isAnnual:', isAnnual);
-                    setIsAnnual(!isAnnual);
-                  }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer z-10 ${
-                    isAnnual ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                  aria-label={`Switch to ${isAnnual ? 'monthly' : 'annual'} billing`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
-                      isAnnual ? 'translate-x-6 bg-blue-600 shadow-lg border-2 border-white' : 'translate-x-1 bg-white shadow-sm border border-gray-300'
-                    }`}
-                  />
-                </button>
-              </div>
-              <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
-                Annual
-              </span>
-              {isAnnual && (
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-                  Save 47%
+            {(session?.user as any)?.plan !== 'pro' ? (
+              <div className="mb-6 flex items-center justify-center gap-4">
+                <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+                  Monthly
                 </span>
-              )}
-            </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Toggle clicked, current isAnnual:', isAnnual);
+                      setIsAnnual(!isAnnual);
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer z-10 ${
+                      isAnnual ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}
+                    aria-label={`Switch to ${isAnnual ? 'monthly' : 'annual'} billing`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
+                        isAnnual ? 'translate-x-6 bg-blue-600 shadow-lg border-2 border-white' : 'translate-x-1 bg-white shadow-sm border border-gray-300'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+                  Annual
+                </span>
+                {isAnnual && (
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                    Save 47%
+                  </span>
+                )}
+              </div>
+            ) : subscriptionStatus && (
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-700 text-center">
+                  <span className="font-medium">Current billing cycle: </span>
+                  <span className="font-semibold text-gray-900 capitalize">
+                    {subscriptionStatus.billingCycle || 'monthly'}
+                  </span>
+                  {subscriptionStatus.subscriptionEnd && (
+                    <>
+                      {' '}•{' '}
+                      <span className="text-gray-600">
+                        Renews {new Date(subscriptionStatus.subscriptionEnd * 1000).toLocaleDateString()}
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
             
             {/* AI Words Explainer */}
             <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -352,15 +462,56 @@ export default function SettingsPage() {
                       className="w-full"
                       variant={plan.popular ? 'primary' : 'outline'}
                       onClick={() => plan.type !== 'free' && !plan.comingSoon && handleUpgrade(plan.type)}
-                      disabled={plan.type === 'free' || plan.comingSoon}
+                      disabled={(session?.user as any)?.plan === plan.type || plan.type === 'free' || plan.comingSoon || isUpgrading}
                     >
-                      {plan.type === 'free' ? 'Current Plan' : plan.comingSoon ? 'Coming Soon' : 'Upgrade'}
+                      {isUpgrading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2"></div>
+                          Processing...
+                        </>
+                      ) : (session?.user as any)?.plan === plan.type ? 'Current Plan' : plan.comingSoon ? 'Coming Soon' : 'Upgrade'}
                     </Button>
                   </Card>
                 );
               })}
             </div>
           </div>
+
+          {/* Subscription Management - Only for Pro users */}
+          {(session?.user as any)?.plan === 'pro' && subscriptionStatus && (
+            <Card className="p-6 mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Subscription Management
+              </h2>
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="font-medium text-gray-900">Active Subscription</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    You&apos;re subscribed to the <strong>Pro plan</strong> with <strong className="capitalize">{subscriptionStatus.billingCycle || 'monthly'}</strong> billing.
+                  </p>
+                  {subscriptionStatus.subscriptionEnd && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      Next renewal: <strong>{new Date(subscriptionStatus.subscriptionEnd * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>
+                    </p>
+                  )}
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Need to cancel your subscription? You can manage your subscription and billing through Stripe.
+                  </p>
+                  <button
+                    onClick={handleManageSubscription}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                  >
+                    Manage Subscription →
+                  </button>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Account Settings */}
           <Card className="p-6">
