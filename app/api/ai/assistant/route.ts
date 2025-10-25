@@ -11,6 +11,43 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+/**
+ * Detects the user's intent from their message
+ * Returns: 'chat' (for explanations, analysis) or 'integrate' (for modifications)
+ */
+async function detectIntent(message: string): Promise<'chat' | 'integrate'> {
+  const intentDetectionPrompt = `Analyze this user request and classify it into one of two categories:
+
+1. **CHAT**: User wants explanation, analysis, critique, feedback, or discussion
+   - Examples: "explain", "what does this mean", "analyze", "review", "critique", "feedback", "how is this", "is this good", "summarize"
+   
+2. **INTEGRATE**: User wants modification, improvement, or content generation
+   - Examples: "improve", "fix", "make better", "add", "expand", "write", "create", "generate", "enhance", "refine"
+
+User request: "${message}"
+
+Respond with ONLY one word: "CHAT" or "INTEGRATE"`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: 'You are an intent classifier. Respond with only one word.' },
+        { role: 'user', content: intentDetectionPrompt }
+      ],
+      temperature: 0,
+      max_tokens: 10,
+    });
+
+    const intent = completion.choices[0]?.message?.content?.trim().toUpperCase();
+    return intent === 'CHAT' ? 'chat' : 'integrate';
+  } catch (error) {
+    console.error('Intent detection error:', error);
+    // Default to integrate to maintain backward compatibility
+    return 'integrate';
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -96,6 +133,60 @@ WRITING PROGRESS:
     // Determine which model to use based on plan
     const model = user.plan === 'free' ? 'gpt-3.5-turbo' : 'gpt-4o-mini';
 
+    // Detect user intent
+    const detectedIntent = await detectIntent(message);
+    console.log(`🎯 Detected intent: ${detectedIntent} for message: "${message.substring(0, 50)}..."`);
+
+    // If intent is 'chat', use simpler prompt focused on explanation/analysis
+    if (detectedIntent === 'chat') {
+      const chatSystemPrompt = `You are Akowe, a senior academic editor and writing mentor. The user is asking for explanation, analysis, or feedback about their writing.
+
+You should:
+- Provide clear, specific answers to their question
+- Reference their actual content when giving feedback
+- Be direct and helpful without being overly formal
+- Focus on explanation and insights, not generation
+
+${currentSectionContent ? `CURRENT SECTION CONTENT:
+${currentSectionContent}` : ''}
+
+${projectContext ? `PROJECT CONTEXT:
+${projectContext}` : ''}
+
+Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is important to note". Be natural and direct.`;
+
+      const chatCompletion = await openai.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: chatSystemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 800,
+      });
+
+      const chatResponse = chatCompletion.choices[0]?.message?.content || '';
+      const wordCount = countWords(chatResponse);
+
+      // Track usage
+      await incrementAIWords(user._id.toString(), wordCount);
+
+      return NextResponse.json({
+        response: chatResponse,
+        wordCount,
+        model,
+        remaining: usageCheck.remaining - wordCount,
+        intent: 'chat',
+        isIntegrated: false, // Chat responses are standalone
+        projectContext: project ? {
+          name: project.name,
+          type: project.type,
+          progress: Math.round(((project.wordCount || 0) / project.targetWordCount) * 100)
+        } : null
+      });
+    }
+
+    // Continue with existing integration flow for 'integrate' intent
     // Create context-aware system prompt
     const systemPrompt = `You are Akowe, a senior academic editor and writing mentor with 15+ years of experience. You provide deeply insightful, specific, and actionable feedback - not generic advice.
 
@@ -428,6 +519,7 @@ See the difference? Be specific, reference their text, show exact improvements.
       wordCount,
       model,
       remaining: usageCheck.remaining - wordCount,
+      intent: 'integrate', // For integrate flow
       isIntegrated: isActuallyIntegrated,
       projectContext: project ? {
         name: project.name,
