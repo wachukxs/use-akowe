@@ -5,7 +5,7 @@ import ProjectModel from '@/models/Project';
 import { generateProjectHTML, generateAcademicHTML, generateLaTeX, CitationStyle, AcademicTemplate, detectExportSettings } from '@/lib/export';
 import { Project } from '@/types';
 import puppeteer from 'puppeteer';
-// @ts-ignore - html-docx-js doesn't have TypeScript definitions
+// @ts-expect-error - html-docx-js doesn't have TypeScript definitions
 import htmlDocx from 'html-docx-js';
 
 export async function GET(
