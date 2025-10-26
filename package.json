@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build",
+    "build:turbo": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "seed": "MONGODB_URI=mongodb://localhost:27017/akowe NODE_ENV=development npx tsx scripts/seed-database.ts"
