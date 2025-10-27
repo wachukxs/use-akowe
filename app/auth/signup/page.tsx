@@ -78,8 +78,6 @@ export default function SignUpPage() {
         }),
       });
 
-      console.log('Sign up response:', response);
-
       if (response.ok) {
         // User created successfully, now sign them in
         try {
@@ -113,7 +111,6 @@ export default function SignUpPage() {
           router.push('/auth/signin');
         }
       } else {
-        console.log('Sign up error response:', response);
         const error = await response.json();
         // Show specific error messages for all edge cases
         if (error.error?.includes('already exists')) {
