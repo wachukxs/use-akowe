@@ -78,6 +78,8 @@ export default function SignUpPage() {
         }),
       });
 
+      console.log('Sign up response:', response);
+
       if (response.ok) {
         // User created successfully, now sign them in
         try {
