@@ -1,9 +1,14 @@
 import Stripe from 'stripe';
 
 // Initialize Stripe with the secret key
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-09-30.clover',
-});
+export const stripe = new Stripe(
+  process.env.NODE_ENV === 'production'
+    ? process.env.STRIPE_SECRET_KEY_PROD_V2 || ''
+    : process.env.STRIPE_SECRET_KEY_TEST || '',
+  {
+    apiVersion: '2025-09-30.clover',
+  }
+);
 
 // Get the appropriate price ID based on environment and billing cycle
 export function getStripePriceId(billingCycle: 'monthly' | 'annual'): string {
