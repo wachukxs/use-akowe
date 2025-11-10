@@ -488,42 +488,40 @@ export default function NewProjectPage() {
       {/* Project Limit Modal */}
       {showLimitModal && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowLimitModal(false);
             }
           }}
         >
-          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <X className="w-8 h-8 text-white" />
+          <div className="w-full max-w-md">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-8 space-y-6 text-center">
+              <div className="mx-auto w-16 h-16 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--destructive))]">
+                <X className="w-8 h-8" />
               </div>
-              
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Project Limit Reached
-              </h3>
-              
-              <p className="text-gray-600 mb-6">
-                {limitError}
-              </p>
-              
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold uppercase tracking-[0.16em]">
+                  Project Limit Reached
+                </h3>
+                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  {limitError}
+                </p>
+              </div>
               <div className="flex gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setShowLimitModal(false)}
-                  className="flex-1"
+                  className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
                 >
                   Cancel
                 </Button>
                 <Button
-                  variant="primary"
                   onClick={() => {
                     setShowLimitModal(false);
                     router.push('/settings');
                   }}
-                  className="flex-1"
+                  className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
                 >
                   Upgrade Plan
                 </Button>
