@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Project, ProjectType } from '@/types';
-import { formatDate } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import { FileText, BookOpen, GraduationCap, FlaskConical, MoreVertical } from 'lucide-react';
 import Card from './ui/Card';
 
@@ -11,11 +11,11 @@ const projectIcons: Record<ProjectType, React.ElementType> = {
   research: FlaskConical,
 };
 
-const projectColors: Record<ProjectType, string> = {
-  essay: 'from-accent-blue to-accent-teal',
-  thesis: 'from-accent-purple to-accent-pink',
-  journal: 'from-accent-orange to-accent-yellow',
-  research: 'from-primary to-accent-purple',
+const projectAccents: Record<ProjectType, string> = {
+  essay: 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]',
+  thesis: 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]',
+  journal: 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]',
+  research: 'bg-[hsl(var(--surface-muted))] text-[hsl(var(--foreground))]',
 };
 
 interface ProjectCardProps {
@@ -24,54 +24,63 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   const Icon = projectIcons[project.type];
-  const colorClass = projectColors[project.type];
+  const accentClass = projectAccents[project.type];
 
   return (
     <Link href={`/project/${project._id}`}>
-      <Card hover className="p-6 cursor-pointer">
-        {/* Icon and Menu */}
-        <div className="flex items-start justify-between mb-4">
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
-            <Icon className="text-white" size={24} />
+      <Card hover className="p-6 cursor-pointer space-y-6">
+        <div className="flex items-start justify-between">
+          <div
+            className={`w-14 h-14 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] flex items-center justify-center ${accentClass}`}
+          >
+            <Icon size={24} />
           </div>
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <MoreVertical size={20} className="text-gray-400" />
+          <button className="p-2 border-2 border-transparent rounded-[var(--radius)] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-y-[0.125rem] hover:-translate-x-[0.125rem]">
+            <MoreVertical size={18} />
           </button>
         </div>
 
-        {/* Project Info */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+        <div className="space-y-3">
+          <h3 className="text-xl font-bold text-[hsl(var(--foreground))] leading-tight line-clamp-2 uppercase tracking-[0.08em]">
           {project.name}
         </h3>
         
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-          <span className="capitalize">{project.type}</span>
-          <span>•</span>
-          <span>{project.wordCount} words</span>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-6 text-sm">
-          <div>
-            <span className="text-gray-500">Sections: </span>
-            <span className="font-medium text-gray-900">{project.sections.length}</span>
-          </div>
-          <div>
-            <span className="text-gray-500">Citations: </span>
-            <span className="font-medium text-gray-900">{project.citations.length}</span>
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+            <span>{project.type}</span>
+            <span>•</span>
+            <span>{project.wordCount} words</span>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            project.status === 'completed' ? 'bg-green-100 text-green-700' :
-            project.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-            'bg-gray-100 text-gray-600'
-          }`}>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="space-y-1">
+            <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Sections
+            </span>
+            <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
+              {project.sections.length}
+            </span>
+          </div>
+          <div className="space-y-1">
+            <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Citations
+            </span>
+            <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
+              {project.citations.length}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t-2 border-[hsl(var(--border-strong))] pt-4">
+          <span className={cn('px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]', {
+            'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]': project.status === 'draft',
+            'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]': project.status === 'in_progress',
+            'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]': project.status === 'completed',
+            'bg-[hsl(var(--surface-muted))] text-[hsl(var(--foreground))]': project.status === 'archived',
+          })}>
             {project.status.replace('_', ' ')}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             {formatDate(new Date(project.lastEditedAt))}
           </span>
         </div>

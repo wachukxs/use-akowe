@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar';
 import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/types';
 import { Search, Grid, List, FileText } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -80,12 +81,14 @@ export default function DashboardPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="flex h-screen">
+      <div className="flex h-screen bg-[hsl(var(--background))]">
         <Sidebar />
         <div className="flex-1 ml-64 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 border-[4px] border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+              Loading workspace
+            </p>
           </div>
         </div>
       </div>
@@ -93,81 +96,126 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Sidebar />
-      
+
       <div className="flex-1 ml-64 overflow-auto">
-        <div className="max-w-7xl mx-auto p-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Your Projects
-            </h1>
-            <p className="text-gray-600">
-              Manage and track your research projects
-            </p>
-          </div>
-
-          {/* Search and Filter Bar */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 flex items-center gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+        <div className="max-w-7xl mx-auto p-10 space-y-10">
+          <div className="grid grid-cols-12 gap-6 items-stretch">
+            <div className="col-span-12 lg:col-span-8 space-y-4">
+              <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                Project archive
+              </span>
+              <h1 className="text-5xl font-bold uppercase tracking-[0.12em] leading-tight">
+                Your Research Catalogue
+              </h1>
+              <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-xl">
+                Manage, refine, and publish academic projects with precision.
+              </p>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-100'
-                }`}
-              >
-                <Grid size={20} />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-100'
-                }`}
-              >
-                <List size={20} />
-              </button>
-            </div>
-          </div>
-
-          {/* Projects Grid */}
-          {filteredProjects.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="text-blue-600" size={48} />
+            <div className="col-span-12 lg:col-span-4">
+              <div className="h-full border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 flex flex-col justify-between">
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))]">
+                  Active count
+                </span>
+                <span className="text-6xl font-black text-[hsl(var(--accent-foreground))] leading-none">
+                  {projects.length.toString().padStart(2, '0')}
+                </span>
+                <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))]">
+                  Projects in workspace
+                </span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            </div>
+          </div>
+
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-12 lg:col-span-9">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 flex flex-col lg:flex-row gap-4 lg:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))]" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search projects"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.24em] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={cn(
+                      'px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
+                      viewMode === 'grid'
+                        ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem]'
+                        : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                    )}
+                  >
+                    <Grid size={18} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={cn(
+                      'px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
+                      viewMode === 'list'
+                        ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem]'
+                        : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                    )}
+                  >
+                    <List size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="col-span-12 lg:col-span-3 space-y-3">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 space-y-3">
+                <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                  Quick actions
+                </span>
+                <button
+                  onClick={() => router.push('/dashboard/new')}
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                >
+                  Create New Project
+                </button>
+                <button
+                  onClick={() => router.push('/settings')}
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                >
+                  Review Plans
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {filteredProjects.length === 0 ? (
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-16 px-6 flex flex-col items-center gap-6">
+              <div className="w-24 h-24 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
+                <FileText className="text-[hsl(var(--secondary))]" size={42} />
+              </div>
+              <h3 className="text-2xl font-bold uppercase tracking-[0.16em] text-center">
                 {searchQuery ? 'No projects found' : 'No projects yet'}
               </h3>
-              <p className="text-gray-600 mb-6">
-                {searchQuery ? 'Try adjusting your search' : 'Get started by creating your first project'}
+              <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] max-w-md text-center">
+                {searchQuery ? 'Adjust your filters or keywords to continue exploring.' : 'Begin by launching your first research project with Akọ̀wé.'}
               </p>
               {!searchQuery && (
                 <button
                   onClick={() => router.push('/dashboard/new')}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-slate-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-slate-700 hover:shadow-lg transition-all"
+                  className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
                   Create New Project
                 </button>
               )}
             </div>
           ) : (
-            <div className={
-              viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-                : 'space-y-4'
-            }>
+            <div
+              className={
+                viewMode === 'grid'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                  : 'space-y-4'
+              }
+            >
               {filteredProjects.map((project) => (
                 <ProjectCard key={project._id} project={project} />
               ))}
@@ -178,4 +226,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

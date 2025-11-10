@@ -8,16 +8,22 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
-    
+    const baseStyles =
+      'inline-flex items-center justify-center border-2 font-semibold tracking-[0.08em] uppercase rounded-[var(--radius)] transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+
     const variants = {
-      primary: 'bg-gradient-to-r from-blue-600 to-slate-600 text-white hover:from-blue-700 hover:to-slate-700 focus:ring-blue-500',
-      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-400',
-      outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500',
-      ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-300',
-      danger: 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500',
+      primary:
+        'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-[hsl(var(--primary))] shadow-[6px_6px_0_rgba(29,41,57,0.16)] hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[8px_8px_0_rgba(29,41,57,0.18)] active:translate-x-0 active:translate-y-0 active:shadow-[4px_4px_0_rgba(29,41,57,0.2)]',
+      secondary:
+        'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--secondary))] shadow-[6px_6px_0_rgba(29,41,57,0.12)] hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[8px_8px_0_rgba(29,41,57,0.16)] active:translate-x-0 active:translate-y-0 active:shadow-[4px_4px_0_rgba(29,41,57,0.18)]',
+      outline:
+        'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] border-[hsl(var(--border-strong))] shadow-[4px_4px_0_rgba(29,41,57,0.1)] hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[6px_6px_0_rgba(29,41,57,0.14)]',
+      ghost:
+        'bg-transparent text-[hsl(var(--foreground))] border-transparent hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))] hover:-translate-y-0.5 hover:-translate-x-0.5',
+      danger:
+        'bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] border-[hsl(var(--destructive))] shadow-[6px_6px_0_rgba(29,41,57,0.16)] hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[8px_8px_0_rgba(29,41,57,0.2)]',
     };
-    
+
     const sizes = {
       sm: 'px-3 py-1.5 text-sm',
       md: 'px-4 py-2 text-base',
