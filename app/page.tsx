@@ -24,17 +24,17 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex flex-col gap-1">
-              <span className="text-xs uppercase tracking-[0.4em] text-[hsl(var(--muted-foreground))]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+          <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-0 sm:h-20">
+            <Link href="/" className="flex flex-col gap-0.5">
+              <span className="text-[10px] sm:text-xs uppercase tracking-[0.28em] sm:tracking-[0.4em] text-[hsl(var(--muted-foreground))]">
                 Akọ̀wé
               </span>
-              <span className="text-2xl font-bold uppercase tracking-[0.16em]">
+              <span className="text-xl sm:text-2xl font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em]">
                 Research Studio
               </span>
             </Link>
-            <nav className="flex items-center gap-6 text-xs font-semibold uppercase tracking-[0.28em]">
+            <nav className="flex flex-wrap items-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] sm:tracking-[0.28em]">
               <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 About
               </Link>
@@ -46,7 +46,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/auth/signin"
-                className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-6 py-3 font-semibold uppercase tracking-[0.2em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-5 sm:px-6 py-2.5 sm:py-3 font-semibold uppercase tracking-[0.18em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
               >
                 Get Started
               </Link>
@@ -56,48 +56,48 @@ export default function HomePage() {
       </header>
 
       <main className="px-6 sm:px-8 lg:px-12">
-        <section className="max-w-7xl mx-auto py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          <div className="lg:col-span-6 space-y-8">
-            <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+          <section className="max-w-7xl mx-auto py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            <div className="lg:col-span-6 space-y-7 sm:space-y-8">
+              <span className="text-[11px] sm:text-xs uppercase tracking-[0.26em] sm:tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
               Academic research studio
             </span>
-            <h1 className="text-5xl md:text-6xl font-bold uppercase tracking-[0.1em] leading-tight">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
               Write research that holds up
           </h1>
-            <p className="text-sm md:text-base uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              <p className="text-xs sm:text-sm md:text-base uppercase tracking-[0.18em] sm:tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               An AI-assisted workspace for essays, theses, and scholarly projects—built to honor rigor, clarity, and craft.
           </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Link href="/auth/signin">
-                <Button className="px-8 py-4 flex items-center gap-3">
+                  <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3">
               Start Writing Free
                   <ArrowRight size={18} />
                 </Button>
             </Link>
               <Button
                 variant="outline"
-                className="px-8 py-4"
+                  className="px-6 sm:px-8 py-3 sm:py-4"
               onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Watch Demo
               </Button>
             </div>
-            <div className="grid grid-cols-3 gap-4 pt-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
-                <span className="text-4xl font-bold">92%</span>
-                <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 sm:pt-6">
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
+                  <span className="text-3xl sm:text-4xl font-bold">92%</span>
+                  <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                   Users report improved clarity
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4">
-                <span className="text-4xl font-bold text-[hsl(var(--accent-foreground))]">12h</span>
-                <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))]">
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 text-center sm:text-left">
+                  <span className="text-3xl sm:text-4xl font-bold text-[hsl(var(--accent-foreground))]">12h</span>
+                  <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--accent-foreground))]">
                   Average time saved monthly
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
-                <span className="text-4xl font-bold">40+</span>
-                <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
+                  <span className="text-3xl sm:text-4xl font-bold">40+</span>
+                  <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                   Citation styles supported
                 </p>
               </div>
@@ -203,7 +203,7 @@ export default function HomePage() {
             <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
               Plans
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-[0.12em]">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
               Simple, transparent pricing
             </h2>
             <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">

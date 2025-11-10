@@ -31,12 +31,7 @@ export default function AboutPage() {
               <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
               </Link>
-              <Link
-                href="/auth/signin"
-                className="inline-flex items-center justify-center px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] tracking-[0.2em] uppercase hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
-              >
-                Get Started
-              </Link>
+            
             </nav>
           </div>
         </div>
@@ -50,7 +45,7 @@ export default function AboutPage() {
               <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                 Behind the name
               </span>
-              <h1 className="text-5xl md:text-6xl font-bold uppercase tracking-[0.12em] leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold uppercase tracking-[0.06em] sm:tracking-[0.1em] lg:tracking-[0.12em] leading-tight">
                 The Story of Akọ̀wé
               </h1>
               <p className="text-sm md:text-base uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-xl">
@@ -98,7 +93,7 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <div className="lg:col-span-8 space-y-6 text-sm uppercase tracking-[0.18em] leading-8">
+            <div className="lg:col-span-8 space-y-6 text-xs sm:text-sm uppercase tracking-[0.16em] sm:tracking-[0.18em] leading-6 sm:leading-8">
               <p>
                 In Yoruba societies, an <em>Akọ̀wé</em> held a sacred responsibility. They interpreted oral
                 histories, codified agreements, and ensured knowledge survived beyond memory.
@@ -108,7 +103,7 @@ export default function AboutPage() {
                 because preserving truth kept the community intact.
               </p>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
-                <p className="text-sm uppercase tracking-[0.22em] leading-relaxed">
+                <p className="text-xs sm:text-sm uppercase tracking-[0.18em] sm:tracking-[0.22em] leading-relaxed">
                   &ldquo;Choosing Akọ̀wé anchors our work in a legacy of integrity. The studio isn&apos;t
                   just software—it is a continuation of that covenant with accuracy and care.&rdquo;
                 </p>
@@ -129,7 +124,7 @@ export default function AboutPage() {
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   Our mission
                 </span>
-                <h2 className="text-4xl font-bold uppercase tracking-[0.12em] leading-tight">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.1em] lg:tracking-[0.12em] leading-tight">
                   Equip scholars to deliver work that holds up under scrutiny.
                 </h2>
               </div>
@@ -187,10 +182,10 @@ export default function AboutPage() {
               </h2>
             </div>
             <Card className="lg:col-span-8 p-8 space-y-6 bg-[hsl(var(--surface))]">
-              <p className="text-sm uppercase tracking-[0.2em] leading-relaxed">
+              <p className="text-xs sm:text-sm uppercase tracking-[0.18em] sm:tracking-[0.2em] leading-relaxed">
                 Akọ̀wé began when our team—graduate researchers balancing teaching gigs and grant deadlines—grew tired of stitching together six tools to finish one paper.
               </p>
-              <p className="text-sm uppercase tracking-[0.2em] leading-relaxed">
+              <p className="text-xs sm:text-sm uppercase tracking-[0.18em] sm:tracking-[0.2em] leading-relaxed">
                 Citation managers missed context. Plagiarism scanners lived behind paywalls. Drafting assistants ignored academic tone. None of it spoke to the pressures of producing defensible research.
               </p>
               <div className="border-[3px] border-[hsl(var(--border-strong))] p-6 bg-[hsl(var(--surface-muted))] space-y-2">
@@ -201,10 +196,10 @@ export default function AboutPage() {
                   What if a single studio could draft, cite, check originality, and export with discipline? What if it respected cultural lenses and modern research realities alike?
                 </p>
               </div>
-              <p className="text-sm uppercase tracking-[0.2em] leading-relaxed">
+              <p className="text-xs sm:text-sm uppercase tracking-[0.18em] sm:tracking-[0.2em] leading-relaxed">
                 Today we remain self-funded by the scholars who rely on Akọ̀wé. That keeps our priorities aligned with classrooms, labs, and libraries—not venture timelines.
               </p>
-              <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--secondary))] text-center">
+              <p className="text-xs sm:text-sm uppercase tracking-[0.18em] sm:tracking-[0.2em] text-[hsl(var(--secondary))] text-center">
                 Integrity over hype. Craft over noise. Scholarship that endures.
               </p>
             </Card>
@@ -218,7 +213,7 @@ export default function AboutPage() {
               <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                 Core values
               </span>
-              <h2 className="text-4xl font-bold uppercase tracking-[0.12em] leading-tight">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.1em] lg:tracking-[0.12em] leading-tight">
                 The principles that shape every release.
               </h2>
             </div>
@@ -259,7 +254,7 @@ export default function AboutPage() {
         <section className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
           <Card className="p-10 bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[4px] border-[hsl(var(--border-strong))] space-y-6 text-center">
             <span className="text-xs uppercase tracking-[0.32em]">Join the studio</span>
-            <h2 className="text-4xl font-bold uppercase tracking-[0.12em] leading-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.1em] lg:tracking-[0.12em] leading-tight">
               Ready to publish work that withstands scrutiny?
             </h2>
             <p className="text-xs uppercase tracking-[0.22em] max-w-2xl mx-auto">
