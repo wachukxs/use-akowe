@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -98,17 +99,22 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
-              Akowe
+    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="w-full max-w-md px-6">
+        <Card className="p-10 space-y-8">
+          <div className="text-center space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+              Akọ̀wé studio
+            </span>
+            <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
+              Sign in
             </h1>
-            <p className="text-gray-600 mt-2">Write research that holds up.</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Write research that holds up.
+            </p>
           </div>
 
-          <form onSubmit={handleSignIn} className="space-y-4">
+          <form onSubmit={handleSignIn} className="space-y-5">
             <Input
               type="email"
               label="Email"
@@ -129,26 +135,25 @@ export default function SignInPage() {
 
             <Button
               type="submit"
-              className="w-full py-3 text-lg font-semibold"
+              className="w-full py-4 text-sm font-semibold tracking-[0.24em]"
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-                Don&apos;t have an account?{' '}
-              <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+          <div className="text-center space-y-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Don&apos;t have an account?{' '}
+              <Link href="/auth/signup" className="underline underline-offset-4 hover:text-[hsl(var(--secondary))]">
                 Sign up
               </Link>
             </p>
+            <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              By signing in, you agree to our Terms of Service and Privacy Policy.
+            </p>
           </div>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            By signing in, you agree to our Terms of Service and Privacy Policy.
-          </p>
-        </div>
+        </Card>
       </div>
     </div>
   );

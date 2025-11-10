@@ -9,13 +9,13 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { ProjectType } from '@/types';
 import { FileText, BookOpen, GraduationCap, FlaskConical, Sparkles, Lightbulb, Info, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const projectTypes: { 
-  type: ProjectType; 
-  label: string; 
-  description: string; 
-  icon: React.ElementType; 
-  color: string;
+  type: ProjectType;
+  label: string;
+  description: string;
+  icon: React.ElementType;
   typicalWordCount: { min: number; max: number };
   commonMethodologies: string[];
   citationStyles: string[];
@@ -26,7 +26,6 @@ const projectTypes: {
     label: 'Essay',
     description: 'Short academic papers and assignments',
     icon: FileText,
-    color: 'from-blue-500 to-cyan-500',
     typicalWordCount: { min: 1000, max: 5000 },
     commonMethodologies: ['Literature review', 'Argumentative analysis', 'Comparative study'],
     citationStyles: ['APA', 'MLA', 'Chicago'],
@@ -37,7 +36,6 @@ const projectTypes: {
     label: 'Thesis',
     description: 'Graduate research and thesis projects',
     icon: GraduationCap,
-    color: 'from-purple-500 to-pink-500',
     typicalWordCount: { min: 15000, max: 50000 },
     commonMethodologies: ['Qualitative research', 'Quantitative research', 'Mixed methods', 'Case study'],
     citationStyles: ['APA', 'Chicago', 'Harvard'],
@@ -48,7 +46,6 @@ const projectTypes: {
     label: 'Journal Article',
     description: 'Research papers for publication',
     icon: BookOpen,
-    color: 'from-orange-500 to-yellow-500',
     typicalWordCount: { min: 3000, max: 8000 },
     commonMethodologies: ['Experimental design', 'Survey research', 'Meta-analysis', 'Systematic review'],
     citationStyles: ['APA', 'IEEE', 'Chicago'],
@@ -59,7 +56,6 @@ const projectTypes: {
     label: 'Research Paper',
     description: 'Comprehensive research documents',
     icon: FlaskConical,
-    color: 'from-indigo-600 to-purple-600',
     typicalWordCount: { min: 5000, max: 15000 },
     commonMethodologies: ['Empirical research', 'Theoretical analysis', 'Comparative study', 'Longitudinal study'],
     citationStyles: ['APA', 'MLA', 'Chicago', 'Harvard'],
@@ -183,24 +179,24 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Sidebar />
       
       <div className="flex-1 ml-64 overflow-auto">
-        <div className="max-w-6xl mx-auto p-8">
-          {/* Header */}
-          <div className="mb-8">
+        <div className="max-w-6xl mx-auto p-10 space-y-10">
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             <button
               onClick={() => router.back()}
-              className="text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-2"
+              className="flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-3 py-2 rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
             >
               ← Back
             </button>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Create New Project
-            </h1>
-            <p className="text-gray-600">
-              Start a new academic writing project with AI-powered guidance
+            <span>New project workspace</span>
+          </div>
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 space-y-2">
+            <h1 className="text-4xl font-bold uppercase tracking-[0.12em]">Create New Project</h1>
+            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Start a new academic writing project with AI-powered guidance.
             </p>
           </div>
 
@@ -221,18 +217,18 @@ export default function NewProjectPage() {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             {/* Left Column - Form Fields */}
             <div className="space-y-6">
               {/* Project Name */}
               <Card className="p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  <label className="font-semibold text-[hsl(var(--foreground))]">
                     Project Name *
                   </label>
                   <button type="button" className="relative group" aria-label="What is project name?">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
                       A clear title that reflects your research focus.
                     </span>
                   </button>
@@ -244,20 +240,20 @@ export default function NewProjectPage() {
                   onChange={(e) => setProjectName(e.target.value)}
                   className="text-lg"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Choose a clear, descriptive name that reflects your research focus
                 </p>
               </Card>
 
               {/* Topic */}
               <Card className="p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  <label className="font-semibold text-[hsl(var(--foreground))]">
                     Research Topic *
                   </label>
                   <button type="button" className="relative group" aria-label="What is research topic?">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
                       Be specific so Akowe can tailor suggestions.
                     </span>
                   </button>
@@ -269,20 +265,20 @@ export default function NewProjectPage() {
                   onChange={(e) => setTopic(e.target.value)}
                   className="text-lg"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Be specific about what you&apos;re researching. This helps Akowe provide better suggestions.
                 </p>
               </Card>
 
               {/* Target Word Count */}
               <Card className="p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  <label className="font-semibold text-[hsl(var(--foreground))]">
                     Target Word Count
                   </label>
                   <button type="button" className="relative group" aria-label="What is target word count?">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
                       Choose a target within the typical range for your type.
                     </span>
                   </button>
@@ -294,20 +290,20 @@ export default function NewProjectPage() {
                   onChange={(e) => setTargetWordCount(parseInt(e.target.value) || 0)}
                   className="text-lg"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Typical range for {selectedType}: {currentType?.typicalWordCount.min.toLocaleString()} - {currentType?.typicalWordCount.max.toLocaleString()} words
                 </p>
               </Card>
 
               {/* Citation Style */}
               <Card className="p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  <label className="font-semibold text-[hsl(var(--foreground))]">
                     Citation Style
                   </label>
                   <button type="button" className="relative group" aria-label="What is citation style?">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
                       Pick the style your department or journal requires.
                     </span>
                   </button>
@@ -315,26 +311,26 @@ export default function NewProjectPage() {
                 <select
                   value={citationStyle}
                   onChange={(e) => setCitationStyle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                 >
                   {currentType?.citationStyles.map(style => (
                     <option key={style} value={style}>{style}</option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Common for {selectedType}: {currentType?.citationStyles.join(', ')}
                 </p>
               </Card>
 
               {/* Methodology */}
               <Card className="p-6">
-                <div className="flex items-center gap-2 mb-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  <label className="font-semibold text-[hsl(var(--foreground))]">
                     Research Methodology *
                   </label>
                   <button type="button" className="relative group" aria-label="What is research methodology?">
-                    <Info className="w-4 h-4 text-gray-400" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
                       Describe your approach, e.g. qualitative, quantitative, mixed methods.
                     </span>
                   </button>
@@ -346,7 +342,7 @@ export default function NewProjectPage() {
                   onChange={(e) => setMethodology(e.target.value)}
                   className="text-lg"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Common methodologies: {currentType?.commonMethodologies.join(', ')}
                 </p>
               </Card>
@@ -355,8 +351,10 @@ export default function NewProjectPage() {
             {/* Right Column - Project Type & Insights */}
             <div className="space-y-6">
               {/* Project Type Selection */}
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Project Type</h3>
+              <Card className="p-6 space-y-4">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
+                  Select Project Type
+                </h3>
                 <div className="grid grid-cols-1 gap-3">
                   {projectTypes.map((type) => {
                     const Icon = type.icon;
@@ -366,21 +364,26 @@ export default function NewProjectPage() {
                       <button
                         key={type.type}
                         onClick={() => setSelectedType(type.type)}
-                        className={`text-left p-4 rounded-lg border-2 transition-all ${
+                        className={cn(
+                          'text-left p-4 border-2 rounded-[var(--radius)] transition-transform duration-150',
                           isSelected
-                            ? 'border-indigo-500 bg-indigo-50 shadow-md'
-                            : 'border-gray-200 hover:border-gray-300 bg-white'
-                        }`}
+                            ? 'border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.14)]'
+                            : 'border-[hsl(var(--border))] bg-[hsl(var(--surface))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                        )}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${type.color} flex items-center justify-center`}>
-                            <Icon className="text-white" size={20} />
+                          <div className="w-12 h-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] flex items-center justify-center">
+                            <Icon size={20} />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{type.label}</h4>
-                            <p className="text-sm text-gray-600">{type.description}</p>
+                            <h4 className="text-sm font-semibold uppercase tracking-[0.18em]">
+                              {type.label}
+                            </h4>
+                            <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                              {type.description}
+                            </p>
                           </div>
-                          {isSelected && <CheckCircle2 className="w-5 h-5 text-indigo-500" />}
+                          {isSelected && <CheckCircle2 className="w-5 h-5" />}
                         </div>
                       </button>
                     );
@@ -390,15 +393,17 @@ export default function NewProjectPage() {
 
               {/* Project Insights */}
               {currentType && (
-                <Card className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Lightbulb className="w-5 h-5 text-yellow-500" />
-                    <h3 className="text-lg font-semibold text-gray-900">Key Insights for {currentType.label}</h3>
+                <Card className="p-6 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-[hsl(var(--accent))]" />
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
+                      Key Insights for {currentType.label}
+                    </h3>
                   </div>
                   <ul className="space-y-2">
                     {currentType.insights.map((insight, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
-                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <li key={index} className="flex items-start gap-2 text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
+                        <CheckCircle2 className="w-4 h-4 text-[hsl(var(--secondary))] mt-0.5 flex-shrink-0" />
                         <span>{insight}</span>
                       </li>
                     ))}
@@ -407,17 +412,19 @@ export default function NewProjectPage() {
               )}
 
               {/* AI Suggestions */}
-              <Card className="p-6">
+              <Card className="p-6 space-y-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-purple-500" />
-                    <h3 className="text-lg font-semibold text-gray-900">Akowe Smart Suggestions</h3>
+                    <Sparkles className="w-5 h-5 text-[hsl(var(--secondary))]" />
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
+                      Akọ̀wé Smart Suggestions
+                    </h3>
                   </div>
                   <Button
                     onClick={generateAISuggestions}
                     disabled={isGeneratingSuggestions || !topic.trim() || !projectName.trim()}
                     size="sm"
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]"
                   >
                     {isGeneratingSuggestions ? 'Akowe is thinking...' : 'Get Akowe Help'}
                   </Button>
@@ -428,15 +435,19 @@ export default function NewProjectPage() {
                     <h4 className="font-medium text-gray-900">Suggested Outline:</h4>
                     <div className="space-y-2">
                       {aiSuggestions.map((section: any, index: number) => (
-                        <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                          <h5 className="font-medium text-gray-900">{section.title}</h5>
-                          <p className="text-sm text-gray-600">{section.summary}</p>
+                        <div key={index} className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
+                          <h5 className="text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
+                            {section.title}
+                          </h5>
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                            {section.summary}
+                          </p>
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                     Enter your project details and click "Get Akowe Help" to receive personalized suggestions for your research structure and approach.
                   </p>
                 )}
@@ -445,7 +456,7 @@ export default function NewProjectPage() {
           </div>
 
           {/* Create Button */}
-          <div className="mt-8 flex justify-end gap-4">
+          <div className="flex justify-end gap-4">
             <Button
               variant="secondary"
               onClick={() => router.back()}
@@ -456,7 +467,7 @@ export default function NewProjectPage() {
             <Button
               onClick={handleCreate}
               disabled={validationErrors.length > 0 || isCreating}
-              className="min-w-[180px] bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+              className="min-w-[180px]"
             >
               {isCreating ? (
                 <div className="flex items-center gap-2">
@@ -477,42 +488,40 @@ export default function NewProjectPage() {
       {/* Project Limit Modal */}
       {showLimitModal && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowLimitModal(false);
             }
           }}
         >
-          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <X className="w-8 h-8 text-white" />
+          <div className="w-full max-w-md">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-8 space-y-6 text-center">
+              <div className="mx-auto w-16 h-16 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--destructive))]">
+                <X className="w-8 h-8" />
               </div>
-              
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Project Limit Reached
-              </h3>
-              
-              <p className="text-gray-600 mb-6">
-                {limitError}
-              </p>
-              
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold uppercase tracking-[0.16em]">
+                  Project Limit Reached
+                </h3>
+                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  {limitError}
+                </p>
+              </div>
               <div className="flex gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setShowLimitModal(false)}
-                  className="flex-1"
+                  className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
                 >
                   Cancel
                 </Button>
                 <Button
-                  variant="primary"
                   onClick={() => {
                     setShowLimitModal(false);
                     router.push('/settings');
                   }}
-                  className="flex-1"
+                  className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
                 >
                   Upgrade Plan
                 </Button>

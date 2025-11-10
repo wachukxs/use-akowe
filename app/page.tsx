@@ -6,6 +6,9 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Zap, BookOpen, Shield, Download, Check, ArrowRight, Star } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import { cn } from '@/lib/utils';
 
 export default function HomePage() {
   const router = useRouter();
@@ -19,532 +22,430 @@ export default function HomePage() {
   }, [status, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-lg border-b border-indigo-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-600 via-blue-600 to-slate-700 bg-clip-text text-transparent">
-                Akowe
-              </h1>
-            </div>
-            <div className="flex items-center space-x-6">
-              <Link href="/about" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+    <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between h-20">
+            <Link href="/" className="flex flex-col gap-1">
+              <span className="text-xs uppercase tracking-[0.4em] text-[hsl(var(--muted-foreground))]">
+                Akọ̀wé
+              </span>
+              <span className="text-2xl font-bold uppercase tracking-[0.16em]">
+                Research Studio
+              </span>
+            </Link>
+            <nav className="flex items-center gap-6 text-xs font-semibold uppercase tracking-[0.28em]">
+              <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 About
               </Link>
-              <Link href="/auth/signin" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+              <Link href="/resources" className="hover:text-[hsl(var(--secondary))] transition-colors">
+                Resources
+              </Link>
+              <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
               </Link>
-              <Link href="/auth/signin" className="bg-gradient-to-r from-blue-600 to-slate-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:from-blue-700 hover:to-slate-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+              <Link
+                href="/auth/signin"
+                className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-6 py-3 font-semibold uppercase tracking-[0.2em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+              >
                 Get Started
               </Link>
-            </div>
+            </nav>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-7xl md:text-8xl font-bold text-gray-900 mb-8 leading-tight">
-            Write research that{' '}
-            <span className="bg-gradient-to-r from-blue-600 via-slate-600 to-blue-700 bg-clip-text text-transparent">
-              holds up
+      <main className="px-6 sm:px-8 lg:px-12">
+        <section className="max-w-7xl mx-auto py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="lg:col-span-6 space-y-8">
+            <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+              Academic research studio
             </span>
+            <h1 className="text-5xl md:text-6xl font-bold uppercase tracking-[0.1em] leading-tight">
+              Write research that holds up
           </h1>
-          <p className="text-2xl text-gray-600 mb-16 max-w-4xl mx-auto leading-relaxed">
-            The AI-powered academic writing platform that helps researchers, students, and academics create 
-            compelling essays, thesis projects, and research papers with confidence and precision.
+            <p className="text-sm md:text-base uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              An AI-assisted workspace for essays, theses, and scholarly projects—built to honor rigor, clarity, and craft.
           </p>
-          <div className="flex flex-col sm:flex-row gap-8 justify-center">
-            <Link href="/auth/signin" className="group bg-gradient-to-r from-blue-600 to-slate-600 text-white px-12 py-5 rounded-2xl text-xl font-semibold hover:from-blue-700 hover:to-slate-700 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/auth/signin">
+                <Button className="px-8 py-4 flex items-center gap-3">
               Start Writing Free
-              <ArrowRight className="ml-3 inline-block group-hover:translate-x-1 transition-transform" size={24} />
+                  <ArrowRight size={18} />
+                </Button>
             </Link>
-            <button 
+              <Button
+                variant="outline"
+                className="px-8 py-4"
               onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
-              className="border-2 border-blue-200 text-blue-600 px-12 py-5 rounded-2xl text-xl font-semibold hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 hover:-translate-y-1"
             >
               Watch Demo
-            </button>
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 gap-4 pt-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
+                <span className="text-4xl font-bold">92%</span>
+                <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                  Users report improved clarity
+                </p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4">
+                <span className="text-4xl font-bold text-[hsl(var(--accent-foreground))]">12h</span>
+                <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))]">
+                  Average time saved monthly
+                </p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
+                <span className="text-4xl font-bold">40+</span>
+                <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                  Citation styles supported
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-6 space-y-4">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] mb-4">
+                <span>Project overview</span>
+                <span>Thesis</span>
+              </div>
+              <Image
+                src="/product-demo.png"
+                alt="Akọ̀wé interface"
+                width={800}
+                height={480}
+                className="w-full border-2 border-[hsl(var(--border-strong))]"
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">AI co-author</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  Outline, draft, and refine without leaving the structured editor.
+                </p>
+              </Card>
+              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
+                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">Integrity tools</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
+                  Citations, originality checks, and PDF insights in one view.
+                </p>
+              </Card>
           </div>
         </div>
       </section>
 
-      {/* Product Demo Section */}
-      <section id="product-demo" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              See Akọ̀wé in action
+        <section id="product-demo" className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))] grid gap-6 lg:grid-cols-3">
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+            <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">AI drafting</span>
+            <h2 className="mt-6 text-2xl font-semibold uppercase tracking-[0.16em]">
+              Compose rigorous sections with adaptive guidance
             </h2>
-            <p className="text-2xl text-gray-600 max-w-3xl mx-auto">
-              Everything you need for academic writing, right at your fingertips
+            <p className="mt-4 text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Control tone, depth, and citation density while Akọ̀wé keeps structure intact.
             </p>
           </div>
-          
-          {/* Product Screenshot */}
-          <div className="relative">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
-              <div className="bg-gray-100 px-6 py-4 flex items-center gap-2 border-b border-gray-200">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <div className="ml-4 text-sm text-gray-600 font-medium">Akọ̀wé - Research Writing Platform</div>
-              </div>
-              <div className="relative">
-                <Image 
-                  src="/product-demo.png" 
-                  alt="Akọ̀wé platform interface showing project management, AI assistant, and thesis writing tools"
-                  width={1200}
-                  height={800}
-                  className="w-full h-auto"
-                  priority
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const fallback = target.nextElementSibling as HTMLElement;
-                    if (fallback) fallback.style.display = 'flex';
-                  }}
-                />
-                {/* Fallback when image is not available */}
-                <div className="hidden w-full h-96 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <span className="text-white text-2xl">📱</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Product Demo</h3>
-                    <p className="text-gray-600">Screenshot coming soon...</p>
-                  </div>
-                </div>
-                {/* Overlay highlights */}
-                <div className="absolute top-20 left-8 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse">
-                  ✨ AI Assistant
-                </div>
-                <div className="absolute top-32 left-8 bg-slate-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse" style={{animationDelay: '0.5s'}}>
-                  📊 Project Stats
-                </div>
-                <div className="absolute top-44 left-8 bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm font-medium animate-pulse" style={{animationDelay: '1s'}}>
-                  📝 Smart Writing
-                </div>
-              </div>
-            </div>
-            
-            {/* Floating feature cards */}
-            <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hidden lg:block">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-slate-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-lg">🤖</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">AI-Powered</h3>
-                  <p className="text-sm text-gray-600">Smart suggestions</p>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">
-                Real-time feedback on your writing
-              </div>
-            </div>
-            
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hidden lg:block">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-lg">📚</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900">All-in-One</h3>
-                  <p className="text-sm text-gray-600">Complete toolkit</p>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">
-                Citations, plagiarism, project management
-              </div>
-            </div>
-          </div>
-          
-          {/* Feature highlights below the image */}
-          <div className="grid md:grid-cols-3 gap-8 mt-16">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-slate-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">💬</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">AI Assistant</h3>
-              <p className="text-gray-600">Get instant feedback and suggestions as you write</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">📊</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Project Tracking</h3>
-              <p className="text-gray-600">Monitor progress, word count, and citations in real-time</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl">🔍</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Smart Tools</h3>
-              <p className="text-gray-600">Auto-citations, plagiarism checks, and more</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8">
-              Everything you need to write better research
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+            <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">Scholarly integrity</span>
+            <h2 className="mt-6 text-2xl font-semibold uppercase tracking-[0.16em]">
+              Cite as you go with trusted academic sources
             </h2>
-            <p className="text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              From initial brainstorming to final submission, Akowe provides the tools and guidance 
-              you need to produce exceptional academic work.
+            <p className="mt-4 text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Native OpenAlex + Crossref search plus plagiarism insights keep work defensible.
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
-            <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-slate-600 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Zap className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">AI-Powered Writing</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">Generate compelling arguments, refine your thesis, and structure your ideas with advanced AI assistance</p>
-            </div>
-            
-            <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <BookOpen className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Smart Citations</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">Find and integrate credible sources instantly with our intelligent citation discovery and formatting tools</p>
-            </div>
-            
-            <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Shield className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Plagiarism Detection</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">Maintain academic integrity with real-time plagiarism detection and originality scoring</p>
-            </div>
-            
-            <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-100 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-rose-600 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Download className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Export Ready</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">Export your research in multiple formats with proper academic formatting and citation styles</p>
-            </div>
-          </div>
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 text-[hsl(var(--accent-foreground))]">
+            <span className="text-xs uppercase tracking-[0.32em]">Production ready</span>
+            <h2 className="mt-6 text-2xl font-semibold uppercase tracking-[0.16em]">
+              Export polished manuscripts in minutes
+            </h2>
+            <p className="mt-4 text-sm uppercase tracking-[0.24em]">
+              Structured sections, tracked citations, and DOCX/PDF outputs with one click.
+            </p>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8">
+        <section className="max-w-7xl mx-auto py-20">
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 space-y-6">
+              <Zap className="w-10 h-10 text-[hsl(var(--secondary))]" />
+              <h3 className="text-xl font-semibold uppercase tracking-[0.18em]">
+                AI-powered drafting
+              </h3>
+              <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                Compose, reorganize, and iterate with AI that understands academic tone and structure.
+              </p>
+            </Card>
+            <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-8 space-y-6">
+              <BookOpen className="w-10 h-10 text-[hsl(var(--border-strong))]" />
+              <h3 className="text-xl font-semibold uppercase tracking-[0.18em]">
+                Citation intelligence
+              </h3>
+              <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
+                Surface credible references, auto-format, and maintain shared bibliographies.
+              </p>
+            </Card>
+            <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 space-y-6">
+              <Shield className="w-10 h-10 text-[hsl(var(--primary))]" />
+              <h3 className="text-xl font-semibold uppercase tracking-[0.18em]">
+                Integrity safeguards
+              </h3>
+              <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                Built-in plagiarism checks, PDF interrogation, and revision history for confident submission.
+              </p>
+            </Card>
+          </div>
+        </section>
+
+      </main>
+      <section className="px-6 sm:px-8 lg:px-12">
+        <div className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))] space-y-12">
+          <div className="text-center space-y-4">
+            <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+              Plans
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-[0.12em]">
               Simple, transparent pricing
             </h2>
-            <p className="text-2xl text-gray-600 mb-8">
-              Start free, upgrade when you need more power
+            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">
+              Start free, upgrade when your research demands more power.
             </p>
-            
-            {/* AI Words Explainer */}
-            <div className="max-w-3xl mx-auto mb-12 p-6 bg-white rounded-2xl shadow-lg border border-blue-100">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-slate-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-lg">💡</span>
-                </div>
-                <div className="text-left">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">What are AI words?</h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">
-                    <strong>AI words</strong> include AI Assistant responses, AI-written content, and outlines. Your own writing doesn&apos;t count—only AI-generated content does.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
           
-          {/* Billing Toggle */}
-          <div className="mb-8 flex items-center justify-center gap-4">
-            <span className={`text-lg font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
-              Monthly
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-xl space-y-2">
+              <span className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                What are AI words?
             </span>
+              <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
+                AI words include assistant responses, AI-written content, and outlines. Your own writing never counts toward the limit.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
-                isAnnual ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full transition-transform ${
-                  isAnnual ? 'translate-x-6 bg-blue-600 shadow-lg border-2 border-white' : 'translate-x-1 bg-white shadow-sm border border-gray-300'
-                }`}
-              />
+                onClick={() => setIsAnnual(false)}
+                className={cn(
+                  'px-4 py-2 border-2 border-[hsl(var(--border-strong))] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
+                  !isAnnual
+                    ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem]'
+                    : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                )}
+              >
+                Monthly
             </button>
-            <span className={`text-lg font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={cn(
+                  'px-4 py-2 border-2 border-[hsl(var(--border-strong))] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
+                  isAnnual
+                    ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem]'
+                    : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                )}
+              >
               Annual
-            </span>
+              </button>
             {isAnnual && (
-              <span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+                <span className="px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))]">
                 Save 47%
               </span>
             )}
+            </div>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-10">
-            <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-200 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500">
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">Free</h3>
-              <div className="text-6xl font-bold text-gray-900 mb-6">$0</div>
-              <p className="text-gray-600 text-lg mb-10">Perfect for getting started</p>
-              <ul className="space-y-6 mb-10">
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6">
+              <div className="space-y-2">
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">Free plan</span>
+                <span className="text-5xl font-bold">$0</span>
+                <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                  Perfect for getting started.
+                </p>
+              </div>
+              <ul className="space-y-3 text-xs uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   1,500 AI words per day
                 </li>
-                {/* <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
-                  100 AI auto-complete (one-time)
-                </li> */}
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   3 plagiarism checks per day
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   3 projects maximum
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   Smart citation search
                 </li>
               </ul>
-              <button className="w-full border-2 border-blue-200 text-blue-600 py-5 rounded-2xl font-semibold text-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-300">
+              <Button variant="outline" className="w-full py-4">
                 Get Started
-              </button>
+              </Button>
             </div>
             
-            <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-3xl p-10 shadow-2xl border-2 border-blue-200 hover:shadow-3xl hover:-translate-y-3 transition-all duration-500 relative">
-              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-blue-600 to-slate-600 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg flex items-center">
-                  <Star className="w-5 h-5 mr-2" />
-                  POPULAR
+            <div className="relative border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-8 flex flex-col gap-6">
+              <span className="absolute -top-4 left-4 px-3 py-1 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[10px] font-semibold uppercase tracking-[0.3em] text-[hsl(var(--foreground))]">
+                Popular
                 </span>
+              <div className="space-y-2">
+                <span className="text-xs uppercase tracking-[0.32em]">Pro plan</span>
+                <span className="text-5xl font-bold">{isAnnual ? '$10' : '$19'}</span>
+                <p className="text-[10px] uppercase tracking-[0.28em]">
+                  {isAnnual ? 'Per month, billed annually.' : 'Per month on flexible billing.'}
+                </p>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">Pro</h3>
-              <div className="text-6xl font-bold text-gray-900 mb-2">
-                {isAnnual ? '$10' : '$19'}
-              </div>
-              <div className="text-sm text-gray-600 mb-4">
-                {isAnnual ? 'per month with annual billing' : 'per month'}
-              </div>
-              {isAnnual && (
-                <div className="text-sm text-green-600 mb-4 font-medium">
-                  Save $108 per year
-                </div>
-              )}
-              <p className="text-gray-600 text-lg mb-10">Unlimited AI and features</p>
-              <ul className="space-y-6 mb-10">
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+              <ul className="space-y-3 text-xs uppercase tracking-[0.24em]">
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   Unlimited AI words
                 </li>
-                {/* <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
-                  Unlimited AI auto-complete
-                </li> */}
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   Unlimited plagiarism checks
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   Unlimited projects
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   Advanced citation search
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   GPT-4 access
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   Priority support
                 </li>
               </ul>
-              <button className="w-full bg-gradient-to-r from-blue-600 to-slate-600 text-white py-5 rounded-2xl font-semibold text-lg hover:from-blue-700 hover:to-slate-700 transition-all duration-300 hover:shadow-lg">
+              <Link href="/auth/signin">
+                <Button className="w-full py-4">
                 Upgrade to Pro
-              </button>
+                </Button>
+              </Link>
             </div>
             
-            <div className="bg-white rounded-3xl p-10 shadow-xl border border-gray-200 hover:shadow-2xl hover:-translate-y-3 transition-all duration-500">
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">Team</h3>
-              <div className="text-6xl font-bold text-gray-900 mb-2">Coming Soon</div>
-              <div className="text-sm text-gray-600 mb-4">Team collaboration features</div>
-              <p className="text-gray-600 text-lg mb-10">For research teams</p>
-              <ul className="space-y-6 mb-10">
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6 opacity-80">
+              <div className="space-y-2">
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">Team plan</span>
+                <span className="text-4xl font-bold">Coming Soon</span>
+                <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                  Collaboration and governance tools for research teams.
+                </p>
+              </div>
+              <ul className="space-y-3 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
                   Everything in Pro
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
-                  Team collaboration
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  Shared workspaces
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
-                  Admin dashboard
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  Admin controls
                 </li>
-                <li className="flex items-center text-gray-600 text-lg">
-                  <Check className="w-6 h-6 text-emerald-500 mr-4 flex-shrink-0" />
-                  Custom integrations
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  Central bibliography pool
                 </li>
               </ul>
-              <button className="w-full border-2 border-gray-200 text-gray-500 py-5 rounded-2xl font-semibold text-lg cursor-not-allowed" disabled>
+              <Button variant="ghost" className="w-full py-4" disabled>
                 Coming Soon
-              </button>
+              </Button>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Competitive Comparison Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Why researchers choose Akowe
-            </h2>
-            <p className="text-2xl text-gray-600">
-              Better features, better price, better experience
+        <div className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="grid lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-5 space-y-4">
+              <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                Why researchers choose Akọ̀wé
+              </span>
+              <h3 className="text-3xl font-semibold uppercase tracking-[0.16em]">
+                Built for rigor, clarity, and academic integrity.
+              </h3>
+              <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                Replace fragmented tooling with a single studio that respects scholarly standards.
             </p>
           </div>
-
-          {/* Comparison Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full bg-white rounded-2xl shadow-xl border border-gray-200">
-              <thead>
-                <tr className="bg-gradient-to-r from-blue-50 to-slate-50">
-                  <th className="px-6 py-6 text-left text-lg font-bold text-gray-900">Feature</th>
-                  <th className="px-6 py-6 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">Akowe</span>
-                      <span className="text-sm text-gray-600 mt-1">
-                        {isAnnual ? '$10/month' : '$19/month'}
-                      </span>
+            <div className="lg:col-span-7 grid gap-4">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
+                  All-in-one workflow
+                </h4>
+                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  Drafting, citations, plagiarism checks, and exports live together so work stays organized.
+                </p>
                     </div>
-                  </th>
-                  <th className="px-6 py-6 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="text-lg font-semibold text-gray-700">Writing Tools</span>
-                      <span className="text-sm text-gray-600 mt-1">$25-30/month</span>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
+                <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
+                  Designed for academics
+                </h4>
+                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
+                  Structured sections, methodology prompts, and citation intelligence keep research on track.
+                </p>
                     </div>
-                  </th>
-                  <th className="px-6 py-6 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="text-lg font-semibold text-gray-700">Plagiarism Tools</span>
-                      <span className="text-sm text-gray-600 mt-1">$30-50/month</span>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
+                  Predictable pricing
+                </h4>
+                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  Our Pro plan averages 50% less than stitching together single-purpose tools.
+                </p>
                     </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-gray-200">
-                  <td className="px-6 py-4 text-gray-900 font-medium">AI Writing Assistant</td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-gray-300 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                </tr>
-                <tr className="border-t border-gray-200 bg-blue-50/30">
-                  <td className="px-6 py-4 text-gray-900 font-medium">AI Auto-Complete</td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                </tr>
-                <tr className="border-t border-gray-200">
-                  <td className="px-6 py-4 text-gray-900 font-medium">Smart Citations</td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                </tr>
-                <tr className="border-t border-gray-200 bg-blue-50/30">
-                  <td className="px-6 py-4 text-gray-900 font-medium">Plagiarism Detection</td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-gray-300 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-gray-300 mx-auto" /></td>
-                </tr>
-                <tr className="border-t border-gray-200">
-                  <td className="px-6 py-4 text-gray-900 font-medium">Project Management</td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                </tr>
-                <tr className="border-t border-gray-200 bg-blue-50/30">
-                  <td className="px-6 py-4 text-gray-900 font-medium">Academic Focus</td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-emerald-500 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center text-gray-400">—</td>
-                  <td className="px-6 py-4 text-center"><Check className="w-6 h-6 text-gray-300 mx-auto" /></td>
-                </tr>
-                <tr className="border-t border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50">
-                  <td className="px-6 py-6 text-gray-900 font-bold text-lg">Price per Month</td>
-                  <td className="px-6 py-6 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
-                        {isAnnual ? '$10' : '$19'}
-                      </span>
-                      <span className="text-xs text-gray-500 mt-1">
-                        {isAnnual ? 'Annual billing' : 'Monthly billing'}
-                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-6 text-center">
-                    <span className="text-2xl font-semibold text-gray-700">$25-30</span>
-                  </td>
-                  <td className="px-6 py-6 text-center">
-                    <span className="text-2xl font-semibold text-gray-700">$30-50</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
 
-          {/* Value Proposition */}
-          <div className="mt-16 grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-3">
-                50%+
-              </div>
-              <p className="text-lg text-gray-600">More affordable than alternatives</p>
+          <div className="mt-12 grid md:grid-cols-3 gap-6">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
+              <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">50%+</span>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                Savings versus separate writing, citation, and plagiarism tools.
+              </p>
             </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent mb-3">
-                All-in-One
-              </div>
-              <p className="text-lg text-gray-600">Everything you need in one place</p>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 text-center space-y-2 text-[hsl(var(--accent-foreground))]">
+              <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">All-in-one</span>
+              <p className="text-[10px] uppercase tracking-[0.28em]">
+                AI drafting, citations, PDF analysis, and export in a single workspace.
+              </p>
             </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-3">
-                10hrs
-              </div>
-              <p className="text-lg text-gray-600">Average time saved per month</p>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
+              <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">10 hrs</span>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                Average time saved every month for scholars using Akọ̀wé.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="mb-8">
-            <Link href="/about" className="text-blue-400 hover:text-blue-300 transition-colors text-lg font-medium">
-              Learn Our Story →
-            </Link>
+      <footer className="border-t-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h4 className="text-xl font-semibold uppercase tracking-[0.16em]">Akọ̀wé</h4>
+            <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
+              Built for scholars, by scholars.
+            </p>
           </div>
-          <p className="text-gray-400 mb-6 text-xl">© 2025 Akọ̀wé. All rights reserved.</p>
-          <p className="text-gray-500 text-lg">Built with ❤️ for researchers and academics worldwide</p>
+          <nav className="flex gap-6 text-xs uppercase tracking-[0.28em]">
+            <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              Learn our story
+            </Link>
+            <Link href="/resources" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              Guides
+            </Link>
+            <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              Sign in
+            </Link>
+          </nav>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
+            © 2025 Akọ̀wé. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

@@ -12,6 +12,8 @@ import {
   Calculator, BarChart3
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import { cn } from '@/lib/utils';
 
 export default function ProjectEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -111,8 +113,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
+  type ExportFormat = 'pdf' | 'docx' | 'txt' | 'latex';
+
   const [selectedCitationStyle, setSelectedCitationStyle] = useState<'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee'>('apa');
   const [selectedTemplate, setSelectedTemplate] = useState<'research-paper' | 'thesis' | 'report' | 'conference-paper'>('research-paper');
+  const [selectedExportFormat, setSelectedExportFormat] = useState<ExportFormat>('pdf');
   const [isAutoDetected, setIsAutoDetected] = useState({ citationStyle: false, template: false });
   const [isDetectingCitations, setIsDetectingCitations] = useState(false);
   const [lastDetectionResult, setLastDetectionResult] = useState<{detectedCount: number, totalCount: number} | null>(null);
@@ -1641,14 +1646,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   };
 
   // Export functions
-  const handleExport = async (format: 'pdf' | 'docx' | 'txt' | 'latex') => {
+  const handleExport = async (format?: ExportFormat) => {
     if (!project) return;
-    
+
+    const exportFormat = format ?? selectedExportFormat ?? 'pdf';
+    setSelectedExportFormat(exportFormat);
     setIsExporting(true);
-    setExportingFormat(format);
+    setExportingFormat(exportFormat);
     
     try {
-      const response = await fetch(`/api/projects/${resolvedParams.id}/export?format=${format}&citationStyle=${selectedCitationStyle}&template=${selectedTemplate}`, {
+      const response = await fetch(`/api/projects/${resolvedParams.id}/export?format=${exportFormat}&citationStyle=${selectedCitationStyle}&template=${selectedTemplate}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -1662,13 +1669,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-      a.download = `${project.name}.${format}`;
+        const safeName = `${project.name}`.trim().replace(/[^a-z0-9\-_.]+/gi, '_');
+      a.download = `${safeName || 'akowe_project'}.${exportFormat}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      setShowSuccessMessage(`Project exported as ${format.toUpperCase()} successfully!`);
+      setShowSuccessMessage(`Project exported as ${exportFormat.toUpperCase()} successfully!`);
       setTimeout(() => setShowSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Export error:', error);
@@ -1703,6 +1711,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   }, [project]);
 
+  useEffect(() => {
+    if (showExportModal) {
+      setSelectedExportFormat('pdf');
+    }
+  }, [showExportModal]);
+
   // Add selection change listener for better formatting detection
   useEffect(() => {
     const handleSelectionChange = () => {
@@ -1724,12 +1738,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   if (isLoading) {
     return (
-      <div className="flex h-screen">
+      <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
         <Sidebar />
         <div className="flex-1 ml-64 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+            <div className="w-16 h-16 border-[4px] border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Loading workspace</p>
           </div>
         </div>
       </div>
@@ -1740,12 +1754,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   if (!project) {
     return (
-      <div className="flex h-screen">
+      <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
         <Sidebar />
         <div className="flex-1 ml-64 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Project not found</h1>
-            <Button onClick={() => router.push('/dashboard')}>
+            <h1 className="text-2xl font-bold uppercase tracking-[0.16em] mb-4">Project not found</h1>
+            <Button onClick={() => router.push('/dashboard')} className="px-6 py-3 uppercase tracking-[0.18em]">
               Back to Dashboard
             </Button>
           </div>
@@ -1892,52 +1906,73 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           }
         }
       `}</style>
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Sidebar />
       
-      <div className={`flex-1 ml-56 overflow-y-auto transition-all duration-300 ${isAIDrawerOpen ? 'mr-80' : ''}`}>
-        <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+      <div className={cn(
+        'flex-1 overflow-y-auto transition-all duration-300',
+        isAIDrawerOpen ? 'mr-80 ml-56' : 'ml-64'
+      )}>
+        <div className="max-w-7xl mx-auto p-6 md:p-8 lg:p-10 space-y-10">
           {/* Project Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{project.name}</h1>
-            <p className="text-gray-600">
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.12em]">
+                {project.name}
+              </h1>
+              <button
+                onClick={() => setIsAIDrawerOpen(true)}
+                className="hidden md:inline-flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+              >
+                <Bot className="h-4 w-4" />
+                Open Assistant
+              </button>
+            </div>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               {project.type} • {localWordCount} / {project.targetWordCount} words • {project.citationStyle}
             </p>
-            <div className="h-1 bg-gradient-to-r from-blue-500 to-slate-500 rounded-full my-4" />
               </div>
 
-          <div className={`grid gap-4 lg:gap-8 ${isAIDrawerOpen ? 'grid-cols-12' : 'grid-cols-12'}`}>
+          <div className="grid gap-6 lg:gap-8 grid-cols-12">
             {/* Left Column - Sections and Actions */}
-            <div className={`space-y-4 lg:space-y-8 ${isAIDrawerOpen ? 'col-span-12 md:col-span-4 lg:col-span-3' : 'col-span-12 md:col-span-4 lg:col-span-3'} sticky top-4 self-start`}>
+            <div className={cn(
+              'space-y-6 lg:space-y-8 col-span-12 md:col-span-4 lg:col-span-3 sticky top-4 self-start'
+            )}>
               {/* Sections Panel */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                <div className="p-4 border-b border-gray-100">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">Paper Sections</h3>
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Paper Sections</h3>
+                  </div>
                     <button 
                       onClick={addNewSection}
-                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+                    className="border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                       title="Add new section"
                     >
-                      <Plus className="h-4 w-4 text-blue-600 group-hover:text-blue-700" />
+                    <Plus className="h-3 w-3" />
                     </button>
-                  </div>
                 </div>
                 <div className="p-4">
                   <div className="space-y-1">
                     {project.sections?.map((section) => (
                       <div
                         key={section.id}
-                        className={`w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group ${
+                        className={cn(
+                          'w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 group border-2 border-[hsl(var(--border))]',
                           activeSection === section.id
-                            ? 'bg-blue-600 text-white shadow-md'
-                            : 'text-gray-700 hover:bg-gray-50'
-                        }`}
+                            ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[4px_4px_0_rgba(29,41,57,0.12)]'
+                            : 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                        )}
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            activeSection === section.id ? 'bg-white' : 'bg-blue-400'
-                          }`} />
+                          <div
+                            className={cn(
+                              'w-2 h-2 rounded-full flex-shrink-0',
+                              activeSection === section.id
+                                ? 'bg-[hsl(var(--secondary-foreground))]'
+                                : 'bg-[hsl(var(--border-strong))]'
+                            )}
+                          />
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <button
                               onClick={() => setActiveSection(section.id)}
@@ -1973,7 +2008,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 />
                               ) : (
                                 <span 
-                                  className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded font-medium block whitespace-nowrap overflow-hidden"
+                                  className="cursor-pointer px-2 py-1 rounded font-semibold block whitespace-nowrap overflow-hidden"
                                   onDoubleClick={() => {
                                     setEditingSectionId(section.id);
                                     setEditingTitle(section.title);
@@ -1990,14 +2025,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                   setEditingSectionId(section.id);
                                   setEditingTitle(section.title);
                                 }}
-                                className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                                className="p-1.5 border border-transparent hover:border-[hsl(var(--border-strong))] rounded transition-colors"
                                 title="Edit section name"
                               >
                                 <Edit3 className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => setSectionToDelete(section.id)}
-                                className="p-1.5 hover:bg-red-100 rounded text-red-600 transition-colors"
+                                className="p-1.5 border border-transparent hover:border-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors"
                                 title="Delete section"
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -2012,91 +2047,95 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Research & Quality Tools */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                <div className="p-4 border-b border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900">Tools</h3>
-                  <p className="text-xs text-gray-500 mt-1">Research & quality tools</p>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))]">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Tools</h3>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">Research & quality</p>
                 </div>
-                <div className="p-4 space-y-1">
+                <div className="p-4 space-y-2">
                   <div 
                     onClick={() => discoverCitations()}
-                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    className={cn(
+                      'flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer transition-transform duration-150 text-xs uppercase tracking-[0.18em]',
                       isDiscoveringCitations 
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
-                    }`}
+                        ? 'opacity-60 cursor-not-allowed'
+                        : 'hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                    )}
                   >
                     <div className="flex items-center gap-2">
                       <BookOpen className="h-4 w-4" />
-                      <span className="text-sm font-medium">Find Citations</span>
+                      <span className="font-semibold">Find Citations</span>
                     </div>
                     {isDiscoveringCitations && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
                     )}
                   </div>
                   
                   <div 
                     onClick={() => setShowManualCitationModal(true)}
-                    className="flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+                    className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <div className="flex items-center gap-2">
                       <Plus className="h-4 w-4" />
-                      <span className="text-sm font-medium">Add Citation</span>
+                      <span className="font-semibold">Add Citation</span>
                     </div>
                   </div>
                   
                   <div 
                     onClick={detectCitations}
-                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    className={cn(
+                      'flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150',
                       isDetectingCitations || !hasContentToScan
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
-                    }`}
+                        ? 'opacity-60 cursor-not-allowed'
+                        : 'hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                    )}
                   >
                     <div className="flex items-center gap-2">
                       <BookMarked className="h-4 w-4" />
-                      <span className="text-sm font-medium">Scan Content</span>
+                      <span className="font-semibold">Scan Content</span>
                     </div>
                     {isDetectingCitations && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
                     )}
                   </div>
                   
-                  <div className="border-t border-gray-100 my-2"></div>
+                  <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
                   
                   <div 
                     onClick={checkPlagiarism}
-                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    className={cn(
+                      'flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150',
                       isCheckingPlagiarism 
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
-                    }`}
+                        ? 'opacity-60 cursor-not-allowed'
+                        : 'hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                    )}
                   >
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
-                      <span className="text-sm font-medium">Check Plagiarism</span>
+                      <span className="font-semibold">Check Plagiarism</span>
                     </div>
                     {isCheckingPlagiarism && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
                     )}
                   </div>
                   
-                  <div className="border-t border-gray-100 my-2"></div>
+                  <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
                   
                   <div 
                     onClick={() => setShowExportModal(true)}
-                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    className={cn(
+                      'flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150',
                       isExporting 
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
-                        : 'hover:bg-blue-50 text-gray-700 hover:text-blue-700'
-                    }`}
+                        ? 'opacity-60 cursor-not-allowed'
+                        : 'hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                    )}
                   >
                     <div className="flex items-center gap-2">
                       <Download className="h-4 w-4" />
-                      <span className="text-sm font-medium">Export Project</span>
+                      <span className="font-semibold">Export Project</span>
                     </div>
                     {isExporting && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
                     )}
                   </div>
                 </div>
@@ -2104,152 +2143,161 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Right Column - Editor */}
-            <div className={`${isAIDrawerOpen ? 'col-span-12 md:col-span-8 lg:col-span-9' : 'col-span-12 md:col-span-8 lg:col-span-9'}`}>
+            <div className="col-span-12 md:col-span-8 lg:col-span-9 space-y-6">
               {activeS && (
-                <div className="bg-white rounded-lg border border-gray-200 mb-8">
-                  <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-gray-900">{activeS.title}</h2>
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold uppercase tracking-[0.18em]">{activeS.title}</h2>
                       <button
                         onClick={() => setIsAIDrawerOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                        className="inline-flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                       >
                         <Bot className="h-4 w-4" />
-                        Ask Akowe
+                        Ask Akọ̀wé
                       </button>
                 </div>
-                    <div className="border border-gray-200 rounded-lg">
+                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] overflow-hidden bg-[hsl(var(--surface))]">
                       {/* Rich Text Toolbar */}
-                      <div className="border-b border-gray-200 p-2 md:p-3 flex items-center gap-1 md:gap-2 bg-gray-50 overflow-x-auto toolbar-container">
+                      <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-2 md:p-3 flex items-center gap-1 md:gap-2 bg-[hsl(var(--surface-muted))] overflow-x-auto toolbar-container">
                         {/* Undo/Redo */}
                         <div className="flex items-center gap-1">
                           <button
                             onClick={undo}
-                            className="p-2 md:p-2 hover:bg-gray-200 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                            className="p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Undo (Ctrl+Z)"
                           >
                             <Undo className="h-4 w-4" />
                           </button>
                           <button
                             onClick={redo}
-                            className="p-2 md:p-2 hover:bg-gray-200 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                            className="p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Redo (Ctrl+Shift+Z)"
                           >
                             <Redo className="h-4 w-4" />
                           </button>
                         </div>
                         
-                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1"></div>
                         
                         {/* Text Formatting */}
                         <div className="flex items-center gap-1">
                           <button
                             onClick={applyBold}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.bold 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Bold (Ctrl+B)"
                           >
                             <Bold className="h-4 w-4" />
                           </button>
                           <button
                             onClick={applyItalic}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.italic 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Italic (Ctrl+I)"
                           >
                             <Italic className="h-4 w-4" />
                           </button>
                           <button
                             onClick={applyUnderline}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.underline 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Underline (Ctrl+U)"
                           >
                             <Underline className="h-4 w-4" />
                           </button>
                         </div>
                         
-                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1"></div>
                         
                         {/* Lists */}
                         <div className="flex items-center gap-1">
                           <button
                             onClick={applyUnorderedList}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.unorderedList 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Bullet List"
                           >
                             <List className="h-4 w-4" />
                           </button>
                           <button
                             onClick={applyOrderedList}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.orderedList 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Numbered List"
                           >
                             <Hash className="h-4 w-4" />
                           </button>
                         </div>
                         
-                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1"></div>
                         
                         {/* Headers */}
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => applyHeader(1)}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.h1 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Header 1"
                           >
                             <span className="text-sm font-bold">H1</span>
                           </button>
                           <button
                             onClick={() => applyHeader(2)}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.h2 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Header 2"
                           >
                             <span className="text-sm font-bold">H2</span>
                           </button>
                           <button
                             onClick={() => applyHeader(3)}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.h3 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Header 3"
                           >
                             <span className="text-sm font-bold">H3</span>
                           </button>
                           <button
                             onClick={applyNormal}
-                            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button ${
+                            className={cn(
+                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.normal 
-                                ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                                : 'hover:bg-gray-200'
-                            }`}
+                                ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
+                                : 'hover:border-[hsl(var(--border-strong))]'
+                            )}
                             title="Normal Text"
                           >
                             <span className="text-sm font-medium">Normal</span>
@@ -2262,14 +2310,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setShowMathModal(true)}
-                            className="p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button hover:bg-gray-200"
+                            className="p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Insert Math Equation"
                           >
                             <Calculator className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setShowChartModal(true)}
-                            className="p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button hover:bg-gray-200"
+                            className="p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Insert Chart"
                           >
                             <BarChart3 className="h-4 w-4" />
@@ -2277,7 +2325,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         </div>
                         
                         <div className="flex-1"></div>
-                        <span className="text-xs text-gray-500 font-medium">
+                        <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
                           {realTimeWordCount} words
                         </span>
             </div>
@@ -2582,8 +2630,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
                 
                 {/* Smart Encouragement Message */}
-                <div className="bg-gradient-to-r from-blue-50 to-slate-50 border border-blue-200 rounded-lg p-4 text-center">
-                  <p className="text-sm font-medium text-gray-800">
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-4 text-center">
+                  <p className="text-xs uppercase tracking-[0.2em] font-semibold">
                     {getEncouragementMessage(Math.round((localWordCount / (project.targetWordCount || 1)) * 100))}
                   </p>
                 </div>
@@ -2591,21 +2639,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
               {/* Summary Statistics */}
               <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-                  <h4 className="text-xl font-bold text-gray-900">{project.sections?.length || 0}</h4>
-                  <p className="text-sm text-gray-600">Sections</p>
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-6 text-center">
+                  <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">{project.sections?.length || 0}</h4>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Sections</p>
                 </div>
-                <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-                  <h4 className="text-xl font-bold text-gray-900">{project.citations?.length || 0}</h4>
-                  <p className="text-sm text-gray-600">Total Citations</p>
-                  <p className="text-xs text-gray-500">
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-6 text-center">
+                  <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">{project.citations?.length || 0}</h4>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Total citations</p>
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                     {lastDetectionResult ? `${lastDetectionResult.detectedCount} auto-detected` : '0 auto-detected'}
                   </p>
                 </div>
-                <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-                  <h4 className="text-xl font-bold text-gray-900">{Math.round((localWordCount / (project.targetWordCount || 1)) * 100)}%</h4>
-                  <p className="text-sm text-gray-600">Complete</p>
-                  <p className="text-xs text-gray-500">Word count target</p>
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-6 text-center">
+                  <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">{Math.round((localWordCount / (project.targetWordCount || 1)) * 100)}%</h4>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Complete</p>
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Word count target</p>
                 </div>
               </div>
             </div>
@@ -2615,51 +2663,53 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* AI Assistant Side Panel */}
       {isAIDrawerOpen && (
-        <div className="fixed top-0 right-0 w-80 h-full bg-white border-l border-gray-200 z-40 flex flex-col shadow-2xl">
+        <div className="fixed top-0 right-0 w-80 h-full bg-[hsl(var(--surface))] border-l-[4px] border-[hsl(var(--border-strong))] z-40 flex flex-col shadow-[-6px_0_0_rgba(29,41,57,0.12)]">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-slate-600 text-white p-4">
+          <div className="border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <Bot className="h-6 w-6 text-white" />
+                <div className="w-10 h-10 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] flex items-center justify-center">
+                  <Bot className="h-5 w-5" />
                 </div>
                 <div>
-            <h3 className="text-lg font-semibold">Akowe Assistant</h3>
-                  <p className="text-blue-100 text-sm">Your AI writing companion</p>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Akọ̀wé Assistant</h3>
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--secondary-foreground))]">
+                    Your AI writing companion
+                  </p>
                 </div>
               </div>
                 <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setAiMessages([])}
-                  className="text-blue-200 hover:text-white text-sm px-3 py-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
+                  className="text-[10px] uppercase tracking-[0.24em] px-3 py-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                 >
                   Clear
                 </button>
                   <button 
                 onClick={() => setIsAIDrawerOpen(false)}
-                  className="text-blue-200 hover:text-white p-1 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors"
+                  className="p-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
-                <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>
             </div>
 
           {/* Chat Messages Area */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[hsl(var(--surface-muted))]">
             {/* Welcome Message */}
             {aiMessages.length === 0 && (
               <div className="space-y-4">
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-4 w-4 text-blue-600" />
+                    <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-4 w-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-700 leading-relaxed">
+                      <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed">
                         Hi! I'm Akowe, your AI writing assistant. I can help you with:
                       </p>
-                      <ul className="text-xs text-gray-600 mt-2 space-y-1">
+                      <ul className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-2 space-y-1">
                         <li>• Improving structure and flow</li>
                         <li>• Enhancing wording and clarity</li>
                         <li>• Generating content for sections</li>
@@ -2671,25 +2721,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
                 {/* Quick Actions */}
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-700 px-1">Quick suggestions:</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[hsl(var(--foreground))] px-1">
+                    Quick suggestions:
+                  </p>
                   <div className="grid gap-2">
                     <button 
                       onClick={() => setAiInput('Help me improve the structure of this section')}
-                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm"
+                      className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                     >
-                      <span className="font-medium text-gray-900">📝</span> Improve section structure
+                      <span className="font-semibold text-[hsl(var(--foreground))]">📝</span> Improve section structure
                     </button>
                     <button 
                       onClick={() => setAiInput('Suggest better wording for this paragraph')}
-                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm"
+                      className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                     >
-                      <span className="font-medium text-gray-900">✨</span> Enhance wording
+                      <span className="font-semibold text-[hsl(var(--foreground))]">✨</span> Enhance wording
                     </button>
                     <button 
                       onClick={() => setAiInput('Generate a conclusion for this section')}
-                      className="text-left p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm"
+                      className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                     >
-                      <span className="font-medium text-gray-900">🎯</span> Generate conclusion
+                      <span className="font-semibold text-[hsl(var(--foreground))]">🎯</span> Generate conclusion
                     </button>
                   </div>
                 </div>
@@ -2702,29 +2754,34 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 {aiMessages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={cn('flex', message.type === 'user' ? 'justify-end' : 'justify-start')}
                   >
-                    <div className={`max-w-[85%] ${message.type === 'user' ? 'order-2' : 'order-1'}`}>
+                    <div className={cn('max-w-[85%]', message.type === 'user' ? 'order-2' : 'order-1')}>
                       {message.type === 'assistant' && (
                         <div className="flex items-center gap-2 mb-1">
-                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Bot className="h-3 w-3 text-blue-600" />
+                          <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center">
+                            <Bot className="h-3 w-3" />
                           </div>
-                          <span className="text-xs text-gray-500 font-medium">Akowe</span>
+                          <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold">
+                            Akọ̀wé
+                          </span>
                         </div>
                       )}
                       <div
-                        className={`p-3 rounded-2xl ${
+                        className={cn(
+                          'p-3 rounded-[var(--radius)] border-2',
                         message.type === 'user'
-                            ? 'bg-blue-600 text-white rounded-br-md'
-                            : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md shadow-sm'
-                      }`}
+                            ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))]'
+                            : 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] border-[hsl(var(--border-strong))] shadow-[4px_4px_0_rgba(29,41,57,0.12)] rounded-bl-[1.75rem]'
+                        )}
                     >
                         {message.type === 'user' ? (
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-xs uppercase tracking-[0.2em] leading-relaxed whitespace-pre-wrap">
+                            {message.content}
+                          </p>
                         ) : (
                           <div 
-                            className="text-sm leading-relaxed prose prose-sm max-w-none"
+                            className="text-xs leading-relaxed prose prose-sm max-w-none"
                             dangerouslySetInnerHTML={{ __html: parseMarkdown(message.content) }}
                           />
                         )}
@@ -2732,10 +2789,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <button 
                           onClick={() => {
                             if (activeS) {
-                                // Use the isIntegrated flag from the API response
                                 const isIntegratedResponse = (message as any).isIntegrated;
-                                
-                                // Debug logging
                                 console.log('Insert into section:', {
                                   isIntegrated: isIntegratedResponse,
                                   currentContent: cleanupSectionContent(activeS.content || ''),
@@ -2744,13 +2798,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 
                                 let newContent;
                                 if (isIntegratedResponse) {
-                                  // Use the integrated content directly - AI has already analyzed and integrated
                                   newContent = processAIResponse(message.content, activeS.title);
                                 } else {
-                                  // For non-integrated responses, try to be smarter about placement
                                   const currentContent = cleanupSectionContent(activeS.content || '');
-                                  
-                                  // Check if current content is mostly template/guide text
                                   const isTemplateContent = currentContent.includes('Begin your') || 
                                                           currentContent.includes('Comprehensive review') ||
                                                           currentContent.includes('Organization Strategies') ||
@@ -2763,10 +2813,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                                           currentContent.includes('This is where you\'ll wrap up');
                                   
                                   if (isTemplateContent) {
-                                    // Replace template content entirely with processed AI response
                                     newContent = processAIResponse(message.content, activeS.title);
                                   } else {
-                                    // Add to existing substantive content
                                     const separator = currentContent.trim() ? '\n\n' : '';
                                     const processedContent = processAIResponse(message.content, activeS.title);
                                     newContent = currentContent + separator + processedContent;
@@ -2774,12 +2822,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 }
                                 
                               handleSectionChange(activeS.id, newContent);
-                                
-                                // Update local section content immediately for real-time editor update
                                 setLocalSectionContent(newContent);
                                 setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
-                                
-                                // Update editor content directly with cursor preservation
                                 updateEditorContent(newContent);
                                 
                                 const successMessage = isIntegratedResponse 
@@ -2789,14 +2833,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 setTimeout(() => setShowSuccessMessage(''), 3000);
                               }
                             }}
-                            className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                            className="mt-2 text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold flex items-center gap-1"
                           >
                             <Plus className="h-3 w-3" />
                           Insert into section
                   </button>
                       )}
                       </div>
-                      <p className="text-xs text-gray-400 mt-1 px-1">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1 px-1">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                   </div>
@@ -2807,19 +2851,23 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <div className="flex justify-start">
                     <div className="max-w-[85%]">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Bot className="h-3 w-3 text-blue-600" />
+                      <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center">
+                        <Bot className="h-3 w-3" />
                         </div>
-                        <span className="text-xs text-gray-500 font-medium">Akowe</span>
+                      <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold">
+                        Akọ̀wé
+                      </span>
                       </div>
-                      <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-3 shadow-sm">
+                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] rounded-bl-[1.75rem] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                       <div className="flex items-center space-x-2">
                           <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                           </div>
-                          <span className="text-sm text-gray-600">Thinking...</span>
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                          Thinking...
+                        </span>
                         </div>
                     </div>
                   </div>
@@ -2830,25 +2878,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-200">
-            {/* Usage Info - Only show for Free plan users */}
+          <div className="border-t-[3px] border-[hsl(var(--border-strong))] p-4 space-y-3 bg-[hsl(var(--surface))]">
             {(session?.user as any)?.plan === 'free' && (
-              <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-yellow-800">
-                    Free Plan: 1,500 words/day
-                  </span>
+              <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
+                <span>Free plan: 1,500 words/day</span>
                   <button 
                     onClick={() => router.push('/settings')}
-                    className="text-yellow-700 hover:text-yellow-800 font-medium"
+                  className="underline underline-offset-4"
                   >
                     Upgrade
                   </button>
-                </div>
               </div>
             )}
 
-            {/* Input Field */}
             <div className="flex gap-2">
               <div className="flex-1 relative">
                   <input
@@ -2857,18 +2899,18 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     onChange={(e) => setAiInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAIWrite(activeS?.id || '')}
                   placeholder={`Ask about "${activeS?.title || 'Introduction'}"...`}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
                 />
                 <button
                   onClick={() => handleAIWrite(activeS?.id || '')}
                   disabled={aiIsLoading || !aiInput.trim()}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
                 >
                 <Send className="h-4 w-4" />
                 </button>
             </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2 px-1">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] px-1">
               Press Enter to send, Shift+Enter for new line
             </p>
           </div>
@@ -2878,18 +2920,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Citation Discovery Modal */}
       {showCitationDiscovery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-hidden border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-slate-600 text-white p-6">
+            <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-6 bg-[hsl(var(--surface))]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold">Research Citations</h3>
-                  <p className="text-blue-100 mt-1">Found {discoveredCitations.length} relevant citations for your research</p>
+                  <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">Research Citations</h3>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                    Found {discoveredCitations.length} relevant citations for your research
+                  </p>
                 </div>
               <button
                 onClick={() => setShowCitationDiscovery(false)}
-                  className="text-white hover:text-blue-200 transition-colors"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
               >
                   <X className="h-6 w-6" />
               </button>
@@ -2897,18 +2941,18 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Search and Filter Bar */}
-            <div className="p-6 border-b border-gray-200 bg-gray-50">
+            <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))]">
               <div className="flex flex-col lg:flex-row gap-4">
                 {/* Search Input */}
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                     <input
                       type="text"
                       value={citationSearchQuery}
                       onChange={(e) => setCitationSearchQuery(e.target.value)}
                       placeholder="Search citations by title, author, journal, or keywords..."
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                     />
                   </div>
                 </div>
@@ -2918,37 +2962,37 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <select
                     value={citationFilter}
                     onChange={(e) => setCitationFilter(e.target.value as any)}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    className="px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                   >
-                    <option value="all">All Citations</option>
+                    <option value="all">All citations</option>
                     <option value="recent">Recent (Last 5 years)</option>
-                    <option value="highly_cited">Highly Cited</option>
+                    <option value="highly_cited">Highly cited</option>
                   </select>
 
                   <select
                     value={citationSortBy}
                     onChange={(e) => setCitationSortBy(e.target.value as any)}
-                    className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    className="px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                   >
-                    <option value="relevance">Sort by Relevance</option>
-                    <option value="year">Sort by Year</option>
-                    <option value="title">Sort by Title</option>
+                    <option value="relevance">Sort by relevance</option>
+                    <option value="year">Sort by year</option>
+                    <option value="title">Sort by title</option>
                   </select>
                 </div>
               </div>
 
               {/* Results Summary */}
-              <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+              <div className="mt-4 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                 <span>
                   Showing {getFilteredAndSortedCitations().length} citations
                   {!citationSearchQuery && citationFilter === 'all' && citationSortBy === 'relevance' && (
-                    <span className="text-gray-500"> • Loaded {discoveredCitations.length} total</span>
+                    <span className="text-[hsl(var(--muted-foreground))]/80"> • Loaded {discoveredCitations.length} total</span>
                   )}
                 </span>
                 {citationSearchQuery && (
                   <button
                     onClick={() => setCitationSearchQuery('')}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold"
                   >
                     Clear search
                   </button>
@@ -2957,19 +3001,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Citations List */}
-            <div className="p-6 overflow-y-auto max-h-[50vh]">
+            <div className="p-6 overflow-y-auto max-h-[50vh] space-y-6 bg-[hsl(var(--surface))]">
               {getFilteredAndSortedCitations().length > 0 ? (
                 <div className="grid gap-6">
                   {getFilteredAndSortedCitations().map((citation, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                    <div key={index} className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-gray-900 mb-2 leading-tight">
+                          <h4 className="text-lg font-semibold uppercase tracking-[0.12em] text-[hsl(var(--foreground))] mb-2 leading-tight">
                             {citation.title}
                           </h4>
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
+                          <div className="flex flex-wrap items-center gap-4 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
                             <div className="flex items-center gap-1">
-                              <span className="font-medium">Authors:</span>
+                              <span className="font-semibold text-[hsl(var(--foreground))]">Authors:</span>
                               <span>
                         {Array.isArray(citation.authors) 
                                   ? citation.authors.slice(0, 3).join(', ') + (citation.authors.length > 3 ? ' et al.' : '')
@@ -2977,15 +3021,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <span className="font-medium">Year:</span>
-                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                              <span className="font-semibold text-[hsl(var(--foreground))]">Year:</span>
+                              <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]">
                                 {citation.year || 'N/A'}
                               </span>
                             </div>
                             {citation.citationCount && (
                               <div className="flex items-center gap-1">
-                                <span className="font-medium">Citations:</span>
-                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                <span className="font-semibold text-[hsl(var(--foreground))]">Citations:</span>
+                                <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]">
                                   {citation.citationCount}
                                 </span>
                               </div>
@@ -2998,7 +3042,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           href={citation.url}
                             target="_blank" 
                             rel="noopener noreferrer"
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                               title="View Source"
                         >
                               <Link className="h-4 w-4" />
@@ -3007,10 +3051,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                         onClick={() => addCitationToEditor(citation)}
                             disabled={isAddingCitation}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                            className={`px-4 py-2 rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center gap-2 ${
                               isAddingCitation 
-                                ? 'bg-gray-400 cursor-not-allowed text-white' 
-                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                ? 'bg-[hsl(var(--muted))] cursor-not-allowed text-[hsl(var(--muted-foreground))]'
+                                : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
                             }`}
                           >
                             {isAddingCitation ? (
@@ -3029,23 +3073,23 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       </div>
 
                       {citation.journal && (
-                        <p className="text-sm text-gray-500 mb-3">
-                          <span className="font-medium">Journal:</span> {citation.journal}
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
+                          <span className="font-semibold text-[hsl(var(--foreground))]">Journal:</span> {citation.journal}
                         </p>
                       )}
 
                       {citation.abstract && (
                         <div className="mb-4">
-                          <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
+                          <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed line-clamp-3">
                             {citation.abstract}
                           </p>
                         </div>
                       )}
 
                       {citation.doi && (
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span className="font-medium">DOI:</span>
-                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">
+                        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                          <span className="font-semibold text-[hsl(var(--foreground))]">DOI:</span>
+                          <code className="border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-2 py-1">
                             {citation.doi}
                           </code>
                         </div>
@@ -3059,17 +3103,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       <button
                         onClick={loadMoreCitations}
                         disabled={isLoadingMoreCitations}
-                        className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-400 px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
+                        className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2"
                       >
                         {isLoadingMoreCitations ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                            Loading 8 more...
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-[hsl(var(--border-strong))] border-t-transparent"></div>
+                            Loading more...
                           </>
                         ) : (
                           <>
                             <Plus className="h-4 w-4" />
-                            Find More Citations
+                            Find more citations
                           </>
                         )}
                       </button>
@@ -3078,11 +3122,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
               ) : (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Search className="h-8 w-8 text-gray-400" />
+                  <div className="w-16 h-16 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4">
+                    <Search className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No citations found</h3>
-                  <p className="text-gray-500 mb-4">
+                  <h3 className="text-lg font-semibold uppercase tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">No citations found</h3>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-4">
                     {citationSearchQuery 
                       ? `No citations match your search "${citationSearchQuery}"`
                       : 'No citations available for the current filters'
@@ -3091,7 +3135,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   {citationSearchQuery && (
                     <button
                       onClick={() => setCitationSearchQuery('')}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold text-xs uppercase tracking-[0.18em]"
                     >
                       Clear search to see all citations
                     </button>
@@ -3105,19 +3149,29 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Export Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Export Project</h3>
-              
-              {/* Export Options */}
-              <div className="mb-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+              <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
+                <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
+                  Export Project
+                </h3>
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] flex items-center gap-2">
                     Citation Style
                     {isAutoDetected.citationStyle && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                        Auto-detected
+                        <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
+                          Auto
                       </span>
                     )}
                   </label>
@@ -3127,23 +3181,22 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       setSelectedCitationStyle(e.target.value as any);
                       setIsAutoDetected(prev => ({ ...prev, citationStyle: false }));
                     }}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                     disabled={isExporting}
                   >
-                    <option value="apa">APA (American Psychological Association)</option>
-                    <option value="mla">MLA (Modern Language Association)</option>
-                    <option value="chicago">Chicago Manual of Style</option>
+                      <option value="apa">APA</option>
+                      <option value="mla">MLA</option>
+                      <option value="chicago">Chicago</option>
                     <option value="harvard">Harvard</option>
                     <option value="ieee">IEEE</option>
                   </select>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] flex items-center gap-2">
                     Academic Template
                     {isAutoDetected.template && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                        Auto-detected
+                        <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
+                          Auto
                       </span>
                     )}
                   </label>
@@ -3153,118 +3206,81 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       setSelectedTemplate(e.target.value as any);
                       setIsAutoDetected(prev => ({ ...prev, template: false }));
                     }}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                     disabled={isExporting}
                   >
-                    <option value="research-paper">Research Paper</option>
+                      <option value="research-paper">Research paper</option>
                     <option value="thesis">Thesis</option>
-                    <option value="report">Research Report</option>
-                    <option value="conference-paper">Conference Paper</option>
+                      <option value="report">Research report</option>
+                      <option value="conference-paper">Conference paper</option>
                   </select>
                 </div>
               </div>
               
-              <div className="space-y-3">
-              <button
-                  onClick={() => handleExport('pdf')}
-                  disabled={isExporting}
-                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
-                    isExporting && exportingFormat === 'pdf'
-                      ? 'bg-blue-50 cursor-not-allowed'
-                      : 'hover:bg-blue-50'
-                  }`}
-                >
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium flex items-center gap-2">
-                      PDF Document
-                      {isExporting && exportingFormat === 'pdf' && (
-                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {isExporting && exportingFormat === 'pdf' ? 'Generating PDF...' : 'Portable Document Format'}
-                    </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {(
+                    [
+                      { key: 'pdf', label: 'PDF Document', description: 'Portable document format', spinner: 'Generating PDF...' },
+                      { key: 'docx', label: 'Word Document', description: 'Microsoft Word format', spinner: 'Generating DOCX...' },
+                      { key: 'txt', label: 'Plain Text', description: 'Simple text format', spinner: 'Generating TXT...' },
+                      { key: 'latex', label: 'LaTeX Document', description: 'Academic LaTeX export', spinner: 'Generating LaTeX...' },
+                    ] as const
+                  ).map(option => {
+                    const isProcessing = isExporting && exportingFormat === option.key;
+                    const isActive = selectedExportFormat === option.key;
+                    return (
+                      <button
+                        key={option.key}
+                        onClick={() => {
+                          if (!isExporting) {
+                            setSelectedExportFormat(option.key);
+                          }
+                        }}
+                        disabled={isProcessing}
+                        className={cn(
+                          'w-full border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-4 py-4 text-left flex items-start gap-4 transition-transform duration-150 bg-[hsl(var(--surface))]',
+                          isProcessing
+                            ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-not-allowed'
+                            : isActive
+                              ? 'outline outline-2 outline-[hsl(var(--secondary))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.12)]'
+                              : 'hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                        )}
+                      >
+                        <div className="w-10 h-10 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--surface))]">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
+                            {option.label}
+                            {isProcessing && (
+                              <div className="w-4 h-4 border-2 border-[hsl(var(--secondary-foreground))] border-t-transparent rounded-full animate-spin"></div>
+                            )}
+                          </div>
+                          <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                            {isProcessing ? option.spinner : option.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                </button>
-
-                <button
-                  onClick={() => handleExport('docx')}
-                  disabled={isExporting}
-                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
-                    isExporting && exportingFormat === 'docx'
-                      ? 'bg-blue-50 cursor-not-allowed'
-                      : 'hover:bg-blue-50'
-                  }`}
-                >
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium flex items-center gap-2">
-                      Word Document
-                      {isExporting && exportingFormat === 'docx' && (
-                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {isExporting && exportingFormat === 'docx' ? 'Generating DOCX...' : 'Microsoft Word Format'}
-                    </div>
-                </div>
-                </button>
-
-                <button
-                  onClick={() => handleExport('txt')}
-                  disabled={isExporting}
-                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
-                    isExporting && exportingFormat === 'txt'
-                      ? 'bg-blue-50 cursor-not-allowed'
-                      : 'hover:bg-blue-50'
-                  }`}
-                >
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium flex items-center gap-2">
-                      Plain Text
-                      {isExporting && exportingFormat === 'txt' && (
-                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {isExporting && exportingFormat === 'txt' ? 'Generating TXT...' : 'Simple text format'}
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleExport('latex')}
-                  disabled={isExporting}
-                  className={`w-full p-3 border border-gray-300 rounded-lg flex items-center gap-3 transition-colors ${
-                    isExporting && exportingFormat === 'latex'
-                      ? 'bg-blue-50 cursor-not-allowed'
-                      : 'hover:bg-blue-50'
-                  }`}
-                >
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium flex items-center gap-2">
-                      LaTeX Document
-                      {isExporting && exportingFormat === 'latex' && (
-                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {isExporting && exportingFormat === 'latex' ? 'Generating LaTeX...' : 'LaTeX format for academic papers'}
-                    </div>
-                  </div>
-                </button>
             </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="p-6 border-t-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex justify-end gap-3">
               <Button
+                  variant="outline"
                 onClick={() => setShowExportModal(false)}
-                className="flex-1"
                 disabled={isExporting}
+                  className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
               >
                 Cancel
+              </Button>
+                <Button
+                  onClick={() => handleExport(selectedExportFormat)}
+                  disabled={isExporting}
+                  className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
+                >
+                  {isExporting ? 'Exporting…' : 'Export'}
               </Button>
               </div>
           </div>
@@ -3275,91 +3291,90 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {/* Success Message */}
       {/* Manual Citation Modal */}
       {showManualCitationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Add Manual Citation</h3>
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+              <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
+                <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
+                  Add Manual Citation
+                </h3>
               <button
                 onClick={() => setShowManualCitationModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
               >
-                <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="p-4 space-y-4">
-                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                  <input
-                    type="text"
+              <div className="p-6 space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Input
+                    label="Title *"
                     value={manualCitation.title}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Research paper title"
+                    required
                   />
-                </div>
-                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Authors *</label>
-                  <input
-                    type="text"
+                  <Input
+                    label="Authors *"
                     value={manualCitation.authors}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, authors: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Smith, J., Johnson, A."
+                    placeholder="Smith, J.; Johnson, A."
+                    required
                   />
-                </div>
-                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                  <input
+                  <Input
+                    label="Year"
                     type="number"
                     value={manualCitation.year}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, year: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="2023"
                   />
-                </div>
-                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Journal</label>
-                  <input
-                    type="text"
+                  <Input
+                    label="Journal"
                     value={manualCitation.journal}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, journal: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Journal Name"
+                    placeholder="Journal name"
                   />
-                </div>
-                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">DOI</label>
-                  <input
-                    type="text"
+                  <Input
+                    label="DOI"
                     value={manualCitation.doi}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, doi: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="10.1000/182"
+                    placeholder="10.1000/xyz123"
                   />
-                </div>
-                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                  <input
+                  <Input
+                    label="URL"
                     type="url"
                     value={manualCitation.url}
                     onChange={(e) => setManualCitation(prev => ({ ...prev, url: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="https://example.com"
                   />
                 </div>
-              <div className="flex space-x-3">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                    Abstract
+                  </label>
+                  <textarea
+                    value={manualCitation.abstract}
+                    onChange={(e) => setManualCitation(prev => ({ ...prev, abstract: e.target.value }))}
+                    placeholder="Optional summary or key insights"
+                    rows={4}
+                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.12em] text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 resize-y"
+                  />
+                </div>
+              </div>
+              <div className="p-6 border-t-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowManualCitationModal(false)}
+                  className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
+                >
+                  Cancel
+                </Button>
               <Button
                   onClick={addManualCitation}
                   disabled={!manualCitation.title.trim() || !manualCitation.authors.trim()}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
                 >
                   Add Citation
-              </Button>
-              <Button
-                  onClick={() => setShowManualCitationModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700"
-              >
-                Cancel
               </Button>
               </div>
             </div>
@@ -3369,83 +3384,134 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Plagiarism Results Modal */}
       {showPlagiarismModal && plagiarismResult && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Plagiarism Check Results</h3>
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col max-h-[90vh]">
+              <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
+                <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
+                  Plagiarism Check Results
+                </h3>
               <button
                 onClick={() => setShowPlagiarismModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
               >
-                <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="p-4 overflow-y-auto max-h-[60vh]">
-              <div className="mb-4">
-                <div className="flex items-center gap-4">
-                  <div className={`px-4 py-2 rounded-lg text-white font-semibold ${
-                    plagiarismResult.matchPercentage < 10 ? 'bg-gradient-to-r from-blue-500 to-slate-500' :
-                    plagiarismResult.matchPercentage < 25 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-red-500 to-red-600'
-                  }`}>
-                    {plagiarismResult.matchPercentage}% Match
-              </div>
-                  <div className="text-sm text-gray-600">
-                    {plagiarismResult.remaining} checks remaining
-              </div>
+
+              <div className="p-6 space-y-6 overflow-y-auto">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div
+                    className={cn(
+                      'border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center space-y-2',
+                      plagiarismResult.matchPercentage < 10
+                        ? 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]'
+                        : plagiarismResult.matchPercentage < 25
+                          ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
+                          : 'bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))]'
+                    )}
+                  >
+                    <span className="text-xs uppercase tracking-[0.24em] font-semibold block">
+                      Similarity Match
+                    </span>
+                    <span className="text-4xl font-black uppercase tracking-[0.1em]">
+                      {plagiarismResult.matchPercentage}%
+                    </span>
+                    <span className="text-[10px] uppercase tracking-[0.2em] block">
+                      Content overlap detected
+                    </span>
                 </div>
                 
-                {/* External Sources Summary */}
-                {plagiarismResult.sources && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <h5 className="text-sm font-medium text-blue-900 mb-2">External Sources Checked:</h5>
-                    <div className="flex gap-4 text-xs text-blue-700">
-                      <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                        CrossRef: {plagiarismResult.sources.crossref} matches
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center space-y-2 bg-[hsl(var(--surface-muted))]">
+                    <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold block">
+                      Checks Remaining
                       </span>
-                      <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
-                        arXiv: {plagiarismResult.sources.arxiv} matches
+                    <span className="text-4xl font-black uppercase tracking-[0.1em]">
+                      {plagiarismResult.remaining}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        Scholar: {plagiarismResult.sources.scholar} matches
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] block">
+                      Plan allowance
                       </span>
                     </div>
+
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 space-y-3">
+                    <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold block">
+                      Sources Checked
+                    </span>
+                    <div className="space-y-2 text-[10px] uppercase tracking-[0.18em]">
+                      <div className="flex items-center justify-between">
+                        <span>Crossref</span>
+                        <span className="font-semibold">{plagiarismResult.sources?.crossref ?? 0}</span>
                   </div>
-                )}
+                      <div className="flex items-center justify-between">
+                        <span>arXiv</span>
+                        <span className="font-semibold">{plagiarismResult.sources?.arxiv ?? 0}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Scholar</span>
+                        <span className="font-semibold">{plagiarismResult.sources?.scholar ?? 0}</span>
+                      </div>
+                    </div>
+                  </div>
             </div>
 
               {plagiarismResult.matches.length > 0 ? (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold uppercase tracking-[0.24em]">
+                      Detected Issues
+                    </h4>
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900">Detected Issues:</h4>
                   {plagiarismResult.matches.map((match, index) => (
-                    <div key={index} className="border border-blue-200 rounded-lg p-3 bg-blue-50 hover:bg-blue-100 transition-colors">
-                      <div className="flex items-start justify-between mb-2">
-                        <p className="text-sm text-gray-700 flex-1">{match.text}</p>
-                        {match.similarity && (
-                          <span className="ml-2 px-2 py-1 bg-blue-100 text-xs text-blue-700 rounded border border-blue-200">
+                        <div
+                          key={index}
+                          className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] flex-1 leading-relaxed">
+                              "{match.text}"
+                            </p>
+                            {typeof match.similarity === 'number' && (
+                              <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em]">
                             {match.similarity}% similar
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between">
-                      <p className="text-xs text-blue-600">Source: {match.source}</p>
+                          <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                            <span>Source: {match.source}</span>
                       {match.url && (
-                        <a href={match.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+                              <a
+                                href={match.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))]"
+                              >
                             View Source →
                         </a>
                       )}
                       </div>
                     </div>
                   ))}
+                    </div>
               </div>
             ) : (
-                <div className="text-center py-8">
-                  <div className="text-blue-600 text-4xl mb-2">✓</div>
-                  <p className="text-gray-600">No plagiarism detected! Your content is original.</p>
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-10 text-center bg-[hsl(var(--surface-muted))] space-y-3">
+                    <CheckCircle2 className="h-10 w-10 mx-auto text-[hsl(var(--secondary))]" />
+                    <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
+                      No plagiarism detected. Your content is original.
+                    </p>
               </div>
             )}
+              </div>
+
+              <div className="p-6 border-t-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPlagiarismModal(false)}
+                  className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
+                >
+                  Close
+                </Button>
+              </div>
                 </div>
               </div>
             </div>
@@ -3453,28 +3519,33 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Section Delete Confirmation Modal */}
       {sectionToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-red-600">Delete Section</h3>
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+              <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))]">
+                <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--destructive))]">
+                  Delete Section
+                </h3>
             </div>
-            <div className="p-4">
-              <p className="text-gray-700 mb-4">
-                Are you sure you want to delete this section? This action cannot be undone.
-              </p>
-              <div className="flex space-x-3">
+              <div className="p-6 space-y-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  Are you sure you want to remove this section? This action cannot be undone.
+                </p>
+                <div className="flex gap-3">
               <Button
-                  onClick={() => deleteSection(sectionToDelete)}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    variant="outline"
+                    onClick={() => setSectionToDelete(null)}
+                    className="flex-1 px-4 py-3 text-xs uppercase tracking-[0.18em]"
               >
-                  Delete
+                    Cancel
               </Button>
               <Button
-                  onClick={() => setSectionToDelete(null)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700"
+                    onClick={() => deleteSection(sectionToDelete)}
+                    className="flex-1 px-4 py-3 text-xs uppercase tracking-[0.18em]"
                 >
-                  Cancel
+                    Delete
               </Button>
+                </div>
             </div>
           </div>
         </div>
@@ -3522,44 +3593,44 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Simple Math Modal */}
       {showMathModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl mx-4 shadow-2xl w-full">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">Insert Math Equation</h3>
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-3xl border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">Insert Math Equation</h3>
                 <button
                   onClick={() => {
                     setShowMathModal(false);
                     setMathPreview('');
                     setMathExplanation('');
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-4 w-4" />
                 </button>
             </div>
 
             <div className="space-y-6">
               {/* LaTeX Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-2">
                   LaTeX Equation
                 </label>
                 <input
                   type="text"
                   value={mathPreview}
                   onChange={(e) => setMathPreview(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm font-mono text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                   placeholder="e.g., \\frac{a}{b}, x^2 + y^2 = z^2, E = mc^2"
                 />
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                     Use LaTeX syntax. Examples: \frac&#123;a&#125;&#123;b&#125;, x^2, \sum_&#123;i=1&#125;^n, \int_0^\infty
                   </p>
                   <a 
                     href="/latex-guide" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:text-blue-700 underline"
+                    className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] underline"
                   >
                     Full Guide
                   </a>
@@ -3568,19 +3639,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
                 {/* Live Preview */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-2">
                     Preview
                   </label>
-                  <div className="p-6 border border-gray-200 rounded-lg bg-gray-50 min-h-[80px] flex items-center justify-center">
+                  <div className="p-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface-muted))] min-h-[80px] flex items-center justify-center">
                     {mathPreview ? (
                       <div
                         id="math-preview"
-                        className="text-2xl text-gray-900"
+                        className="text-2xl text-[hsl(var(--foreground))]"
                       >
                         ${mathPreview}$
                       </div>
                     ) : (
-                      <div className="text-2xl text-gray-400">Your equation will appear here...</div>
+                      <div className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                        Your equation will appear here…
+                      </div>
                     )}
                   </div>
                 </div>
@@ -3588,32 +3661,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     {/* AI Explanation */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                           AI Explanation
                         </label>
                         <button
                           type="button"
-                          onClick={() => {
-                            console.log('🧠 DEBUG: Generate Explanation button clicked');
-                            console.log('🧠 DEBUG: mathPreview:', mathPreview);
-                            console.log('🧠 DEBUG: isGeneratingExplanation:', isGeneratingExplanation);
-                            generateMathExplanation(mathPreview);
-                          }}
+                          onClick={() => generateMathExplanation(mathPreview)}
                           disabled={!mathPreview.trim() || isGeneratingExplanation}
-                          className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
                         >
-                          {isGeneratingExplanation ? 'Generating...' : 'Generate Explanation'}
+                          {isGeneratingExplanation ? 'Generating…' : 'Generate'}
                         </button>
                       </div>
-                      <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 max-h-[120px] overflow-y-auto">
+                      <div className="p-4 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface-muted))] max-h-[140px] overflow-y-auto">
                         {mathExplanation ? (
-                          <div className="text-sm text-gray-800 leading-relaxed">
+                          <div className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed">
                             {mathExplanation.replace(/\\\(|\\\)/g, '').replace(/\$+/g, '')}
                             {mathExplanation.includes('Upgrade to Pro') && (
-                              <div className="mt-3 pt-3 border-t border-gray-300">
+                              <div className="mt-3 pt-3 border-t-[2px] border-[hsl(var(--border-strong))]">
                                 <a
                                   href="/settings"
-                                  className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                  className="inline-flex items-center text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] text-[10px] uppercase tracking-[0.2em]"
                                 >
                                   Upgrade to Pro →
                                 </a>
@@ -3621,8 +3689,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             )}
                           </div>
                         ) : (
-                          <div className="text-sm text-gray-500 italic">
-                            Click "Generate Explanation" to get a brief AI explanation of your equation.
+                          <div className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                            Generate a short explanation for this equation using Akọ̀wé.
                           </div>
                         )}
                       </div>
@@ -3630,7 +3698,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
               {/* Quick Examples */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-2">
                   Quick Examples
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -3645,10 +3713,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     <button
                       key={example.label}
                       onClick={() => setMathPreview(example.value)}
-                      className="p-3 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                      className="p-3 text-left border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 bg-[hsl(var(--surface))]"
                     >
-                      <div className="font-medium text-sm">{example.label}</div>
-                      <div className="text-xs text-gray-600 font-mono">{example.value}</div>
+                      <div className="font-semibold text-xs uppercase tracking-[0.18em]">
+                        {example.label}
+                      </div>
+                      <div className="text-[10px] text-[hsl(var(--muted-foreground))] font-mono mt-1">
+                        {example.value}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -3656,51 +3728,36 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-6 border-t border-gray-200">
+            <div className="flex gap-3 pt-6 border-t-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))]">
               <Button
+                variant="outline"
                 onClick={() => {
                   setShowMathModal(false);
                   setMathPreview('');
                   setMathExplanation('');
                 }}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700"
+                className="flex-1 py-3 text-xs uppercase tracking-[0.18em]"
               >
                 Cancel
               </Button>
               <Button
                 onClick={async () => {
-                  console.log('🎯 DEBUG: Insert Equation button clicked');
-                  console.log('🎯 DEBUG: mathPreview:', mathPreview);
-                  console.log('🎯 DEBUG: mathPreview.trim():', mathPreview.trim());
-                  
                   if (mathPreview.trim()) {
-                    console.log('🎯 DEBUG: Creating math block');
-                    // Create simple math block with LaTeX - insert the raw LaTeX
                     const mathBlock = `
-                      <div class="math-equation" style="margin: 16px 0; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; text-align: center;">
-                        <div style="font-size: 1.2em; font-family: 'Times New Roman', serif; color: #374151;">
+                      <div class="math-equation" style="margin: 16px 0; padding: 16px; border: 1px solid #1f2933; border-radius: 6px; background: #f6f5f1; text-align: center;">
+                        <div style="font-size: 1.2em; font-family: 'Times New Roman', serif; color: #1f2933;">
                           $${mathPreview}$
                         </div>
                       </div>
                     `;
-                    
-                    console.log('🎯 DEBUG: mathBlock created:', mathBlock);
-                    console.log('🎯 DEBUG: Calling insertMathIntoEditor');
-                    
                     await insertMathIntoEditor(mathBlock, mathPreview);
-                    
-                    console.log('🎯 DEBUG: insertMathIntoEditor completed');
-                  } else {
-                    console.log('🎯 DEBUG: mathPreview is empty, skipping insertion');
                   }
-                  
-                  console.log('🎯 DEBUG: Closing modal and resetting state');
                   setShowMathModal(false);
                   setMathPreview('');
                   setMathExplanation('');
                 }}
                 disabled={!mathPreview.trim()}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                className="flex-1 py-3 text-xs uppercase tracking-[0.18em]"
               >
                 Insert Equation
               </Button>
@@ -3711,31 +3768,38 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Chart Modal */}
       {showChartModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-4xl mx-4 shadow-2xl w-full">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">Insert Chart</h3>
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-2xl border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8 text-center">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
+                Insert Chart
+              </h3>
               <button
                 onClick={() => setShowChartModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
               >
-                <X className="h-6 w-6" />
+                <X className="h-4 w-4" />
               </button>
             </div>
             
-            <div className="text-center py-12">
-              <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">Chart Feature Coming Soon</h4>
-              <p className="text-gray-600 mb-6">
-                We're working on an intuitive chart builder. For now, you can insert images of charts.
+            <div className="space-y-4 py-6">
+              <div className="w-20 h-20 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto text-[hsl(var(--muted-foreground))]">
+                <BarChart3 className="h-8 w-8" />
+              </div>
+              <h4 className="text-lg font-semibold uppercase tracking-[0.18em]">
+                Chart Feature Coming Soon
+              </h4>
+              <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] max-w-md mx-auto">
+                We&apos;re building an intuitive chart builder. For now, add visualizations by inserting an image or figure reference.
               </p>
-              <Button
-                onClick={() => setShowChartModal(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Got it
-              </Button>
             </div>
+
+            <Button
+              onClick={() => setShowChartModal(false)}
+              className="w-full py-3 text-xs uppercase tracking-[0.18em]"
+            >
+              Got it
+            </Button>
           </div>
         </div>
       )}

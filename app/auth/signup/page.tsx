@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Link from 'next/link';
+import Card from '@/components/ui/Card';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -150,17 +151,22 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-slate-600 bg-clip-text text-transparent">
-              Akowe
+    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="w-full max-w-md px-6">
+        <Card className="p-10 space-y-8">
+          <div className="text-center space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+              Akọ̀wé studio
+            </span>
+            <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
+              Create account
             </h1>
-            <p className="text-gray-600 mt-2">Create your account</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Join the research workspace built for scholars.
+            </p>
           </div>
 
-          <form onSubmit={handleSignUp} className="space-y-4">
+          <form onSubmit={handleSignUp} className="space-y-5">
             <Input
               type="text"
               name="name"
@@ -203,22 +209,22 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full py-4 text-sm font-semibold uppercase tracking-[0.24em]"
               disabled={isLoading}
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
               Already have an account?{' '}
-              <Link href="/auth/signin" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/auth/signin" className="underline underline-offset-4 hover:text-[hsl(var(--secondary))]">
                 Sign in
               </Link>
             </p>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
