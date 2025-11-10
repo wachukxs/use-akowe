@@ -113,8 +113,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
+  type ExportFormat = 'pdf' | 'docx' | 'txt' | 'latex';
+
   const [selectedCitationStyle, setSelectedCitationStyle] = useState<'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee'>('apa');
   const [selectedTemplate, setSelectedTemplate] = useState<'research-paper' | 'thesis' | 'report' | 'conference-paper'>('research-paper');
+  const [selectedExportFormat, setSelectedExportFormat] = useState<ExportFormat>('pdf');
   const [isAutoDetected, setIsAutoDetected] = useState({ citationStyle: false, template: false });
   const [isDetectingCitations, setIsDetectingCitations] = useState(false);
   const [lastDetectionResult, setLastDetectionResult] = useState<{detectedCount: number, totalCount: number} | null>(null);
@@ -1643,14 +1646,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   };
 
   // Export functions
-  const handleExport = async (format: 'pdf' | 'docx' | 'txt' | 'latex') => {
+  const handleExport = async (format?: ExportFormat) => {
     if (!project) return;
-    
+
+    const exportFormat = format ?? selectedExportFormat ?? 'pdf';
+    setSelectedExportFormat(exportFormat);
     setIsExporting(true);
-    setExportingFormat(format);
+    setExportingFormat(exportFormat);
     
     try {
-      const response = await fetch(`/api/projects/${resolvedParams.id}/export?format=${format}&citationStyle=${selectedCitationStyle}&template=${selectedTemplate}`, {
+      const response = await fetch(`/api/projects/${resolvedParams.id}/export?format=${exportFormat}&citationStyle=${selectedCitationStyle}&template=${selectedTemplate}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -1664,13 +1669,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-      a.download = `${project.name}.${format}`;
+        const safeName = `${project.name}`.trim().replace(/[^a-z0-9\-_.]+/gi, '_');
+      a.download = `${safeName || 'akowe_project'}.${exportFormat}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      setShowSuccessMessage(`Project exported as ${format.toUpperCase()} successfully!`);
+      setShowSuccessMessage(`Project exported as ${exportFormat.toUpperCase()} successfully!`);
       setTimeout(() => setShowSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Export error:', error);
@@ -1704,6 +1710,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       setIsAutoDetected({ citationStyle: true, template: true });
     }
   }, [project]);
+
+  useEffect(() => {
+    if (showExportModal) {
+      setSelectedExportFormat('pdf');
+    }
+  }, [showExportModal]);
 
   // Add selection change listener for better formatting detection
   useEffect(() => {
@@ -3208,40 +3220,50 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 <div className="grid gap-3 md:grid-cols-2">
                   {(
                     [
-                    { key: 'pdf', label: 'PDF Document', description: 'Portable document format', spinner: 'Generating PDF...' },
-                    { key: 'docx', label: 'Word Document', description: 'Microsoft Word format', spinner: 'Generating DOCX...' },
-                    { key: 'txt', label: 'Plain Text', description: 'Simple text format', spinner: 'Generating TXT...' },
-                    { key: 'latex', label: 'LaTeX Document', description: 'Academic LaTeX export', spinner: 'Generating LaTeX...' },
-                  ] as const
-                  ).map(option => (
-              <button
-                      key={option.key}
-                      onClick={() => handleExport(option.key)}
-                  disabled={isExporting}
-                      className={cn(
-                        'w-full border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-4 py-4 text-left flex items-start gap-4 transition-transform duration-150',
-                        isExporting && exportingFormat === option.key
-                          ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-not-allowed'
-                          : 'bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
-                      )}
-                    >
-                      <div className="w-10 h-10 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0">
-                        <FileText className="h-5 w-5" />
-                    </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
-                          {option.label}
-                          {isExporting && exportingFormat === option.key && (
-                            <div className="w-4 h-4 border-2 border-[hsl(var(--secondary-foreground))] border-t-transparent rounded-full animate-spin"></div>
-                      )}
-                    </div>
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                          {isExporting && exportingFormat === option.key ? option.spinner : option.description}
-                        </p>
-                  </div>
-                </button>
-                  ))}
-                    </div>
+                      { key: 'pdf', label: 'PDF Document', description: 'Portable document format', spinner: 'Generating PDF...' },
+                      { key: 'docx', label: 'Word Document', description: 'Microsoft Word format', spinner: 'Generating DOCX...' },
+                      { key: 'txt', label: 'Plain Text', description: 'Simple text format', spinner: 'Generating TXT...' },
+                      { key: 'latex', label: 'LaTeX Document', description: 'Academic LaTeX export', spinner: 'Generating LaTeX...' },
+                    ] as const
+                  ).map(option => {
+                    const isProcessing = isExporting && exportingFormat === option.key;
+                    const isActive = selectedExportFormat === option.key;
+                    return (
+                      <button
+                        key={option.key}
+                        onClick={() => {
+                          if (!isExporting) {
+                            setSelectedExportFormat(option.key);
+                          }
+                        }}
+                        disabled={isProcessing}
+                        className={cn(
+                          'w-full border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-4 py-4 text-left flex items-start gap-4 transition-transform duration-150 bg-[hsl(var(--surface))]',
+                          isProcessing
+                            ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-not-allowed'
+                            : isActive
+                              ? 'outline outline-2 outline-[hsl(var(--secondary))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.12)]'
+                              : 'hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                        )}
+                      >
+                        <div className="w-10 h-10 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--surface))]">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
+                            {option.label}
+                            {isProcessing && (
+                              <div className="w-4 h-4 border-2 border-[hsl(var(--secondary-foreground))] border-t-transparent rounded-full animate-spin"></div>
+                            )}
+                          </div>
+                          <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                            {isProcessing ? option.spinner : option.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
             </div>
 
               <div className="p-6 border-t-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex justify-end gap-3">
@@ -3254,7 +3276,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 Cancel
               </Button>
                 <Button
-                  onClick={() => handleExport((exportingFormat ?? 'pdf') as 'pdf' | 'docx' | 'txt' | 'latex')}
+                  onClick={() => handleExport(selectedExportFormat)}
                   disabled={isExporting}
                   className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
                 >
