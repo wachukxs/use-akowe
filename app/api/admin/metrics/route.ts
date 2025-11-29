@@ -225,8 +225,10 @@ export async function GET(request: Request) {
       subscriptionDetails: [] as any[],
     };
 
+    const stripe = getStripeClient();
+    let revenueInPeriod = 0;
+    
     try {
-      const stripe = getStripeClient();
       
       if (!stripe) {
         throw new Error('Stripe not configured');
@@ -624,6 +626,82 @@ export async function GET(request: Request) {
       ? ((churnedUsers / usersActive60DaysAgo.length) * 100).toFixed(1)
       : '0.0';
 
+    // ===== PREVIOUS PERIOD COMPARISONS =====
+    // Calculate previous period metrics for trend analysis
+    const previousPeriodStart = new Date(periodStart);
+    previousPeriodStart.setDate(previousPeriodStart.getDate() - days);
+    const previousPeriodEnd = new Date(periodStart);
+    
+    // Previous period: new users
+    const previousNewUsers = await User.countDocuments({
+      createdAt: {
+        $gte: previousPeriodStart,
+        $lt: previousPeriodEnd
+      }
+    });
+    
+    // Previous period: projects created
+    const previousProjectsCreated = await Project.countDocuments({
+      createdAt: {
+        $gte: previousPeriodStart,
+        $lt: previousPeriodEnd
+      }
+    });
+    
+    // Previous period: usage
+    const previousUsagePeriod = await DailyUsage.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: previousPeriodStart.toISOString().split('T')[0],
+            $lt: previousPeriodEnd.toISOString().split('T')[0]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalAIWords: { $sum: '$aiWordsGenerated' },
+          totalPlagiarismChecks: { $sum: '$plagiarismChecks' }
+        }
+      }
+    ]);
+    const previousAIWords = previousUsagePeriod[0]?.totalAIWords || 0;
+    const previousPlagiarismChecks = previousUsagePeriod[0]?.totalPlagiarismChecks || 0;
+    
+    // Previous period: revenue (from Stripe invoices)
+    let previousRevenue = 0;
+    if (stripe) {
+      const previousInvoices = await stripe.invoices.list({
+        limit: 100,
+        status: 'paid',
+        created: {
+          gte: Math.floor(previousPeriodStart.getTime() / 1000),
+          lt: Math.floor(previousPeriodEnd.getTime() / 1000)
+        }
+      });
+      
+      // Filter to only this product's subscriptions
+      const previousProductInvoices = previousInvoices.data.filter((inv: any) => {
+        return inv.subscription && 
+               validPriceIds.length > 0 &&
+               inv.lines?.data?.some((line: any) => 
+                 line.price && validPriceIds.includes(line.price.id)
+               );
+      });
+      
+      for (const invoice of previousProductInvoices) {
+        const inv = invoice as any;
+        previousRevenue += inv.amount_paid / 100;
+      }
+    }
+    
+    // Calculate percentage changes
+    const calculateChange = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
     return NextResponse.json({
       users: {
         total: totalUsers,
@@ -676,6 +754,22 @@ export async function GET(request: Request) {
       retention: {
         churnRate: parseFloat(churnRate),
         churnedUsers: churnedUsers,
+      },
+      comparisons: {
+        previousPeriod: {
+          newUsers: previousNewUsers,
+          projectsCreated: previousProjectsCreated,
+          aiWords: previousAIWords,
+          plagiarismChecks: previousPlagiarismChecks,
+          revenue: previousRevenue,
+        },
+        changes: {
+          newUsers: calculateChange(newUsersInPeriod, previousNewUsers),
+          projectsCreated: calculateChange(projectsInPeriod, previousProjectsCreated),
+          aiWords: calculateChange(usagePeriod.totalAIWords, previousAIWords),
+          plagiarismChecks: calculateChange(usagePeriod.totalPlagiarismChecks, previousPlagiarismChecks),
+          revenue: calculateChange(revenueData.revenueLast30Days, previousRevenue),
+        },
       },
     });
   } catch (error) {
