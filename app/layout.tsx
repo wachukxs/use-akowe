@@ -20,6 +20,20 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossOrigin="anonymous" />
+        {/* Google Analytics (Akowe) - Start */}
+        <Script 
+          src="https://www.googletagmanager.com/gtag/js?id=G-KRXGBZVQ8Y"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-KRXGBZVQ8Y');
+          `}
+        </Script>
+        {/* Google Analytics (Akowe) - End */}
       </head>
       <body className="antialiased">
         <Script 
