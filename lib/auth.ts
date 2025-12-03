@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import connectDB from './mongodb';
 import User from '@/models/User';
+import { isVIPUser } from './vip-users';
 
 export const authOptions: NextAuthConfig = {
   providers: [
@@ -65,12 +66,25 @@ export const authOptions: NextAuthConfig = {
         let existingUser = await User.findOne({ email: user.email });
 
         if (!existingUser) {
+          // VIP users get pro plan on signup, others get free
+          const initialPlan = isVIPUser(user.email) ? 'pro' : 'free';
           existingUser = await User.create({
             email: user.email,
             name: user.name || profile?.name || 'User',
             image: user.image,
-            plan: 'free',
+            plan: initialPlan,
           });
+          if (initialPlan === 'pro') {
+            console.log(`VIP user ${user.email} created with pro plan`);
+          }
+        } else if (isVIPUser(user.email) && existingUser.plan === 'free') {
+          // Upgrade existing VIP users from free to pro
+          await User.findByIdAndUpdate(existingUser._id, { plan: 'pro' });
+          console.log(`VIP user ${user.email} upgraded to pro plan`);
+        } else if (!isVIPUser(user.email) && existingUser.plan === 'pro' && !existingUser.stripeSubscriptionId) {
+          // Downgrade non-VIP users who are on pro but never paid (removed from VIP list)
+          await User.findByIdAndUpdate(existingUser._id, { plan: 'free' });
+          console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
         }
 
         user.id = existingUser._id.toString();
@@ -80,6 +94,23 @@ export const authOptions: NextAuthConfig = {
         if (!user) {
           return false; // Explicitly deny sign-in
         }
+        
+        // Handle VIP user plan changes
+        await connectDB();
+        const dbUser = await User.findById(user.id);
+        
+        if (dbUser) {
+          if (user.email && isVIPUser(user.email) && dbUser.plan === 'free') {
+            // Upgrade VIP users from free to pro
+            await User.findByIdAndUpdate(user.id, { plan: 'pro' });
+            console.log(`VIP user ${user.email} upgraded to pro plan`);
+          } else if (user.email && !isVIPUser(user.email) && dbUser.plan === 'pro' && !dbUser.stripeSubscriptionId) {
+            // Downgrade non-VIP users who are on pro but never paid (removed from VIP list)
+            await User.findByIdAndUpdate(user.id, { plan: 'free' });
+            console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
+          }
+        }
+        
         return true;
       }
 
