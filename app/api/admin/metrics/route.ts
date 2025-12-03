@@ -92,6 +92,7 @@ export async function GET(request: Request) {
     // Get new users in the last N days (from filter)
     const periodStart = new Date();
     periodStart.setDate(periodStart.getDate() - validDays);
+    const periodStartStr = periodStart.toISOString().split('T')[0]; // YYYY-MM-DD for DailyUsage.date
     const newUsersInPeriod = await User.countDocuments({
       createdAt: { $gte: periodStart }
     });
@@ -137,7 +138,8 @@ export async function GET(request: Request) {
     const usageInPeriod = await DailyUsage.aggregate([
       {
         $match: {
-          createdAt: { $gte: periodStart }
+          // Use the explicit date field for DailyUsage (not createdAt)
+          date: { $gte: periodStartStr }
         }
       },
       {
@@ -152,8 +154,14 @@ export async function GET(request: Request) {
     const usagePeriod = usageInPeriod[0] || { totalAIWords: 0, totalPlagiarismChecks: 0 };
 
     // Get usage by user (top users) with user details
-    // First get top users by usage
+    // First get top users by usage in the selected period
     const topUsersAggregation = await DailyUsage.aggregate([
+      {
+        $match: {
+          // Respect the same period filter as the rest of the dashboard
+          date: { $gte: periodStartStr }
+        }
+      },
       {
         $group: {
           _id: '$userId',
