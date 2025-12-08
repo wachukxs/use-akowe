@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import FeedbackButton from "@/components/FeedbackButton";
 
 export const metadata: Metadata = {
   title: "Akowe - Write research that holds up.",
@@ -44,6 +45,7 @@ export default function RootLayout({
         />
         <Providers>
           {children}
+          <FeedbackButton />
         </Providers>
       </body>
     </html>
