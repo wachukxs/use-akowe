@@ -14,7 +14,6 @@ import {
   Calendar,
   Filter,
   Search,
-  ArrowUpDown,
   Zap,
   ChevronDown,
   ChevronUp,
@@ -27,49 +26,80 @@ import {
   CreditCard,
   Info,
   Lightbulb,
-  Award
+  Award,
+  Database,
+  Shield,
+  RefreshCw
 } from 'lucide-react';
 
-interface Metrics {
-  users: {
-    total: number;
-    free: number;
-    pro: number;
-    team: number;
-    withSubscriptions: number;
-    newLast30Days: number;
-    newLast7Days: number;
-    growth: Array<{ _id: string; count: number }>;
-    recentUsers?: Array<{ _id: string; name: string; email: string; plan: string; createdAt: string; stripeSubscriptionId?: string }>;
-    topUsersByUsage?: Array<{ userId: string; email: string; name: string; plan: string; totalAIWords: number; totalPlagiarismChecks: number }>;
-  };
-  projects: {
-    total: number;
-    active: number;
-    completed: number;
-    createdInPeriod: number;
-    growth: Array<{ _id: string; count: number }>;
-  };
-  usage: {
-    totalAIWords: number;
-    totalPlagiarismChecks: number;
-    aiWordsLast30Days: number;
-    plagiarismChecksLast30Days: number;
-    topUsersByUsage?: Array<{ userId: string; email: string; name: string; plan: string; totalAIWords: number; totalPlagiarismChecks: number }>;
-  };
-  revenue: {
-    totalRevenue: number;
+// Updated interface to match new structure
+interface AdminMetricsResponse {
+  executiveSummary: {
     monthlyRecurringRevenue: number;
     annualRecurringRevenue: number;
     activeSubscriptions: number;
-    paymentFailures: number;
-    pastDueSubscriptions: number;
-    canceledSubscriptions: number;
-    revenueLast30Days: number;
-    revenueLast7Days: number;
-    subscriptionDetails?: Array<{ id: string; status: string; customerEmail: string; amount: number; interval: string; createdAt: number; currentPeriodEnd: number }>;
+    dau: number;
+    mau: number;
+    stickiness: number;
   };
-  engagement?: {
+  periodPerformance: {
+    users: {
+      newInPeriod: number;
+      newLast7Days: number;
+      growth: Array<{ _id: string; count: number }>;
+    };
+    projects: {
+      createdInPeriod: number;
+      growth: Array<{ _id: string; count: number }>;
+    };
+    usage: {
+      aiWordsInPeriod: number;
+      plagiarismChecksInPeriod: number;
+      topUsersByUsage: Array<{
+        userId: string;
+        email: string;
+        name: string;
+        plan: string;
+        totalAIWords: number;
+        totalPlagiarismChecks: number;
+      }>;
+    };
+    revenue: {
+      revenueInPeriod: number;
+      revenueLast7Days: number;
+    };
+    engagement: {
+      activeUsers: number;
+      avgActiveDays: number;
+      powerUsers: number;
+      consistentUsers: number;
+    };
+  };
+  businessMetrics: {
+    revenue: {
+      totalRevenue: number;
+      monthlyRecurringRevenue: number;
+      annualRecurringRevenue: number;
+      activeSubscriptions: number;
+      paymentFailures: number;
+      pastDueSubscriptions: number;
+      canceledSubscriptions: number;
+    };
+    users: {
+      total: number;
+      free: number;
+      pro: number;
+      team: number;
+      withSubscriptions: number;
+      conversionRate: number;
+    };
+    monetization: {
+      arpu: number;
+      arpuActive: number;
+      avgTimeToConversion: number;
+    };
+  };
+  engagement: {
     dau: number;
     mau: number;
     stickiness: number;
@@ -77,24 +107,54 @@ interface Metrics {
     consistentUsers: number;
     avgActiveDays: number;
   };
-  product?: {
+  productHealth: {
     completionRate: number;
     avgProjectsPerUser: number;
     usersWithMultipleProjects: number;
     citationAdoption: number;
     pdfAdoption: number;
     plagiarismAdoption: number;
+    projects: {
+      total: number;
+      active: number;
+      completed: number;
+    };
   };
-  monetization?: {
-    arpu: number;
-    arpuActive: number;
-    avgTimeToConversion: number;
-  };
-  retention?: {
+  retention: {
     churnRate: number;
     churnedUsers: number;
   };
-  comparisons?: {
+  detailedLists: {
+    recentUsers: Array<{
+      _id: string;
+      name: string;
+      email: string;
+      plan: string;
+      createdAt: string;
+      stripeSubscriptionId?: string;
+      totalAIWords?: number;
+      totalPlagiarismChecks?: number;
+      activeDays?: number;
+    }>;
+    topUsersByUsage: Array<{
+      userId: string;
+      email: string;
+      name: string;
+      plan: string;
+      totalAIWords: number;
+      totalPlagiarismChecks: number;
+    }>;
+    subscriptionDetails: Array<{
+      id: string;
+      status: string;
+      customerEmail: string;
+      amount: number;
+      interval: string;
+      createdAt: number;
+      currentPeriodEnd: number;
+    }>;
+  };
+  comparisons: {
     previousPeriod: {
       newUsers: number;
       projectsCreated: number;
@@ -109,6 +169,19 @@ interface Metrics {
       plagiarismChecks: number;
       revenue: number;
     };
+  };
+  dateRange: {
+    days: number;
+    start: string;
+    end: string;
+  };
+  timeContexts: {
+    executiveSummary: 'current';
+    periodPerformance: 'period';
+    businessMetrics: 'mixed';
+    engagement: 'adaptive';
+    productHealth: 'all-time';
+    retention: 'fixed-window';
   };
 }
 
@@ -126,15 +199,6 @@ interface HealthStatus {
   timestamp: string;
 }
 
-interface CollapsibleSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  isExpanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-  badge?: number | string;
-}
-
 interface MetricCardProps {
   label: string;
   value: string | number;
@@ -145,26 +209,55 @@ interface MetricCardProps {
   explanation?: string;
   icon?: React.ReactNode;
   highlight?: boolean;
+  timeContext?: 'current' | 'period' | 'all-time' | 'adaptive' | 'fixed-window' | 'mixed';
+}
+
+interface CollapsibleSectionProps {
+  title: string;
+  icon: React.ReactNode;
+  isExpanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+  badge?: number | string;
+  timeContext?: 'current' | 'period' | 'all-time' | 'adaptive' | 'fixed-window' | 'mixed';
+  description?: string;
 }
 
 // Industry standard benchmarks
 const BENCHMARKS = {
-  conversionRate: { excellent: 5, good: 3, average: 1.5 }, // % of free users converting
-  churnRate: { excellent: 3, good: 5, average: 10 }, // Monthly churn %
-  stickiness: { excellent: 40, good: 25, average: 15 }, // DAU/MAU %
-  completionRate: { excellent: 60, good: 40, average: 25 }, // Project completion %
-  arpu: { excellent: 50, good: 30, average: 15 }, // $ per user
-  timeToConversion: { excellent: 7, good: 14, average: 30 }, // Days
-  featureAdoption: { excellent: 50, good: 30, average: 15 }, // % of projects
-  dauMauRatio: { excellent: 0.4, good: 0.25, average: 0.15 }, // Ratio
+  conversionRate: { excellent: 5, good: 3, average: 1.5 },
+  churnRate: { excellent: 3, good: 5, average: 10 },
+  stickiness: { excellent: 40, good: 25, average: 15 },
+  completionRate: { excellent: 60, good: 40, average: 25 },
+  arpu: { excellent: 50, good: 30, average: 15 },
+  timeToConversion: { excellent: 7, good: 14, average: 30 },
+  featureAdoption: { excellent: 50, good: 30, average: 15 },
 };
 
-// Product-specific goals
 const PRODUCT_GOALS = {
-  userTarget: 1600, // Total users over 3 months
-  userTargetPeriodDays: 90, // 3 months
-  conversionTarget: 15, // % conversion to paid plans
+  userTarget: 1600,
+  userTargetPeriodDays: 90,
+  conversionTarget: 15,
 };
+
+function TimeContextBadge({ context }: { context: string }) {
+  const badges = {
+    current: { label: 'Current', color: 'bg-blue-500/20 text-blue-500' },
+    period: { label: 'Period', color: 'bg-green-500/20 text-green-500' },
+    'all-time': { label: 'All Time', color: 'bg-gray-500/20 text-gray-500' },
+    adaptive: { label: 'Adaptive', color: 'bg-purple-500/20 text-purple-500' },
+    'fixed-window': { label: 'Fixed Window', color: 'bg-orange-500/20 text-orange-500' },
+    mixed: { label: 'Mixed', color: 'bg-yellow-500/20 text-yellow-500' },
+  };
+
+  const badge = badges[context as keyof typeof badges] || badges.mixed;
+
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${badge.color}`}>
+      {badge.label}
+    </span>
+  );
+}
 
 function MetricCard({ 
   label, 
@@ -175,7 +268,8 @@ function MetricCard({
   goal, 
   explanation, 
   icon,
-  highlight = false 
+  highlight = false,
+  timeContext
 }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   
@@ -183,18 +277,6 @@ function MetricCard({
     if (trendValue > 0) return 'text-green-500';
     if (trendValue < 0) return 'text-red-500';
     return 'text-[hsl(var(--muted-foreground))]';
-  };
-  
-  const getBenchmarkStatus = (current: number, benchmark: { value: number; label: string }) => {
-    if (current >= benchmark.value) return 'excellent';
-    if (current >= benchmark.value * 0.7) return 'good';
-    return 'needs-improvement';
-  };
-  
-  const getGoalProgress = () => {
-    if (!goal) return null;
-    const progress = (goal.current / goal.target) * 100;
-    return Math.min(progress, 100);
   };
   
   return (
@@ -205,6 +287,7 @@ function MetricCard({
           <span className={`text-xs uppercase tracking-[0.32em] ${highlight ? 'text-[hsl(var(--accent-foreground))]' : 'text-[hsl(var(--muted-foreground))]'}`}>
             {label}
           </span>
+          {timeContext && <TimeContextBadge context={timeContext} />}
           {explanation && (
             <div className="relative">
               <Info 
@@ -246,17 +329,17 @@ function MetricCard({
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-[hsl(var(--muted-foreground))]">{goal.label}</span>
             <span className="text-xs font-semibold">
-              {goal.current} / {goal.target} ({getGoalProgress()?.toFixed(0)}%)
+              {goal.current} / {goal.target} ({Math.min((goal.current / goal.target) * 100, 100).toFixed(0)}%)
             </span>
           </div>
           <div className="w-full bg-[hsl(var(--border-strong))] rounded-full h-2">
             <div 
               className={`h-2 rounded-full transition-all ${
-                (getGoalProgress() || 0) >= 100 ? 'bg-green-500' :
-                (getGoalProgress() || 0) >= 75 ? 'bg-[hsl(var(--primary))]' :
-                (getGoalProgress() || 0) >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                (goal.current / goal.target) * 100 >= 100 ? 'bg-green-500' :
+                (goal.current / goal.target) * 100 >= 75 ? 'bg-[hsl(var(--primary))]' :
+                (goal.current / goal.target) * 100 >= 50 ? 'bg-yellow-500' : 'bg-red-500'
               }`}
-              style={{ width: `${getGoalProgress()}%` }}
+              style={{ width: `${Math.min((goal.current / goal.target) * 100, 100)}%` }}
             />
           </div>
         </div>
@@ -267,14 +350,6 @@ function MetricCard({
           <Award size={12} className="text-[hsl(var(--muted-foreground))]" />
           <span className="text-xs text-[hsl(var(--muted-foreground))]">
             Industry {benchmark.label}: {benchmark.value}
-            {typeof value === 'number' && (
-              <span className={`ml-2 ${
-                getBenchmarkStatus(value, benchmark) === 'excellent' ? 'text-green-500' :
-                getBenchmarkStatus(value, benchmark) === 'good' ? 'text-yellow-500' : 'text-red-500'
-              }`}>
-                ({getBenchmarkStatus(value, benchmark)})
-              </span>
-            )}
           </span>
         </div>
       )}
@@ -282,21 +357,29 @@ function MetricCard({
   );
 }
 
-function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge }: CollapsibleSectionProps) {
+function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge, timeContext, description }: CollapsibleSectionProps) {
   return (
     <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between p-4 hover:bg-[hsl(var(--accent))]/10 transition-colors"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
           {icon}
-          <h2 className="text-lg font-bold uppercase tracking-[0.16em]">{title}</h2>
-          {badge !== undefined && (
-            <span className="px-2 py-0.5 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold">
-              {badge}
-            </span>
-          )}
+          <div className="flex-1 text-left">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold uppercase tracking-[0.16em]">{title}</h2>
+              {timeContext && <TimeContextBadge context={timeContext} />}
+              {badge !== undefined && (
+                <span className="px-2 py-0.5 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold">
+                  {badge}
+                </span>
+              )}
+            </div>
+            {description && (
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{description}</p>
+            )}
+          </div>
         </div>
         {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
       </button>
@@ -310,29 +393,34 @@ function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge
 }
 
 export default function AdminDashboard() {
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [metrics, setMetrics] = useState<AdminMetricsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingSections, setLoadingSections] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [daysFilter, setDaysFilter] = useState<number>(30);
+  const [debouncedDaysFilter, setDebouncedDaysFilter] = useState<number>(30);
+  const [customDateRange, setCustomDateRange] = useState<{ start: string; end: string } | null>(null);
+  const [debouncedCustomDateRange, setDebouncedCustomDateRange] = useState<{ start: string; end: string } | null>(null);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
-  const [userSortBy, setUserSortBy] = useState<'usage' | 'name' | 'recent'>('usage');
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    growth: true,
+    executiveSummary: true,
+    periodPerformance: true,
+    businessMetrics: true,
     engagement: true,
-    product: true,
-    monetization: true,
+    productHealth: false,
     retention: false,
-    users: false,
-    subscriptions: false,
+    detailedLists: false,
   });
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Debounce search for better performance
+  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -340,15 +428,40 @@ export default function AdminDashboard() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Debounce date filter changes (300ms)
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedDaysFilter(daysFilter);
+      setDebouncedCustomDateRange(customDateRange);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [daysFilter, customDateRange]);
+
+  // Fetch metrics when debounced filter changes
+  useEffect(() => {
+    // Cancel previous request if still in flight
+    if (abortController) {
+      abortController.abort();
+    }
+
+    const controller = new AbortController();
+    setAbortController(controller);
+
     fetchHealthStatus();
-    fetchMetrics();
+    fetchMetrics(controller.signal);
+    
     const interval = setInterval(() => {
       fetchHealthStatus();
-      fetchMetrics();
+      const newController = new AbortController();
+      setAbortController(newController);
+      fetchMetrics(newController.signal);
     }, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [daysFilter]);
+    
+    return () => {
+      clearInterval(interval);
+      controller.abort();
+    };
+  }, [debouncedDaysFilter, debouncedCustomDateRange]);
 
   const fetchHealthStatus = async () => {
     try {
@@ -360,22 +473,140 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = async (signal?: AbortSignal) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch(`/api/admin/metrics?days=${daysFilter}`);
+      let url = `/api/admin/metrics?days=${debouncedDaysFilter}`;
+      if (debouncedCustomDateRange) {
+        url += `&start=${debouncedCustomDateRange.start}&end=${debouncedCustomDateRange.end}`;
+      }
+      const response = await fetch(url, { signal });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || errorData.error || 'Failed to fetch metrics');
       }
       const data = await response.json();
-      setMetrics(data);
+      if (!signal?.aborted) {
+        setMetrics(data);
+      }
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        // Request was cancelled, ignore
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      if (!signal?.aborted) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const exportUsersToCSV = (users: Array<{ userId?: string; _id?: string; email: string; name: string; plan: string; totalAIWords?: number; totalPlagiarismChecks?: number; createdAt?: string; stripeSubscriptionId?: string }>) => {
+    const headers = ['Name', 'Email', 'Plan', 'AI Words', 'Plagiarism Checks', 'Created At', 'Has Subscription'];
+    const rows = users.map(user => [
+      user.name || 'N/A',
+      user.email || 'N/A',
+      user.plan || 'free',
+      user.totalAIWords?.toString() || '0',
+      user.totalPlagiarismChecks?.toString() || '0',
+      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A',
+      user.stripeSubscriptionId ? 'Yes' : 'No'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users-export-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportAllUsersUsageToCSV = async () => {
+    try {
+      setIsLoading(true);
+      let apiUrl = `/api/admin/metrics/usage-per-user?days=${debouncedDaysFilter}`;
+      if (debouncedCustomDateRange) {
+        apiUrl += `&start=${debouncedCustomDateRange.start}&end=${debouncedCustomDateRange.end}`;
+      }
+      
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch usage data');
+      }
+      
+      const data = await response.json();
+      
+      const headers = ['Name', 'Email', 'Plan', 'AI Words Generated', 'Plagiarism Checks', 'Active Days', 'User ID'];
+      const rows = data.users.map((user: any) => [
+        user.name || 'N/A',
+        user.email || 'N/A',
+        user.plan || 'free',
+        user.totalAIWords?.toString() || '0',
+        user.totalPlagiarismChecks?.toString() || '0',
+        user.activeDays?.toString() || '0',
+        user.userId || 'N/A'
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row: string[]) => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const blobUrl = URL.createObjectURL(blob);
+      link.setAttribute('href', blobUrl);
+      const dateRange = debouncedCustomDateRange 
+        ? `${debouncedCustomDateRange.start}-${debouncedCustomDateRange.end}`
+        : `last-${debouncedDaysFilter}-days`;
+      link.setAttribute('download', `usage-per-user-${dateRange}-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to export usage data');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCustomDateRange = (start: string, end: string) => {
+    if (!start || !end) return;
+    
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    if (startDate > endDate) {
+      setError('Start date must be before end date');
+      return;
+    }
+    
+    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff < 1 || daysDiff > 365) {
+      setError('Date range must be between 1 and 365 days');
+      return;
+    }
+    
+    setError(null);
+    setCustomDateRange({ start, end });
+    setDaysFilter(daysDiff);
+  };
+
+  const clearCustomRange = () => {
+    setCustomDateRange(null);
+    setShowCustomPicker(false);
   };
 
   const formatCurrency = (amount: number) => {
@@ -391,73 +622,14 @@ export default function AdminDashboard() {
     return new Intl.NumberFormat('en-US').format(num);
   };
 
-  // Memoized filtered and sorted top users
-  const filteredTopUsers = useMemo(() => {
-    if (!metrics?.usage.topUsersByUsage) return [];
-    
-    let filtered = [...metrics.usage.topUsersByUsage];
-    
-    if (debouncedSearch) {
-      const query = debouncedSearch.toLowerCase();
-      filtered = filtered.filter((user) => {
-        return (
-          (user.email && user.email.toLowerCase().includes(query)) ||
-          (user.name && user.name.toLowerCase().includes(query))
-        );
-      });
-    }
-    
-    if (userSortBy === 'name') {
-      filtered.sort((a, b) => {
-        const nameA = (a.name || a.email || '').toLowerCase();
-        const nameB = (b.name || b.email || '').toLowerCase();
-        return nameA.localeCompare(nameB);
-      });
-    } else {
-      filtered.sort((a, b) => b.totalAIWords - a.totalAIWords);
-    }
-    
-    return filtered;
-  }, [metrics?.usage.topUsersByUsage, debouncedSearch, userSortBy]);
-
-  const filteredRecentUsers = useMemo(() => {
-    if (!metrics?.users.recentUsers) return [];
-    
-    let filtered = [...metrics.users.recentUsers];
-    
-    if (debouncedSearch) {
-      const query = debouncedSearch.toLowerCase();
-      filtered = filtered.filter((user) => {
-        return (
-          (user.email && user.email.toLowerCase().includes(query)) ||
-          (user.name && user.name.toLowerCase().includes(query))
-        );
-      });
-    }
-    
-    if (userSortBy === 'name') {
-      filtered.sort((a, b) => {
-        const nameA = (a.name || a.email || '').toLowerCase();
-        const nameB = (b.name || b.email || '').toLowerCase();
-        return nameA.localeCompare(nameB);
-      });
-    } else if (userSortBy === 'recent') {
-      filtered.sort((a, b) => {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-    }
-    
-    return filtered;
-  }, [metrics?.users.recentUsers, debouncedSearch, userSortBy]);
-
-  const filteredSubscriptions = useMemo(() => {
-    if (!metrics?.revenue.subscriptionDetails) return [];
-    if (!debouncedSearch) return metrics.revenue.subscriptionDetails;
-    const query = debouncedSearch.toLowerCase();
-    return metrics.revenue.subscriptionDetails.filter((sub) => {
-      return sub.customerEmail && sub.customerEmail.toLowerCase().includes(query);
-    });
-  }, [metrics?.revenue.subscriptionDetails, debouncedSearch]);
+  const getPeriodLabel = (days: number) => {
+    if (days === 7) return 'Last 7 days';
+    if (days === 30) return 'Last 30 days';
+    if (days === 90) return 'Last 90 days';
+    if (days === 180) return 'Last 180 days';
+    if (days === 365) return 'Last year';
+    return `Last ${days} days`;
+  };
 
   const quickFilterOptions = [
     { label: '7d', value: 7 },
@@ -486,7 +658,11 @@ export default function AdminDashboard() {
           <h2 className="text-xl font-bold uppercase tracking-[0.16em]">Error Loading Dashboard</h2>
           <p className="text-sm text-[hsl(var(--muted-foreground))]">{error}</p>
           <button
-            onClick={fetchMetrics}
+            onClick={() => {
+              const controller = new AbortController();
+              setAbortController(controller);
+              fetchMetrics(controller.signal);
+            }}
             className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] hover:opacity-90 transition-opacity"
           >
             Retry
@@ -498,59 +674,123 @@ export default function AdminDashboard() {
 
   if (!metrics) return null;
 
-  const conversionRate = metrics.users.total > 0
-    ? ((metrics.users.pro / metrics.users.total) * 100).toFixed(1)
-    : '0.0';
-  
-  // Calculate progress toward 3-month user goal (1600 users)
-  // Assuming we're tracking from a start date, calculate days elapsed
-  // For now, we'll use the current period as a proxy
-  const userGoalProgress = {
-    current: metrics.users.total,
-    target: PRODUCT_GOALS.userTarget,
-    daysElapsed: daysFilter,
-    daysTotal: PRODUCT_GOALS.userTargetPeriodDays,
-    projectedCompletion: daysFilter > 0 ? (metrics.users.total / daysFilter) * PRODUCT_GOALS.userTargetPeriodDays : 0,
-    onTrack: daysFilter > 0 ? (metrics.users.total / daysFilter) * PRODUCT_GOALS.userTargetPeriodDays >= PRODUCT_GOALS.userTarget : false,
-  };
-  
-  // Calculate conversion goal progress (15% target)
-  const conversionGoalProgress = {
-    current: parseFloat(conversionRate),
-    target: PRODUCT_GOALS.conversionTarget,
-    neededPaidUsers: Math.ceil((metrics.users.total * PRODUCT_GOALS.conversionTarget / 100) - metrics.users.pro),
-  };
-
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] p-6">
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b-2 border-[hsl(var(--border-strong))]">
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
             <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Actionable Insights & Product Metrics
             </p>
           </div>
           
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mr-2">Period:</span>
-            {quickFilterOptions.map((option) => (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                const controller = new AbortController();
+                setAbortController(controller);
+                fetchMetrics(controller.signal);
+              }}
+              disabled={isLoading}
+              className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+            >
+              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+              {isLoading ? 'Refreshing...' : 'Refresh Metrics'}
+            </button>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Period:</span>
+              {quickFilterOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setDaysFilter(option.value);
+                    setCustomDateRange(null);
+                    setShowCustomPicker(false);
+                    setSearchQuery('');
+                  }}
+                  className={`px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] rounded transition-all ${
+                    daysFilter === option.value && !customDateRange
+                      ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
+                      : 'bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
               <button
-                key={option.value}
-                onClick={() => {
-                  setDaysFilter(option.value);
-                  setSearchQuery('');
-                }}
+                onClick={() => setShowCustomPicker(!showCustomPicker)}
                 className={`px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] rounded transition-all ${
-                  daysFilter === option.value
+                  customDateRange
                     ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
                     : 'bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))]'
                 }`}
               >
-                {option.label}
+                <Calendar size={14} className="inline mr-1" />
+                Custom
               </button>
-            ))}
+            </div>
+            {showCustomPicker && (
+              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
+                <div className="flex items-end gap-4 mb-3">
+                  <div className="flex-1">
+                    <label className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] block mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      max={customDateRange?.end || new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
+                      onChange={(e) => {
+                        const end = customDateRange?.end || new Date().toISOString().split('T')[0];
+                        if (e.target.value) {
+                          handleCustomDateRange(e.target.value, end);
+                        }
+                      }}
+                      value={customDateRange?.start || ''}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] block mb-1">End Date</label>
+                    <input
+                      type="date"
+                      min={customDateRange?.start || ''}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
+                      onChange={(e) => {
+                        const start = customDateRange?.start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                        if (e.target.value) {
+                          handleCustomDateRange(start, e.target.value);
+                        }
+                      }}
+                      value={customDateRange?.end || new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  {customDateRange && (
+                    <button
+                      onClick={clearCustomRange}
+                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))] whitespace-nowrap"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {error && (
+                  <div className="text-xs text-red-500 mt-2">{error}</div>
+                )}
+              </div>
+            )}
+            {customDateRange && (
+              <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                Custom range: {new Date(customDateRange.start).toLocaleDateString()} - {new Date(customDateRange.end).toLocaleDateString()}
+              </div>
+            )}
+            <div className="text-xs text-[hsl(var(--muted-foreground))]">
+              <Info size={12} className="inline mr-1" />
+              Filter applies to: Period Performance & Product Health metrics. Other sections use smart defaults.
+            </div>
           </div>
         </div>
 
@@ -574,475 +814,293 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* INSIGHTS SECTION */}
-        <div className="space-y-4">
-          {/* GOAL TRACKING SECTION */}
-          <div className="border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6 rounded-lg">
-            <div className="flex items-start gap-3 mb-4">
-              <Target className="text-[hsl(var(--primary))]" size={24} />
-              <div className="flex-1">
-                <h2 className="text-lg font-bold uppercase tracking-[0.16em] mb-4">Product Goals (3-Month Targets)</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* User Goal */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold uppercase tracking-[0.16em]">User Acquisition Goal</span>
-                      <span className="text-sm font-bold">
-                        {formatNumber(userGoalProgress.current)} / {formatNumber(userGoalProgress.target)}
-                      </span>
-                    </div>
-                    <div className="w-full bg-[hsl(var(--border-strong))] rounded-full h-3 mb-2">
-                      <div 
-                        className={`h-3 rounded-full transition-all ${
-                          (userGoalProgress.current / userGoalProgress.target) * 100 >= 100 ? 'bg-green-500' :
-                          (userGoalProgress.current / userGoalProgress.target) * 100 >= 75 ? 'bg-[hsl(var(--primary))]' :
-                          (userGoalProgress.current / userGoalProgress.target) * 100 >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${Math.min((userGoalProgress.current / userGoalProgress.target) * 100, 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        {((userGoalProgress.current / userGoalProgress.target) * 100).toFixed(1)}% complete
-                      </span>
-                      {userGoalProgress.daysElapsed > 0 && (
-                        <span className={`font-semibold ${
-                          userGoalProgress.onTrack ? 'text-green-500' : 'text-yellow-500'
-                        }`}>
-                          {userGoalProgress.onTrack ? '✓ On Track' : '⚠ Behind Target'}
-                        </span>
-                      )}
-                    </div>
-                    {userGoalProgress.daysElapsed > 0 && (
-                      <div className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
-                        Projected: {formatNumber(Math.round(userGoalProgress.projectedCompletion))} users in {PRODUCT_GOALS.userTargetPeriodDays} days
-                        {!userGoalProgress.onTrack && (
-                          <span className="block text-yellow-500 mt-1">
-                            Need {formatNumber(Math.ceil((userGoalProgress.target - userGoalProgress.projectedCompletion) / (PRODUCT_GOALS.userTargetPeriodDays - userGoalProgress.daysElapsed)))} users/day to reach goal
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Conversion Goal */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold uppercase tracking-[0.16em]">Conversion Rate Goal</span>
-                      <span className="text-sm font-bold">
-                        {conversionRate}% / {PRODUCT_GOALS.conversionTarget}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-[hsl(var(--border-strong))] rounded-full h-3 mb-2">
-                      <div 
-                        className={`h-3 rounded-full transition-all ${
-                          conversionGoalProgress.current >= conversionGoalProgress.target ? 'bg-green-500' :
-                          conversionGoalProgress.current >= conversionGoalProgress.target * 0.75 ? 'bg-[hsl(var(--primary))]' :
-                          conversionGoalProgress.current >= conversionGoalProgress.target * 0.5 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${Math.min((conversionGoalProgress.current / conversionGoalProgress.target) * 100, 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        {((conversionGoalProgress.current / conversionGoalProgress.target) * 100).toFixed(1)}% of target
-                      </span>
-                      {conversionGoalProgress.current >= conversionGoalProgress.target ? (
-                        <span className="font-semibold text-green-500">✓ Goal Achieved</span>
-                      ) : (
-                        <span className="font-semibold text-yellow-500">
-                          Need {formatNumber(conversionGoalProgress.neededPaidUsers)} more paid users
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
-                      Current: {formatNumber(metrics.users.pro)} paid / {formatNumber(metrics.users.total)} total
-                      {conversionGoalProgress.neededPaidUsers > 0 && (
-                        <span className="block text-yellow-500 mt-1">
-                          Target: {formatNumber(Math.ceil(metrics.users.total * PRODUCT_GOALS.conversionTarget / 100))} paid users needed
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+        {/* EXECUTIVE SUMMARY - Always Visible */}
+        <div className="border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6 rounded-lg">
+          <div className="flex items-start gap-3 mb-4">
+            <Shield className="text-[hsl(var(--primary))]" size={24} />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-lg font-bold uppercase tracking-[0.16em]">Executive Summary</h2>
+                <TimeContextBadge context="current" />
+              </div>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mb-4">
+                Current state metrics - always up-to-date, no date filter applied. 
+                These show your current business health (MRR, active subscriptions, DAU/MAU) regardless of the selected period.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricCard
+                  label="Monthly Recurring Revenue"
+                  value={formatCurrency(metrics.executiveSummary.monthlyRecurringRevenue)}
+                  subtitle={`ARR: ${formatCurrency(metrics.executiveSummary.annualRecurringRevenue)}`}
+                  icon={<DollarSign size={16} />}
+                  highlight={true}
+                  timeContext="current"
+                />
+                <MetricCard
+                  label="Active Subscriptions"
+                  value={formatNumber(metrics.executiveSummary.activeSubscriptions)}
+                  icon={<CheckCircle size={16} />}
+                  timeContext="current"
+                />
+                <MetricCard
+                  label="Daily Active Users"
+                  value={formatNumber(metrics.executiveSummary.dau)}
+                  subtitle={`MAU: ${formatNumber(metrics.executiveSummary.mau)} • Stickiness: ${metrics.executiveSummary.stickiness.toFixed(1)}%`}
+                  icon={<UserCheck size={16} />}
+                  timeContext="current"
+                />
+                <MetricCard
+                  label="System Health"
+                  value={healthStatus?.status === 'healthy' ? 'Healthy' : 'Issues'}
+                  subtitle={healthStatus?.mongodb.connected ? 'MongoDB: Connected' : 'MongoDB: Disconnected'}
+                  icon={healthStatus?.status === 'healthy' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+                  timeContext="current"
+                />
               </div>
             </div>
           </div>
-
-          {/* KEY INSIGHTS SECTION */}
-          {metrics.comparisons && (
-            <div className="border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6 rounded-lg">
-              <div className="flex items-start gap-3 mb-4">
-                <Lightbulb className="text-[hsl(var(--primary))]" size={24} />
-                <div className="flex-1">
-                  <h2 className="text-lg font-bold uppercase tracking-[0.16em] mb-2">Key Insights</h2>
-                  <div className="space-y-2 text-sm">
-                    {metrics.comparisons.changes.newUsers > 20 && (
-                      <p className="text-green-500">✓ User growth is strong: {metrics.comparisons.changes.newUsers.toFixed(1)}% increase vs previous period</p>
-                    )}
-                    {metrics.comparisons.changes.newUsers < -10 && (
-                      <p className="text-red-500">⚠ User acquisition declined: {metrics.comparisons.changes.newUsers.toFixed(1)}% vs previous period</p>
-                    )}
-                    {metrics.comparisons.changes.revenue > 15 && (
-                      <p className="text-green-500">✓ Revenue growth accelerating: {metrics.comparisons.changes.revenue.toFixed(1)}% increase</p>
-                    )}
-                    {parseFloat(conversionRate) >= PRODUCT_GOALS.conversionTarget && (
-                      <p className="text-green-500">✓ Conversion rate ({conversionRate}%) meets your {PRODUCT_GOALS.conversionTarget}% goal!</p>
-                    )}
-                    {parseFloat(conversionRate) < PRODUCT_GOALS.conversionTarget && parseFloat(conversionRate) >= BENCHMARKS.conversionRate.good && (
-                      <p className="text-yellow-500">⚠ Conversion rate ({conversionRate}%) is good but below your {PRODUCT_GOALS.conversionTarget}% target</p>
-                    )}
-                    {parseFloat(conversionRate) < BENCHMARKS.conversionRate.good && (
-                      <p className="text-red-500">⚠ Conversion rate ({conversionRate}%) needs improvement to reach {PRODUCT_GOALS.conversionTarget}% goal</p>
-                    )}
-                    {metrics.retention && parseFloat(metrics.retention.churnRate.toString()) <= BENCHMARKS.churnRate.good && (
-                      <p className="text-green-500">✓ Churn rate ({metrics.retention.churnRate}%) is healthy (industry avg: {BENCHMARKS.churnRate.average}%)</p>
-                    )}
-                    {metrics.retention && parseFloat(metrics.retention.churnRate.toString()) > BENCHMARKS.churnRate.average && (
-                      <p className="text-yellow-500">⚠ Churn rate ({metrics.retention.churnRate}%) above industry average - focus on retention</p>
-                    )}
-                    {metrics.engagement && parseFloat(metrics.engagement.stickiness.toString()) >= BENCHMARKS.stickiness.good && (
-                      <p className="text-green-500">✓ High user engagement: {metrics.engagement.stickiness}% stickiness (DAU/MAU)</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* PRIORITY METRICS: Growth & Success Indicators */}
+        {/* PERIOD PERFORMANCE */}
         <CollapsibleSection
-          title="Growth Metrics"
+          title="Period Performance"
           icon={<TrendingUp className="text-[hsl(var(--primary))]" size={20} />}
-          isExpanded={expandedSections.growth}
-          onToggle={() => toggleSection('growth')}
+          isExpanded={expandedSections.periodPerformance}
+          onToggle={() => toggleSection('periodPerformance')}
+          timeContext="period"
+          description={`Metrics for ${customDateRange ? `${new Date(customDateRange.start).toLocaleDateString()} - ${new Date(customDateRange.end).toLocaleDateString()}` : getPeriodLabel(daysFilter)} - Respects date filter`}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricCard
-              label="New Users"
-              value={formatNumber(metrics.users.newLast30Days)}
-              subtitle={`in ${daysFilter}d • ${formatNumber(metrics.users.newLast7Days)} in 7d`}
-              trend={metrics.comparisons?.changes.newUsers}
-              explanation="New user signups in the selected period. Goal: 1600 users over 3 months (~18 users/day)."
-              icon={<Users size={16} />}
-              goal={{
-                current: metrics.users.newLast30Days,
-                target: Math.ceil((PRODUCT_GOALS.userTarget / PRODUCT_GOALS.userTargetPeriodDays) * daysFilter), // Pro-rated goal for current period
-                label: `${daysFilter}d Goal (3mo: ${PRODUCT_GOALS.userTarget})`
-              }}
-            />
-
-            <MetricCard
-              label={`Revenue (${daysFilter}d)`}
-              value={formatCurrency(metrics.revenue.revenueLast30Days)}
-              subtitle={`Total: ${formatCurrency(metrics.revenue.totalRevenue)}`}
-              trend={metrics.comparisons?.changes.revenue}
-              explanation="Revenue generated from paid subscriptions in the selected period. Includes one-time and recurring payments."
-              icon={<DollarSign size={16} />}
-              goal={{
-                current: metrics.revenue.revenueLast30Days,
-                target: Math.max(metrics.comparisons?.previousPeriod.revenue || 0, 100) * 1.15, // 15% growth target
-                label: "Revenue Target"
-              }}
-            />
-
-            <MetricCard
-              label="Active Subscriptions"
-              value={formatNumber(metrics.revenue.activeSubscriptions)}
-              subtitle={`MRR: ${formatCurrency(metrics.revenue.monthlyRecurringRevenue)}`}
-              explanation="Number of currently active paid subscriptions. This is your core revenue base."
-              icon={<CheckCircle size={16} />}
-              highlight={true}
-            />
-
-            <MetricCard
-              label="Conversion Rate"
-              value={`${conversionRate}%`}
-              subtitle={`${formatNumber(metrics.users.pro)} pro / ${formatNumber(metrics.users.total)} total`}
-              explanation={`Percentage of total users who have upgraded to a paid plan. Your goal is ${PRODUCT_GOALS.conversionTarget}% conversion rate.`}
-              icon={<Zap size={16} />}
-              goal={{
-                current: parseFloat(conversionRate),
-                target: PRODUCT_GOALS.conversionTarget,
-                label: "Target"
-              }}
-              benchmark={{
-                value: BENCHMARKS.conversionRate.average,
-                label: "Industry Avg"
-              }}
-            />
+          <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
+            <strong className="text-[hsl(var(--foreground))]">Why Period-Based?</strong> These metrics show activity within your selected time window, 
+            making it easy to compare performance across different periods (e.g., "How did we do this month vs last month?"). 
+            All calculations filter data to only include events within the selected date range.
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MetricCard
+                label="New Users"
+                value={formatNumber(metrics.periodPerformance.users.newInPeriod)}
+                subtitle={`${formatNumber(metrics.periodPerformance.users.newLast7Days)} in last 7d`}
+                trend={metrics.comparisons?.changes.newUsers}
+                icon={<Users size={16} />}
+                timeContext="period"
+              />
+              <MetricCard
+                label="Revenue"
+                value={formatCurrency(metrics.periodPerformance.revenue.revenueInPeriod)}
+                subtitle={`${formatCurrency(metrics.periodPerformance.revenue.revenueLast7Days)} in last 7d`}
+                trend={metrics.comparisons?.changes.revenue}
+                icon={<DollarSign size={16} />}
+                timeContext="period"
+              />
+              <MetricCard
+                label="Projects Created"
+                value={formatNumber(metrics.periodPerformance.projects.createdInPeriod)}
+                trend={metrics.comparisons?.changes.projectsCreated}
+                icon={<FileText size={16} />}
+                timeContext="period"
+              />
+              <MetricCard
+                label="AI Words Generated"
+                value={formatNumber(metrics.periodPerformance.usage.aiWordsInPeriod)}
+                subtitle={`${formatNumber(metrics.periodPerformance.usage.plagiarismChecksInPeriod)} plagiarism checks`}
+                trend={metrics.comparisons?.changes.aiWords}
+                icon={<Activity size={16} />}
+                timeContext="period"
+              />
+            </div>
           </div>
         </CollapsibleSection>
 
-        {/* ENGAGEMENT: Active Users & Usage Consistency */}
+        {/* BUSINESS METRICS */}
+        <CollapsibleSection
+          title="Business Metrics"
+          icon={<BarChart3 className="text-[hsl(var(--primary))]" size={20} />}
+          isExpanded={expandedSections.businessMetrics}
+          onToggle={() => toggleSection('businessMetrics')}
+          timeContext="mixed"
+          description="Mix of current state and all-time metrics"
+        >
+          <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
+            <strong className="text-[hsl(var(--foreground))]">Why Mixed?</strong> Business metrics combine current state (MRR, active subscriptions) 
+            with all-time totals (total revenue, conversion rate, ARPU). Current metrics show today's health, 
+            while all-time metrics show cumulative performance. This gives both a snapshot and historical context.
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <MetricCard
+                label="Total Revenue"
+                value={formatCurrency(metrics.businessMetrics.revenue.totalRevenue)}
+                subtitle="All-time revenue"
+                icon={<DollarSign size={16} />}
+                timeContext="all-time"
+              />
+              <MetricCard
+                label="Conversion Rate"
+                value={`${metrics.businessMetrics.users.conversionRate.toFixed(1)}%`}
+                subtitle={`${formatNumber(metrics.businessMetrics.users.pro)} paid / ${formatNumber(metrics.businessMetrics.users.total)} total`}
+                icon={<Zap size={16} />}
+                timeContext="all-time"
+                benchmark={{
+                  value: BENCHMARKS.conversionRate.average,
+                  label: "Industry Avg"
+                }}
+              />
+              <MetricCard
+                label="ARPU (All Users)"
+                value={formatCurrency(metrics.businessMetrics.monetization.arpu)}
+                subtitle="Average revenue per user"
+                icon={<BarChart3 size={16} />}
+                timeContext="all-time"
+              />
+            </div>
+          </div>
+        </CollapsibleSection>
+
+        {/* ENGAGEMENT */}
         <CollapsibleSection
           title="Engagement Metrics"
           icon={<Activity className="text-[hsl(var(--primary))]" size={20} />}
           isExpanded={expandedSections.engagement}
           onToggle={() => toggleSection('engagement')}
-          badge={metrics.engagement ? `${metrics.engagement.dau}/${metrics.engagement.mau}` : undefined}
+          badge={`${metrics.engagement.dau}/${metrics.engagement.mau}`}
+          timeContext="adaptive"
+          description="Adaptive time windows based on context"
         >
-          {metrics.engagement ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <MetricCard
-                label="Daily Active Users"
-                value={formatNumber(metrics.engagement.dau)}
-                subtitle={`Stickiness: ${metrics.engagement.stickiness}%`}
-                explanation="Users who were active today or yesterday. DAU/MAU ratio (stickiness) measures engagement quality. 25%+ is excellent."
-                icon={<UserCheck size={16} />}
-                benchmark={{
-                  value: BENCHMARKS.stickiness.average * (metrics.engagement.mau / 100),
-                  label: "Average DAU"
-                }}
-              />
-
-              <MetricCard
-                label="Monthly Active Users"
-                value={formatNumber(metrics.engagement.mau)}
-                subtitle={`${formatNumber(metrics.engagement.powerUsers)} power users`}
-                explanation="Unique users active in the last 30 days. MAU indicates your active user base size."
-                icon={<Users size={16} />}
-              />
-
-              <MetricCard
-                label="Usage Consistency"
-                value={`${metrics.engagement.avgActiveDays.toFixed(1)} days`}
-                subtitle={`${formatNumber(metrics.engagement.consistentUsers)} consistent users (3+ days)`}
-                explanation="Average number of active days per user in the last 30 days. Higher = more engaged users."
-                icon={<Repeat size={16} />}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Engagement metrics loading...</p>
-          )}
+          <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
+            <strong className="text-[hsl(var(--foreground))]">Why Adaptive Windows?</strong> DAU/MAU metrics use industry-standard time windows 
+            (last 1-2 days for DAU, last 30 days for MAU) to ensure comparability with benchmarks. 
+            However, if you select a longer period, MAU adapts to use that period instead. 
+            This balances standardization with flexibility for longer-term analysis.
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <MetricCard
+              label="Daily Active Users"
+              value={formatNumber(metrics.engagement.dau)}
+              subtitle={`Stickiness: ${metrics.engagement.stickiness.toFixed(1)}%`}
+              icon={<UserCheck size={16} />}
+              timeContext="adaptive"
+            />
+            <MetricCard
+              label="Monthly Active Users"
+              value={formatNumber(metrics.engagement.mau)}
+              subtitle={`${formatNumber(metrics.engagement.powerUsers)} power users`}
+              icon={<Users size={16} />}
+              timeContext="adaptive"
+            />
+            <MetricCard
+              label="Usage Consistency"
+              value={`${metrics.engagement.avgActiveDays.toFixed(1)} days`}
+              subtitle={`${formatNumber(metrics.engagement.consistentUsers)} consistent users`}
+              icon={<Repeat size={16} />}
+              timeContext="adaptive"
+            />
+          </div>
         </CollapsibleSection>
 
-        {/* PRODUCT USAGE: Completion Rate & Feature Adoption */}
+        {/* PRODUCT HEALTH */}
         <CollapsibleSection
-          title="Product Usage Metrics"
+          title="Product Health"
           icon={<Target className="text-[hsl(var(--primary))]" size={20} />}
-          isExpanded={expandedSections.product}
-          onToggle={() => toggleSection('product')}
+          isExpanded={expandedSections.productHealth}
+          onToggle={() => toggleSection('productHealth')}
+          timeContext="period"
+          description={`Product metrics for ${customDateRange ? `${new Date(customDateRange.start).toLocaleDateString()} - ${new Date(customDateRange.end).toLocaleDateString()}` : getPeriodLabel(daysFilter)}`}
         >
-          {metrics.product ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <MetricCard
-                  label="Project Completion Rate"
-                  value={`${metrics.product.completionRate}%`}
-                  subtitle={`${formatNumber(metrics.projects.completed)} / ${formatNumber(metrics.projects.total)} projects`}
-                  explanation="Percentage of projects that reached completion status. Higher completion = better product value delivery."
-                  icon={<CheckCircle size={16} />}
-                  highlight={true}
-                  benchmark={{
-                    value: BENCHMARKS.completionRate.average,
-                    label: "Average"
-                  }}
-                />
-
-                <MetricCard
-                  label="Projects per User"
-                  value={metrics.product.avgProjectsPerUser.toFixed(1)}
-                  subtitle={`${formatNumber(metrics.product.usersWithMultipleProjects)} users with multiple`}
-                  explanation="Average number of projects created per user. Higher = users find value and return."
-                  icon={<FileText size={16} />}
-                />
-
-                <MetricCard
-                  label={`Usage (${daysFilter}d)`}
-                  value={formatNumber(metrics.usage.aiWordsLast30Days)}
-                  subtitle={`AI words • ${formatNumber(metrics.usage.plagiarismChecksLast30Days)} checks`}
-                  trend={metrics.comparisons?.changes.aiWords}
-                  explanation="Total AI-generated words and plagiarism checks in the period. Shows product utilization."
-                  icon={<Activity size={16} />}
-                />
-              </div>
-
-              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-sm font-bold uppercase tracking-[0.24em]">Feature Adoption Rates</h3>
-                  <div className="relative">
-                    <Info 
-                      size={14} 
-                      className="text-[hsl(var(--muted-foreground))] cursor-help"
-                      onMouseEnter={(e) => {
-                        const tooltip = document.createElement('div');
-                        tooltip.className = 'absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-lg text-xs text-left shadow-lg';
-                        tooltip.textContent = 'Percentage of projects using each feature. Higher adoption = better feature value.';
-                        tooltip.id = 'feature-adoption-tooltip';
-                        e.currentTarget.parentElement?.appendChild(tooltip);
-                      }}
-                      onMouseLeave={() => {
-                        const tooltip = document.getElementById('feature-adoption-tooltip');
-                        tooltip?.remove();
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Citations</span>
-                      <span className="text-sm font-bold">{metrics.product.citationAdoption}%</span>
-                    </div>
-                    <div className="w-full bg-[hsl(var(--border-strong))] rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          parseFloat(metrics.product.citationAdoption.toString()) >= BENCHMARKS.featureAdoption.good ? 'bg-green-500' :
-                          parseFloat(metrics.product.citationAdoption.toString()) >= BENCHMARKS.featureAdoption.average ? 'bg-[hsl(var(--primary))]' : 'bg-yellow-500'
-                        }`}
-                        style={{ width: `${metrics.product.citationAdoption}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
-                      Industry avg: {BENCHMARKS.featureAdoption.average}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">PDF Uploads</span>
-                      <span className="text-sm font-bold">{metrics.product.pdfAdoption}%</span>
-                    </div>
-                    <div className="w-full bg-[hsl(var(--border-strong))] rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          parseFloat(metrics.product.pdfAdoption.toString()) >= BENCHMARKS.featureAdoption.good ? 'bg-green-500' :
-                          parseFloat(metrics.product.pdfAdoption.toString()) >= BENCHMARKS.featureAdoption.average ? 'bg-[hsl(var(--primary))]' : 'bg-yellow-500'
-                        }`}
-                        style={{ width: `${metrics.product.pdfAdoption}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
-                      Industry avg: {BENCHMARKS.featureAdoption.average}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Plagiarism Checks</span>
-                      <span className="text-sm font-bold">{metrics.product.plagiarismAdoption}%</span>
-                    </div>
-                    <div className="w-full bg-[hsl(var(--border-strong))] rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          parseFloat(metrics.product.plagiarismAdoption.toString()) >= BENCHMARKS.featureAdoption.good ? 'bg-green-500' :
-                          parseFloat(metrics.product.plagiarismAdoption.toString()) >= BENCHMARKS.featureAdoption.average ? 'bg-[hsl(var(--primary))]' : 'bg-yellow-500'
-                        }`}
-                        style={{ width: `${metrics.product.plagiarismAdoption}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
-                      Industry avg: {BENCHMARKS.featureAdoption.average}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Product metrics loading...</p>
-          )}
+          <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
+            <strong className="text-[hsl(var(--foreground))]">Why Period-Based?</strong> Product metrics like completion rate and feature adoption 
+            are calculated for projects created within your selected period. This shows how product usage trends over time 
+            (e.g., "Are users completing more projects this quarter vs last quarter?") rather than just cumulative totals.
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <MetricCard
+              label="Project Completion Rate"
+              value={`${metrics.productHealth.completionRate.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.productHealth.projects.completed)} / ${formatNumber(metrics.productHealth.projects.total)} projects`}
+              icon={<CheckCircle size={16} />}
+              timeContext="all-time"
+              benchmark={{
+                value: BENCHMARKS.completionRate.average,
+                label: "Average"
+              }}
+            />
+            <MetricCard
+              label="Projects per User"
+              value={metrics.productHealth.avgProjectsPerUser.toFixed(1)}
+              subtitle={`${formatNumber(metrics.productHealth.usersWithMultipleProjects)} users with multiple`}
+              icon={<FileText size={16} />}
+              timeContext="all-time"
+            />
+            <MetricCard
+              label="Citation Adoption"
+              value={`${metrics.productHealth.citationAdoption.toFixed(1)}%`}
+              subtitle={`PDF: ${metrics.productHealth.pdfAdoption.toFixed(1)}% • Plagiarism: ${metrics.productHealth.plagiarismAdoption.toFixed(1)}%`}
+              icon={<Sparkles size={16} />}
+              timeContext="all-time"
+            />
+          </div>
         </CollapsibleSection>
 
-        {/* MONETIZATION: ARPU & Conversion */}
-        <CollapsibleSection
-          title="Monetization Metrics"
-          icon={<DollarSign className="text-[hsl(var(--primary))]" size={20} />}
-          isExpanded={expandedSections.monetization}
-          onToggle={() => toggleSection('monetization')}
-        >
-          {metrics.monetization ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <MetricCard
-                label="ARPU (All Users)"
-                value={formatCurrency(parseFloat(metrics.monetization.arpu.toString()))}
-                subtitle="Average revenue per user"
-                explanation="Average revenue generated per user (including free users). Industry average is $15-30 for SaaS products."
-                icon={<BarChart3 size={16} />}
-                benchmark={{
-                  value: BENCHMARKS.arpu.average,
-                  label: "Average"
-                }}
-              />
-
-              <MetricCard
-                label="ARPU (Active)"
-                value={formatCurrency(parseFloat(metrics.monetization.arpuActive.toString()))}
-                subtitle="Per active subscription"
-                explanation="Average revenue per paying subscriber. This is your core monetization metric."
-                icon={<Sparkles size={16} />}
-              />
-
-              <MetricCard
-                label="Time to Conversion"
-                value={`${metrics.monetization.avgTimeToConversion.toFixed(1)} days`}
-                subtitle="Average days to upgrade"
-                explanation="Average time from signup to paid conversion. Faster = better onboarding and value delivery. Industry average: 14-30 days."
-                icon={<Clock size={16} />}
-                benchmark={{
-                  value: BENCHMARKS.timeToConversion.average,
-                  label: "Average"
-                }}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Monetization metrics loading...</p>
-          )}
-        </CollapsibleSection>
-
-        {/* RETENTION: Churn & Cohort */}
+        {/* RETENTION */}
         <CollapsibleSection
           title="Retention Metrics"
           icon={<Repeat className="text-[hsl(var(--primary))]" size={20} />}
           isExpanded={expandedSections.retention}
           onToggle={() => toggleSection('retention')}
+          timeContext="fixed-window"
+          description="Fixed time windows for accurate churn calculation"
         >
-          {metrics.retention ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <MetricCard
-                label="Churn Rate"
-                value={`${metrics.retention.churnRate}%`}
-                subtitle={`${formatNumber(metrics.retention.churnedUsers)} users churned`}
-                explanation="Monthly churn rate: percentage of users who were active 30-60 days ago but inactive in last 30 days. Lower is better. Industry average: 5-10%."
-                icon={parseFloat(metrics.retention.churnRate.toString()) > 10 ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
-                benchmark={{
-                  value: BENCHMARKS.churnRate.average,
-                  label: "Average"
-                }}
-              />
-
-              <MetricCard
-                label="User Retention"
-                value={`${metrics.engagement ? (100 - parseFloat(metrics.retention.churnRate.toString())).toFixed(1) : '0.0'}%`}
-                subtitle="Users staying active"
-                explanation="Percentage of users who remain active. Inverse of churn rate. Higher retention = better product-market fit."
-                icon={<TrendingUp size={16} />}
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Retention metrics loading...</p>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MetricCard
+              label="Churn Rate"
+              value={`${metrics.retention.churnRate.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.retention.churnedUsers)} users churned`}
+              icon={metrics.retention.churnRate > 10 ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
+              timeContext="fixed-window"
+              benchmark={{
+                value: BENCHMARKS.churnRate.average,
+                label: "Average"
+              }}
+            />
+            <MetricCard
+              label="User Retention"
+              value={`${(100 - metrics.retention.churnRate).toFixed(1)}%`}
+              subtitle="Users staying active"
+              icon={<TrendingUp size={16} />}
+              timeContext="fixed-window"
+            />
+          </div>
         </CollapsibleSection>
 
-        {/* USERS: Top Users & Recent Users */}
+        {/* DETAILED LISTS */}
         <CollapsibleSection
-          title="User Lists"
+          title="Detailed Lists"
           icon={<Users className="text-[hsl(var(--primary))]" size={20} />}
-          isExpanded={expandedSections.users}
-          onToggle={() => toggleSection('users')}
+          isExpanded={expandedSections.detailedLists}
+          onToggle={() => toggleSection('detailedLists')}
         >
           <div className="space-y-6">
-            {filteredTopUsers.length > 0 && (
+            {metrics.detailedLists.topUsersByUsage.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold uppercase tracking-[0.24em]">Top Users by Usage</h3>
-                  <select
-                    value={userSortBy}
-                    onChange={(e) => setUserSortBy(e.target.value as 'usage' | 'name' | 'recent')}
-                    className="px-3 py-1.5 border border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.24em] rounded"
-                  >
-                    <option value="usage">Sort by Usage</option>
-                    <option value="name">Sort by Name</option>
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportUsersToCSV(metrics.detailedLists.topUsersByUsage)}
+                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] transition-colors flex items-center gap-2"
+                    >
+                      <FileText size={14} />
+                      Export Top 20 CSV
+                    </button>
+                    <button
+                      onClick={exportAllUsersUsageToCSV}
+                      disabled={isLoading}
+                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <FileText size={14} />
+                      {isLoading ? 'Loading...' : 'Export All Users Usage'}
+                    </button>
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -1057,7 +1115,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredTopUsers.map((user, idx) => (
+                      {metrics.detailedLists.topUsersByUsage.slice(0, 10).map((user, idx) => (
                         <tr key={user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-bold">#{idx + 1}</td>
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
@@ -1081,18 +1139,26 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {filteredRecentUsers.length > 0 && (
+            {metrics.detailedLists.recentUsers.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold uppercase tracking-[0.24em]">Recent Users</h3>
-                  <select
-                    value={userSortBy}
-                    onChange={(e) => setUserSortBy(e.target.value as 'usage' | 'name' | 'recent')}
-                    className="px-3 py-1.5 border border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.24em] rounded"
+                  <button
+                    onClick={() => exportUsersToCSV(metrics.detailedLists.recentUsers.map(u => ({
+                      userId: u._id,
+                      email: u.email,
+                      name: u.name,
+                      plan: u.plan,
+                      createdAt: u.createdAt,
+                      stripeSubscriptionId: u.stripeSubscriptionId,
+                      totalAIWords: u.totalAIWords || 0,
+                      totalPlagiarismChecks: u.totalPlagiarismChecks || 0,
+                    })))}
+                    className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] transition-colors flex items-center gap-2"
                   >
-                    <option value="recent">Sort by Recent</option>
-                    <option value="name">Sort by Name</option>
-                  </select>
+                    <FileText size={14} />
+                    Export CSV
+                  </button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -1101,12 +1167,15 @@ export default function AdminDashboard() {
                         <th className="text-left py-2 px-3 text-xs uppercase">Name</th>
                         <th className="text-left py-2 px-3 text-xs uppercase">Email</th>
                         <th className="text-left py-2 px-3 text-xs uppercase">Plan</th>
+                        <th className="text-right py-2 px-3 text-xs uppercase">AI Words</th>
+                        <th className="text-right py-2 px-3 text-xs uppercase">Plagiarism Checks</th>
+                        <th className="text-right py-2 px-3 text-xs uppercase">Active Days</th>
                         <th className="text-left py-2 px-3 text-xs uppercase">Subscription</th>
                         <th className="text-left py-2 px-3 text-xs uppercase">Joined</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredRecentUsers.map((user) => (
+                      {metrics.detailedLists.recentUsers.slice(0, 20).map((user) => (
                         <tr key={user._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
                           <td className="py-2 px-3">{user.email}</td>
@@ -1119,6 +1188,9 @@ export default function AdminDashboard() {
                               {user.plan}
                             </span>
                           </td>
+                          <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords || 0)}</td>
+                          <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks || 0)}</td>
+                          <td className="py-2 px-3 text-right">{formatNumber(user.activeDays || 0)}</td>
                           <td className="py-2 px-3">
                             {user.stripeSubscriptionId ? (
                               <span className="text-green-500">✓ Active</span>
@@ -1137,57 +1209,14 @@ export default function AdminDashboard() {
           </div>
         </CollapsibleSection>
 
-        {/* SUBSCRIPTIONS */}
-        <CollapsibleSection
-          title="Subscriptions"
-          icon={<CreditCard className="text-[hsl(var(--primary))]" size={20} />}
-          isExpanded={expandedSections.subscriptions}
-          onToggle={() => toggleSection('subscriptions')}
-          badge={metrics.revenue.subscriptionDetails?.length}
-        >
-          {filteredSubscriptions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[hsl(var(--border-strong))]">
-                    <th className="text-left py-2 px-3 text-xs uppercase">Status</th>
-                    <th className="text-left py-2 px-3 text-xs uppercase">Email</th>
-                    <th className="text-right py-2 px-3 text-xs uppercase">Amount</th>
-                    <th className="text-left py-2 px-3 text-xs uppercase">Interval</th>
-                    <th className="text-left py-2 px-3 text-xs uppercase">Created</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSubscriptions.map((sub) => (
-                    <tr key={sub.id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
-                      <td className="py-2 px-3">
-                        <span className={`px-2 py-0.5 rounded text-xs ${
-                          sub.status === 'active' ? 'bg-green-500/20 text-green-500' :
-                          sub.status === 'canceled' ? 'bg-red-500/20 text-red-500' :
-                          sub.status === 'past_due' ? 'bg-yellow-500/20 text-yellow-500' :
-                          'bg-gray-500/20 text-gray-500'
-                        }`}>
-                          {sub.status}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">{sub.customerEmail || 'N/A'}</td>
-                      <td className="text-right py-2 px-3">{formatCurrency(sub.amount)}</td>
-                      <td className="py-2 px-3">{sub.interval}</td>
-                      <td className="py-2 px-3">{new Date(sub.createdAt * 1000).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">No subscriptions found</p>
-          )}
-        </CollapsibleSection>
-
         {/* Refresh Button */}
         <div className="flex justify-end pt-4">
           <button
-            onClick={fetchMetrics}
+            onClick={() => {
+              const controller = new AbortController();
+              setAbortController(controller);
+              fetchMetrics(controller.signal);
+            }}
             className="px-6 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold uppercase tracking-[0.24em] hover:opacity-90 transition-opacity"
           >
             Refresh Metrics
@@ -1197,3 +1226,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

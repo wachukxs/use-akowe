@@ -190,6 +190,11 @@ const ProjectSchema = new Schema<IProject>(
 
 ProjectSchema.index({ userId: 1, createdAt: -1 });
 ProjectSchema.index({ userId: 1, lastEditedAt: -1 });
+// Indexes for admin metrics queries
+ProjectSchema.index({ createdAt: 1 });
+ProjectSchema.index({ updatedAt: 1 });
+ProjectSchema.index({ status: 1 });
+ProjectSchema.index({ createdAt: 1, status: 1 }); // Compound for period queries
 
 const Project: Model<IProject> = mongoose.models.Project || mongoose.model<IProject>('Project', ProjectSchema);
 

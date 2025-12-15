@@ -69,6 +69,12 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+// Indexes for admin metrics queries
+UserSchema.index({ createdAt: 1 });
+UserSchema.index({ plan: 1 });
+UserSchema.index({ stripeSubscriptionId: 1 });
+UserSchema.index({ createdAt: -1 }); // For recent users query
+
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
 export default User;
