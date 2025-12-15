@@ -1,5 +1,6 @@
 // Main metrics service - orchestrates all metric calculations
 
+import Stripe from 'stripe';
 import { DateRange, AdminMetricsResponse } from './types';
 import { createDateRange } from './date-utils';
 import * as periodMetrics from './period-metrics';
@@ -360,8 +361,6 @@ async function getPeriodRevenue(range: DateRange) {
 }
 
 function getStripeClient() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const Stripe = require('stripe').default;
   let stripeKey: string | undefined;
   
   if (process.env.STRIPE_SECRET_KEY) {
