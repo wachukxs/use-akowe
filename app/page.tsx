@@ -38,8 +38,8 @@ export default function HomePage() {
               <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 About
               </Link>
-              <Link href="/resources" className="hover:text-[hsl(var(--secondary))] transition-colors">
-                Resources
+              <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+                Blog
               </Link>
               <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
@@ -436,8 +436,8 @@ export default function HomePage() {
             <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Learn our story
             </Link>
-            <Link href="/resources" className="hover:text-[hsl(var(--secondary))] transition-colors">
-              Guides
+            <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              Blog
             </Link>
             <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Sign in

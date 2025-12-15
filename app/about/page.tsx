@@ -25,8 +25,8 @@ export default function AboutPage() {
               </div>
             </Link>
             <nav className="flex items-center gap-6 text-xs font-semibold uppercase tracking-[0.28em]">
-              <Link href="/resources" className="hover:text-[hsl(var(--secondary))] transition-colors">
-                Resources
+              <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+                Blog
               </Link>
               <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
@@ -57,9 +57,9 @@ export default function AboutPage() {
                     Start Writing
                   </Button>
                 </Link>
-                <Link href="/resources">
+                <Link href="/blog">
                   <Button variant="outline" className="px-8 py-4">
-                    Explore Resources
+                    Explore Blog
                   </Button>
                 </Link>
               </div>
@@ -291,8 +291,8 @@ export default function AboutPage() {
             <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Our Story
             </Link>
-            <Link href="/resources" className="hover:text-[hsl(var(--secondary))] transition-colors">
-              Guides
+            <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              Blog
             </Link>
             <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Sign In
