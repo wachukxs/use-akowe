@@ -111,7 +111,12 @@ export default function NewProjectPage() {
       });
 
       if (response.ok) {
-        const suggestions = await response.json();
+        const data = await response.json();
+        // The API returns a JSON object with the array inside (e.g., { outline: [...] } or { sections: [...] })
+        // Extract the array from common property names, or use the data directly if it's already an array
+        const suggestions = Array.isArray(data) 
+          ? data 
+          : data.outline || data.sections || data.items || Object.values(data).find(v => Array.isArray(v)) || [];
         setAiSuggestions(suggestions);
       } else {
         console.error('Failed to generate AI suggestions');
@@ -430,7 +435,7 @@ export default function NewProjectPage() {
                   </Button>
                 </div>
                 
-                {aiSuggestions ? (
+                {aiSuggestions && Array.isArray(aiSuggestions) && aiSuggestions.length > 0 ? (
                   <div className="space-y-3">
                     <h4 className="font-medium text-gray-900">Suggested Outline:</h4>
                     <div className="space-y-2">
