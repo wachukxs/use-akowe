@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { ProjectType } from '@/types';
-import { FileText, BookOpen, GraduationCap, FlaskConical, Sparkles, Lightbulb, Info, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const projectTypes: { 
@@ -75,8 +75,6 @@ export default function NewProjectPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitError, setLimitError] = useState<string>('');
-  const [aiSuggestions, setAiSuggestions] = useState<any>(null);
-  const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Get current project type details
@@ -89,44 +87,6 @@ export default function NewProjectPage() {
       setCitationStyle(currentType.citationStyles[0]);
     }
   }, [selectedType]);
-
-  // Generate AI suggestions for the project
-  const generateAISuggestions = async () => {
-    if (!topic.trim() || !projectName.trim()) {
-      alert('Please enter a project name and topic first');
-      return;
-    }
-
-    setIsGeneratingSuggestions(true);
-    try {
-      const response = await fetch('/api/ai/outline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: topic,
-          projectType: selectedType,
-          projectName: projectName,
-          methodology: methodology
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // The API returns a JSON object with the array inside (e.g., { outline: [...] } or { sections: [...] })
-        // Extract the array from common property names, or use the data directly if it's already an array
-        const suggestions = Array.isArray(data) 
-          ? data 
-          : data.outline || data.sections || data.items || Object.values(data).find(v => Array.isArray(v)) || [];
-        setAiSuggestions(suggestions);
-      } else {
-        console.error('Failed to generate AI suggestions');
-      }
-    } catch (error) {
-      console.error('Error generating AI suggestions:', error);
-    } finally {
-      setIsGeneratingSuggestions(false);
-    }
-  };
 
   // Validate form
   const validateForm = () => {
@@ -416,47 +376,6 @@ export default function NewProjectPage() {
                 </Card>
               )}
 
-              {/* AI Suggestions */}
-              <Card className="p-6 space-y-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[hsl(var(--secondary))]" />
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
-                      Akọ̀wé Smart Suggestions
-                    </h3>
-                  </div>
-                  <Button
-                    onClick={generateAISuggestions}
-                    disabled={isGeneratingSuggestions || !topic.trim() || !projectName.trim()}
-                    size="sm"
-                    className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em]"
-                  >
-                    {isGeneratingSuggestions ? 'Akowe is thinking...' : 'Get Akowe Help'}
-                  </Button>
-                </div>
-                
-                {aiSuggestions && Array.isArray(aiSuggestions) && aiSuggestions.length > 0 ? (
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900">Suggested Outline:</h4>
-                    <div className="space-y-2">
-                      {aiSuggestions.map((section: any, index: number) => (
-                        <div key={index} className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
-                          <h5 className="text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
-                            {section.title}
-                          </h5>
-                          <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                            {section.summary}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                    Enter your project details and click "Get Akowe Help" to receive personalized suggestions for your research structure and approach.
-                  </p>
-                )}
-              </Card>
             </div>
           </div>
 

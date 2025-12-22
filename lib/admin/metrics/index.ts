@@ -8,7 +8,6 @@ import * as periodProductMetrics from './period-product-metrics';
 import * as allTimeMetrics from './alltime-metrics';
 import * as fixedWindowMetrics from './fixed-window-metrics';
 import * as comparisonMetrics from './comparison-metrics';
-import { calculateChange } from './comparison-metrics';
 import { metricsCache, getCacheKey, CACHE_TTL } from './cache';
 
 export async function getAllMetrics(days: number, startDate?: string, endDate?: string): Promise<AdminMetricsResponse> {
