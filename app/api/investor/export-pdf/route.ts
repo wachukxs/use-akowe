@@ -35,16 +35,28 @@ export async function GET() {
     // Wait a bit for any dynamic content
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Generate PDF with landscape orientation for better readability
+    // Scroll to bottom first to ensure all content is loaded
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Scroll back to top before generating PDF
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Generate PDF with landscape orientation - no margins for better content fit
     const pdfBuffer = await page.pdf({
       format: 'A4',
       landscape: true,
       printBackground: true,
       margin: {
-        top: '0.5in',
-        right: '0.5in',
-        bottom: '0.5in',
-        left: '0.5in',
+        top: '0',
+        right: '0',
+        bottom: '0',
+        left: '0',
       },
       preferCSSPageSize: false,
     });

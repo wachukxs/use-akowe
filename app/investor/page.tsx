@@ -73,11 +73,15 @@ function InvestorPageContent() {
   const searchParams = useSearchParams();
   const isPDFMode = searchParams?.get('pdf') === 'true';
 
-  // Hide download button in PDF mode
+  // Hide download button in PDF mode and set PDF class for styling
   useEffect(() => {
     if (isPDFMode) {
-      // Add class to body for PDF-specific styling
+      // Add class to body and html for PDF-specific styling
       document.body.classList.add('pdf-mode');
+      document.documentElement.classList.add('pdf-mode');
+    } else {
+      document.body.classList.remove('pdf-mode');
+      document.documentElement.classList.remove('pdf-mode');
     }
   }, [isPDFMode]);
 
@@ -134,8 +138,27 @@ function InvestorPageContent() {
         .touch-manipulation {
           touch-action: manipulation;
         }
+        /* Reduce heading font sizes in PDF mode */
+        .pdf-mode h1 {
+          font-size: 50% !important;
+        }
+        .pdf-mode h2 {
+          font-size: 50% !important;
+        }
+        .pdf-mode h3 {
+          font-size: 50% !important;
+        }
+        .pdf-mode h4 {
+          font-size: 50% !important;
+        }
+        .pdf-mode h5 {
+          font-size: 50% !important;
+        }
+        .pdf-mode h6 {
+          font-size: 50% !important;
+        }
       `}</style>
-      <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className={`min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] ${isPDFMode ? 'pdf-mode' : ''}`}>
       {/* Floating Download Button - Hidden in PDF mode */}
       {!isPDFMode && (
         <div className="fixed top-14 sm:top-20 right-2 sm:right-6 z-50">
