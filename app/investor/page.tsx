@@ -247,7 +247,7 @@ function InvestorPageContent() {
                   AI Writing
                 </h3>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                  GPT-4 powered content generation with academic context awareness
+                  Advanced AI-powered content generation with academic context awareness
                 </p>
               </div>
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
@@ -256,7 +256,7 @@ function InvestorPageContent() {
                   Smart Citations
                 </h3>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                  OpenAlex & Crossref integration with auto-formatting (APA, MLA, IEEE)
+                  Comprehensive academic database integration with auto-formatting (APA, MLA, IEEE)
                 </p>
               </div>
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
@@ -458,7 +458,7 @@ function InvestorPageContent() {
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="text-[hsl(var(--primary))] mt-1" size={20} />
-                      <span>Superior citation integration (OpenAlex + Crossref)</span>
+                      <span>Superior citation integration with comprehensive academic databases</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="text-[hsl(var(--primary))] mt-1" size={20} />
@@ -623,7 +623,7 @@ function InvestorPageContent() {
                   <li>• Unlimited AI words</li>
                   <li>• Unlimited plagiarism checks</li>
                   <li>• Unlimited projects</li>
-                  <li>• GPT-4 access</li>
+                  <li>• Advanced AI model access</li>
                   <li>• Advanced citations</li>
                   <li>• Priority support</li>
                 </ul>
