@@ -14,12 +14,17 @@ export async function GET() {
 
     const page = await browser.newPage();
     
-    // Set viewport for better PDF rendering
+    // Set viewport for landscape PDF rendering
     await page.setViewport({
       width: 1920,
       height: 1080,
       deviceScaleFactor: 2,
     });
+    
+    // Set landscape orientation
+    await page.emulateMediaFeatures([
+      { name: 'prefers-color-scheme', value: 'light' }
+    ]);
 
     // Navigate to the investor page
     await page.goto(url, {
@@ -30,9 +35,10 @@ export async function GET() {
     // Wait a bit for any dynamic content
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Generate PDF with proper settings for a presentation
+    // Generate PDF with landscape orientation for better readability
     const pdfBuffer = await page.pdf({
       format: 'A4',
+      landscape: true,
       printBackground: true,
       margin: {
         top: '0.5in',

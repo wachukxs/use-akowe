@@ -30,11 +30,12 @@ import Button from '@/components/ui/Button';
 interface SlideProps {
   children: React.ReactNode;
   className?: string;
+  id?: string;
 }
 
-function Slide({ children, className = '' }: SlideProps) {
+function Slide({ children, className = '', id }: SlideProps & { id?: string }) {
   return (
-    <div className={`slide min-h-screen flex flex-col justify-center p-8 sm:p-12 lg:p-16 ${className}`}>
+    <div id={id} className={`slide min-h-screen flex flex-col justify-center p-8 sm:p-12 lg:p-16 ${className}`}>
       {children}
     </div>
   );
@@ -120,25 +121,39 @@ function InvestorPageContent() {
             page-break-after: auto;
           }
         }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        html {
+          scroll-behavior: smooth;
+        }
+        .touch-manipulation {
+          touch-action: manipulation;
+        }
       `}</style>
       <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-        {/* Floating Download Button - Hidden in PDF mode */}
-        {!isPDFMode && (
-          <div className="fixed top-6 right-6 z-50">
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={isGeneratingPDF}
-              className="px-6 py-3 flex items-center gap-2"
-            >
-              <Download size={18} />
-              {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
-            </Button>
-          </div>
-        )}
+      {/* Floating Download Button - Hidden in PDF mode */}
+      {!isPDFMode && (
+        <div className="fixed top-14 sm:top-20 right-2 sm:right-6 z-50">
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+            className="px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+          >
+            <Download size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="hidden sm:inline">{isGeneratingPDF ? 'Generating...' : 'Download PDF'}</span>
+            <span className="sm:hidden">{isGeneratingPDF ? '...' : 'PDF'}</span>
+          </Button>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto">
         {/* Slide 1: Cover */}
-        <Slide>
+        <Slide id="cover">
           <div className="text-center space-y-8">
             <div className="space-y-4">
               <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold uppercase tracking-[0.08em]">
@@ -160,7 +175,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 2: Problem */}
-        <Slide>
+        <Slide id="problem">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <Target className="text-[hsl(var(--primary))]" size={32} />
@@ -212,7 +227,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 3: Solution */}
-        <Slide>
+        <Slide id="solution">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <Zap className="text-[hsl(var(--primary))]" size={32} />
@@ -285,7 +300,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 4: Market Opportunity */}
-        <Slide>
+        <Slide id="market">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <BarChart3 className="text-[hsl(var(--primary))]" size={32} />
@@ -375,7 +390,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 5: Competitive Advantage */}
-        <Slide>
+        <Slide id="competitive">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <Award className="text-[hsl(var(--primary))]" size={32} />
@@ -468,7 +483,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 6: Traction */}
-        <Slide>
+        <Slide id="traction">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <TrendingUp className="text-[hsl(var(--primary))]" size={32} />
@@ -570,7 +585,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 7: Business Model */}
-        <Slide>
+        <Slide id="business-model">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <DollarSign className="text-[hsl(var(--primary))]" size={32} />
@@ -653,7 +668,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 8: Go-to-Market */}
-        <Slide>
+        <Slide id="gtm">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <Rocket className="text-[hsl(var(--primary))]" size={32} />
@@ -770,7 +785,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 9: Team */}
-        <Slide>
+        <Slide id="team">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <Users className="text-[hsl(var(--primary))]" size={32} />
@@ -847,7 +862,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 10: Financial Projections */}
-        <Slide>
+        <Slide id="financials">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <BarChart3 className="text-[hsl(var(--primary))]" size={32} />
@@ -964,7 +979,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 11: Roadmap */}
-        <Slide>
+        <Slide id="roadmap">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <Rocket className="text-[hsl(var(--primary))]" size={32} />
@@ -1087,7 +1102,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 12: Investment Ask */}
-        <Slide>
+        <Slide id="investment">
           <div className="space-y-8">
             <div className="flex items-center gap-4 mb-8">
               <DollarSign className="text-[hsl(var(--primary))]" size={32} />
@@ -1201,7 +1216,7 @@ function InvestorPageContent() {
         </Slide>
 
         {/* Slide 13: Closing */}
-        <Slide>
+        <Slide id="closing">
           <div className="text-center space-y-12">
             <div className="space-y-6">
               <h2 className="text-5xl sm:text-6xl font-bold uppercase tracking-[0.12em]">
@@ -1226,6 +1241,127 @@ function InvestorPageContent() {
           </div>
         </Slide>
       </div>
+
+      {/* Sticky Navigation Menu */}
+      {!isPDFMode && (
+        <nav className="fixed top-0 left-0 right-0 z-40 bg-[hsl(var(--surface))] border-b-2 border-[hsl(var(--border-strong))] shadow-lg">
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-4 overflow-x-auto scrollbar-hide pb-1">
+              <button
+                onClick={() => {
+                  document.getElementById('cover')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Cover
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('problem')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Problem
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('solution')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Solution
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('market')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Market
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('competitive')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Competitive
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('traction')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Traction
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('business-model')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                <span className="hidden sm:inline">Business Model</span>
+                <span className="sm:hidden">Model</span>
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('gtm')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                GTM
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('team')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Team
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('financials')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Financials
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('roadmap')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Roadmap
+              </button>
+              <span className="text-[hsl(var(--muted-foreground))] hidden sm:inline">•</span>
+              <button
+                onClick={() => {
+                  document.getElementById('investment')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] whitespace-nowrap px-2 sm:px-3 py-1.5 sm:py-2 hover:text-[hsl(var(--primary))] active:text-[hsl(var(--primary))] transition-colors touch-manipulation"
+              >
+                Investment
+              </button>
+            </div>
+          </div>
+        </nav>
+      )}
+
+      {/* Add padding-top to account for fixed nav - responsive height */}
+      {!isPDFMode && <div className="h-12 sm:h-16"></div>}
       </div>
     </>
   );
