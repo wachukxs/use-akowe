@@ -623,6 +623,7 @@ export default function AdminDashboard() {
   };
 
   const getPeriodLabel = (days: number) => {
+    if (days === 0) return 'All time';
     if (days === 7) return 'Last 7 days';
     if (days === 30) return 'Last 30 days';
     if (days === 90) return 'Last 90 days';
@@ -631,12 +632,14 @@ export default function AdminDashboard() {
     return `Last ${days} days`;
   };
 
+
   const quickFilterOptions = [
     { label: '7d', value: 7 },
     { label: '30d', value: 30 },
     { label: '90d', value: 90 },
     { label: '180d', value: 180 },
     { label: '1y', value: 365 },
+    { label: 'All time', value: 0 },
   ];
 
   if (isLoading) {

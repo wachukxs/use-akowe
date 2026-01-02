@@ -24,8 +24,13 @@ export async function GET(request: Request) {
       validDays = Math.max(1, Math.min(365, daysDiff));
     } else {
       const days = daysParam ? parseInt(daysParam, 10) : 30;
-      validDays = Math.max(1, Math.min(365, days));
-    } // Between 1 and 365 days
+      // Allow 0 for "all time" - will be handled by createDateRange function
+      if (days === 0) {
+        validDays = 0; // Special value for "all time"
+      } else {
+        validDays = Math.max(1, Math.min(365, days));
+      }
+    }
 
     // Get all metrics using the new service layer
     const metrics = await getAllMetrics(validDays, startParam || undefined, endParam || undefined);

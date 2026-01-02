@@ -25,9 +25,16 @@ export async function GET(request: Request) {
       const days = daysParam ? parseInt(daysParam, 10) : 30;
       endDate = new Date();
       endDate.setHours(23, 59, 59, 999);
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-      startDate.setHours(0, 0, 0, 0);
+      
+      if (days === 0) {
+        // All time: from launch date (December 8, 2025)
+        startDate = new Date('2025-12-08');
+        startDate.setHours(0, 0, 0, 0);
+      } else {
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+        startDate.setHours(0, 0, 0, 0);
+      }
     }
 
     const startStr = startDate.toISOString().split('T')[0];

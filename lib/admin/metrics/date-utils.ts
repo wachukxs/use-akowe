@@ -2,15 +2,31 @@
 
 import { DateRange } from './types';
 
+// Launch date: Second week of December 2025 (December 8, 2025)
+const LAUNCH_DATE = new Date('2025-12-08');
+LAUNCH_DATE.setHours(0, 0, 0, 0);
+
 /**
  * Creates a date range for the specified number of days
+ * If days is 0, creates range from launch date to now (all time)
  */
 export function createDateRange(days: number): DateRange {
   const end = new Date();
   end.setHours(23, 59, 59, 999); // End of today
   
-  const start = new Date();
-  start.setDate(start.getDate() - days);
+  let start: Date;
+  let actualDays: number;
+  
+  if (days === 0) {
+    // All time: from launch date to now
+    start = new Date(LAUNCH_DATE);
+    actualDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  } else {
+    start = new Date();
+    start.setDate(start.getDate() - days);
+    actualDays = days;
+  }
+  
   start.setHours(0, 0, 0, 0); // Start of day
   
   return {
@@ -20,7 +36,7 @@ export function createDateRange(days: number): DateRange {
     endStr: end.toISOString().split('T')[0],
     startTimestamp: Math.floor(start.getTime() / 1000),
     endTimestamp: Math.floor(end.getTime() / 1000),
-    days,
+    days: actualDays,
   };
 }
 

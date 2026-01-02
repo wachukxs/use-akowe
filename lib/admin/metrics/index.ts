@@ -12,7 +12,8 @@ import { metricsCache, getCacheKey, CACHE_TTL } from './cache';
 
 export async function getAllMetrics(days: number, startDate?: string, endDate?: string): Promise<AdminMetricsResponse> {
   // Validate and create date range
-  const validDays = Math.max(1, Math.min(365, days));
+  // Allow 0 for "all time" (handled by createDateRange)
+  const validDays = days === 0 ? 0 : Math.max(1, Math.min(365, days));
   
   let currentRange: DateRange;
   if (startDate && endDate) {
@@ -20,6 +21,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
     const end = new Date(endDate);
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
+    const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     
     currentRange = {
       start,
@@ -28,7 +30,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       endStr: end.toISOString().split('T')[0],
       startTimestamp: Math.floor(start.getTime() / 1000),
       endTimestamp: Math.floor(end.getTime() / 1000),
-      days: validDays,
+      days: daysDiff,
     };
   } else {
     currentRange = createDateRange(validDays);

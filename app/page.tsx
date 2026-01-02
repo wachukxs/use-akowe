@@ -57,49 +57,71 @@ export default function HomePage() {
 
       <main className="px-6 sm:px-8 lg:px-12">
           <section className="max-w-7xl mx-auto py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-6 space-y-7 sm:space-y-8">
-              <span className="text-[11px] sm:text-xs uppercase tracking-[0.26em] sm:tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-              Academic research studio
-            </span>
+            <div className="lg:col-span-6 space-y-6 sm:space-y-7">
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
-              Write research that holds up
+              Academic writing is hard. Your tools shouldn't make it harder.
           </h1>
-              <p className="text-xs sm:text-sm md:text-base uppercase tracking-[0.18em] sm:tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              An AI-assisted workspace for essays, theses, and scholarly projects—built to honor rigor, clarity, and craft.
+              <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
+              Real sources. Proper citations. Structured writing. Built for scholars.
           </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Link href="/auth/signin">
-                  <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3">
-              Start Writing Free
-                  <ArrowRight size={18} />
-                </Button>
-            </Link>
-              <Button
-                variant="outline"
-                  className="px-6 sm:px-8 py-3 sm:py-4"
-              onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Watch Demo
-              </Button>
-            </div>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <Link href="/auth/signin">
+                    <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
+                      Start writing properly
+                      <ArrowRight size={18} />
+                    </Button>
+                  </Link>
+                  {/* <Button
+                    variant="outline"
+                    className="px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto justify-center"
+                    onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    Watch Demo
+                  </Button> */}
+                </div>
+                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center sm:text-left">
+                  Free to start · Built for academic integrity · Upgrade when ready
+                </p>
+                <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] text-center sm:text-left space-y-1">
+                  <span className="block">No credit card required</span>
+                  <span className="block">You own your work</span>
+                </p>
+              </div>
+              {/* Trust Signals */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 sm:pt-6">
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
-                  <span className="text-3xl sm:text-4xl font-bold">92%</span>
+                  <span className="text-3xl sm:text-4xl font-bold">24+</span>
                   <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                  Users report improved clarity
+                  Active researchers
                 </p>
               </div>
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 text-center sm:text-left">
-                  <span className="text-3xl sm:text-4xl font-bold text-[hsl(var(--accent-foreground))]">12h</span>
+                  <span className="text-3xl sm:text-4xl font-bold text-[hsl(var(--accent-foreground))]">10+ hrs</span>
                   <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--accent-foreground))]">
-                  Average time saved monthly
+                  Saved monthly per user
                 </p>
               </div>
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
-                  <span className="text-3xl sm:text-4xl font-bold">40+</span>
+                  <span className="text-3xl sm:text-4xl font-bold">84.6%</span>
                   <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                  Citation styles supported
+                  User retention rate
                 </p>
+              </div>
+            </div>
+            
+            {/* Early Testimonial */}
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
+              <div className="flex items-start gap-3">
+                <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                <div>
+                  <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
+                    "Finally, a tool that understands academic writing."
+                  </p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                    — Graduate Student
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -134,6 +156,74 @@ export default function HomePage() {
         </div>
       </section>
 
+        {/* Why Generic AI Tools Fail Academic Work */}
+        <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+              Why ChatGPT-Style Tools Fail Academic Work
+            </h2>
+            <p className="text-sm sm:text-base uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] max-w-3xl mx-auto">
+              Generic AI tools weren't built for scholarly rigor. Here's why Akowé exists as the alternative.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--destructive))]">
+                Generic AI Tools
+              </h3>
+              <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                <li className="flex items-start gap-3">
+                  <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                  <span>Hallucinate citations and sources</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                  <span>No built-in citation formatting</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                  <span>Generic writing style, not academic</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                  <span>No plagiarism detection</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                  <span>Requires multiple separate tools</span>
+                </li>
+              </ul>
+            </div>
+            <div className="border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6">
+              <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--primary))]">
+                Akowé
+              </h3>
+              <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1" size={18} />
+                  <span>Real sources from academic databases</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1" size={18} />
+                  <span>Automatic citation formatting (APA, MLA, IEEE)</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1" size={18} />
+                  <span>Academic-first writing structure</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1" size={18} />
+                  <span>Built-in plagiarism detection</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1" size={18} />
+                  <span>All-in-one integrated platform</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
         <section id="product-demo" className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))] grid gap-6 lg:grid-cols-3">
           <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
             <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">AI drafting</span>
@@ -150,7 +240,7 @@ export default function HomePage() {
               Cite as you go with trusted academic sources
             </h2>
             <p className="mt-4 text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              Native OpenAlex + Crossref search plus plagiarism insights keep work defensible.
+              Comprehensive academic database integration plus plagiarism insights keep work defensible.
             </p>
           </div>
           <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 text-[hsl(var(--accent-foreground))]">
@@ -278,9 +368,14 @@ export default function HomePage() {
                   Smart citation search
                 </li>
               </ul>
-              <Button variant="outline" className="w-full py-4">
-                Get Started
-              </Button>
+              <Link href="/auth/signin">
+                <Button variant="outline" className="w-full py-4">
+                  Get Started
+                </Button>
+              </Link>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] text-center">
+                No credit card required
+              </p>
             </div>
             
             <div className="relative border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-8 flex flex-col gap-6">
@@ -313,7 +408,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  GPT-4 access
+                  Advanced AI model access
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
@@ -322,9 +417,12 @@ export default function HomePage() {
               </ul>
               <Link href="/auth/signin">
                 <Button className="w-full py-4">
-                Upgrade to Pro
+                  Upgrade to Pro
                 </Button>
               </Link>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-center">
+                Built for academic integrity · You own your work
+              </p>
             </div>
             
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6 opacity-80">
@@ -364,14 +462,19 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-12 gap-8">
             <div className="lg:col-span-5 space-y-4">
               <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                Why researchers choose Akọ̀wé
+                Academic alignment
               </span>
               <h3 className="text-3xl font-semibold uppercase tracking-[0.16em]">
                 Built for rigor, clarity, and academic integrity.
               </h3>
               <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                Replace fragmented tooling with a single studio that respects scholarly standards.
+                Replace fragmented tooling with a single studio that respects scholarly standards. Trusted by students and researchers across universities.
             </p>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 mt-6">
+                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
+                  <strong>Academic-First Design:</strong> Every feature built specifically for scholarly work, not retrofitted from generic tools.
+                </p>
+              </div>
           </div>
             <div className="lg:col-span-7 grid gap-4">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
