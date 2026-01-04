@@ -2,7 +2,7 @@
 
 import Stripe from 'stripe';
 import { DateRange, AdminMetricsResponse } from './types';
-import { createDateRange } from './date-utils';
+import { createDateRange, getEarliestDataDate } from './date-utils';
 import * as periodMetrics from './period-metrics';
 import * as periodProductMetrics from './period-product-metrics';
 import * as allTimeMetrics from './alltime-metrics';
@@ -17,10 +17,29 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
   
   let currentRange: DateRange;
   if (startDate && endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+    // Parse date strings ensuring UTC representation
+    // If date-only (YYYY-MM-DD), append T00:00:00.000Z
+    // If has T but no timezone indicator (Z, +, or -), append Z to ensure UTC parsing
+    const normalizeDateString = (dateStr: string, defaultTime: string) => {
+      if (!dateStr.includes('T')) {
+        // Date-only: append default time with Z
+        return dateStr + defaultTime;
+      }
+      // Has time component - check for timezone indicator
+      // Match ISO 8601 timezone formats: Z, ±HH:MM, or ±HHMM
+      if (!dateStr.endsWith('Z') && !dateStr.match(/[+-]\d{2}:?\d{2}$/)) {
+        // Has T but no timezone indicator - append Z for UTC
+        return dateStr + 'Z';
+      }
+      return dateStr;
+    };
+    
+    const startStr = normalizeDateString(startDate, 'T00:00:00.000Z');
+    const endStr = normalizeDateString(endDate, 'T23:59:59.999Z');
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    start.setUTCHours(0, 0, 0, 0);
+    end.setUTCHours(23, 59, 59, 999);
     const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     
     currentRange = {
@@ -33,7 +52,13 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       days: daysDiff,
     };
   } else {
-    currentRange = createDateRange(validDays);
+    // If "All time" (days === 0), get the earliest date from the database
+    if (validDays === 0) {
+      const earliestDate = await getEarliestDataDate();
+      currentRange = createDateRange(0, earliestDate);
+    } else {
+      currentRange = createDateRange(validDays);
+    }
   }
 
   // Check cache for all-time metrics separately (they rarely change)
@@ -334,7 +359,8 @@ async function getPeriodRevenue(range: DateRange) {
     // Calculate revenue in period
     let revenueInPeriod = 0;
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
     const sevenDaysAgoTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
     let revenue7Days = 0;
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import DailyUsage from '@/models/DailyUsage';
 import User from '@/models/User';
+import Project from '@/models/Project';
 import mongoose from 'mongoose';
 
 export async function GET(request: Request) {
@@ -17,23 +18,62 @@ export async function GET(request: Request) {
     let endDate: Date;
     
     if (startParam && endParam) {
-      startDate = new Date(startParam);
-      endDate = new Date(endParam);
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
+      // Parse date strings ensuring UTC representation
+      // If date-only (YYYY-MM-DD), append T00:00:00.000Z
+      // If has T but no timezone indicator (Z, +, or -), append Z to ensure UTC parsing
+      const normalizeDateString = (dateStr: string, defaultTime: string) => {
+        if (!dateStr.includes('T')) {
+          // Date-only: append default time with Z
+          return dateStr + defaultTime;
+        }
+        // Has time component - check for timezone indicator
+        // Match ISO 8601 timezone formats: Z, ±HH:MM, or ±HHMM
+        if (!dateStr.endsWith('Z') && !dateStr.match(/[+-]\d{2}:?\d{2}$/)) {
+          // Has T but no timezone indicator - append Z for UTC
+          return dateStr + 'Z';
+        }
+        return dateStr;
+      };
+      
+      const startStr = normalizeDateString(startParam, 'T00:00:00.000Z');
+      const endStr = normalizeDateString(endParam, 'T23:59:59.999Z');
+      startDate = new Date(startStr);
+      endDate = new Date(endStr);
+      startDate.setUTCHours(0, 0, 0, 0);
+      endDate.setUTCHours(23, 59, 59, 999);
     } else {
       const days = daysParam ? parseInt(daysParam, 10) : 30;
       endDate = new Date();
-      endDate.setHours(23, 59, 59, 999);
+      endDate.setUTCHours(23, 59, 59, 999);
       
       if (days === 0) {
-        // All time: from launch date (December 8, 2025)
-        startDate = new Date('2025-12-08');
-        startDate.setHours(0, 0, 0, 0);
+        // All time: get the earliest date from the database
+        const [earliestUser, earliestProject, earliestUsage] = await Promise.all([
+          User.findOne().sort({ createdAt: 1 }).select('createdAt').lean(),
+          Project.findOne().sort({ createdAt: 1 }).select('createdAt').lean(),
+          DailyUsage.findOne().sort({ date: 1 }).select('date').lean(),
+        ]);
+
+        const dates: Date[] = [];
+        if (earliestUser?.createdAt) dates.push(new Date(earliestUser.createdAt));
+        if (earliestProject?.createdAt) dates.push(new Date(earliestProject.createdAt));
+        if (earliestUsage?.date) {
+          // DailyUsage.date is a string (YYYY-MM-DD format) - parse as UTC to avoid timezone issues
+          const dateStr = earliestUsage.date as string;
+          dates.push(new Date(dateStr + 'T00:00:00.000Z'));
+        }
+
+        if (dates.length > 0) {
+          startDate = new Date(Math.min(...dates.map(d => d.getTime())));
+        } else {
+          // Fallback if no data exists
+          startDate = new Date();
+        }
+        startDate.setUTCHours(0, 0, 0, 0);
       } else {
         startDate = new Date();
-        startDate.setDate(startDate.getDate() - days);
-        startDate.setHours(0, 0, 0, 0);
+        startDate.setUTCDate(startDate.getUTCDate() - days);
+        startDate.setUTCHours(0, 0, 0, 0);
       }
     }
 

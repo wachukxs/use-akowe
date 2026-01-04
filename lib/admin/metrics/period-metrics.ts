@@ -18,7 +18,8 @@ export async function getPeriodUserMetrics(range: DateRange) {
 
   // Last 7 days (always)
   const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
+  sevenDaysAgo.setUTCHours(0, 0, 0, 0);
   const newUsersLast7Days = await User.countDocuments({
     createdAt: { $gte: sevenDaysAgo }
   });
