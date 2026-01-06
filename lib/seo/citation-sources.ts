@@ -1,6 +1,8 @@
 // Citation source type data for highly programmatic SEO pages
 // These target long-tail keywords like "how to cite a book in APA"
 
+import { generateAllCitationSources } from './citation-source-generator';
+
 export interface CitationSource {
   sourceType: string; // book, website, journal, etc.
   citationStyle: string; // apa, mla, chicago, ieee
@@ -843,8 +845,6 @@ export function getAllCitationSources(): CitationSource[] {
     return allCitationSourcesCache;
   }
 
-  // Dynamic import to avoid circular dependency
-  const { generateAllCitationSources } = require('./citation-source-generator');
   const generatedSources = generateAllCitationSources();
 
   // Combine manual + generated, removing duplicates (manual takes precedence)

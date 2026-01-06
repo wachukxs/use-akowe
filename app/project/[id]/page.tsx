@@ -6,9 +6,9 @@ import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { Project } from '@/types';
 import { 
-  BookOpen, GripVertical, Plus, Download, CheckCircle2, FileText, X, Send, Bot, 
-  Edit3, Trash2, ChevronDown, ChevronRight, Target, Clock, BookMarked, Search, 
-  Shield, Bold, Italic, Underline, List, Hash, Quote, Link, Sparkles, Copy, Save, Undo, Redo,
+  BookOpen, Plus, Download, CheckCircle2, FileText, X, Send, Bot, 
+  Edit3, Trash2, BookMarked, Search, 
+  Shield, Bold, Italic, Underline, List, Hash, Link, Undo, Redo,
   Calculator, BarChart3
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
