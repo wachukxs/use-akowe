@@ -189,7 +189,7 @@ async function discoverCitationsFromCrossref(topic: string, citationStyle: strin
     
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Akowe Research Assistant (mailto:support@akowe.com)',
+        'User-Agent': 'Akowe Research Assistant (mailto:ola@placeholderllc.name.ng)',
         'Accept': 'application/json'
       }
     });

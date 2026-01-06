@@ -18,7 +18,7 @@ async function checkCrossRef(text: string): Promise<Array<{ text: string; source
       
       const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(cleanPhrase)}&rows=3`, {
         headers: {
-          'User-Agent': 'Akowe Research Tool (mailto:contact@akowe.com)'
+          'User-Agent': 'Akowe Research Tool (mailto:ola@placeholderllc.name.ng)'
         }
       });
       

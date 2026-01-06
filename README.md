@@ -178,4 +178,4 @@ This project is proprietary software. All rights reserved.
 
 ## Support
 
-For support, email support@akowe.com or join our Slack community.
+For support, email ola@placeholderllc.name.ng or join our Slack community.
