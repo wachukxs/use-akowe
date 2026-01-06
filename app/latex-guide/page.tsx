@@ -2,9 +2,30 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 
+const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
+
 export const metadata: Metadata = {
   title: 'LaTeX Math Guide - Akowe',
-  description: 'Complete guide to LaTeX mathematical notation for academic writing',
+  description: 'Complete guide to LaTeX mathematical notation for academic writing. Learn how to write mathematical equations, formulas, and symbols in your research papers and theses.',
+  keywords: [
+    'LaTeX',
+    'mathematical notation',
+    'academic writing',
+    'math equations',
+    'research paper',
+    'thesis writing',
+    'mathematical symbols',
+    'formula writing',
+  ],
+  openGraph: {
+    title: 'LaTeX Math Guide - Akowe',
+    description: 'Complete guide to LaTeX mathematical notation for academic writing.',
+    url: `${baseUrl}/latex-guide`,
+  },
+  twitter: {
+    title: 'LaTeX Math Guide - Akowe',
+    description: 'Complete guide to LaTeX mathematical notation for academic writing.',
+  },
 };
 
 export default function LaTeXGuide() {
