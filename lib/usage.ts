@@ -30,6 +30,25 @@ export async function getUserUsageToday(userEmail: string) {
   return usage;
 }
 
+export async function getUserUsageTodayByUserId(userId: string) {
+  await connectDB();
+  
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  let usage = await DailyUsage.findOne({ userId, date: today });
+  
+  if (!usage) {
+    usage = await DailyUsage.create({
+      userId,
+      date: today,
+      aiWordsGenerated: 0,
+      plagiarismChecks: 0,
+    });
+  }
+  
+  return usage;
+}
+
 export async function checkAIWordLimit(userId: string, wordsToGenerate: number): Promise<{ allowed: boolean; remaining: number; limit: number }> {
   await connectDB();
   
@@ -45,7 +64,8 @@ export async function checkAIWordLimit(userId: string, wordsToGenerate: number):
     return { allowed: true, remaining: Infinity, limit: Infinity };
   }
   
-  const usage = await getUserUsageToday(user.email);
+  // Use userId directly instead of looking up user again by email
+  const usage = await getUserUsageTodayByUserId(userId);
   const remaining = limits.aiWordsPerDay - usage.aiWordsGenerated;
   
   return {
