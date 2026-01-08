@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Sidebar from '@/components/Sidebar';
+import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/types';
 import { Search, Grid, List, FileText } from 'lucide-react';
@@ -83,7 +83,8 @@ export default function DashboardPage() {
     return (
       <div className="flex h-screen bg-[hsl(var(--background))]">
         <Sidebar />
-        <div className="flex-1 ml-64 flex items-center justify-center">
+        <MobileMenuButton />
+        <div className="flex-1 md:ml-64 flex items-center justify-center">
           <div className="text-center space-y-4">
             <div className="w-16 h-16 border-[4px] border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
@@ -98,39 +99,40 @@ export default function DashboardPage() {
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Sidebar />
+      <MobileMenuButton />
 
-      <div className="flex-1 ml-64 overflow-auto">
-        <div className="max-w-7xl mx-auto p-10 space-y-10">
-          <div className="grid grid-cols-12 gap-6 items-stretch">
-            <div className="col-span-12 lg:col-span-8 space-y-4">
+      <div className="flex-1 md:ml-64 overflow-auto">
+        <div className="max-w-7xl mx-auto p-4 pt-16 md:pt-10 md:p-10 space-y-6 md:space-y-10">
+          <div className="grid grid-cols-12 gap-4 md:gap-6 items-stretch">
+            <div className="col-span-12 lg:col-span-8 space-y-3 md:space-y-4">
               <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                 Project archive
               </span>
-              <h1 className="text-5xl font-bold uppercase tracking-[0.12em] leading-tight">
+              <h1 className="text-3xl md:text-5xl font-bold uppercase tracking-[0.12em] leading-tight">
                 Your Research Catalogue
               </h1>
-              <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-xl">
+              <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-xl">
                 Manage, refine, and publish academic projects with precision.
               </p>
             </div>
             <div className="col-span-12 lg:col-span-4">
-              <div className="h-full border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 flex flex-col justify-between">
+              <div className="h-full border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 md:p-6 flex flex-row lg:flex-col justify-between items-center lg:items-start gap-4">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))]">
                   Active count
                 </span>
-                <span className="text-6xl font-black text-[hsl(var(--accent-foreground))] leading-none">
+                <span className="text-4xl md:text-6xl font-black text-[hsl(var(--accent-foreground))] leading-none">
                   {projects.length.toString().padStart(2, '0')}
                 </span>
-                <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))]">
+                <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))] hidden sm:block">
                   Projects in workspace
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-6">
+          <div className="grid grid-cols-12 gap-4 md:gap-6">
             <div className="col-span-12 lg:col-span-9">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 flex flex-col lg:flex-row gap-4 lg:items-center">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))]" size={18} />
                   <input
@@ -141,7 +143,7 @@ export default function DashboardPage() {
                     className="w-full pl-10 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.24em] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                   />
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 justify-end">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={cn(
@@ -168,7 +170,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="col-span-12 lg:col-span-3 space-y-3">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 space-y-3">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-5 space-y-3">
                 <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   Quick actions
                 </span>
@@ -189,11 +191,11 @@ export default function DashboardPage() {
           </div>
 
           {filteredProjects.length === 0 ? (
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-16 px-6 flex flex-col items-center gap-6">
-              <div className="w-24 h-24 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
-                <FileText className="text-[hsl(var(--secondary))]" size={42} />
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-12 md:py-16 px-4 md:px-6 flex flex-col items-center gap-4 md:gap-6">
+              <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
+                <FileText className="text-[hsl(var(--secondary))]" size={32} />
               </div>
-              <h3 className="text-2xl font-bold uppercase tracking-[0.16em] text-center">
+              <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em] text-center">
                 {searchQuery ? 'No projects found' : 'No projects yet'}
               </h3>
               <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] max-w-md text-center">
@@ -212,7 +214,7 @@ export default function DashboardPage() {
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6'
                   : 'space-y-4'
               }
             >

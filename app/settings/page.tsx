@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Sidebar from '@/components/Sidebar';
+import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { UsageLimits, PlanType } from '@/types';
@@ -233,7 +233,8 @@ export default function SettingsPage() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 ml-64 flex items-center justify-center">
+        <MobileMenuButton />
+        <div className="flex-1 md:ml-64 flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">Loading...</p>
@@ -246,30 +247,31 @@ export default function SettingsPage() {
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
+      <MobileMenuButton />
       
-      <div className="flex-1 ml-64 overflow-auto">
-        <div className="max-w-6xl mx-auto p-8">
+      <div className="flex-1 md:ml-64 overflow-auto">
+        <div className="max-w-6xl mx-auto p-4 pt-16 md:pt-8 md:p-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
               Settings
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm md:text-base">
               Manage your account and subscription
             </p>
           </div>
 
           {/* Usage Stats */}
           {usage && (
-            <Card className="p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <Card className="p-4 md:p-6 mb-6 md:mb-8">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
                 Current Usage
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">AI Words Today</p>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-gray-900">
+                    <p className="text-2xl md:text-3xl font-bold text-gray-900">
                       {usage.aiWordsGenerated}
                     </p>
                     {usage.limits.aiWordsPerDay !== Infinity && (
@@ -293,7 +295,7 @@ export default function SettingsPage() {
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Plagiarism Checks Today</p>
                       <div className="flex items-baseline gap-2">
-                        <p className="text-3xl font-bold text-gray-900">
+                        <p className="text-2xl md:text-3xl font-bold text-gray-900">
                           {usage.plagiarismChecks}
                         </p>
                         {usage.limits.plagiarismChecksPerDay !== Infinity && (
@@ -306,7 +308,7 @@ export default function SettingsPage() {
 
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Max Projects</p>
-                      <p className="text-3xl font-bold text-gray-900">
+                      <p className="text-2xl md:text-3xl font-bold text-gray-900">
                         {usage.limits.maxProjects === Infinity 
                           ? '∞' 
                           : usage.limits.maxProjects || 'Unlimited'}
@@ -317,14 +319,14 @@ export default function SettingsPage() {
           )}
 
           {/* Pricing Plans */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4 md:mb-6">
               Choose Your Plan
             </h2>
             
             {/* Billing Toggle */}
             {(session?.user as any)?.plan !== 'pro' ? (
-              <div className="mb-6 flex items-center justify-center gap-4">
+              <div className="mb-4 md:mb-6 flex flex-wrap items-center justify-center gap-3 md:gap-4">
                 <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
                   Monthly
                 </span>
@@ -359,7 +361,7 @@ export default function SettingsPage() {
                 )}
               </div>
             ) : subscriptionStatus && (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm text-gray-700 text-center">
                   <span className="font-medium">Current billing cycle: </span>
                   <span className="font-semibold text-gray-900 capitalize">
@@ -378,7 +380,7 @@ export default function SettingsPage() {
             )}
             
             {/* AI Words Explainer */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-start gap-3">
                 <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-white text-xs font-bold">ℹ️</span>
@@ -392,13 +394,13 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {plans.map((plan) => {
                 const Icon = plan.icon;
                 return (
                   <Card 
                     key={plan.type}
-                    className={`p-6 ${plan.popular ? 'ring-2 ring-primary shadow-lg' : ''}`}
+                    className={`p-4 md:p-6 ${plan.popular ? 'ring-2 ring-primary shadow-lg' : ''}`}
                   >
                     {plan.popular && (
                       <div className="mb-4">
@@ -408,19 +410,19 @@ export default function SettingsPage() {
                       </div>
                     )}
 
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4`}>
-                      <Icon className="text-white" size={24} />
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4`}>
+                      <Icon className="text-white" size={20} />
                     </div>
 
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
                       {plan.name}
                     </h3>
                     
-                    <div className="mb-6">
+                    <div className="mb-4 md:mb-6">
                       {plan.monthlyPrice ? (
                         <div>
                           <div className="flex items-baseline gap-2 mb-1">
-                            <span className="text-4xl font-bold text-gray-900">
+                            <span className="text-3xl md:text-4xl font-bold text-gray-900">
                               {isAnnual ? plan.annualPrice : plan.monthlyPrice}
                             </span>
                             {/* Debug info */}
@@ -439,7 +441,7 @@ export default function SettingsPage() {
                         </div>
                       ) : (
                         <div>
-                          <span className="text-4xl font-bold text-gray-900">
+                          <span className="text-3xl md:text-4xl font-bold text-gray-900">
                             {plan.price}
                           </span>
                           <span className="text-gray-600 ml-2">
@@ -449,10 +451,10 @@ export default function SettingsPage() {
                       )}
                     </div>
 
-                    <ul className="space-y-3 mb-6">
+                    <ul className="space-y-2 md:space-y-3 mb-4 md:mb-6">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-2">
-                          <Check className="text-success mt-0.5 flex-shrink-0" size={18} />
+                          <Check className="text-success mt-0.5 flex-shrink-0" size={16} />
                           <span className="text-gray-700 text-sm">{feature}</span>
                         </li>
                       ))}
@@ -479,12 +481,12 @@ export default function SettingsPage() {
 
           {/* Subscription Management - Only for Pro users */}
           {(session?.user as any)?.plan === 'pro' && subscriptionStatus && (
-            <Card className="p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <Card className="p-4 md:p-6 mb-6 md:mb-8">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
                 Subscription Management
               </h2>
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="font-medium text-gray-900">Active Subscription</span>
@@ -514,8 +516,8 @@ export default function SettingsPage() {
           )}
 
           {/* Account Settings */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <Card className="p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
               Account Settings
             </h2>
             <div className="space-y-4">
@@ -523,7 +525,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
-                <p className="text-gray-900">{session?.user?.email}</p>
+                <p className="text-gray-900 break-all">{session?.user?.email}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -548,7 +550,7 @@ export default function SettingsPage() {
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-md w-full p-6 relative">
+          <Card className="max-w-md w-full p-4 md:p-6 relative">
             <button
               onClick={() => setShowDeleteConfirm(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -556,10 +558,10 @@ export default function SettingsPage() {
             >
               <X size={20} />
             </button>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
               Delete Account?
             </h3>
-            <p className="text-gray-700 mb-6">
+            <p className="text-gray-700 text-sm md:text-base mb-6">
               Are you sure you want to delete your account? This action cannot be undone. 
               All your projects, citations, and data will be permanently deleted.
             </p>
@@ -587,4 +589,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

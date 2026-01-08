@@ -158,3 +158,94 @@ body {
   background-color: rgb(29 78 216) !important; /* blue-700 */
   color: white !important;
 }
+
+/* Mobile Animations */
+@keyframes slide-in-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: forwards;
+}
+
+.slide-in-from-left {
+  animation-name: slide-in-from-left;
+}
+
+.slide-in-from-right-4 {
+  animation-name: slide-in-from-right;
+}
+
+.slide-in-from-bottom {
+  animation-name: slide-in-from-bottom;
+}
+
+.duration-300 {
+  animation-duration: 300ms;
+}
+
+.duration-200 {
+  animation-duration: 200ms;
+}
+
+/* Mobile Touch Optimizations */
+@media (max-width: 768px) {
+  /* Increase tap targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Better scrolling */
+  .overflow-auto, .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbars on mobile but keep functionality */
+  .hide-scrollbar-mobile {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .hide-scrollbar-mobile::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Safe area padding for mobile devices with notches */
+@supports (padding: max(0px)) {
+  .safe-area-padding {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}

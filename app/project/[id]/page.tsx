@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Sidebar from '@/components/Sidebar';
+import Sidebar, { MobileMenuButton, MobileProjectToolsButton, MobileToolsDrawer, useSidebar } from '@/components/Sidebar';
 import { Project } from '@/types';
 import { 
   BookOpen, Plus, Download, CheckCircle2, FileText, X, Send, Bot, 
@@ -1908,16 +1908,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       `}</style>
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Sidebar />
+      <MobileMenuButton />
       
       <div className={cn(
         'flex-1 overflow-y-auto transition-all duration-300',
-        isAIDrawerOpen ? 'mr-80 ml-56' : 'ml-64'
+        isAIDrawerOpen ? 'md:mr-80 md:ml-56' : 'md:ml-64'
       )}>
-        <div className="max-w-7xl mx-auto p-6 md:p-8 lg:p-10 space-y-10">
+        <div className="max-w-7xl mx-auto p-4 pt-16 md:pt-6 md:p-8 lg:p-10 space-y-6 md:space-y-10">
           {/* Project Header */}
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-3">
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-6 lg:p-8 space-y-3">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.12em]">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-[0.12em]">
                 {project.name}
               </h1>
               <button
@@ -1928,15 +1929,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 Open Assistant
               </button>
             </div>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               {project.type} • {localWordCount} / {project.targetWordCount} words • {project.citationStyle}
             </p>
               </div>
 
-          <div className="grid gap-6 lg:gap-8 grid-cols-12">
-            {/* Left Column - Sections and Actions */}
+          <div className="grid gap-4 md:gap-6 lg:gap-8 grid-cols-12">
+            {/* Left Column - Sections and Actions (Hidden on mobile, shown in drawer) */}
             <div className={cn(
-              'space-y-6 lg:space-y-8 col-span-12 md:col-span-4 lg:col-span-3 sticky top-4 self-start'
+              'hidden md:block space-y-6 lg:space-y-8 col-span-12 md:col-span-4 lg:col-span-3 md:sticky md:top-4 self-start'
             )}>
               {/* Sections Panel */}
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
@@ -2025,14 +2026,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                   setEditingSectionId(section.id);
                                   setEditingTitle(section.title);
                                 }}
-                                className="p-1.5 border border-transparent hover:border-[hsl(var(--border-strong))] rounded transition-colors"
+                                className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] rounded transition-colors"
                                 title="Edit section name"
                               >
                                 <Edit3 className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => setSectionToDelete(section.id)}
-                                className="p-1.5 border border-transparent hover:border-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors"
+                                className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors"
                                 title="Delete section"
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -2142,16 +2143,153 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
+            {/* Mobile Tools Drawer */}
+            <MobileToolsDrawer>
+              <div className="space-y-6">
+                {/* Mobile Sections Panel */}
+                <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
+                  <div className="p-4 border-b-2 border-[hsl(var(--border-strong))] flex items-center justify-between">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Paper Sections</h3>
+                    <button 
+                      onClick={addNewSection}
+                      className="border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                      title="Add new section"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-1">
+                      {project.sections?.map((section) => (
+                        <button
+                          key={section.id}
+                          onClick={() => setActiveSection(section.id)}
+                          className={cn(
+                            'w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 border-2 border-[hsl(var(--border))] text-left',
+                            activeSection === section.id
+                              ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))]'
+                              : 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]'
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={cn(
+                                'w-2 h-2 rounded-full flex-shrink-0',
+                                activeSection === section.id
+                                  ? 'bg-[hsl(var(--secondary-foreground))]'
+                                  : 'bg-[hsl(var(--border-strong))]'
+                              )}
+                            />
+                            <span className="font-semibold truncate">{section.title}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Tools Panel */}
+                <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
+                  <div className="p-4 border-b-2 border-[hsl(var(--border-strong))]">
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Tools</h3>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">Research & quality</p>
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <button 
+                      onClick={() => discoverCitations()}
+                      className={cn(
+                        'w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]',
+                        isDiscoveringCitations ? 'opacity-60' : ''
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        <span className="font-semibold">Find Citations</span>
+                      </div>
+                    </button>
+                    
+                    <button 
+                      onClick={() => setShowManualCitationModal(true)}
+                      className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        <span className="font-semibold">Add Citation</span>
+                      </div>
+                    </button>
+                    
+                    <button 
+                      onClick={detectCitations}
+                      className={cn(
+                        'w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]',
+                        isDetectingCitations || !hasContentToScan ? 'opacity-60' : ''
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <BookMarked className="h-4 w-4" />
+                        <span className="font-semibold">Scan Content</span>
+                      </div>
+                    </button>
+                    
+                    <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
+                    
+                    <button 
+                      onClick={checkPlagiarism}
+                      className={cn(
+                        'w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]',
+                        isCheckingPlagiarism ? 'opacity-60' : ''
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        <span className="font-semibold">Check Plagiarism</span>
+                      </div>
+                    </button>
+                    
+                    <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
+                    
+                    <button 
+                      onClick={() => setShowExportModal(true)}
+                      className={cn(
+                        'w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]',
+                        isExporting ? 'opacity-60' : ''
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Download className="h-4 w-4" />
+                        <span className="font-semibold">Export Project</span>
+                      </div>
+                    </button>
+                    
+                    <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
+                    
+                    <button 
+                      onClick={() => setIsAIDrawerOpen(true)}
+                      className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-4 w-4" />
+                        <span className="font-semibold">AI Assistant</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </MobileToolsDrawer>
+
+            {/* Mobile Floating Tools Button */}
+            <MobileProjectToolsButton />
+
             {/* Right Column - Editor */}
-            <div className="col-span-12 md:col-span-8 lg:col-span-9 space-y-6">
+            <div className="col-span-12 md:col-span-8 lg:col-span-9 space-y-4 md:space-y-6">
               {activeS && (
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
-                  <div className="p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-semibold uppercase tracking-[0.18em]">{activeS.title}</h2>
+                  <div className="p-4 md:p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <h2 className="text-lg md:text-xl font-semibold uppercase tracking-[0.18em]">{activeS.title}</h2>
                       <button
                         onClick={() => setIsAIDrawerOpen(true)}
-                        className="inline-flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                        className="hidden sm:inline-flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                       >
                         <Bot className="h-4 w-4" />
                         Ask Akọ̀wé
@@ -3242,7 +3380,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           isProcessing
                             ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-not-allowed'
                             : isActive
-                              ? 'outline outline-2 outline-[hsl(var(--secondary))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.12)]'
+                              ? 'ring-2 ring-[hsl(var(--secondary))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.12)]'
                               : 'hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
                         )}
                       >

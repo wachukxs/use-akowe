@@ -68,10 +68,10 @@ export default function FeedbackButton() {
 
   return (
     <>
-      {/* Floating Feedback Button */}
+      {/* Floating Feedback Button - Hidden on mobile */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-3 py-4 rounded-l-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-x-1 border-2 border-r-0 border-[hsl(var(--primary))]"
+        className="hidden md:block fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-3 py-4 rounded-l-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-x-1 border-2 border-r-0 border-[hsl(var(--primary))]"
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
         aria-label="Send Feedback"
       >

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Sidebar from '@/components/Sidebar';
+import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -146,9 +146,10 @@ export default function NewProjectPage() {
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Sidebar />
+      <MobileMenuButton />
       
-      <div className="flex-1 ml-64 overflow-auto">
-        <div className="max-w-6xl mx-auto p-10 space-y-10">
+      <div className="flex-1 md:ml-64 overflow-auto">
+        <div className="max-w-6xl mx-auto p-4 pt-16 md:pt-10 md:p-10 space-y-6 md:space-y-10">
           <div className="flex items-center gap-4 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             <button
               onClick={() => router.back()}
@@ -156,20 +157,20 @@ export default function NewProjectPage() {
             >
               ← Back
             </button>
-            <span>New project workspace</span>
+            <span className="hidden sm:inline">New project workspace</span>
           </div>
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 space-y-2">
-            <h1 className="text-4xl font-bold uppercase tracking-[0.12em]">Create New Project</h1>
-            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
+            <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Create New Project</h1>
+            <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Start a new academic writing project with AI-powered guidance.
             </p>
           </div>
 
           {/* Validation Errors */}
           {validationErrors.length > 0 && (
-            <Card className="p-4 mb-6 border-red-200 bg-red-50">
+            <Card className="p-4 mb-4 md:mb-6 border-red-200 bg-red-50">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <h3 className="font-medium text-red-800 mb-2">Please fix the following issues:</h3>
                   <ul className="text-sm text-red-700 space-y-1">
@@ -182,18 +183,18 @@ export default function NewProjectPage() {
             </Card>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
             {/* Left Column - Form Fields */}
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6 order-2 lg:order-1">
               {/* Project Name */}
-              <Card className="p-6">
+              <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
                     Project Name *
                   </label>
                   <button type="button" className="relative group" aria-label="What is project name?">
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
                       A clear title that reflects your research focus.
                     </span>
                   </button>
@@ -203,7 +204,7 @@ export default function NewProjectPage() {
                   placeholder="e.g., Climate Change Impact Study"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  className="text-lg"
+                  className="text-base md:text-lg"
                 />
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Choose a clear, descriptive name that reflects your research focus
@@ -211,24 +212,24 @@ export default function NewProjectPage() {
               </Card>
 
               {/* Topic */}
-              <Card className="p-6">
+              <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
                     Research Topic *
                   </label>
                   <button type="button" className="relative group" aria-label="What is research topic?">
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
                       Be specific so Akowe can tailor suggestions.
                     </span>
                   </button>
                 </div>
                 <Input
                   type="text"
-                  placeholder="e.g., &quot;Impact of rising sea levels on coastal communities&quot;"
+                  placeholder="e.g., Impact of rising sea levels on coastal communities"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="text-lg"
+                  className="text-base md:text-lg"
                 />
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Be specific about what you&apos;re researching. This helps Akowe provide better suggestions.
@@ -236,14 +237,14 @@ export default function NewProjectPage() {
               </Card>
 
               {/* Target Word Count */}
-              <Card className="p-6">
+              <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
                     Target Word Count
                   </label>
                   <button type="button" className="relative group" aria-label="What is target word count?">
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
                       Choose a target within the typical range for your type.
                     </span>
                   </button>
@@ -253,7 +254,7 @@ export default function NewProjectPage() {
                   placeholder="3000"
                   value={targetWordCount}
                   onChange={(e) => setTargetWordCount(parseInt(e.target.value) || 0)}
-                  className="text-lg"
+                  className="text-base md:text-lg"
                 />
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Typical range for {selectedType}: {currentType?.typicalWordCount.min.toLocaleString()} - {currentType?.typicalWordCount.max.toLocaleString()} words
@@ -261,14 +262,14 @@ export default function NewProjectPage() {
               </Card>
 
               {/* Citation Style */}
-              <Card className="p-6">
+              <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
                     Citation Style
                   </label>
                   <button type="button" className="relative group" aria-label="What is citation style?">
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
                       Pick the style your department or journal requires.
                     </span>
                   </button>
@@ -288,14 +289,14 @@ export default function NewProjectPage() {
               </Card>
 
               {/* Methodology */}
-              <Card className="p-6">
+              <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
                     Research Methodology *
                   </label>
                   <button type="button" className="relative group" aria-label="What is research methodology?">
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
                       Describe your approach, e.g. qualitative, quantitative, mixed methods.
                     </span>
                   </button>
@@ -305,7 +306,7 @@ export default function NewProjectPage() {
                   placeholder="e.g., Qualitative case study, Literature review, Experimental design"
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value)}
-                  className="text-lg"
+                  className="text-base md:text-lg"
                 />
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Common methodologies: {currentType?.commonMethodologies.join(', ')}
@@ -314,13 +315,13 @@ export default function NewProjectPage() {
             </div>
 
             {/* Right Column - Project Type & Insights */}
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6 order-1 lg:order-2">
               {/* Project Type Selection */}
-              <Card className="p-6 space-y-4">
+              <Card className="p-4 md:p-6 space-y-4">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
                   Select Project Type
                 </h3>
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
                   {projectTypes.map((type) => {
                     const Icon = type.icon;
                     const isSelected = selectedType === type.type;
@@ -330,25 +331,25 @@ export default function NewProjectPage() {
                         key={type.type}
                         onClick={() => setSelectedType(type.type)}
                         className={cn(
-                          'text-left p-4 border-2 rounded-[var(--radius)] transition-transform duration-150',
+                          'text-left p-3 md:p-4 border-2 rounded-[var(--radius)] transition-transform duration-150',
                           isSelected
                             ? 'border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.14)]'
                             : 'border-[hsl(var(--border))] bg-[hsl(var(--surface))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] flex items-center justify-center">
-                            <Icon size={20} />
+                          <div className="w-10 h-10 md:w-12 md:h-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] flex items-center justify-center flex-shrink-0">
+                            <Icon size={18} />
                           </div>
-                          <div className="flex-1">
-                            <h4 className="text-sm font-semibold uppercase tracking-[0.18em]">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs md:text-sm font-semibold uppercase tracking-[0.18em]">
                               {type.label}
                             </h4>
-                            <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                            <p className="text-[10px] md:text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] truncate">
                               {type.description}
                             </p>
                           </div>
-                          {isSelected && <CheckCircle2 className="w-5 h-5" />}
+                          {isSelected && <CheckCircle2 className="w-5 h-5 flex-shrink-0" />}
                         </div>
                       </button>
                     );
@@ -358,7 +359,7 @@ export default function NewProjectPage() {
 
               {/* Project Insights */}
               {currentType && (
-                <Card className="p-6 space-y-4">
+                <Card className="p-4 md:p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <Lightbulb className="w-5 h-5 text-[hsl(var(--accent))]" />
                     <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
@@ -380,18 +381,18 @@ export default function NewProjectPage() {
           </div>
 
           {/* Create Button */}
-          <div className="flex justify-end gap-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 md:gap-4 pb-6 md:pb-0">
             <Button
               variant="secondary"
               onClick={() => router.back()}
-              className="px-6"
+              className="px-6 order-2 sm:order-1"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreate}
               disabled={validationErrors.length > 0 || isCreating}
-              className="min-w-[180px]"
+              className="min-w-[180px] order-1 sm:order-2"
             >
               {isCreating ? (
                 <div className="flex items-center gap-2">
@@ -420,19 +421,19 @@ export default function NewProjectPage() {
           }}
         >
           <div className="w-full max-w-md">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-8 space-y-6 text-center">
-              <div className="mx-auto w-16 h-16 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--destructive))]">
-                <X className="w-8 h-8" />
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-6 md:p-8 space-y-6 text-center">
+              <div className="mx-auto w-14 h-14 md:w-16 md:h-16 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--destructive))]">
+                <X className="w-6 h-6 md:w-8 md:h-8" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold uppercase tracking-[0.16em]">
+                <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em]">
                   Project Limit Reached
                 </h3>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   {limitError}
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setShowLimitModal(false)}
@@ -457,4 +458,3 @@ export default function NewProjectPage() {
     </div>
   );
 }
-
