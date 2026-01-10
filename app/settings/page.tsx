@@ -7,7 +7,7 @@ import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { UsageLimits, PlanType } from '@/types';
-import { Check, Crown, Users, X } from 'lucide-react';
+import { Check, Crown, Users, X, Info } from 'lucide-react';
 
 interface UsageData {
   aiWordsGenerated: number;
@@ -382,9 +382,7 @@ export default function SettingsPage() {
             {/* AI Words Explainer */}
             <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-xs font-bold">i</span>
-                </div>
+                <Info size={18} className="text-gray-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-gray-900 mb-1">What counts as AI words?</p>
                   <p className="text-xs text-gray-600">
@@ -410,7 +408,7 @@ export default function SettingsPage() {
                       </div>
                     )}
 
-                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4`}>
+                    <div className={`size-10 md:size-12 rounded-sm bg-gradient-to-br ${plan.color} flex items-center justify-center mb-4`}>
                       <Icon className="text-white" size={20} />
                     </div>
 
