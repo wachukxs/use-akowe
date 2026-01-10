@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Users, 
   DollarSign, 
@@ -12,7 +12,6 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
-  Filter,
   Search,
   Zap,
   ChevronDown,
@@ -22,12 +21,8 @@ import {
   Sparkles,
   UserCheck,
   Repeat,
-  Clock,
-  CreditCard,
   Info,
-  Lightbulb,
   Award,
-  Database,
   Shield,
   RefreshCw,
   Link as LinkIcon

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
-import { FileText, Settings, LogOut, PlusCircle, Menu, X, BookOpen, Plus, Shield, Download, BookMarked, Bot } from 'lucide-react';
+import { FileText, Settings, LogOut, PlusCircle, Menu, X, Bot } from 'lucide-react';
 import Button from './ui/Button';
 import { useState, useEffect, createContext, useContext } from 'react';
 
