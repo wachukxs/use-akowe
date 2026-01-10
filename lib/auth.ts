@@ -156,6 +156,7 @@ export const authOptions: NextAuthConfig = {
         if (dbUser) {
           token.plan = dbUser.plan || 'free';
           token.billingCycle = dbUser.billingCycle || 'monthly';
+          token.referralCode = dbUser.referralCode || null;
         }
       }
       
@@ -167,6 +168,7 @@ export const authOptions: NextAuthConfig = {
         session.user.email = token.email as string;
         session.user.plan = token.plan as string || 'free';
         session.user.billingCycle = token.billingCycle as string || 'monthly';
+        session.user.referralCode = token.referralCode as string || null;
       }
       return session;
     },

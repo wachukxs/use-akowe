@@ -7,7 +7,7 @@ import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { UsageLimits, PlanType } from '@/types';
-import { Check, Crown, Users, X, Info } from 'lucide-react';
+import { Check, Crown, Users, X, Info, Copy, Gift } from 'lucide-react';
 
 interface UsageData {
   aiWordsGenerated: number;
@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const [isAnnual, setIsAnnual] = useState(true); // Default to annual billing
   const [isUpgrading, setIsUpgrading] = useState(false); // Loading state for upgrade
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null); // Store subscription status
+  const [copiedReferral, setCopiedReferral] = useState(false); // Track copy state for referral
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -509,6 +510,57 @@ export default function SettingsPage() {
                     Manage Subscription →
                   </button>
                 </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Invite Friends */}
+          {(session?.user as any)?.referralCode && (
+            <Card className="p-4 md:p-6 mb-6 md:mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[hsl(var(--primary))]/10 rounded-[var(--radius)] flex items-center justify-center">
+                  <Gift size={20} className="text-[hsl(var(--primary))]" />
+                </div>
+                <div>
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+                    Invite Friends & Colleagues
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Share Akowe with your network
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Know someone who could benefit from AI-powered academic writing? Share your personal invite link with them!
+              </p>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4">
+                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                  Your Invite Message
+                </label>
+                <p className="text-sm text-gray-700 mb-3">
+                  Hey! I&apos;ve been using Akowe for my academic writing and it&apos;s been super helpful. You should try it out: <span className="font-semibold text-[hsl(var(--primary))]">https://useakowe.com/?ref={(session?.user as any)?.referralCode}</span>
+                </p>
+                <button
+                  onClick={() => {
+                    const message = `Hey! I've been using Akowe for my academic writing and it's been super helpful. You should try it out: https://useakowe.com/?ref=${(session?.user as any)?.referralCode}`;
+                    navigator.clipboard.writeText(message);
+                    setCopiedReferral(true);
+                    setTimeout(() => setCopiedReferral(false), 2000);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border-2 border-[hsl(var(--border-strong))] bg-white rounded-[var(--radius)] hover:bg-gray-50 hover:-translate-y-0.5 transition-all cursor-pointer"
+                >
+                  {copiedReferral ? (
+                    <>
+                      <Check size={16} className="text-green-600" />
+                      <span className="text-green-600">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} />
+                      <span>Copy Invite Message</span>
+                    </>
+                  )}
+                </button>
               </div>
             </Card>
           )}
