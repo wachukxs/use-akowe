@@ -712,9 +712,9 @@ export default function AdminDashboard() {
   if (activeTab === 'referrals') {
     return (
       <div className="min-h-screen bg-[hsl(var(--background))] p-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto space-y-4">
           {/* Header */}
-          <div className="mb-6">
+          <div className="pb-4 border-b-2 border-[hsl(var(--border-strong))]">
             <h1 className="text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
             <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Manage your platform
