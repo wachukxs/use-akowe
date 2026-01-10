@@ -740,23 +740,14 @@ export default function AdminDashboard() {
               Actionable Insights & Product Metrics
             </p>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                const controller = new AbortController();
-                setAbortController(controller);
-                fetchMetrics(controller.signal);
-              }}
-              disabled={isLoading}
-              className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
-            >
-              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-              {isLoading ? 'Refreshing...' : 'Refresh Metrics'}
-            </button>
-          </div>
-          
-          <div className="flex flex-col gap-2">
+        </div>
+
+        {/* Tab Navigation */}
+        <TabNavigation />
+
+        {/* Dashboard Controls - Period Filters & Refresh */}
+        <div className="flex flex-col gap-3 p-4 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Period:</span>
               {quickFilterOptions.map((option) => (
@@ -789,68 +780,81 @@ export default function AdminDashboard() {
                 Custom
               </button>
             </div>
-            {showCustomPicker && (
-              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
-                <div className="flex items-end gap-4 mb-3">
-                  <div className="flex-1">
-                    <label className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] block mb-1">Start Date</label>
-                    <input
-                      type="date"
-                      max={customDateRange?.end || new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
-                      onChange={(e) => {
-                        const end = customDateRange?.end || new Date().toISOString().split('T')[0];
-                        if (e.target.value) {
-                          handleCustomDateRange(e.target.value, end);
-                        }
-                      }}
-                      value={customDateRange?.start || ''}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] block mb-1">End Date</label>
-                    <input
-                      type="date"
-                      min={customDateRange?.start || ''}
-                      max={new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
-                      onChange={(e) => {
-                        const start = customDateRange?.start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                        if (e.target.value) {
-                          handleCustomDateRange(start, e.target.value);
-                        }
-                      }}
-                      value={customDateRange?.end || new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
-                  {customDateRange && (
-                    <button
-                      onClick={clearCustomRange}
-                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))] whitespace-nowrap"
-                    >
-                      Clear
-                    </button>
-                  )}
+            
+            <button
+              onClick={() => {
+                const controller = new AbortController();
+                setAbortController(controller);
+                fetchMetrics(controller.signal);
+              }}
+              disabled={isLoading}
+              className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+            >
+              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+              {isLoading ? 'Refreshing...' : 'Refresh Metrics'}
+            </button>
+          </div>
+          
+          {showCustomPicker && (
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] p-4 rounded-lg">
+              <div className="flex items-end gap-4 mb-3">
+                <div className="flex-1">
+                  <label className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] block mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    max={customDateRange?.end || new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
+                    onChange={(e) => {
+                      const end = customDateRange?.end || new Date().toISOString().split('T')[0];
+                      if (e.target.value) {
+                        handleCustomDateRange(e.target.value, end);
+                      }
+                    }}
+                    value={customDateRange?.start || ''}
+                  />
                 </div>
-                {error && (
-                  <div className="text-xs text-red-500 mt-2">{error}</div>
+                <div className="flex-1">
+                  <label className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] block mb-1">End Date</label>
+                  <input
+                    type="date"
+                    min={customDateRange?.start || ''}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
+                    onChange={(e) => {
+                      const start = customDateRange?.start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                      if (e.target.value) {
+                        handleCustomDateRange(start, e.target.value);
+                      }
+                    }}
+                    value={customDateRange?.end || new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                {customDateRange && (
+                  <button
+                    onClick={clearCustomRange}
+                    className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))] whitespace-nowrap"
+                  >
+                    Clear
+                  </button>
                 )}
               </div>
-            )}
-            {customDateRange && (
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">
-                Custom range: {new Date(customDateRange.start).toLocaleDateString()} - {new Date(customDateRange.end).toLocaleDateString()}
-              </div>
-            )}
-            <div className="text-xs text-[hsl(var(--muted-foreground))]">
-              <Info size={12} className="inline mr-1" />
-              Filter applies to: Period Performance & Product Health metrics. Other sections use smart defaults.
+              {error && (
+                <div className="text-xs text-red-500 mt-2">{error}</div>
+              )}
             </div>
+          )}
+          
+          {customDateRange && (
+            <div className="text-xs text-[hsl(var(--muted-foreground))]">
+              Custom range: {new Date(customDateRange.start).toLocaleDateString()} - {new Date(customDateRange.end).toLocaleDateString()}
+            </div>
+          )}
+          
+          <div className="text-xs text-[hsl(var(--muted-foreground))]">
+            <Info size={12} className="inline mr-1" />
+            Filter applies to: Period Performance & Product Health metrics. Other sections use smart defaults.
           </div>
         </div>
-
-        {/* Tab Navigation */}
-        <TabNavigation />
 
         {/* Search */}
         <div className="relative">
@@ -1266,20 +1270,6 @@ export default function AdminDashboard() {
             )}
           </div>
         </CollapsibleSection>
-
-        {/* Refresh Button */}
-        <div className="flex justify-end pt-4">
-          <button
-            onClick={() => {
-              const controller = new AbortController();
-              setAbortController(controller);
-              fetchMetrics(controller.signal);
-            }}
-            className="px-6 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold uppercase tracking-[0.24em] hover:opacity-90 transition-opacity"
-          >
-            Refresh Metrics
-          </button>
-        </div>
       </div>
     </div>
   );
