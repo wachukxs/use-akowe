@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Button from '@/components/ui/Button';
@@ -10,7 +10,7 @@ import Card from '@/components/ui/Card';
 import { Eye, EyeOff } from 'lucide-react';
 import { getStoredReferralCode, clearStoredReferralCode } from '@/components/ReferralCapture';
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -280,5 +280,31 @@ export default function SignUpPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+        <div className="w-full max-w-md px-6">
+          <Card className="p-10 space-y-8">
+            <div className="text-center space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                Akọ̀wé studio
+              </span>
+              <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
+                Create account
+              </h1>
+              <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                Loading...
+              </p>
+            </div>
+          </Card>
+        </div>
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   );
 }
