@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import FeedbackButton from "@/components/FeedbackButton";
+import ReferralCapture from "@/components/ReferralCapture";
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -219,6 +221,9 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
         <Providers>
+          <Suspense fallback={null}>
+            <ReferralCapture />
+          </Suspense>
           {children}
           <FeedbackButton />
         </Providers>

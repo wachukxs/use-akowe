@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import { Eye, EyeOff } from 'lucide-react';
+import { getStoredReferralCode, clearStoredReferralCode } from '@/components/ReferralCapture';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -23,11 +24,18 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Capture referral code from URL on mount
+  // Capture referral code from URL or localStorage on mount
   useEffect(() => {
+    // First check URL for referral code
     const ref = searchParams.get('ref');
     if (ref) {
       setReferralCode(ref);
+    } else {
+      // Fallback to localStorage (captured from any previous page visit)
+      const storedRef = getStoredReferralCode();
+      if (storedRef) {
+        setReferralCode(storedRef);
+      }
     }
   }, [searchParams]);
 
@@ -94,6 +102,9 @@ export default function SignUpPage() {
       });
 
       if (response.ok) {
+        // Clear the stored referral code after successful signup
+        clearStoredReferralCode();
+        
         // User created successfully, now sign them in
         try {
           const result = await signIn('credentials', {
