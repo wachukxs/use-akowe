@@ -84,7 +84,7 @@ export function MobileMenuButton() {
   return (
     <button
       onClick={() => setIsOpen(true)}
-      className="fixed top-4 left-4 z-40 p-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden"
+      className="fixed top-4 left-4 z-40 p-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden cursor-pointer"
       aria-label="Open menu"
     >
       <Menu size={24} />
@@ -103,7 +103,7 @@ export function MobileProjectToolsButton({ onClick }: { onClick?: () => void }) 
         setShowProjectTools(true);
         onClick?.();
       }}
-      className="fixed bottom-4 right-4 z-40 p-3 bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-2 border-[hsl(var(--border-strong))] rounded-full shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden"
+      className="fixed bottom-4 right-4 z-40 p-3 bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-2 border-[hsl(var(--border-strong))] rounded-full shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden cursor-pointer"
       aria-label="Open tools"
     >
       <Bot size={24} />
@@ -130,7 +130,7 @@ export function MobileToolsDrawer({ children }: { children: React.ReactNode }) {
           <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Sections & Tools</h3>
           <button
             onClick={() => setShowProjectTools(false)}
-            className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)]"
+            className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -236,7 +236,7 @@ export default function Sidebar() {
             // Force a hard refresh to clear any cached content
             window.location.href = '/auth/signin';
           }}
-          className="w-full flex items-center justify-between px-4 py-3 border-2 border-transparent rounded-[var(--radius)] text-[11px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--foreground))] transition-transform duration-150 hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))] hover:-translate-y-[0.125rem] hover:-translate-x-[0.125rem]"
+          className="w-full flex items-center justify-between px-4 py-3 border-2 border-transparent rounded-[var(--radius)] text-[11px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--foreground))] transition-transform duration-150 hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))] hover:-translate-y-[0.125rem] hover:-translate-x-[0.125rem] cursor-pointer"
         >
           <span className="flex items-center gap-3">
             <LogOut size={16} />
@@ -269,7 +269,7 @@ export default function Sidebar() {
             {/* Close button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)]"
+              className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] cursor-pointer"
             >
               <X size={20} />
             </button>

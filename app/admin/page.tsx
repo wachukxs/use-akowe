@@ -366,7 +366,7 @@ function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge
     <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-[hsl(var(--accent))]/10 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-[hsl(var(--accent))]/10 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-3 flex-1">
           {icon}
@@ -671,7 +671,7 @@ export default function AdminDashboard() {
               setAbortController(controller);
               fetchMetrics(controller.signal);
             }}
-            className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] hover:opacity-90 transition-opacity"
+            className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] hover:-translate-y-0.5 hover:shadow-lg transition-all cursor-pointer"
           >
             Retry
           </button>
@@ -685,7 +685,7 @@ export default function AdminDashboard() {
     <div className="flex items-center gap-1 border-b-2 border-[hsl(var(--border-strong))] mb-6">
       <button
         onClick={() => setActiveTab('dashboard')}
-        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 ${
+        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 cursor-pointer ${
           activeTab === 'dashboard'
             ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
             : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
@@ -696,7 +696,7 @@ export default function AdminDashboard() {
       </button>
       <button
         onClick={() => setActiveTab('referrals')}
-        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 ${
+        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 cursor-pointer ${
           activeTab === 'referrals'
             ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
             : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
@@ -759,10 +759,10 @@ export default function AdminDashboard() {
                     setShowCustomPicker(false);
                     setSearchQuery('');
                   }}
-                  className={`px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] rounded transition-all ${
+                  className={`px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] rounded transition-all cursor-pointer ${
                     daysFilter === option.value && !customDateRange
                       ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
-                      : 'bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))]'
+                      : 'bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:-translate-y-0.5'
                   }`}
                 >
                   {option.label}
@@ -770,10 +770,10 @@ export default function AdminDashboard() {
               ))}
               <button
                 onClick={() => setShowCustomPicker(!showCustomPicker)}
-                className={`px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] rounded transition-all ${
+                className={`px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] rounded transition-all cursor-pointer ${
                   customDateRange
                     ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]'
-                    : 'bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))]'
+                    : 'bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:-translate-y-0.5'
                 }`}
               >
                 <Calendar size={14} className="inline mr-1" />
@@ -788,7 +788,7 @@ export default function AdminDashboard() {
                 fetchMetrics(controller.signal);
               }}
               disabled={isLoading}
-              className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+              className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:-translate-y-0.5 hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none whitespace-nowrap cursor-pointer"
             >
               <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
               {isLoading ? 'Refreshing...' : 'Refresh Metrics'}
@@ -832,7 +832,7 @@ export default function AdminDashboard() {
                 {customDateRange && (
                   <button
                     onClick={clearCustomRange}
-                    className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))] whitespace-nowrap"
+                    className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all whitespace-nowrap cursor-pointer"
                   >
                     Clear
                   </button>
@@ -869,7 +869,7 @@ export default function AdminDashboard() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] cursor-pointer"
             >
               <XCircle size={18} />
             </button>
@@ -1149,7 +1149,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => exportUsersToCSV(metrics.detailedLists.topUsersByUsage)}
-                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] transition-colors flex items-center gap-2"
+                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
                     >
                       <FileText size={14} />
                       Export Top 20 CSV
@@ -1157,7 +1157,7 @@ export default function AdminDashboard() {
                     <button
                       onClick={exportAllUsersUsageToCSV}
                       disabled={isLoading}
-                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:-translate-y-0.5 hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none cursor-pointer"
                     >
                       <FileText size={14} />
                       {isLoading ? 'Loading...' : 'Export All Users Usage'}
@@ -1216,7 +1216,7 @@ export default function AdminDashboard() {
                       totalAIWords: u.totalAIWords || 0,
                       totalPlagiarismChecks: u.totalPlagiarismChecks || 0,
                     })))}
-                    className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] transition-colors flex items-center gap-2"
+                    className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
                   >
                     <FileText size={14} />
                     Export CSV

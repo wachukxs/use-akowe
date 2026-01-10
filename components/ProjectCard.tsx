@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Project, ProjectType } from '@/types';
 import { cn, formatDate } from '@/lib/utils';
-import { FileText, BookOpen, GraduationCap, FlaskConical, MoreVertical } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical } from 'lucide-react';
 import Card from './ui/Card';
 
 const projectIcons: Record<ProjectType, React.ElementType> = {
@@ -29,15 +29,10 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link href={`/project/${project._id}`}>
       <Card hover className="p-6 cursor-pointer space-y-6">
-        <div className="flex items-start justify-between">
-          <div
-            className={`w-14 h-14 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] flex items-center justify-center ${accentClass}`}
-          >
-            <Icon size={24} />
-          </div>
-          <button className="p-2 border-2 border-transparent rounded-[var(--radius)] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-y-[0.125rem] hover:-translate-x-[0.125rem]">
-            <MoreVertical size={18} />
-          </button>
+        <div
+          className={`w-14 h-14 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] flex items-center justify-center ${accentClass}`}
+        >
+          <Icon size={24} />
         </div>
 
         <div className="space-y-3">
