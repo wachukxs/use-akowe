@@ -29,8 +29,12 @@ import {
   Award,
   Database,
   Shield,
-  RefreshCw
+  RefreshCw,
+  Link as LinkIcon
 } from 'lucide-react';
+import ReferralsTab from '@/components/admin/ReferralsTab';
+
+type AdminTab = 'dashboard' | 'referrals';
 
 // Updated interface to match new structure
 interface AdminMetricsResponse {
@@ -393,6 +397,7 @@ function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge
 }
 
 export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [metrics, setMetrics] = useState<AdminMetricsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingSections, setLoadingSections] = useState<Record<string, boolean>>({});
@@ -675,6 +680,53 @@ export default function AdminDashboard() {
     );
   }
 
+  // Tab navigation component
+  const TabNavigation = () => (
+    <div className="flex items-center gap-1 border-b-2 border-[hsl(var(--border-strong))] mb-6">
+      <button
+        onClick={() => setActiveTab('dashboard')}
+        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 ${
+          activeTab === 'dashboard'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <BarChart3 size={16} />
+        Dashboard
+      </button>
+      <button
+        onClick={() => setActiveTab('referrals')}
+        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 ${
+          activeTab === 'referrals'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <LinkIcon size={16} />
+        Referrals
+      </button>
+    </div>
+  );
+
+  // Render referrals tab
+  if (activeTab === 'referrals') {
+    return (
+      <div className="min-h-screen bg-[hsl(var(--background))] p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Manage your platform
+            </p>
+          </div>
+          <TabNavigation />
+          <ReferralsTab />
+        </div>
+      </div>
+    );
+  }
+
   if (!metrics) return null;
 
   return (
@@ -796,6 +848,9 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Tab Navigation */}
+        <TabNavigation />
 
         {/* Search */}
         <div className="relative">

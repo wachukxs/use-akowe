@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import connectDB from './mongodb';
 import User from '@/models/User';
 import { isVIPUser } from './vip-users';
+import { ensureUserReferralCode, createWithReferralCode } from './referral';
 
 export const authOptions: NextAuthConfig = {
   providers: [
@@ -68,23 +69,38 @@ export const authOptions: NextAuthConfig = {
         if (!existingUser) {
           // VIP users get pro plan on signup, others get free
           const initialPlan = isVIPUser(user.email) ? 'pro' : 'free';
-          existingUser = await User.create({
-            email: user.email,
-            name: user.name || profile?.name || 'User',
-            image: user.image,
-            plan: initialPlan,
+          // Create user with referral code, handling duplicate key errors
+          existingUser = await createWithReferralCode(async (referralCode) => {
+            return User.create({
+              email: user.email,
+              name: user.name || profile?.name || 'User',
+              image: user.image,
+              plan: initialPlan,
+              referralCode,
+            });
           });
           if (initialPlan === 'pro') {
             console.log(`VIP user ${user.email} created with pro plan`);
           }
-        } else if (isVIPUser(user.email) && existingUser.plan === 'free') {
-          // Upgrade existing VIP users from free to pro
-          await User.findByIdAndUpdate(existingUser._id, { plan: 'pro' });
-          console.log(`VIP user ${user.email} upgraded to pro plan`);
-        } else if (!isVIPUser(user.email) && existingUser.plan === 'pro' && !existingUser.stripeSubscriptionId) {
-          // Downgrade non-VIP users who are on pro but never paid (removed from VIP list)
-          await User.findByIdAndUpdate(existingUser._id, { plan: 'free' });
-          console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
+        } else {
+          // Ensure existing user has a referral code
+          if (!existingUser.referralCode) {
+            try {
+              await ensureUserReferralCode(existingUser._id.toString());
+            } catch (err) {
+              console.error('Failed to generate referral code for existing user:', err);
+            }
+          }
+          
+          if (isVIPUser(user.email) && existingUser.plan === 'free') {
+            // Upgrade existing VIP users from free to pro
+            await User.findByIdAndUpdate(existingUser._id, { plan: 'pro' });
+            console.log(`VIP user ${user.email} upgraded to pro plan`);
+          } else if (!isVIPUser(user.email) && existingUser.plan === 'pro' && !existingUser.stripeSubscriptionId) {
+            // Downgrade non-VIP users who are on pro but never paid (removed from VIP list)
+            await User.findByIdAndUpdate(existingUser._id, { plan: 'free' });
+            console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
+          }
         }
 
         user.id = existingUser._id.toString();
@@ -95,11 +111,20 @@ export const authOptions: NextAuthConfig = {
           return false; // Explicitly deny sign-in
         }
         
-        // Handle VIP user plan changes
+        // Handle VIP user plan changes and ensure referral code exists
         await connectDB();
         const dbUser = await User.findById(user.id);
         
         if (dbUser) {
+          // Ensure existing user has a referral code
+          if (!dbUser.referralCode) {
+            try {
+              await ensureUserReferralCode(user.id);
+            } catch (err) {
+              console.error('Failed to generate referral code for existing user:', err);
+            }
+          }
+          
           if (user.email && isVIPUser(user.email) && dbUser.plan === 'free') {
             // Upgrade VIP users from free to pro
             await User.findByIdAndUpdate(user.id, { plan: 'pro' });

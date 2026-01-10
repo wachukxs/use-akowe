@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { createWithReferralCode, lookupReferralCode } from '@/lib/referral';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password } = await request.json();
+    const { name, email, password, referralCode } = await request.json();
 
     // Validation
     if (!name || !email || !password) {
@@ -33,12 +34,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'An account with this email already exists. Please sign in instead.' }, { status: 400 });
     }
 
-    // Create new user
-    const user = await User.create({
-      name,
-      email: email.toLowerCase(),
-      password, // Password will be hashed by the pre-save hook
-      plan: 'free',
+    // Look up referral code if provided
+    let referredBy = undefined;
+    let referredByInfluencer = undefined;
+    
+    if (referralCode) {
+      const referrer = await lookupReferralCode(referralCode);
+      if (referrer) {
+        if (referrer.type === 'user') {
+          referredBy = referrer.id;
+        } else {
+          referredByInfluencer = referrer.id;
+        }
+      }
+      // If referral code is invalid, we silently ignore it and continue signup
+    }
+
+    // Create new user with referral tracking
+    // Uses createWithReferralCode to handle duplicate key errors gracefully
+    const user = await createWithReferralCode(async (newReferralCode) => {
+      return User.create({
+        name,
+        email: email.toLowerCase(),
+        password, // Password will be hashed by the pre-save hook
+        plan: 'free',
+        referralCode: newReferralCode,
+        referredBy,
+        referredByInfluencer,
+      });
     });
 
     return NextResponse.json({ 
@@ -48,6 +71,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         email: user.email,
         plan: user.plan,
+        referralCode: user.referralCode,
       }
     }, { status: 201 });
 

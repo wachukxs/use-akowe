@@ -6,6 +6,10 @@ interface IUser extends Omit<UserType, '_id'> {
   _id?: mongoose.Types.ObjectId;
   password?: string; // Add password field for internal use
   billingCycle?: 'monthly' | 'annual'; // Add billing cycle field
+  // Referral system fields
+  referralCode?: string; // Unique code for this user to share
+  referredBy?: mongoose.Types.ObjectId; // User who referred this user
+  referredByInfluencer?: mongoose.Types.ObjectId; // Influencer who referred this user
 }
 
 const UserSchema = new Schema<IUser>(
@@ -44,6 +48,20 @@ const UserSchema = new Schema<IUser>(
       enum: ['monthly', 'annual'],
       default: 'monthly',
     },
+    // Referral system fields
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows multiple null values while maintaining uniqueness for non-null
+    },
+    referredBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    referredByInfluencer: {
+      type: Schema.Types.ObjectId,
+      ref: 'Influencer',
+    },
   },
   {
     timestamps: true,
@@ -74,6 +92,9 @@ UserSchema.index({ createdAt: 1 });
 UserSchema.index({ plan: 1 });
 UserSchema.index({ stripeSubscriptionId: 1 });
 UserSchema.index({ createdAt: -1 }); // For recent users query
+UserSchema.index({ referralCode: 1 }); // For referral lookups
+UserSchema.index({ referredBy: 1 }); // For counting referrals per user
+UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
