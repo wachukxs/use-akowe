@@ -9,7 +9,7 @@ import {
   BookOpen, Plus, Download, CheckCircle2, FileText, X, Send, Bot, 
   Edit3, Trash2, BookMarked, Search, 
   Shield, Bold, Italic, Underline, List, Hash, Link, Undo, Redo,
-  Calculator, BarChart3
+  Calculator, BarChart3, GripVertical
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -19,8 +19,25 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const resolvedParams = use(params);
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { isMobile } = useSidebar();
   const [project, setProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  
+  // Desktop experience note dismissal states
+  const [showDesktopNoteTop, setShowDesktopNoteTop] = useState(false);
+  const [showDesktopNoteTools, setShowDesktopNoteTools] = useState(false);
+  const [showDesktopNoteAI, setShowDesktopNoteAI] = useState(false);
+  
+  useEffect(() => {
+    if (isMobile) {
+      const topDismissed = localStorage.getItem('akowe-desktop-note-top-dismissed');
+      const toolsDismissed = localStorage.getItem('akowe-desktop-note-tools-dismissed');
+      const aiDismissed = localStorage.getItem('akowe-desktop-note-ai-dismissed');
+      setShowDesktopNoteTop(!topDismissed);
+      setShowDesktopNoteTools(!toolsDismissed);
+      setShowDesktopNoteAI(!aiDismissed);
+    }
+  }, [isMobile]);
   
   // Update ref whenever activeSection changes
   useEffect(() => {
@@ -45,6 +62,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+  const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
+  const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [totalWordCount, setTotalWordCount] = useState(0);
   const [localWordCount, setLocalWordCount] = useState(0);
@@ -1435,6 +1454,45 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const reorderSections = async (draggedId: string, targetId: string) => {
+    if (!project || draggedId === targetId) return;
+
+    const sections = [...(project.sections || [])];
+    const draggedIndex = sections.findIndex(s => s.id === draggedId);
+    const targetIndex = sections.findIndex(s => s.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Remove dragged section
+    const [draggedSection] = sections.splice(draggedIndex, 1);
+    
+    // Insert at target position
+    sections.splice(targetIndex, 0, draggedSection);
+
+    // Update order numbers
+    const updatedSections = sections.map((section, index) => ({
+      ...section,
+      order: index + 1,
+      updatedAt: new Date()
+    }));
+
+    const updatedProject = { ...project, sections: updatedSections };
+    setProject(updatedProject);
+
+    // Save to backend
+    try {
+      await fetch(`/api/projects/${resolvedParams.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sections: updatedSections }),
+      });
+    } catch (error) {
+      console.error('Error reordering sections:', error);
+      // Revert on error
+      setProject(project);
+    }
+  };
+
   const deleteSection = async (sectionId: string) => {
     if (!project) return;
 
@@ -1934,6 +1992,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </p>
               </div>
 
+          {/* Desktop Experience Note - Top of Page (Mobile Only) */}
+          {isMobile && showDesktopNoteTop && (
+            <div className="md:hidden mb-4 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-[10px] uppercase tracking-[0.18em] leading-relaxed flex-1">
+                  💡 For the best experience, use Akọ̀wé on desktop
+                </p>
+                <button
+                  onClick={() => {
+                    setShowDesktopNoteTop(false);
+                    localStorage.setItem('akowe-desktop-note-top-dismissed', 'true');
+                  }}
+                  className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-4 md:gap-6 lg:gap-8 grid-cols-12">
             {/* Left Column - Sections and Actions (Hidden on mobile, shown in drawer) */}
             <div className={cn(
@@ -1958,14 +2037,55 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     {project.sections?.map((section) => (
                       <div
                         key={section.id}
+                        draggable
+                        onDragStart={(e) => {
+                          setDraggedSectionId(section.id);
+                          e.dataTransfer.effectAllowed = 'move';
+                          e.dataTransfer.setData('text/plain', section.id);
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          if (section.id !== draggedSectionId) {
+                            setDragOverSectionId(section.id);
+                          }
+                        }}
+                        onDragLeave={() => {
+                          setDragOverSectionId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (draggedSectionId && draggedSectionId !== section.id) {
+                            reorderSections(draggedSectionId, section.id);
+                          }
+                          setDraggedSectionId(null);
+                          setDragOverSectionId(null);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedSectionId(null);
+                          setDragOverSectionId(null);
+                        }}
                         className={cn(
                           'w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 group border-2 border-[hsl(var(--border))]',
                           activeSection === section.id
                             ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[4px_4px_0_rgba(29,41,57,0.12)]'
-                            : 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                            : 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]',
+                          draggedSectionId === section.id && 'opacity-50 cursor-grabbing',
+                          dragOverSectionId === section.id && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10'
                         )}
                       >
                         <div className="flex items-center gap-2">
+                          <div
+                            className="cursor-grab active:cursor-grabbing touch-manipulation flex-shrink-0"
+                            draggable={false}
+                            onTouchStart={(e) => {
+                              // Prevent drag when touching grip icon
+                              e.stopPropagation();
+                            }}
+                            title="Drag to reorder"
+                          >
+                            <GripVertical className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                          </div>
                           <div
                             className={cn(
                               'w-2 h-2 rounded-full flex-shrink-0',
@@ -2009,31 +2129,56 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                 />
                               ) : (
                                 <span 
-                                  className="cursor-pointer px-2 py-1 rounded font-semibold block whitespace-nowrap overflow-hidden"
+                                  className="cursor-pointer px-2 py-1 rounded font-semibold block whitespace-nowrap overflow-hidden touch-manipulation"
                                   onDoubleClick={() => {
                                     setEditingSectionId(section.id);
                                     setEditingTitle(section.title);
                                   }}
-                                  title={section.title}
+                                  onTouchEnd={(e) => {
+                                    // Handle double tap on mobile
+                                    const now = Date.now();
+                                    const lastTap = (e.currentTarget as any).lastTap || 0;
+                                    const timeSinceLastTap = now - lastTap;
+                                    
+                                    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+                                      // Double tap detected
+                                      e.preventDefault();
+                                      setEditingSectionId(section.id);
+                                      setEditingTitle(section.title);
+                                    }
+                                    (e.currentTarget as any).lastTap = now;
+                                  }}
+                                  title={`${section.title} - Double tap to edit`}
                                 >
                                   {section.title}
                                 </span>
                               )}
                             </button>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 opacity-100 md:opacity-0 transition-opacity flex-shrink-0">
                               <button
-                                onClick={() => {
+                                onTouchStart={(e) => {
+                                  // Prevent triggering onClick when tapping edit button
+                                  e.stopPropagation();
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setEditingSectionId(section.id);
                                   setEditingTitle(section.title);
                                 }}
-                                className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] rounded transition-colors"
-                                title="Edit section name"
+                                className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] rounded transition-colors touch-manipulation"
+                                title="Edit section name (double tap to edit)"
                               >
                                 <Edit3 className="h-3 w-3" />
                               </button>
                               <button
-                                onClick={() => setSectionToDelete(section.id)}
-                                className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors"
+                                onTouchStart={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSectionToDelete(section.id);
+                                }}
+                                className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] hover:text-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors touch-manipulation"
                                 title="Delete section"
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -2146,6 +2291,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             {/* Mobile Tools Drawer */}
             <MobileToolsDrawer>
               <div className="space-y-6">
+                {/* Desktop Experience Note - Tools Drawer */}
+                {showDesktopNoteTools && (
+                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-[10px] uppercase tracking-[0.18em] leading-relaxed flex-1">
+                        💡 For the best experience, use Akọ̀wé on desktop
+                      </p>
+                      <button
+                        onClick={() => {
+                          setShowDesktopNoteTools(false);
+                          localStorage.setItem('akowe-desktop-note-tools-dismissed', 'true');
+                        }}
+                        className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
+                        aria-label="Dismiss"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Mobile Sections Panel */}
                 <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
                   <div className="p-4 border-b-2 border-[hsl(var(--border-strong))] flex items-center justify-between">
@@ -2161,17 +2327,53 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <div className="p-4">
                     <div className="space-y-1">
                       {project.sections?.map((section) => (
-                        <button
+                        <div
                           key={section.id}
-                          onClick={() => setActiveSection(section.id)}
+                          draggable
+                          onDragStart={(e) => {
+                            setDraggedSectionId(section.id);
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', section.id);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                            if (section.id !== draggedSectionId) {
+                              setDragOverSectionId(section.id);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            setDragOverSectionId(null);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            if (draggedSectionId && draggedSectionId !== section.id) {
+                              reorderSections(draggedSectionId, section.id);
+                            }
+                            setDraggedSectionId(null);
+                            setDragOverSectionId(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedSectionId(null);
+                            setDragOverSectionId(null);
+                          }}
                           className={cn(
-                            'w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 border-2 border-[hsl(var(--border))] text-left',
+                            'w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 border-2 border-[hsl(var(--border))]',
                             activeSection === section.id
                               ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))]'
-                              : 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]'
+                              : 'bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]',
+                            draggedSectionId === section.id && 'opacity-50',
+                            dragOverSectionId === section.id && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10'
                           )}
                         >
                           <div className="flex items-center gap-2">
+                            <div
+                              className="cursor-grab active:cursor-grabbing touch-manipulation flex-shrink-0"
+                              draggable={false}
+                              title="Drag to reorder"
+                            >
+                              <GripVertical className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                            </div>
                             <div
                               className={cn(
                                 'w-2 h-2 rounded-full flex-shrink-0',
@@ -2180,9 +2382,88 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                                   : 'bg-[hsl(var(--border-strong))]'
                               )}
                             />
-                            <span className="font-semibold truncate">{section.title}</span>
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {editingSectionId === section.id ? (
+                                <input
+                                  type="text"
+                                  value={editingTitle}
+                                  onChange={(e) => setEditingTitle(e.target.value)}
+                                  onBlur={() => {
+                                    if (editingTitle.trim()) {
+                                      updateSectionTitle(section.id, editingTitle);
+                                    } else {
+                                      setEditingSectionId(null);
+                                    }
+                                  }}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && editingTitle.trim()) {
+                                      updateSectionTitle(section.id, editingTitle);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingSectionId(null);
+                                      setEditingTitle(section.title);
+                                    }
+                                  }}
+                                  className="bg-transparent border-none outline-none w-full text-sm font-medium"
+                                  autoFocus
+                                  style={{ minWidth: '100px' }}
+                                />
+                              ) : (
+                                <button
+                                  onClick={() => setActiveSection(section.id)}
+                                  onTouchEnd={(e) => {
+                                    // Handle double tap on mobile
+                                    const now = Date.now();
+                                    const lastTap = (e.currentTarget as any).lastTap || 0;
+                                    const timeSinceLastTap = now - lastTap;
+                                    
+                                    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+                                      // Double tap detected
+                                      e.preventDefault();
+                                      setEditingSectionId(section.id);
+                                      setEditingTitle(section.title);
+                                      return;
+                                    }
+                                    (e.currentTarget as any).lastTap = now;
+                                  }}
+                                  className="flex-1 text-left min-w-0 touch-manipulation"
+                                >
+                                  <span className="font-semibold truncate block">{section.title}</span>
+                                </button>
+                              )}
+                            </div>
+                            {editingSectionId !== section.id && (
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                  onTouchStart={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingSectionId(section.id);
+                                    setEditingTitle(section.title);
+                                  }}
+                                  className="p-1.5 border border-transparent active:bg-[hsl(var(--accent))] active:text-[hsl(var(--accent-foreground))] rounded transition-colors touch-manipulation"
+                                  title="Edit section name"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onTouchStart={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSectionToDelete(section.id);
+                                  }}
+                                  className="p-1.5 border border-transparent active:bg-[hsl(var(--accent))] active:text-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors touch-manipulation"
+                                  title="Delete section"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -2195,6 +2476,18 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">Research & quality</p>
                   </div>
                   <div className="p-4 space-y-2">
+                    <button 
+                      onClick={() => setIsAIDrawerOpen(true)}
+                      className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-4 w-4" />
+                        <span className="font-semibold">AI Assistant</span>
+                      </div>
+                    </button>
+                    
+                    <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
+                    
                     <button 
                       onClick={() => discoverCitations()}
                       className={cn(
@@ -2260,29 +2553,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <span className="font-semibold">Export Project</span>
                       </div>
                     </button>
-                    
-                    <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
-                    
-                    <button 
-                      onClick={() => setIsAIDrawerOpen(true)}
-                      className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Bot className="h-4 w-4" />
-                        <span className="font-semibold">AI Assistant</span>
-                      </div>
-                    </button>
                   </div>
                 </div>
               </div>
             </MobileToolsDrawer>
 
             {/* Mobile Floating Tools Button */}
-            <MobileProjectToolsButton />
+            <MobileProjectToolsButton sectionCount={project?.sections?.length || 0} />
 
             {/* Right Column - Editor */}
             <div className="col-span-12 md:col-span-8 lg:col-span-9 space-y-4 md:space-y-6">
-              {activeS && (
+              {activeS ? (
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                   <div className="p-4 md:p-6 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2731,8 +3012,73 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               />
                     </div>
                   </div>
-                  </div>
-            )}
+                </div>
+              ) : (
+                // Empty state - no section selected or no sections exist
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] p-6 md:p-8 lg:p-10">
+                  {project?.sections && project.sections.length > 0 ? (
+                    // Has sections but none selected
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center bg-[hsl(var(--surface-muted))]">
+                        <FileText className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold uppercase tracking-[0.12em]">
+                          Select a Section
+                        </h3>
+                        <p className="text-sm uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
+                          Choose a section from the sidebar to start writing
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    // No sections exist - show guidance
+                    <div className="text-center space-y-6">
+                      <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center bg-[hsl(var(--surface-muted))]">
+                        <FileText className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
+                      </div>
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-semibold uppercase tracking-[0.12em]">
+                          No Sections Yet
+                        </h3>
+                        <p className="text-sm uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))] max-w-md mx-auto">
+                          Get started by adding sections to organize your research
+                        </p>
+                      </div>
+                      {/* Mobile-specific guidance */}
+                      <div className="md:hidden border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] p-4 space-y-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
+                            <Bot className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-semibold uppercase tracking-[0.12em] mb-1">
+                              Access Sections & Tools
+                            </h4>
+                            <p className="text-[10px] uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))] leading-relaxed">
+                              Tap the <span className="font-semibold text-[hsl(var(--foreground))]">Tools</span> button in the bottom-right corner to add sections, use AI assistant, and access research tools.
+                            </p>
+                          </div>
+                        </div>
+                        {/* Visual arrow pointing to button */}
+                        <div className="flex justify-end pr-4">
+                          <div className="text-[hsl(var(--muted-foreground))] animate-bounce">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M7 17L17 7M17 7H7M17 7V17" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Desktop guidance */}
+                      <div className="hidden md:block">
+                        <p className="text-xs uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
+                          Use the sections panel on the left to add and manage sections
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Writing Progress */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
@@ -2832,6 +3178,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
             </div>
+
+          {/* Desktop Experience Note - AI Assistant Panel (Mobile Only) */}
+          {isMobile && showDesktopNoteAI && (
+            <div className="md:hidden border-b-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-3">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-[10px] uppercase tracking-[0.18em] leading-relaxed flex-1">
+                  💡 For the best experience, use Akọ̀wé on desktop
+                </p>
+                <button
+                  onClick={() => {
+                    setShowDesktopNoteAI(false);
+                    localStorage.setItem('akowe-desktop-note-ai-dismissed', 'true');
+                  }}
+                  className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Chat Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[hsl(var(--surface-muted))]">
@@ -2984,6 +3351,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
               ))}
+              </div>
+            )}
                 
               {aiIsLoading && (
                 <div className="flex justify-start">
@@ -3011,50 +3380,46 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
               )}
-            </div>
-            )}
           </div>
 
-          {/* Input Area */}
           <div className="border-t-[3px] border-[hsl(var(--border-strong))] p-4 space-y-3 bg-[hsl(var(--surface))]">
-            {(session?.user as any)?.plan === 'free' && (
-              <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
-                <span>Free plan: 1,500 words/day</span>
+              {(session?.user as any)?.plan === 'free' && (
+                <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
+                  <span>Free plan: 1,500 words/day</span>
                   <button 
                     onClick={() => router.push('/settings')}
-                  className="underline underline-offset-4"
+                    className="underline underline-offset-4"
                   >
                     Upgrade
                   </button>
-              </div>
-            )}
+                </div>
+              )}
 
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
+              <div className="flex gap-2">
+                <div className="flex-1 relative">
                   <input
                     type="text"
                     value={aiInput}
                     onChange={(e) => setAiInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAIWrite(activeS?.id || '')}
-                  placeholder={`Ask about "${activeS?.title || 'Introduction'}"...`}
-                  className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
-                />
-                <button
-                  onClick={() => handleAIWrite(activeS?.id || '')}
-                  disabled={aiIsLoading || !aiInput.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
-                >
-                <Send className="h-4 w-4" />
-                </button>
-            </div>
-            </div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] px-1">
-              Press Enter to send, Shift+Enter for new line
-            </p>
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAIWrite(activeS?.id || '')}
+                    placeholder={`Ask about "${activeS?.title || 'Introduction'}"...`}
+                    className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
+                  />
+                  <button
+                    onClick={() => handleAIWrite(activeS?.id || '')}
+                    disabled={aiIsLoading || !aiInput.trim()}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] px-1">
+                Press Enter to send, Shift+Enter for new line
+              </p>
           </div>
         </div>
       )}
-
 
       {/* Citation Discovery Modal */}
       {showCitationDiscovery && (

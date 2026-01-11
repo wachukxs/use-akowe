@@ -241,6 +241,22 @@ body {
   }
 }
 
+/* Touch manipulation for better mobile interactions */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Drag and drop styles */
+[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
 /* Safe area padding for mobile devices with notches */
 @supports (padding: max(0px)) {
   .safe-area-padding {

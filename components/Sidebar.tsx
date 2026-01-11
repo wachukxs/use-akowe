@@ -92,22 +92,129 @@ export function MobileMenuButton() {
   );
 }
 
-export function MobileProjectToolsButton({ onClick }: { onClick?: () => void }) {
+export function MobileProjectToolsButton({ 
+  onClick, 
+  sectionCount 
+}: { 
+  onClick?: () => void;
+  sectionCount?: number;
+}) {
   const { isMobile, setShowProjectTools } = useSidebar();
+  const [hasSeenTooltip, setHasSeenTooltip] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [interactionCount, setInteractionCount] = useState(0);
+  
+  useEffect(() => {
+    // Check if user has seen tooltip before
+    const seen = localStorage.getItem('akowe-mobile-tools-seen');
+    const count = parseInt(localStorage.getItem('akowe-mobile-tools-interactions') || '0', 10);
+    
+    setHasSeenTooltip(!!seen);
+    setInteractionCount(count);
+    
+    // Show tooltip on first visit (after 1 second delay)
+    if (!seen) {
+      const timer = setTimeout(() => {
+        setShowTooltip(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+  
+  const handleClick = () => {
+    setShowProjectTools(true);
+    onClick?.();
+    
+    // Track interaction
+    const newCount = interactionCount + 1;
+    setInteractionCount(newCount);
+    localStorage.setItem('akowe-mobile-tools-interactions', newCount.toString());
+    
+    // Mark as seen after first interaction
+    if (!hasSeenTooltip) {
+      localStorage.setItem('akowe-mobile-tools-seen', 'true');
+      setHasSeenTooltip(true);
+      setShowTooltip(false);
+    }
+  };
+  
+  const dismissTooltip = () => {
+    localStorage.setItem('akowe-mobile-tools-seen', 'true');
+    setHasSeenTooltip(true);
+    setShowTooltip(false);
+  };
   
   if (!isMobile) return null;
   
+  const shouldPulse = !hasSeenTooltip && interactionCount < 3;
+  const hasSections = sectionCount !== undefined && sectionCount > 0;
+  
   return (
-    <button
-      onClick={() => {
-        setShowProjectTools(true);
-        onClick?.();
-      }}
-      className="fixed bottom-4 right-4 z-40 p-3 bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-2 border-[hsl(var(--border-strong))] rounded-full shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden cursor-pointer"
-      aria-label="Open tools"
-    >
-      <Bot size={24} />
-    </button>
+    <>
+      <button
+        onClick={handleClick}
+        className={cn(
+          "fixed bottom-4 right-4 z-40 flex items-center gap-2 px-4 py-3 bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-2 border-[hsl(var(--border-strong))] rounded-full shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden cursor-pointer transition-all duration-300 touch-manipulation",
+          shouldPulse && "animate-pulse",
+          hasSections && "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+        )}
+        aria-label="Open tools"
+      >
+        <Bot size={20} className="flex-shrink-0" />
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] whitespace-nowrap">
+          Tools
+        </span>
+        {hasSections && sectionCount !== undefined && (
+          <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-[hsl(var(--primary-foreground))] text-[hsl(var(--primary))] rounded-full">
+            {sectionCount}
+          </span>
+        )}
+      </button>
+      
+      {/* First-time tooltip */}
+      {showTooltip && !hasSeenTooltip && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/30 z-50 md:hidden"
+            onClick={dismissTooltip}
+          />
+          <div className="fixed bottom-24 right-4 z-50 md:hidden max-w-[280px] animate-in slide-in-from-bottom duration-300">
+            <div className="bg-[hsl(var(--surface))] border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
+                  <Bot className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.12em] mb-1">
+                    Access Sections & Tools
+                  </h3>
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))] leading-relaxed">
+                    Tap the button below to navigate sections, use AI assistant, and access research tools.
+                  </p>
+                </div>
+                <button
+                  onClick={dismissTooltip}
+                  className="p-1 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] flex-shrink-0"
+                  aria-label="Dismiss"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="mt-3 pt-3 border-t-2 border-[hsl(var(--border))]">
+                <button
+                  onClick={dismissTooltip}
+                  className="w-full text-[10px] font-semibold uppercase tracking-[0.12em] text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]/80 transition-colors"
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+            {/* Arrow pointing to button */}
+            <div className="absolute bottom-[-8px] right-6 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-[hsl(var(--border-strong))]"></div>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
