@@ -57,7 +57,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { message, projectId, currentSectionContent, sectionTitle, insertionMode = 'integrate' } = body;
+    const { message, projectId, currentSectionContent: rawSectionContent, sectionTitle, insertionMode = 'integrate' } = body;
+    
+    // Truncate currentSectionContent to avoid token limit issues (approx 4000 chars ~ 1000 tokens)
+    const MAX_SECTION_CONTENT_LENGTH = 4000;
+    const currentSectionContent = rawSectionContent && rawSectionContent.length > MAX_SECTION_CONTENT_LENGTH
+      ? rawSectionContent.substring(0, MAX_SECTION_CONTENT_LENGTH) + '\n\n[... content truncated for brevity ...]'
+      : rawSectionContent;
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
@@ -97,14 +103,20 @@ export async function POST(request: NextRequest) {
       }).lean();
 
       if (project) {
-        // Build comprehensive project context
-        const sectionsContent = project.sections?.map((section: any) => 
-          `${section.title}: ${section.content || '[Empty]'}`
-        ).join('\n\n') || '';
+        // Build limited project context to avoid token limit issues
+        // Only include section titles (not full content) to keep context manageable
+        const sectionsList = project.sections?.map((section: any) => 
+          `- ${section.title}${section.content?.trim() ? ' [has content]' : ' [empty]'}`
+        ).join('\n') || '';
 
-        const citationsList = project.citations?.map((citation: any) => 
+        // Limit citations to first 10
+        const citationsList = project.citations?.slice(0, 10).map((citation: any) => 
           `${citation.title} (${citation.authors}) - ${citation.year}`
         ).join('\n') || '';
+        
+        const moreCitations = (project.citations?.length || 0) > 10 
+          ? `\n... and ${project.citations.length - 10} more citations` 
+          : '';
 
         projectContext = `
 PROJECT CONTEXT:
@@ -117,11 +129,11 @@ PROJECT CONTEXT:
 - Current Word Count: ${project.wordCount || 0}
 - Status: ${project.status}
 
-CURRENT CONTENT:
-${sectionsContent}
+SECTIONS:
+${sectionsList}
 
-CITATIONS:
-${citationsList}
+CITATIONS (${project.citations?.length || 0} total):
+${citationsList}${moreCitations}
 
 WRITING PROGRESS:
 - Completion: ${Math.round(((project.wordCount || 0) / project.targetWordCount) * 100)}%
