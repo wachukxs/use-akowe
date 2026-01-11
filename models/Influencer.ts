@@ -36,9 +36,7 @@ const InfluencerSchema = new Schema<IInfluencer>(
   }
 );
 
-// Indexes for efficient lookups
-InfluencerSchema.index({ referralCode: 1 });
-InfluencerSchema.index({ email: 1 });
+// Note: referralCode and email indexes are already created by unique: true in the schema definition
 
 const Influencer: Model<IInfluencer> = 
   mongoose.models.Influencer || mongoose.model<IInfluencer>('Influencer', InfluencerSchema);

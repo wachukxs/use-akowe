@@ -23,7 +23,6 @@ const UserSchema = new Schema<IUser>(
       required: true,
       unique: true,
       lowercase: true,
-      index: true,
     },
     password: {
       type: String,
@@ -92,7 +91,7 @@ UserSchema.index({ createdAt: 1 });
 UserSchema.index({ plan: 1 });
 UserSchema.index({ stripeSubscriptionId: 1 });
 UserSchema.index({ createdAt: -1 }); // For recent users query
-UserSchema.index({ referralCode: 1 }); // For referral lookups
+// Note: referralCode index is already created by unique: true in the schema definition
 UserSchema.index({ referredBy: 1 }); // For counting referrals per user
 UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer
 
