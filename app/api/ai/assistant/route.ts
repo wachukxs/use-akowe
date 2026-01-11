@@ -12,19 +12,166 @@ const openai = new OpenAI({
 });
 
 /**
- * Detects the user's intent from their message
+ * Analyzes the state of section content
+ * Returns: 'empty' | 'template' | 'has_content'
+ */
+function analyzeSectionState(content: string | null | undefined): 'empty' | 'template' | 'has_content' {
+  if (!content || content.trim().length === 0) {
+    return 'empty';
+  }
+
+  const contentLower = content.toLowerCase();
+  
+  // Check for template/placeholder markers
+  const templateMarkers = [
+    'begin your',
+    'start writing below',
+    'getting started',
+    'this is where you\'ll',
+    'detail your',
+    'present your',
+    'this section demonstrates',
+    'what to include',
+    'writing tips',
+    'comprehensive review',
+    'organization strategies',
+    'this is where you\'ll wrap up'
+  ];
+
+  const isTemplate = templateMarkers.some(marker => contentLower.includes(marker));
+  
+  if (isTemplate) {
+    return 'template';
+  }
+  
+  return 'has_content';
+}
+
+/**
+ * Builds a context summary that helps understand the user's situation
+ * Handles edge cases gracefully (missing project, malformed data, etc.)
+ */
+function buildContextSummary(
+  project: any,
+  currentSectionContent: string | null | undefined,
+  sectionTitle: string | null | undefined
+) {
+  // Handle edge cases: null/undefined project
+  if (!project) {
+    return {
+      sectionState: analyzeSectionState(currentSectionContent),
+      sectionTitle: sectionTitle || null,
+      topicAvailable: false,
+      topic: null,
+      projectType: null,
+      projectMethodology: null,
+      projectCitationStyle: null,
+      hasExistingContent: false,
+      isTemplate: false,
+      isEmpty: true,
+      currentWordCount: 0,
+      targetWordCount: 0,
+    };
+  }
+
+  const sectionState = analyzeSectionState(currentSectionContent);
+  
+  // Safely extract topic with validation
+  const topic = project.topic;
+  const topicAvailable = !!topic && typeof topic === 'string' && topic.trim().length > 0;
+  const safeTopic = topicAvailable ? topic.trim() : null;
+  
+  // Safely extract other project fields with fallbacks
+  return {
+    sectionState,
+    sectionTitle: (sectionTitle && typeof sectionTitle === 'string') ? sectionTitle.trim() : null,
+    topicAvailable,
+    topic: safeTopic,
+    projectType: project.type || null,
+    projectMethodology: project.methodology || null,
+    projectCitationStyle: project.citationStyle || null,
+    hasExistingContent: sectionState === 'has_content',
+    isTemplate: sectionState === 'template',
+    isEmpty: sectionState === 'empty',
+    currentWordCount: typeof project.wordCount === 'number' ? project.wordCount : 0,
+    targetWordCount: typeof project.targetWordCount === 'number' ? project.targetWordCount : 0,
+  };
+}
+
+/**
+ * Validates response quality and content
+ * Returns validation result with quality flags
+ */
+function validateResponse(response: string, intent: 'chat' | 'integrate'): {
+  isValid: boolean;
+  isEmpty: boolean;
+  isTooShort: boolean;
+  hasClarificationRequest: boolean;
+  cleanedResponse?: string;
+} {
+  const trimmed = response.trim();
+  
+  if (!trimmed || trimmed.length === 0) {
+    return { isValid: false, isEmpty: true, isTooShort: false, hasClarificationRequest: false };
+  }
+
+  // Check for clarification requests (not valid responses)
+  const clarificationPatterns = [
+    /could you please (specify|clarify|provide)/i,
+    /which (section|part|topic)/i,
+    /what do you mean/i,
+    /can you (tell|explain) (me )?more/i,
+  ];
+  
+  const hasClarificationRequest = clarificationPatterns.some(pattern => pattern.test(trimmed));
+
+  // Check if too short (likely incomplete response)
+  const isTooShort = intent === 'integrate' ? trimmed.length < 20 : trimmed.length < 10;
+
+  const isValid = !hasClarificationRequest && !isTooShort;
+
+  return {
+    isValid,
+    isEmpty: false,
+    isTooShort,
+    hasClarificationRequest,
+    cleanedResponse: isValid ? trimmed : undefined,
+  };
+}
+
+/**
+ * Detects the user's intent from their message, optionally using context
  * Returns: 'chat' (for explanations, analysis) or 'integrate' (for modifications)
  */
-async function detectIntent(message: string): Promise<'chat' | 'integrate'> {
+async function detectIntent(
+  message: string,
+  contextSummary?: {
+    sectionState: 'empty' | 'template' | 'has_content';
+    topicAvailable: boolean;
+    sectionTitle: string | null;
+  }
+): Promise<'chat' | 'integrate'> {
+  // Build context-aware prompt if context is available
+  const contextInfo = contextSummary
+    ? `**CONTEXT:** Section: ${contextSummary.sectionTitle || 'Current'} (${contextSummary.sectionState})${contextSummary.topicAvailable ? ' | Topic available' : ''}
+
+Context-based rules:
+- Empty/template + "how to start" → INTEGRATE | Has content + "how to start" → CHAT
+- Empty/template + "what's the best way" → INTEGRATE | Has content + "what's the best way" → CHAT
+
+` : '';
+
   const intentDetectionPrompt = `Analyze this user request and classify it into one of two categories:
 
-1. **CHAT**: User wants explanation, analysis, critique, feedback, or discussion
+1. **CHAT**: User wants explanation, analysis, critique, feedback, or discussion (text response, not inserted)
    - Examples: "explain", "what does this mean", "analyze", "review", "critique", "feedback", "how is this", "is this good", "summarize"
+   - User wants guidance/advice but NOT content to insert
    
-2. **INTEGRATE**: User wants modification, improvement, or content generation
-   - Examples: "improve", "fix", "make better", "add", "expand", "write", "create", "generate", "enhance", "refine"
+2. **INTEGRATE**: User wants modification, improvement, or content generation (content to insert)
+   - Examples: "improve", "fix", "make better", "add", "expand", "write", "create", "generate", "enhance", "refine", "start", "begin"
+   - User wants content generated/modified that should be inserted into the section
 
-User request: "${message}"
+${contextInfo}User request: "${message}"
 
 Respond with ONLY one word: "CHAT" or "INTEGRATE"`;
 
@@ -32,7 +179,7 @@ Respond with ONLY one word: "CHAT" or "INTEGRATE"`;
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You are an intent classifier. Respond with only one word.' },
+        { role: 'system', content: 'You are an intent classifier. Respond with only one word. Use context when provided to make better decisions.' },
         { role: 'user', content: intentDetectionPrompt }
       ],
       temperature: 0,
@@ -145,13 +292,57 @@ WRITING PROGRESS:
     // Determine which model to use based on plan
     const model = user.plan === 'free' ? 'gpt-3.5-turbo' : 'gpt-4o-mini';
 
-    // Detect user intent
-    const detectedIntent = await detectIntent(message);
+    // Build context summary for intelligent understanding
+    const contextSummary = buildContextSummary(project, currentSectionContent, sectionTitle);
+
+    // Detect user intent with context awareness
+    const detectedIntent = await detectIntent(message, {
+      sectionState: contextSummary.sectionState,
+      topicAvailable: contextSummary.topicAvailable,
+      sectionTitle: contextSummary.sectionTitle,
+    });
    // If intent is 'chat', use simpler prompt focused on explanation/analysis
     if (detectedIntent === 'chat') {
+      // Build context-aware chat prompt
+      const contextInfo = contextSummary.topicAvailable 
+        ? `**CONTEXT AWARENESS:**
+- The user is working on: "${contextSummary.topic}"
+- Section: ${contextSummary.sectionTitle || 'Current Section'} (${contextSummary.sectionState})
+- Project Type: ${contextSummary.projectType || 'Research project'}
+${contextSummary.projectMethodology ? `- Methodology: ${contextSummary.projectMethodology}` : ''}
+${contextSummary.projectCitationStyle ? `- Citation Style: ${contextSummary.projectCitationStyle}` : ''}
+
+**CRITICAL INSTRUCTIONS**:
+1. When the user asks about their topic or how to start/write something, EXPLICITLY reference their specific topic ("${contextSummary.topic}") in your response
+2. Provide topic-specific examples, hooks, data points, and strategies rather than generic advice
+3. If the user says "you know my topic" or similar, demonstrate that you know it by using "${contextSummary.topic}" explicitly
+4. Make your advice directly relevant to "${contextSummary.topic}" - reference specific aspects, challenges, or opportunities related to this topic
+
+${contextSummary.isTemplate ? `**SECTION STATE: Template Content**
+- The current section has template/placeholder content
+- The user is asking for advice on how to start writing substantive content
+- Provide specific, actionable guidance for their topic "${contextSummary.topic}"
+- Give them concrete examples they can use for "${contextSummary.topic}"
+
+` : contextSummary.hasExistingContent
+      ? `**SECTION STATE: Has Existing Content**
+- The section already has substantive content
+- The user is asking for advice on improving, expanding, or understanding their existing work
+- Reference their topic "${contextSummary.topic}" when giving suggestions
+- Make suggestions that are relevant to their specific research area
+
+` : contextSummary.isEmpty
+      ? `**SECTION STATE: Empty Section**
+- The section is empty
+- The user is asking for guidance on how to begin writing
+- Provide specific advice for starting their work on "${contextSummary.topic}"
+- Give topic-specific examples and strategies they can use
+
+` : ''}` : '';
+
       const chatSystemPrompt = `You are Akowe, a senior academic editor and writing mentor. The user is asking for explanation, analysis, or feedback about their writing.
 
-**CRITICAL: RESPONSE LENGTH CONTROL**
+${contextInfo}**CRITICAL: RESPONSE LENGTH CONTROL**
 You must determine the appropriate response length based on the user's request. Be concise and scannable. Break down your thinking:
 
 1. **QUICK ANSWERS** (20-50 words): User asks simple, direct questions
@@ -199,7 +390,21 @@ Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is importa
         max_tokens: 600, // Reduced from 800 to encourage conciseness
       });
 
-      const chatResponse = chatCompletion.choices[0]?.message?.content || '';
+      let chatResponse = chatCompletion.choices[0]?.message?.content || '';
+      
+      // Validate response quality
+      const validation = validateResponse(chatResponse, 'chat');
+      if (!validation.isValid && !validation.isEmpty) {
+        // If response is invalid (too short, clarification request), log but still return it
+        console.warn('Chat response quality warning:', {
+          isEmpty: validation.isEmpty,
+          isTooShort: validation.isTooShort,
+          hasClarificationRequest: validation.hasClarificationRequest,
+        });
+      }
+      
+      // Use cleaned response if available
+      chatResponse = validation.cleanedResponse || chatResponse;
       const wordCount = countWords(chatResponse);
 
       // Track usage
@@ -222,9 +427,66 @@ Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is importa
 
     // Continue with existing integration flow for 'integrate' intent
     // Create context-aware system prompt
+    const topicGuidance = contextSummary.topicAvailable 
+      ? `**TOPIC-AWARE CONTENT GENERATION:**
+- User's Research Topic: "${contextSummary.topic}"
+- Project Type: ${contextSummary.projectType || 'Research project'}
+${contextSummary.projectMethodology ? `- Methodology: ${contextSummary.projectMethodology}` : ''}
+${contextSummary.projectCitationStyle ? `- Citation Style: ${contextSummary.projectCitationStyle}` : ''}
+
+**CRITICAL REQUIREMENTS**:
+1. When generating content, EXPLICITLY use the topic "${contextSummary.topic}" in the generated text
+2. Provide topic-specific examples, data points, citations, and strategies related to "${contextSummary.topic}"
+3. If user says "you know my topic" or "what's the best way to start", generate content that directly addresses "${contextSummary.topic}"
+4. Create content that is specifically tailored to "${contextSummary.topic}" - use concrete examples and references related to this topic
+5. Avoid generic academic content - make it specific to "${contextSummary.topic}"
+
+**TOPIC-SPECIFIC CONTENT EXAMPLES**:
+- If topic is "Impact of AI on Climate Change", generate content about AI applications in climate science, not generic AI or generic climate content
+- If topic is "Renewable Energy Adoption", generate content about solar/wind/battery technologies, not generic energy content
+- Always ground your content in the specific domain and context of "${contextSummary.topic}"
+
+` : '';
+
+    const sectionStateGuidance = contextSummary.isTemplate
+      ? `**SECTION STATE: Template Content Detected**
+- The section currently has template/placeholder content that should be REPLACED
+- User wants substantive, topic-specific content to replace the template
+- Generate NEW content that:
+  ${contextSummary.topicAvailable ? `1. Explicitly uses the topic "${contextSummary.topic}"` : '1. Is substantive and research-focused'}
+  2. Replaces all template/placeholder text
+  3. Creates content suitable for the "${contextSummary.sectionTitle || 'current section'}" section
+  ${contextSummary.projectMethodology ? `4. Follows ${contextSummary.projectMethodology} methodology approach` : ''}
+  5. Is ready for immediate use (no template instructions)
+${contextSummary.topicAvailable ? `
+**IMPORTANT**: Start the content with a concrete, topic-specific opening related to "${contextSummary.topic}". Do not use generic openings.` : ''}
+
+` : contextSummary.isEmpty
+      ? `**SECTION STATE: Empty Section**
+- The section is completely empty
+- User wants to CREATE new content from scratch
+- Generate substantive, academic content that:
+  ${contextSummary.topicAvailable ? `1. Explicitly addresses the topic "${contextSummary.topic}"` : '1. Is appropriate for academic writing'}
+  2. Is suitable for the "${contextSummary.sectionTitle || 'current section'}" section
+  ${contextSummary.projectMethodology ? `3. Follows ${contextSummary.projectMethodology} methodology approach` : ''}
+  4. Creates a strong foundation for the section
+${contextSummary.topicAvailable ? `
+**IMPORTANT**: Create content that immediately engages with "${contextSummary.topic}" - use specific examples and concrete details related to this topic.` : ''}
+
+` : `**SECTION STATE: Has Existing Content**
+- The section already has substantive content (${contextSummary.sectionTitle || 'current section'})
+- Analyze user intent carefully:
+  - EXPAND: User wants to add to existing content → Keep existing content exactly as-is, add new content after it
+  - IMPROVE: User wants to enhance existing content → Refine and strengthen what's there while keeping core ideas
+  - REPLACE: User explicitly wants to replace everything → Provide complete new content
+${contextSummary.topicAvailable ? `
+- When expanding/improving, ensure new content relates to "${contextSummary.topic}" and integrates well with existing content` : ''}
+
+`;
+
     const systemPrompt = `You are Akowe, a senior academic editor and writing mentor with 15+ years of experience. You provide deeply insightful, specific, and actionable feedback - not generic advice.
 
-${currentSectionContent && insertionMode === 'integrate' ? `
+${topicGuidance}${sectionStateGuidance}${currentSectionContent && insertionMode === 'integrate' ? `
         🚨 CRITICAL: You are currently working on the "${sectionTitle || 'Current Section'}" section. The user is asking you to work with the content that is ALREADY in this section. Do NOT ask clarifying questions - work with what's provided and give specific, actionable responses.
         
         🚨 ABSOLUTE RULE: Analyze the user's intent logically. If they want to ADD TO, EXPAND, BUILD ON, ENHANCE, IMPROVE, DEVELOP, ELABORATE, EXTEND, or any similar concept with existing content, you MUST keep the existing content exactly as it is and add new content after it. Only replace existing content if they explicitly want a complete rewrite or replacement.
@@ -370,29 +632,11 @@ User: "Improve the flow" + Existing: "The results were good. The methodology was
 - **REMEMBER**: The user wants to BUILD ON what exists, not replace it. Preserve their work and enhance it.
 ` : ''}
 
-YOUR ROLE:
-- Analyze their actual writing with specific observations
-- Point out exact issues with concrete examples from their text
-- Suggest precise improvements with before/after comparisons
-- Challenge weak arguments and identify logical gaps
-- Help strengthen structure, flow, and academic rigor
+ROLE: Provide specific, actionable feedback with concrete examples. Reference exact text, show before/after improvements, identify logic gaps.
 
-RESPONSE QUALITY STANDARDS:
-- ALWAYS reference specific parts of their content when giving feedback
-- Give 3-5 concrete, actionable suggestions (not vague advice)
-- If critiquing, show exactly what to change and why
-- If generating content, make it research-quality and citation-ready
-- Be direct about weaknesses but constructive about solutions
-- Explain the "why" behind your suggestions (pedagogy matters)
+QUALITY: Reference specific content, give 3-5 actionable suggestions, show exact changes with rationale, make content research-quality and citation-ready.
 
-WHAT MAKES YOUR ADVICE VALUABLE:
-- You catch subtle issues others miss (logic gaps, weak transitions, unclear arguments)
-- You suggest specific phrasings, not just "improve this"
-- You identify missing elements (citations needed, definitions lacking, context missing)
-- You help them think like an academic, not just write like one
-- You provide editorial-level feedback, not surface suggestions
-
-AVOID THESE AI-SOUNDING WORDS AND PHRASES:
+AVOID AI-SOUNDING PHRASES:
 - "delve", "explore", "uncover", "unveil", "shed light on"
 - "Based on the information provided", "It seems like", "Looking at"
 - "I understand", "I can help", "Here's", "Let me", "I'll"
@@ -413,20 +657,7 @@ AVOID THESE AI-SOUNDING WORDS AND PHRASES:
 - "It appears that", "It seems that", "It looks like"
 - "The fact that", "The reality is that", "The truth is that"
 
-USE THESE HUMAN-SOUNDING ALTERNATIVES INSTEAD:
-- Instead of "delve into" → "examine" or "look at"
-- Instead of "explore" → "check out" or "investigate"
-- Instead of "uncover" → "find" or "discover"
-- Instead of "Furthermore" → "Also" or "Plus"
-- Instead of "It is important to note" → "Note that" or "Remember"
-- Instead of "In order to" → "To" or "For"
-- Instead of "It is evident that" → "Clearly" or "Obviously"
-- Instead of "In conclusion" → "To wrap up" or "Finally"
-- Instead of "It is crucial" → "It's important" or "You need to"
-- Instead of "It appears that" → "It looks like" or "Seems like"
-- Instead of "The fact that" → "That" or "Since"
-- Instead of "Based on" → "From" or "Using"
-- Instead of "Looking at" → "Checking" or "Reviewing"
+ALTERNATIVES: "delve into"→"examine" | "explore"→"investigate" | "uncover"→"find" | "Furthermore"→"Also" | "It is important to note"→"Note that" | "In order to"→"To" | "It is evident that"→"Clearly" | "In conclusion"→"Finally" | "It is crucial"→"It's important" | "Based on"→"From"
 
 ${projectContext ? `
 CURRENT PROJECT CONTEXT:
@@ -456,6 +687,19 @@ See the difference? Be specific, reference their text, show exact improvements.
     });
 
     let response = completion.choices[0]?.message?.content || '';
+    
+    // Validate response quality first
+    const validation = validateResponse(response, 'integrate');
+    if (!validation.isValid) {
+      console.warn('Integration response quality warning:', {
+        isEmpty: validation.isEmpty,
+        isTooShort: validation.isTooShort,
+        hasClarificationRequest: validation.hasClarificationRequest,
+      });
+      
+      // If response is invalid, use cleaned version or empty
+      response = validation.cleanedResponse || response;
+    }
     
     // Post-processing cleanup for integration mode
     if (insertionMode === 'integrate' && currentSectionContent) {
