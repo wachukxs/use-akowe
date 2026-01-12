@@ -59,33 +59,29 @@ export default function HomePage() {
           <section className="max-w-7xl mx-auto py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-6 space-y-6 sm:space-y-7">
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
-              Academic writing is hard. Your tools shouldn't make it harder.
+              Academic writing without risk or chaos.
           </h1>
               <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
-              Write papers, theses, and research documents with real sources and proper citations—all in one workspace.
+              Write theses, papers, and research with real sources, plagiarism checks, and AI that respects university policies.
           </p>
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Link href="/auth/signin">
                     <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
-                      Start writing properly
+                      Start free
                       <ArrowRight size={18} />
                     </Button>
                   </Link>
-                  {/* <Button
+                  <Button
                     variant="outline"
                     className="px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto justify-center"
-                    onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                   >
-                    Watch Demo
-                  </Button> */}
+                    See how it works
+                  </Button>
                 </div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center sm:text-left">
-                  Free to start · Built for academic integrity · Upgrade when ready
-                </p>
-                <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] text-center sm:text-left space-y-1">
-                  <span className="block">No credit card required</span>
-                  <span className="block">You own your work</span>
+                  Built for academic integrity. Not shortcuts.
                 </p>
               </div>
               {/* Trust Signals */}
@@ -110,17 +106,33 @@ export default function HomePage() {
               </div>
             </div>
             
-            {/* Early Testimonial */}
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
-              <div className="flex items-start gap-3">
-                <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-                <div>
-                  <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
-                    "Finally, a tool that understands academic writing."
-                  </p>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                    — Graduate Student
-                  </p>
+            {/* Social Proof */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-4">Trusted by serious students and researchers</h3>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
+                <div className="flex items-start gap-3">
+                  <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
+                      "Akọ̀wé helped me reduce revisions and saved at least 10 hours every month."
+                    </p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                      — PhD Candidate, Europe
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
+                <div className="flex items-start gap-3">
+                  <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
+                      "I write with peace of mind now. No last-minute Turnitin surprises."
+                    </p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                      — Masters Student, North America
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -156,168 +168,126 @@ export default function HomePage() {
         </div>
       </section>
 
-        {/* Why Akowe vs Competitors */}
+        {/* Value Strip */}
+        <section className="max-w-7xl mx-auto py-8 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="grid md:grid-cols-3 gap-6 text-center">
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.2em]">AI that cites real academic sources</h3>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.2em]">Built-in similarity checks before Turnitin</h3>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.2em]">Write, cite, and submit in one workspace</h3>
+            </div>
+          </div>
+        </section>
+
+        {/* Work The Way Students Actually Work */}
         <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-              Why researchers choose Akowe over other tools
+              Designed for real academic workflows
             </h2>
-            <p className="text-sm sm:text-base uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] max-w-3xl mx-auto">
-              Other tools do one thing well. Akowe does everything you need in one workspace.
-            </p>
           </div>
-
-          <div className="grid gap-8 lg:grid-cols-2 mb-12">
-            {/* Left: Other Tools Limitations */}
-            <div className="space-y-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--muted-foreground))]">
-                  Writing Tools (Jenni.ai, ChatGPT)
-                </h3>
-                <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>No integrated citation management</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>Separate plagiarism checker required</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>Manual citation formatting</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>Juggle multiple tabs and tools</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--muted-foreground))]">
-                  Reference Managers (Mendeley, Zotero)
-                </h3>
-                <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>No AI writing assistance</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>No built-in plagiarism detection</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>Requires browser extensions and plugins</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
-                    <span>Separate writing environment needed</span>
-                  </li>
-                </ul>
-              </div>
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <p className="text-sm uppercase tracking-[0.18em]">Start literature reviews with built-in source search</p>
             </div>
-
-            {/* Right: Akowe Advantages */}
-            <div className="border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6">
-              <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-6 text-[hsl(var(--primary))]">
-                Akowe: All-in-One Workspace
-              </h3>
-              <ul className="space-y-4 text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <div>
-                    <span className="font-semibold">AI writing + Citations + Plagiarism checks</span>
-                    <span className="block text-[hsl(var(--muted-foreground))] mt-1 text-xs normal-case">Everything in one integrated workspace</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <div>
-                    <span className="font-semibold">Real sources from academic databases</span>
-                    <span className="block text-[hsl(var(--muted-foreground))] mt-1 text-xs normal-case">OpenAlex, Crossref integration—no hallucinations</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <div>
-                    <span className="font-semibold">Auto-format citations in multiple styles</span>
-                    <span className="block text-[hsl(var(--muted-foreground))] mt-1 text-xs normal-case">APA, MLA, IEEE, Chicago—no manual formatting</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <div>
-                    <span className="font-semibold">Built-in plagiarism detection</span>
-                    <span className="block text-[hsl(var(--muted-foreground))] mt-1 text-xs normal-case">Check against academic databases before submission</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <div>
-                    <span className="font-semibold">Academic-first design</span>
-                    <span className="block text-[hsl(var(--muted-foreground))] mt-1 text-xs normal-case">Section-based editor built for papers and theses</span>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <div>
-                    <span className="font-semibold">No browser extensions or plugins</span>
-                    <span className="block text-[hsl(var(--muted-foreground))] mt-1 text-xs normal-case">Everything works natively in one platform</span>
-                  </div>
-                </li>
-              </ul>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <p className="text-sm uppercase tracking-[0.18em]">Structure thesis chapters without leaving the editor</p>
+            </div>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <p className="text-sm uppercase tracking-[0.18em]">Keep notes, drafts, and citations together</p>
+            </div>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <p className="text-sm uppercase tracking-[0.18em]">Export submission-ready DOCX or PDF</p>
             </div>
           </div>
+          <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center">
+            Akọ̀wé is the academic writing tool built for thesis writing, dissertation work, and research papers.
+          </p>
+        </section>
 
-          {/* Key Differentiator Callout */}
-          <div className="border-[4px] border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10 p-6 text-center">
-            <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))] font-semibold mb-2">
-              Save 10+ hours monthly by eliminating tool-switching
-            </p>
-            <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-              No more copying citations, switching tabs, or formatting manually
-            </p>
+        {/* Why Choose Akọ̀wé */}
+        <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+              Why researchers choose Akọ̀wé
+            </h2>
+          </div>
+
+          <div className="grid gap-6 mb-12">
+            {/* Comparison Table */}
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] overflow-hidden">
+              <div className="grid md:grid-cols-2">
+                <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-[hsl(var(--border-strong))]">
+                  <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--muted-foreground))]">
+                    Most tools
+                  </h3>
+                  <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                    <li className="flex items-start gap-3">
+                      <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                      <span>Only do one thing</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                      <span>Force you to copy and paste between apps</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                      <span>Leave you guessing about plagiarism risk</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="p-6 bg-[hsl(var(--primary))]/10">
+                  <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--primary))]">
+                    Akọ̀wé
+                  </h3>
+                  <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
+                    <li className="flex items-start gap-3">
+                      <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                      <span>One workspace for writing, citations, and integrity</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                      <span>Real academic sources</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                      <span>Pre-submission similarity safety</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
+        <section id="features" className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-              Everything you need to write better research
+              Everything you need for serious academic writing
             </h2>
             <p className="text-sm sm:text-base uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] max-w-3xl mx-auto">
-              All-in-one workspace. No juggling multiple tools.
+              Stop switching between tools. Write in one focused workspace.
             </p>
           </div>
 
-          {/* Feature 1: AI Writing Assistant */}
+          {/* Feature 1: AI Writing Support */}
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
             <div className="space-y-6">
               <div className="space-y-3">
-                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">AI Writing</span>
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">AI Writing Support</span>
                 <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                  Overcome writer's block with AI that understands academic writing
+                  Write faster. Sound scholarly. Stay original.
                 </h3>
               </div>
               <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
-                Get contextual suggestions while you write. Maintain scholarly tone. Structure sections automatically. All within your document.
+                Outline, draft, and refine inside a structured editor.
+                Get clarity suggestions, academic tone guidance, and citations tied to real sources.
               </p>
-              <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Context-aware sentence suggestions as you write</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Academic tone maintained automatically</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Section-based structure for papers and theses</span>
-                </li>
-              </ul>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
@@ -330,7 +300,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Feature 2: Citation Management */}
+          {/* Feature 2: Real Citations */}
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
             <div className="order-2 lg:order-1 border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
@@ -343,57 +313,36 @@ export default function HomePage() {
             </div>
             <div className="order-1 lg:order-2 space-y-6">
               <div className="space-y-3">
-                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">Citations</span>
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">Real Citations</span>
                 <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                  Find real academic sources in seconds, not hours
+                  Real sources. Real citations.
                 </h3>
               </div>
               <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
-                Search academic databases. Find credible papers instantly. Auto-format citations in APA, MLA, IEEE, and more. No more manual bibliography work.
+                Search trusted academic databases like Crossref and OpenAlex.
+                Insert accurate references and manage citations without leaving your document.
               </p>
-              <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Search OpenAlex and Crossref databases</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Auto-format in APA, MLA, IEEE, Chicago styles</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>One-click add to your document</span>
-                </li>
-              </ul>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-4 mt-4">
+                <p className="text-xs uppercase tracking-[0.2em]">
+                  No fabricated references. No blind AI output.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Feature 3: Plagiarism Detection */}
+          {/* Feature 3: Integrity & Plagiarism Safety */}
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
             <div className="space-y-6">
               <div className="space-y-3">
-                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">Integrity</span>
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">Integrity & Plagiarism Safety</span>
                 <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                  Check originality before submission. No surprises.
+                  Avoid submission shocks.
                 </h3>
               </div>
               <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
-                Built-in plagiarism detection checks against academic databases. Get similarity scores and repetition analysis. Fix issues before you submit.
+                Check originality before you upload.
+                See similarity insights aligned with common university standards so you fix issues early.
               </p>
-              <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Check against Crossref, arXiv, and Scholar databases</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Repetition analysis to improve writing quality</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
-                  <span>Detailed similarity reports with source links</span>
-                </li>
-              </ul>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
@@ -406,35 +355,20 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Quick Benefits Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mt-16">
-            <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-              <Zap className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h4 className="text-lg font-semibold uppercase tracking-[0.16em] mb-3">
-                All-in-one workspace
-              </h4>
-              <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                Writing, citations, and plagiarism checks in one place. No switching between tools.
-              </p>
-            </Card>
-            <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
-              <BookOpen className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h4 className="text-lg font-semibold uppercase tracking-[0.16em] mb-3">
-                Export ready
-              </h4>
-              <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
-                Export to PDF or DOCX with properly formatted citations. Ready for submission.
-              </p>
-            </Card>
-            <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-              <Shield className="w-8 h-8 text-[hsl(var(--primary))] mb-4" />
-              <h4 className="text-lg font-semibold uppercase tracking-[0.16em] mb-3">
-                Academic integrity
-              </h4>
-              <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                Built for scholars. Real sources only. Proper citations. No shortcuts.
-              </p>
-            </Card>
+          {/* Ethical AI Trust Badge */}
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-6 mt-16">
+            <h4 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4">AI guidance built for academic use</h4>
+            <div className="grid md:grid-cols-3 gap-4 text-sm uppercase tracking-[0.18em]">
+              <div>
+                <p className="font-semibold mb-1">No fabricated references</p>
+              </div>
+              <div>
+                <p className="font-semibold mb-1">Supports ethical writing</p>
+              </div>
+              <div>
+                <p className="font-semibold mb-1">Built for academic integrity</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -679,12 +613,41 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Final Call to Action */}
+      <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+        <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
+            Write better research with less stress.
+          </h2>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth/signin">
+              <Button className="px-8 py-4 flex items-center gap-3">
+                Start free
+                <ArrowRight size={18} />
+              </Button>
+            </Link>
+            {/* 
+            <Button
+              variant="outline"
+              className="px-8 py-4"
+              onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Try a sample project
+            </Button>
+            */}
+          </div>
+          <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+            No setup stress. No risky output.
+          </p>
+        </div>
+      </section>
+
       <footer className="border-t-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-xl font-semibold uppercase tracking-[0.16em]">Akọ̀wé</h4>
             <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
-              Built for scholars, by scholars.
+              Academic writing tool • AI for thesis writing • citation management software • plagiarism checker for research papers
             </p>
           </div>
           <nav className="flex gap-6 text-xs uppercase tracking-[0.28em]">
