@@ -5,6 +5,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import FeedbackButton from "@/components/FeedbackButton";
 import ReferralCapture from "@/components/ReferralCapture";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -198,20 +199,10 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-        {/* Google Analytics (Akowe) - Start */}
-        <Script 
-          src="https://www.googletagmanager.com/gtag/js?id=G-KRXGBZVQ8Y"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-KRXGBZVQ8Y');
-          `}
-        </Script>
-        {/* Google Analytics (Akowe) - End */}
+        {/* Google Analytics - Conditionally loaded (excludes admin pages) */}
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
       </head>
       <body className="antialiased">
         <Script 

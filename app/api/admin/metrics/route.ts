@@ -2,9 +2,19 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { getAllMetrics } from '@/lib/admin/metrics';
 import { adaptMetricsForFrontend } from '@/lib/admin/metrics/adapter';
+import { verifyAdminSession } from '@/lib/admin-auth';
 
 export async function GET(request: Request) {
   try {
+    // Verify admin authentication
+    const isAuthenticated = await verifyAdminSession();
+    if (!isAuthenticated) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     // MongoDB connection is REQUIRED - fail if not available
     await connectDB();
 

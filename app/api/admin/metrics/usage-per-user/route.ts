@@ -4,9 +4,19 @@ import DailyUsage from '@/models/DailyUsage';
 import User from '@/models/User';
 import Project from '@/models/Project';
 import mongoose from 'mongoose';
+import { verifyAdminSession } from '@/lib/admin-auth';
 
 export async function GET(request: Request) {
   try {
+    // Verify admin authentication
+    const isAuthenticated = await verifyAdminSession();
+    if (!isAuthenticated) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     await connectDB();
 
     const { searchParams } = new URL(request.url);

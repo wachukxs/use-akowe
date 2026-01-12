@@ -35,9 +35,6 @@ export default function HomePage() {
               </span>
             </Link>
             <nav className="flex flex-wrap items-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] sm:tracking-[0.28em]">
-              <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
-                About
-              </Link>
               <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Blog
               </Link>
