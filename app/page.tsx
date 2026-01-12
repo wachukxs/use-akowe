@@ -10,16 +10,61 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 
+// Helper function to get A/B test variant from cookie
+function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
+  if (typeof window === 'undefined') return 'control';
+  
+  const cookies = document.cookie.split(';');
+  const variantCookie = cookies.find(cookie => cookie.trim().startsWith('akowe_ab_variant='));
+  
+  if (variantCookie) {
+    const value = variantCookie.split('=')[1]?.trim();
+    if (value === 'variant_a' || value === 'variant_b') {
+      return value;
+    }
+  }
+  
+  return 'control';
+}
+
 export default function HomePage() {
   const router = useRouter();
   const { status } = useSession();
   const [isAnnual, setIsAnnual] = useState(true); // Default to annual billing
+  const [abVariant, setAbVariant] = useState<'control' | 'variant_a' | 'variant_b'>('control');
 
   useEffect(() => {
     if (status === 'authenticated') {
       router.push('/dashboard');
     }
   }, [status, router]);
+
+  // Read A/B test variant on mount
+  useEffect(() => {
+    const variant = getABVariant();
+    setAbVariant(variant);
+
+    // Track A/B test view in GA4
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'ab_test_viewed', {
+        experiment_name: 'landing_page_headline_v1',
+        variant: variant,
+        timestamp: Date.now()
+      });
+    }
+  }, []);
+
+  // Track conversion events
+  const trackConversion = (conversionType: string) => {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'ab_test_converted', {
+        experiment_name: 'landing_page_headline_v1',
+        variant: abVariant,
+        conversion_type: conversionType,
+        timestamp: Date.now()
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
@@ -55,33 +100,85 @@ export default function HomePage() {
       <main className="px-6 sm:px-8 lg:px-12">
           <section className="max-w-7xl mx-auto py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-6 space-y-6 sm:space-y-7">
+              {/* A/B Test: Hero Section */}
+              {abVariant === 'control' ? (
+                <>
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
-              Academic writing without risk or chaos.
+                    Academic writing without risk or chaos.
           </h1>
               <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
-              Write theses, papers, and research with real sources, plagiarism checks, and AI that respects university policies.
+                    Write theses, papers, and research with real sources, plagiarism checks, and AI that respects university policies.
           </p>
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <Link href="/auth/signin">
+                      <Link href="/auth/signin" onClick={() => trackConversion('signup_click')}>
                     <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
-                      Start free
+                          Start free
                       <ArrowRight size={18} />
                     </Button>
                   </Link>
-                  <Button
+                      <Button
                     variant="outline"
                     className="px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto justify-center"
-                    onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                        onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                   >
-                    See how it works
-                  </Button>
+                        See how it works
+                      </Button>
                 </div>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center sm:text-left">
-                  Built for academic integrity. Not shortcuts.
-                </p>
+                      Built for academic integrity. Not shortcuts.
+                    </p>
+                  </div>
+                </>
+              ) : abVariant === 'variant_a' ? (
+                <>
+                  {/* Variant A: Deadline Pressure */}
+                  <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
+                    Write your thesis faster with real citations.
+                  </h1>
+                  <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
+                    Turn your topic into a cited academic draft without manual source hunting.
+                  </p>
+                  <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                    From topic to cited draft in minutes.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <Link href="/auth/signin" onClick={() => trackConversion('signup_click')}>
+                        <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
+                          Start writing now
+                          <ArrowRight size={18} />
+                        </Button>
+                      </Link>
               </div>
-              {/* Trust Signals */}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Variant B: Submission Safety */}
+                  <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
+                    Write academic work you trust.
+                  </h1>
+                  <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
+                    Use real sources, accurate citations, and similarity review before submission.
+                  </p>
+                  <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                    Built for university submission standards.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <Link href="/auth/signin" onClick={() => trackConversion('signup_click')}>
+                        <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
+                          Start your thesis now
+                          <ArrowRight size={18} />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </>
+              )}
+              {/* Trust Signals - Only show for control */}
+              {abVariant === 'control' && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 sm:pt-6">
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
                   <span className="text-3xl sm:text-4xl font-bold">Setup</span>
@@ -101,69 +198,170 @@ export default function HomePage() {
                   Saved monthly
                 </p>
               </div>
+              </div>
+              )}
             </div>
             
-            {/* Social Proof */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-4">Trusted by serious students and researchers</h3>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
-                <div className="flex items-start gap-3">
-                  <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
-                      "Akọ̀wé helped me reduce revisions and saved at least 10 hours every month."
-                    </p>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                      — PhD Candidate, Europe
-                    </p>
+            {/* Right Column: Testimonials and Product Preview */}
+            <div className="lg:col-span-6 space-y-4">
+              {/* Social Proof */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-4">Trusted by serious students and researchers</h3>
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
+                        "Akọ̀wé helped me reduce revisions and saved at least 10 hours every month."
+                      </p>
+                      <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                        — PhD Candidate, Europe
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
+                        "I write with peace of mind now. No last-minute Turnitin surprises."
+                      </p>
+                      <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                        — Masters Student, North America
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
-                <div className="flex items-start gap-3">
-                  <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-                  <div>
-                    <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
-                      "I write with peace of mind now. No last-minute Turnitin surprises."
-                    </p>
-                    <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                      — Masters Student, North America
-                    </p>
+
+              {/* Product Preview - Show for all variants */}
+              <div className="space-y-4 pt-4">
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] mb-4">
+                    <span>Project overview</span>
+                    <span>Thesis</span>
                   </div>
+                  <Image
+                    src="/product-demo.png"
+                    alt="Akọ̀wé interface"
+                    width={800}
+                    height={480}
+                    className="w-full border-2 border-[hsl(var(--border-strong))]"
+                  />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                    <h3 className="text-sm uppercase tracking-[0.28em] mb-4">AI co-author</h3>
+                    <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                      Outline, draft, and refine without leaving the structured editor.
+                    </p>
+                  </Card>
+                  <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
+                    <h3 className="text-sm uppercase tracking-[0.28em] mb-4">Integrity tools</h3>
+                    <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
+                      Citations, originality checks, and PDF insights in one view.
+                    </p>
+                  </Card>
                 </div>
               </div>
             </div>
-          </div>
-          <div className="lg:col-span-6 space-y-4">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] mb-4">
-                <span>Project overview</span>
-                <span>Thesis</span>
-              </div>
-              <Image
-                src="/product-demo.png"
-                alt="Akọ̀wé interface"
-                width={800}
-                height={480}
-                className="w-full border-2 border-[hsl(var(--border-strong))]"
-              />
+        </section>
+
+        {/* A/B Test: Pain/Risk Section */}
+        {abVariant === 'variant_a' && (
+          <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
+                Deadlines leave no room for mistakes.
+              </h2>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">AI co-author</h3>
-                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Outline, draft, and refine without leaving the structured editor.
-                </p>
-              </Card>
-              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
-                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">Integrity tools</h3>
-                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
-                  Citations, originality checks, and PDF insights in one view.
-                </p>
-              </Card>
-          </div>
-        </div>
-      </section>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">Manual research eats time.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">Missing citations cost marks.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">Late fixes create panic.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] font-semibold">Most students rush the hardest part.</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
+                Most AI tools put students at risk.
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">Fake citations fail review.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">Plagiarism flags appear late.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">Marks drop after submission.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] font-semibold">Students submit work they do not trust.</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* A/B Test: Solution Snapshot - Variant A */}
+        {abVariant === 'variant_a' && (
+          <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
+                Akowe speeds up academic writing.
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Finds academic sources instantly</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Inserts citations while you write</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Prepares drafts ready for review</p>
+              </div>
+            </div>
+            <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] font-semibold text-center">
+              No backtracking. No rewriting.
+            </p>
+          </section>
+        )}
+
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
+                Akowe protects academic integrity.
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Akowe supports responsible academic writing.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">It focuses on real sources and citation accuracy.</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">It helps students submit work with confidence.</p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Value Strip */}
         <section className="max-w-7xl mx-auto py-8 border-t-[4px] border-[hsl(var(--border-strong))]">
@@ -180,7 +378,99 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Work The Way Students Actually Work */}
+        {/* A/B Test: How It Works Section - Variant A */}
+        {abVariant === 'variant_a' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                How it works
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <div className="text-3xl sm:text-4xl font-bold mb-3">1</div>
+                <p className="text-sm uppercase tracking-[0.18em]">Enter your thesis topic</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <div className="text-3xl sm:text-4xl font-bold mb-3">2</div>
+                <p className="text-sm uppercase tracking-[0.18em]">Write with sourced references</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <div className="text-3xl sm:text-4xl font-bold mb-3">3</div>
+                <p className="text-sm uppercase tracking-[0.18em]">Review and submit</p>
+              </div>
+            </div>
+            <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] font-semibold text-center">
+              That is the full loop.
+            </p>
+          </section>
+        )}
+
+        {/* A/B Test: How Akowe Supports Safe Writing - Variant B */}
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
+                How Akowe supports safe writing
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <div className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={20} />
+                  <p className="text-sm uppercase tracking-[0.18em]">Pulls from academic sources</p>
+                </div>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <div className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={20} />
+                  <p className="text-sm uppercase tracking-[0.18em]">Adds citations during writing</p>
+                </div>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <div className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={20} />
+                  <p className="text-sm uppercase tracking-[0.18em]">Reviews similarity before export</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] font-semibold text-center">
+              Nothing hidden. Nothing improvised.
+            </p>
+          </section>
+        )}
+
+        {/* A/B Test: How It Works - Variant B */}
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                How it works
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-4 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <div className="text-3xl sm:text-4xl font-bold mb-3">1</div>
+                <p className="text-sm uppercase tracking-[0.18em]">Enter your topic</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <div className="text-3xl sm:text-4xl font-bold mb-3">2</div>
+                <p className="text-sm uppercase tracking-[0.18em]">Write with sourced references</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <div className="text-3xl sm:text-4xl font-bold mb-3">3</div>
+                <p className="text-sm uppercase tracking-[0.18em]">Review citations and similarity</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <div className="text-3xl sm:text-4xl font-bold mb-3">4</div>
+                <p className="text-sm uppercase tracking-[0.18em]">Submit confidently</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Work The Way Students Actually Work - Only show for control */}
+        {abVariant === 'control' && (
         <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
@@ -205,8 +495,168 @@ export default function HomePage() {
             Akọ̀wé is the academic writing tool built for thesis writing, dissertation work, and research papers.
           </p>
         </section>
+        )}
 
-        {/* Why Choose Akọ̀wé */}
+        {/* A/B Test: Trust Section - Variant A */}
+        {abVariant === 'variant_a' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                Built for university submissions
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Designed for theses and research papers</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Uses verifiable academic sources</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Supports citation accuracy</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* A/B Test: Trust Section - Variant B */}
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                Designed for academic submission
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Thesis and dissertation focused</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Citation accuracy first</p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+                <p className="text-sm uppercase tracking-[0.18em]">Submission-ready output</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="space-y-6">
+              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
+                Designed for academic submission
+              </h2>
+              <ul className="space-y-3 text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
+                  <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                  <span>Thesis and dissertation focused</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                  <span>Citation accuracy first</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                  <span>Submission-ready output</span>
+                  </li>
+                </ul>
+              </div>
+          </section>
+        )}
+
+        {/* A/B Test: Mid-Page CTA - Variant A */}
+        {abVariant === 'variant_a' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-6">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                Save hours on your thesis
+              </h2>
+              <Link href="/auth/signin" onClick={() => trackConversion('mid_page_cta_click')}>
+                <Button className="px-8 py-4 flex items-center gap-3 mx-auto">
+                  Start writing now
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
+              <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                No setup. No credit card.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* A/B Test: Mid-Page CTA - Variant B */}
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-6">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                Submit work you stand behind
+              </h2>
+              <Link href="/auth/signin" onClick={() => trackConversion('mid_page_cta_click')}>
+                <Button className="px-8 py-4 flex items-center gap-3 mx-auto">
+                  Start your thesis now
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
+              <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                No setup. No credit card.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* A/B Test: FAQ Section - Variant A */}
+        {abVariant === 'variant_a' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                FAQ
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">Who uses Akowe</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  Students writing theses and research papers.
+                </p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">Are citations included</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  Yes. Citations appear as you write.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* A/B Test: FAQ Section - Variant B */}
+        {abVariant === 'variant_b' && (
+          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+                FAQ
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">Does Akowe invent sources</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  No. Sources remain verifiable.
+                </p>
+              </div>
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">Is similarity checked before submission</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  Yes. Review happens before export.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Why Choose Akọ̀wé - Only show for control */}
+        {abVariant === 'control' && (
         <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
@@ -219,49 +669,51 @@ export default function HomePage() {
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] overflow-hidden">
               <div className="grid md:grid-cols-2">
                 <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-[hsl(var(--border-strong))]">
-                  <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--muted-foreground))]">
+                <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--muted-foreground))]">
                     Most tools
-                  </h3>
-                  <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                    <li className="flex items-start gap-3">
-                      <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                </h3>
+                <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  <li className="flex items-start gap-3">
+                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
                       <span>Only do one thing</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
                       <span>Force you to copy and paste between apps</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-[hsl(var(--destructive))] mt-1">✗</span>
                       <span>Leave you guessing about plagiarism risk</span>
-                    </li>
-                  </ul>
-                </div>
+                  </li>
+                </ul>
+              </div>
                 <div className="p-6 bg-[hsl(var(--primary))]/10">
                   <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--primary))]">
                     Akọ̀wé
-                  </h3>
+              </h3>
                   <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
-                    <li className="flex items-start gap-3">
-                      <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
                       <span>One workspace for writing, citations, and integrity</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
                       <span>Real academic sources</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={18} />
                       <span>Pre-submission similarity safety</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+                </li>
+              </ul>
+            </div>
+          </div>
             </div>
           </div>
         </section>
+        )}
 
-        {/* Features Section */}
+        {/* Features Section - Only show for control */}
+        {abVariant === 'control' && (
         <section id="features" className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
@@ -368,6 +820,7 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        )}
 
       </main>
       <section className="px-6 sm:px-8 lg:px-12">
@@ -610,34 +1063,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Final Call to Action */}
-      <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
-        <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-            Write better research with less stress.
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/signin">
-              <Button className="px-8 py-4 flex items-center gap-3">
-                Start free
-                <ArrowRight size={18} />
-              </Button>
-            </Link>
-            {/* 
-            <Button
-              variant="outline"
-              className="px-8 py-4"
-              onClick={() => document.getElementById('product-demo')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Try a sample project
-            </Button>
-            */}
+      {/* Final Call to Action - Variant Specific */}
+      {abVariant === 'control' && (
+        <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
+              Write better research with less stress.
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/auth/signin" onClick={() => trackConversion('final_cta_click')}>
+                <Button className="px-8 py-4 flex items-center gap-3">
+                  Start free
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
+            </div>
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              No setup stress. No risky output.
+            </p>
           </div>
-          <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-            No setup stress. No risky output.
-          </p>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {abVariant === 'variant_a' && (
+        <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
+              Finish faster. Submit with confidence.
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/auth/signin" onClick={() => trackConversion('final_cta_click')}>
+                <Button className="px-8 py-4 flex items-center gap-3">
+                  Start writing now
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {abVariant === 'variant_b' && (
+        <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
+              Protect your academic work.
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/auth/signin" onClick={() => trackConversion('final_cta_click')}>
+                <Button className="px-8 py-4 flex items-center gap-3">
+                  Start your thesis now
+                  <ArrowRight size={18} />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       <footer className="border-t-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
