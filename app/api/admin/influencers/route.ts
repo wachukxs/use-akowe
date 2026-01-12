@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Influencer from '@/models/Influencer';
-import { verifyAdminSession } from '@/lib/admin-auth';
 import { createWithReferralCode } from '@/lib/referral';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const isAuthenticated = await verifyAdminSession();
-    if (!isAuthenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     const { name, email, notes } = await request.json();
 
     // Validation

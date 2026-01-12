@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import mongoose from 'mongoose';
-import { verifyAdminSession } from '@/lib/admin-auth';
 
 export async function GET() {
   try {
-    // Verify admin authentication
-    const isAuthenticated = await verifyAdminSession();
-    if (!isAuthenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
     const startTime = Date.now();
     
     // Try to connect to MongoDB
