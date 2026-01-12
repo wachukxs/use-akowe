@@ -88,10 +88,17 @@ export function middleware(request: NextRequest) {
       return response;
     }
 
-    // Assign new variant (50/50 split between variant_a and variant_b)
-    // Control is the current version (no cookie needed, but we'll set it for consistency)
+    // Assign new variant (40/30/30 split: Control 40%, Variant A 30%, Variant B 30%)
+    // Control is the baseline, so it gets a larger share for better comparison
     const random = Math.random();
-    const variant = random < 0.5 ? 'variant_a' : 'variant_b';
+    let variant;
+    if (random < 0.4) {
+      variant = 'control';
+    } else if (random < 0.7) {
+      variant = 'variant_a';
+    } else {
+      variant = 'variant_b';
+    }
 
     // Set cookie with 30-day expiration
     response.cookies.set('akowe_ab_variant', variant, {
