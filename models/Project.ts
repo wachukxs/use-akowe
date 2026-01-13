@@ -113,8 +113,38 @@ const PlagiarismCheckSchema = new Schema<PlagiarismCheck>(
         text: String,
         source: String,
         url: String,
+        similarity: Number,
+        section: String,
+        suggestion: String,
       },
     ],
+    sectionAnalysis: [
+      {
+        sectionId: String,
+        sectionTitle: String,
+        matchPercentage: Number,
+        matches: [
+          {
+            text: String,
+            source: String,
+            url: String,
+            similarity: Number,
+            section: String,
+            suggestion: String,
+          },
+        ],
+        wordCount: Number,
+      },
+    ],
+    analysis: {
+      overusedPhrases: Number,
+      repetitionIssues: Number,
+      citationProblems: Number,
+      aiPatterns: Number,
+      wordDiversity: Number,
+      externalMatches: Number,
+      paraphrasingDetected: Number,
+    },
     reportUrl: String,
   },
   { _id: false }

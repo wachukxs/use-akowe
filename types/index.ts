@@ -55,7 +55,33 @@ export interface PlagiarismCheck {
     text: string;
     source: string;
     url?: string;
+    similarity?: number;
+    section?: string;
+    suggestion?: string;
   }>;
+  sectionAnalysis?: Array<{
+    sectionId: string;
+    sectionTitle: string;
+    matchPercentage: number;
+    matches: Array<{
+      text: string;
+      source: string;
+      url?: string;
+      similarity?: number;
+      section?: string;
+      suggestion?: string;
+    }>;
+    wordCount: number;
+  }>;
+  analysis?: {
+    overusedPhrases: number;
+    repetitionIssues: number;
+    citationProblems: number;
+    aiPatterns: number;
+    wordDiversity: number;
+    externalMatches: number;
+    paraphrasingDetected?: number;
+  };
   reportUrl?: string;
 }
 

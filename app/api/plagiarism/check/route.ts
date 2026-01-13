@@ -3,83 +3,209 @@ import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import { checkPlagiarismLimit, incrementPlagiarismChecks } from '@/lib/usage';
+import { Section } from '@/types';
 
-// CrossRef API integration
-async function checkCrossRef(text: string): Promise<Array<{ text: string; source: string; url?: string; similarity?: number }>> {
-  const matches: Array<{ text: string; source: string; url?: string; similarity?: number }> = [];
+// Enhanced similarity calculation using multiple methods
+function calculateSimilarity(text1: string, text2: string): number {
+  const words1 = text1.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+  const words2 = text2.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+  
+  const set1 = new Set(words1);
+  const set2 = new Set(words2);
+  
+  const intersection = new Set([...set1].filter(x => set2.has(x)));
+  const union = new Set([...set1, ...set2]);
+  
+  // Jaccard similarity
+  const jaccard = union.size > 0 ? (intersection.size / union.size) * 100 : 0;
+  
+  // Word order similarity (simple)
+  let orderSimilarity = 0;
+  const minLength = Math.min(words1.length, words2.length);
+  if (minLength > 0) {
+    let matches = 0;
+    for (let i = 0; i < minLength; i++) {
+      if (words1[i] === words2[i]) matches++;
+    }
+    orderSimilarity = (matches / minLength) * 100;
+  }
+  
+  // Combined similarity (weighted)
+  return Math.round((jaccard * 0.7) + (orderSimilarity * 0.3));
+}
+
+// N-gram analysis for better phrase matching
+function generateNGrams(text: string, n: number): string[] {
+  const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+  const ngrams: string[] = [];
+  
+  for (let i = 0; i <= words.length - n; i++) {
+    ngrams.push(words.slice(i, i + n).join(' '));
+  }
+  
+  return ngrams;
+}
+
+// Detect paraphrasing using n-gram overlap
+function detectParaphrasing(text: string, sourceText: string): { similarity: number; matchedPhrases: string[] } {
+  const textNGrams = generateNGrams(text, 3); // 3-word phrases
+  const sourceNGrams = generateNGrams(sourceText, 3);
+  
+  const matchedPhrases: string[] = [];
+  let totalSimilarity = 0;
+  
+  for (const ngram of textNGrams) {
+    let maxSimilarity = 0;
+    let bestMatch = '';
+    
+    for (const sourceNGram of sourceNGrams) {
+      const sim = calculateSimilarity(ngram, sourceNGram);
+      if (sim > maxSimilarity) {
+        maxSimilarity = sim;
+        bestMatch = sourceNGram;
+      }
+    }
+    
+    if (maxSimilarity > 50) { // 50% similarity threshold for paraphrasing
+      matchedPhrases.push(ngram);
+      totalSimilarity += maxSimilarity;
+    }
+  }
+  
+  const avgSimilarity = matchedPhrases.length > 0 ? totalSimilarity / matchedPhrases.length : 0;
+  
+  return {
+    similarity: Math.round(avgSimilarity),
+    matchedPhrases: matchedPhrases.slice(0, 5) // Limit to 5 matched phrases
+  };
+}
+
+// Enhanced CrossRef API integration with better matching
+async function checkCrossRef(text: string): Promise<Array<{ 
+  text: string; 
+  source: string; 
+  url?: string; 
+  similarity?: number;
+  section?: string;
+  suggestion?: string;
+}>> {
+  const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
   
   try {
-    // Extract key phrases from text
+    // Extract key phrases using n-grams for better matching
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    const keyPhrases = sentences.slice(0, 3); // Check first 3 sentences
+    const keyPhrases = sentences.slice(0, 5); // Check more sentences
     
     for (const phrase of keyPhrases) {
-      const cleanPhrase = phrase.trim().substring(0, 100); // Limit phrase length
+      const cleanPhrase = phrase.trim().substring(0, 100);
       
-      const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(cleanPhrase)}&rows=3`, {
-        headers: {
-          'User-Agent': 'Akowe Research Tool (mailto:ola@placeholderllc.name.ng)'
-        }
-      });
+      // Try multiple search strategies
+      const searchQueries = [
+        cleanPhrase, // Full phrase
+        cleanPhrase.split(' ').slice(0, 5).join(' '), // First 5 words
+        cleanPhrase.split(' ').slice(0, 3).join(' '), // First 3 words
+      ];
       
-      if (response.ok) {
-        const data = await response.json();
-        const works = data.message?.items || [];
+      for (const query of searchQueries) {
+        const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=5`, {
+          headers: {
+            'User-Agent': 'Akowe Research Tool (mailto:ola@placeholderllc.name.ng)'
+          }
+        });
         
-        for (const work of works) {
-          const title = work.title?.[0] || '';
-          const similarity = calculateSimilarity(cleanPhrase, title);
+        if (response.ok) {
+          const data = await response.json();
+          const works = data.message?.items || [];
           
-          if (similarity > 30) { // 30% similarity threshold
-            matches.push({
-              text: `Similar to: "${title}"`,
-              source: 'CrossRef Database',
-              url: work.URL || `https://doi.org/${work.DOI}`,
-              similarity: Math.round(similarity)
-            });
+          for (const work of works) {
+            const title = work.title?.[0] || '';
+            const abstract = work.abstract || '';
+            const fullText = `${title} ${abstract}`;
+            
+            // Check similarity with title
+            const titleSimilarity = calculateSimilarity(cleanPhrase, title);
+            
+            // Check paraphrasing
+            const paraphrase = detectParaphrasing(cleanPhrase, fullText);
+            
+            if (titleSimilarity > 25 || paraphrase.similarity > 40) {
+              const similarity = Math.max(titleSimilarity, paraphrase.similarity);
+              
+              matches.push({
+                text: `Similar to: "${title}"`,
+                source: 'CrossRef Database',
+                url: work.URL || (work.DOI ? `https://doi.org/${work.DOI}` : undefined),
+                similarity: Math.round(similarity),
+                section: cleanPhrase.substring(0, 50) + '...',
+                suggestion: paraphrase.similarity > 40 
+                  ? `This appears to be paraphrased from the source. Consider adding a citation: (${work.author?.[0]?.family || 'Author'}, ${work.published?.['date-parts']?.[0]?.[0] || 'Year'})`
+                  : `Consider citing this source: ${title}`
+              });
+            }
           }
         }
+        
+        // Rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-      
-      // Rate limiting - wait 1 second between requests
-      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   } catch (error) {
     console.error('CrossRef API error:', error);
   }
   
-  return matches.slice(0, 3); // Limit to 3 matches
+  return matches.slice(0, 5); // Return top 5 matches
 }
 
-// arXiv API integration
-async function checkArxiv(text: string): Promise<Array<{ text: string; source: string; url?: string; similarity?: number }>> {
-  const matches: Array<{ text: string; source: string; url?: string; similarity?: number }> = [];
+// Enhanced arXiv API integration
+async function checkArxiv(text: string): Promise<Array<{ 
+  text: string; 
+  source: string; 
+  url?: string; 
+  similarity?: number;
+  section?: string;
+  suggestion?: string;
+}>> {
+  const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
   
   try {
-    // Extract key phrases from text
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    const keyPhrases = sentences.slice(0, 2); // Check first 2 sentences
+    const keyPhrases = sentences.slice(0, 4); // Check more sentences
     
     for (const phrase of keyPhrases) {
       const cleanPhrase = phrase.trim().substring(0, 80);
       
-      const response = await fetch(`http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(cleanPhrase)}&start=0&max_results=3`);
+      const response = await fetch(`http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(cleanPhrase)}&start=0&max_results=5`);
       
       if (response.ok) {
         const xmlText = await response.text();
-        const titles = xmlText.match(/<title>([^<]+)<\/title>/g) || [];
+        const entries = xmlText.match(/<entry>[\s\S]*?<\/entry>/g) || [];
         
-        for (const titleMatch of titles) {
-          const title = titleMatch.replace(/<\/?title>/g, '').trim();
-          const similarity = calculateSimilarity(cleanPhrase, title);
+        for (const entry of entries) {
+          const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
+          const summaryMatch = entry.match(/<summary>([^<]+)<\/summary>/);
+          const idMatch = entry.match(/<id>([^<]+)<\/id>/);
           
-          if (similarity > 25) { // 25% similarity threshold
-            matches.push({
-              text: `Similar to: "${title}"`,
-              source: 'arXiv Preprints',
-              url: 'https://arxiv.org',
-              similarity: Math.round(similarity)
-            });
+          if (titleMatch) {
+            const title = titleMatch[1].replace(/\s+/g, ' ').trim();
+            const summary = summaryMatch ? summaryMatch[1].replace(/\s+/g, ' ').trim() : '';
+            const fullText = `${title} ${summary}`;
+            
+            const titleSimilarity = calculateSimilarity(cleanPhrase, title);
+            const paraphrase = detectParaphrasing(cleanPhrase, fullText);
+            
+            if (titleSimilarity > 20 || paraphrase.similarity > 35) {
+              const similarity = Math.max(titleSimilarity, paraphrase.similarity);
+              const arxivId = idMatch ? idMatch[1].split('/').pop() : '';
+              
+              matches.push({
+                text: `Similar to: "${title}"`,
+                source: 'arXiv Preprints',
+                url: arxivId ? `https://arxiv.org/abs/${arxivId}` : 'https://arxiv.org',
+                similarity: Math.round(similarity),
+                section: cleanPhrase.substring(0, 50) + '...',
+                suggestion: `This preprint may be relevant. Consider citing if used: ${title}`
+              });
+            }
           }
         }
       }
@@ -91,70 +217,161 @@ async function checkArxiv(text: string): Promise<Array<{ text: string; source: s
     console.error('arXiv API error:', error);
   }
   
-  return matches.slice(0, 2); // Limit to 2 matches
+  return matches.slice(0, 4); // Return top 4 matches
 }
 
-// Google Scholar scraping (simplified)
-async function checkGoogleScholar(text: string): Promise<Array<{ text: string; source: string; url?: string; similarity?: number }>> {
-  const matches: Array<{ text: string; source: string; url?: string; similarity?: number }> = [];
+// Citation intelligence: detect uncited claims and suggest citations
+function analyzeCitations(text: string, existingCitations: any[]): Array<{
+  text: string;
+  source: string;
+  url?: string;
+  similarity?: number;
+  section?: string;
+  suggestion?: string;
+}> {
+  const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
   
-  try {
-    // Extract key phrases from text
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    const keyPhrase = sentences[0]?.trim().substring(0, 60); // Check first sentence only
+  // Patterns that typically require citations
+  // Note: No global flag for patterns used with .test() in loops to avoid lastIndex issues
+  const claimPatterns = [
+    /(?:studies|research|findings|evidence|data|analysis|results?|investigation|study|paper|article|author|researcher|scholar)\s+(?:show|shows|indicate|indicates|demonstrate|demonstrates|reveal|reveals|suggest|suggests|prove|proves|confirm|confirms|establish|establishes|found|finds|discovered|discover)/i,
+    /(?:according to|based on|as shown|as demonstrated|as indicated|as revealed|as suggested|as found|as established)/i,
+    /(?:previous|prior|earlier|recent|past|existing|published|peer-reviewed)\s+(?:studies?|research|findings?|work|papers?|articles?|investigations?)/i,
+  ];
+  
+  // Extract citations from text (global flag OK here since we use .match())
+  const citationPatternsForMatch = [
+    /\([A-Za-z]+(?:,?\s+et\s+al\.?)?,?\s*\d{4}\)/g,
+    /\[[A-Za-z]+(?:,?\s+et\s+al\.?)?,?\s*\d{4}\]/g,
+    /\([A-Za-z]+\s+&\s+[A-Za-z]+,?\s*\d{4}\)/g,
+  ];
+  
+  // Patterns for testing individual sentences (no global flag)
+  const citationPatternsForTest = [
+    /\([A-Za-z]+(?:,?\s+et\s+al\.?)?,?\s*\d{4}\)/,
+    /\[[A-Za-z]+(?:,?\s+et\s+al\.?)?,?\s*\d{4}\]/,
+    /\([A-Za-z]+\s+&\s+[A-Za-z]+,?\s*\d{4}\)/,
+  ];
+  
+  const foundCitations = new Set<string>();
+  citationPatternsForMatch.forEach(pattern => {
+    const matches = text.match(pattern) || [];
+    matches.forEach(citation => foundCitations.add(citation.toLowerCase()));
+  });
+  
+  // Find sentences with claims
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+  
+  for (const sentence of sentences) {
+    let hasClaim = false;
+    let hasCitation = false;
     
-    if (keyPhrase) {
-      // Simulate Google Scholar search (in real implementation, you'd use a scraping service)
-      const searchTerms = keyPhrase.split(' ').slice(0, 4).join(' ');
-      
-      // For now, we'll simulate some results based on common academic phrases
-      const commonAcademicPhrases = [
-        'machine learning models',
-        'diabetes diagnosis',
-        'predictive accuracy',
-        'ensemble methods',
-        'statistical analysis'
-      ];
-      
-      for (const phrase of commonAcademicPhrases) {
-        if (keyPhrase.toLowerCase().includes(phrase)) {
-          const similarity = calculateSimilarity(keyPhrase, phrase);
-          if (similarity > 40) {
-            matches.push({
-              text: `Similar research found: "${phrase}"`,
-              source: 'Google Scholar',
-              url: `https://scholar.google.com/scholar?q=${encodeURIComponent(searchTerms)}`,
-              similarity: Math.round(similarity)
-            });
-          }
-        }
+    // Check if sentence contains a claim pattern
+    for (const pattern of claimPatterns) {
+      if (pattern.test(sentence)) {
+        hasClaim = true;
+        break;
       }
     }
-  } catch (error) {
-    console.error('Google Scholar check error:', error);
+    
+    // Check if sentence has a citation
+    for (const pattern of citationPatternsForTest) {
+      if (pattern.test(sentence)) {
+        hasCitation = true;
+        break;
+      }
+    }
+    
+    // If claim exists but no citation, flag it
+    if (hasClaim && !hasCitation) {
+      matches.push({
+        text: sentence.trim().substring(0, 100) + (sentence.length > 100 ? '...' : ''),
+        source: 'Citation Intelligence',
+        section: sentence.trim().substring(0, 50) + '...',
+        suggestion: 'This claim may need a citation. Consider adding a reference to support this statement.'
+      });
+    }
   }
   
-  return matches.slice(0, 2); // Limit to 2 matches
+  return matches.slice(0, 5); // Limit to 5 citation suggestions
 }
 
-// Simple similarity calculation
-function calculateSimilarity(text1: string, text2: string): number {
-  const words1 = text1.toLowerCase().split(/\s+/);
-  const words2 = text2.toLowerCase().split(/\s+/);
-  
-  const set1 = new Set(words1);
-  const set2 = new Set(words2);
-  
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
-  
-  return (intersection.size / union.size) * 100;
-}
-
-// Enhanced plagiarism detection with external sources
-async function checkPlagiarism(text: string): Promise<{
+// Section-level analysis
+function analyzeSection(section: Section, allSections: Section[], existingCitations: any[]): {
+  sectionId: string;
+  sectionTitle: string;
   matchPercentage: number;
-  matches: Array<{ text: string; source: string; url?: string; similarity?: number }>;
+  matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }>;
+  wordCount: number;
+} {
+  // Ensure content is always a string to prevent .split() errors
+  const content = typeof section.content === 'string' ? section.content : String(section.content || '');
+  const words = content.split(/\s+/).filter(w => w.length > 0);
+  const wordCount = words.length;
+  
+  if (wordCount < 10) {
+    return {
+      sectionId: section.id,
+      sectionTitle: section.title,
+      matchPercentage: 0,
+      matches: [],
+      wordCount: wordCount // Return actual word count, not 0
+    };
+  }
+  
+  // Analyze this section
+  const citationMatches = analyzeCitations(content, existingCitations);
+  
+  // Check for repetition within section
+  const wordCountMap: { [key: string]: number } = {};
+  words.forEach(word => {
+    if (word.length > 3) {
+      wordCountMap[word] = (wordCountMap[word] || 0) + 1;
+    }
+  });
+  
+  const repetitionIssues = Object.entries(wordCountMap)
+    .filter(([word, count]) => count > 3)
+    .slice(0, 2)
+    .map(([word, count]) => ({
+      text: `"${word}" appears ${count} times in this section`,
+      source: 'Repetition Analysis',
+      section: section.title,
+      suggestion: `Consider using synonyms or rephrasing to reduce repetition of "${word}"`
+    }));
+  
+  const matches = [...citationMatches, ...repetitionIssues];
+  
+  // Calculate section match percentage
+  const matchPercentage = Math.min(
+    Math.floor((matches.length / wordCount) * 100), // Accurate percentage without inflation
+    95
+  );
+  
+  return {
+    sectionId: section.id,
+    sectionTitle: section.title,
+    matchPercentage,
+    matches: matches.slice(0, 8),
+    wordCount
+  };
+}
+
+// Enhanced plagiarism detection with section-level analysis
+async function checkPlagiarism(
+  text: string, 
+  sections?: Section[], 
+  existingCitations?: any[]
+): Promise<{
+  matchPercentage: number;
+  matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }>;
+  sectionAnalysis?: Array<{
+    sectionId: string;
+    sectionTitle: string;
+    matchPercentage: number;
+    matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }>;
+    wordCount: number;
+  }>;
   analysis: {
     overusedPhrases: number;
     repetitionIssues: number;
@@ -162,21 +379,21 @@ async function checkPlagiarism(text: string): Promise<{
     aiPatterns: number;
     wordDiversity: number;
     externalMatches: number;
+    paraphrasingDetected: number;
   };
   sources: {
     crossref: number;
     arxiv: number;
-    scholar: number;
   };
 }> {
   // Extract citations from the text to exclude them from plagiarism check
   const citationPatterns = [
-    /\([A-Za-z]+,\s*\d{4}\)/g, // (Author, Year)
-    /\[[A-Za-z]+,\s*\d{4}\]/g, // [Author, Year]
-    /\([A-Za-z]+\s+et\s+al\.\s*,\s*\d{4}\)/g, // (Author et al., Year)
-    /\[[A-Za-z]+\s+et\s+al\.\s*,\s*\d{4}\]/g, // [Author et al., Year]
-    /\([A-Za-z]+\s+&\s+[A-Za-z]+,\s*\d{4}\)/g, // (Author & Author, Year)
-    /\[[A-Za-z]+\s+&\s+[A-Za-z]+,\s*\d{4}\]/g, // [Author & Author, Year]
+    /\([A-Za-z]+,\s*\d{4}\)/g,
+    /\[[A-Za-z]+,\s*\d{4}\]/g,
+    /\([A-Za-z]+\s+et\s+al\.\s*,\s*\d{4}\)/g,
+    /\[[A-Za-z]+\s+et\s+al\.\s*,\s*\d{4}\]/g,
+    /\([A-Za-z]+\s+&\s+[A-Za-z]+,\s*\d{4}\)/g,
+    /\[[A-Za-z]+\s+&\s+[A-Za-z]+,\s*\d{4}\]/g,
   ];
   
   // Remove citations from text for analysis
@@ -188,31 +405,6 @@ async function checkPlagiarism(text: string): Promise<{
   // Clean up extra spaces
   textToAnalyze = textToAnalyze.replace(/\s+/g, ' ').trim();
   
-  // Check for common academic phrases that shouldn't be flagged
-  const commonPhrases = [
-    'this study aims to',
-    'the purpose of this research',
-    'according to the literature',
-    'previous studies have shown',
-    'it is important to note',
-    'further research is needed',
-    'in conclusion',
-    'the results indicate',
-    'the findings suggest',
-    'as shown in table',
-    'figure shows that',
-    'the data reveals',
-    'statistical analysis shows',
-    'the methodology used',
-    'the sample size was',
-    'participants were selected',
-    'the study was conducted',
-    'data was collected',
-    'the results were analyzed',
-    'the hypothesis was tested'
-  ];
-  
-  // Enhanced plagiarism detection by analyzing text patterns
   const words = textToAnalyze.toLowerCase().split(/\s+/);
   const totalWords = words.length;
   
@@ -226,32 +418,36 @@ async function checkPlagiarism(text: string): Promise<{
         citationProblems: 0,
         aiPatterns: 0,
         wordDiversity: 100,
-        externalMatches: 0
+        externalMatches: 0,
+        paraphrasingDetected: 0
       },
       sources: {
         crossref: 0,
-        arxiv: 0,
-        scholar: 0
+        arxiv: 0
       }
     };
   }
 
-// Check external sources in parallel
-  const [crossrefMatches, arxivMatches, scholarMatches] = await Promise.all([
+  // Check external sources in parallel
+  const [crossrefMatches, arxivMatches] = await Promise.all([
     checkCrossRef(textToAnalyze),
-    checkArxiv(textToAnalyze),
-    checkGoogleScholar(textToAnalyze)
+    checkArxiv(textToAnalyze)
   ]);
 
-  // Enhanced free plagiarism detection
+  // Enhanced plagiarism detection
   let suspiciousPhrases = 0;
   let aiPatterns = 0;
-  const matches: Array<{ text: string; source: string; url?: string; similarity?: number }> = [];
+  let paraphrasingDetected = 0;
+  const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
   
-  // Add external matches to the main matches array
-  matches.push(...crossrefMatches, ...arxivMatches, ...scholarMatches);
+  // Add external matches
+  matches.push(...crossrefMatches, ...arxivMatches);
   
-  // Academic clichés (overused phrases)
+  // Count paraphrasing detected
+  paraphrasingDetected = crossrefMatches.filter(m => m.similarity && m.similarity > 40).length +
+                         arxivMatches.filter(m => m.similarity && m.similarity > 35).length;
+  
+  // Academic clichés
   const academicPatterns = [
     'according to recent studies',
     'research has shown that',
@@ -281,7 +477,7 @@ async function checkPlagiarism(text: string): Promise<{
     'the research reveals that'
   ];
   
-  // AI-generated patterns (common in AI writing)
+  // AI-generated patterns
   const aiPatternsList = [
     'it is worth noting that',
     'it should be emphasized that',
@@ -303,12 +499,7 @@ async function checkPlagiarism(text: string): Promise<{
     'in this day and age',
     'it is important to note that',
     'it should be noted that',
-    'it is important to remember',
-    'it is essential to understand',
-    'it is crucial to recognize',
-    'it is vital to consider',
-    'it is necessary to acknowledge',
-    'it is imperative to realize'
+    'it is crucial to recognize'
   ];
   
   // Check academic patterns
@@ -318,7 +509,8 @@ async function checkPlagiarism(text: string): Promise<{
       matches.push({
         text: pattern,
         source: 'Academic Cliché Database',
-        url: 'https://academic-writing-tips.com'
+        url: 'https://academic-writing-tips.com',
+        suggestion: `Consider rephrasing this common academic phrase: "${pattern}"`
       });
     }
   });
@@ -330,15 +522,16 @@ async function checkPlagiarism(text: string): Promise<{
       matches.push({
         text: pattern,
         source: 'AI Pattern Database',
-        url: 'https://ai-detection-tools.com'
+        url: 'https://ai-detection-tools.com',
+        suggestion: `This phrase is commonly used in AI-generated text. Consider rephrasing: "${pattern}"`
       });
     }
   });
   
-  // Detect word repetition (free method)
+  // Detect word repetition
   const wordCount: { [key: string]: number } = {};
   words.forEach(word => {
-    if (word.length > 3) { // Ignore short words
+    if (word.length > 3) {
       wordCount[word] = (wordCount[word] || 0) + 1;
     }
   });
@@ -350,16 +543,17 @@ async function checkPlagiarism(text: string): Promise<{
   // Add repetition matches
   Object.entries(wordCount)
     .filter(([word, count]) => count > 3)
-    .slice(0, 3) // Limit to 3 repetition matches
+    .slice(0, 3)
     .forEach(([word, count]) => {
       matches.push({
         text: `"${word}" appears ${count} times`,
         source: 'Repetition Analysis',
-        url: 'https://writing-tools.com/repetition'
+        url: 'https://writing-tools.com/repetition',
+        suggestion: `Consider using synonyms or rephrasing to reduce repetition of "${word}"`
       });
     });
   
-  // Citation analysis (free method)
+  // Citation analysis
   const citations = textToAnalyze.match(/\([^)]+\d{4}\)/g) || [];
   const claims = textToAnalyze.match(/studies show|research indicates|it has been proven|according to|research has shown|studies demonstrate/gi) || [];
   const citationProblems = Math.max(0, claims.length - citations.length);
@@ -369,34 +563,51 @@ async function checkPlagiarism(text: string): Promise<{
     matches.push({
       text: `${citationProblems} uncited claims detected`,
       source: 'Citation Analysis',
-      url: 'https://citation-tools.com'
+      url: 'https://citation-tools.com',
+      suggestion: `You have ${citationProblems} claim(s) that may need citations. Review your text and add appropriate references.`
     });
   }
   
-  // Word diversity analysis (free method)
+  // Word diversity analysis
   const uniqueWords = new Set(words.filter(word => word.length > 3));
   const wordDiversity = Math.round((uniqueWords.size / words.length) * 100);
   
+  // Section-level analysis if sections provided
+  let sectionAnalysis: Array<{
+    sectionId: string;
+    sectionTitle: string;
+    matchPercentage: number;
+    matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }>;
+    wordCount: number;
+  }> = [];
+  
+  if (sections && sections.length > 0) {
+    sectionAnalysis = sections.map(section => 
+      analyzeSection(section, sections, existingCitations || [])
+    );
+  }
+  
   // Calculate overall match percentage
-  const externalMatches = crossrefMatches.length + arxivMatches.length + scholarMatches.length;
+  const externalMatches = crossrefMatches.length + arxivMatches.length;
   const totalIssues = suspiciousPhrases + aiPatterns + repetitionIssues + citationProblems + externalMatches;
   const matchPercentage = Math.min(Math.floor((totalIssues / totalWords) * 100), 95);
   
   return {
     matchPercentage,
-    matches: matches.slice(0, 8), // Show up to 8 matches (increased for external sources)
+    matches: matches.slice(0, 12), // Show more matches
+    sectionAnalysis: sectionAnalysis.length > 0 ? sectionAnalysis : undefined,
     analysis: {
       overusedPhrases: suspiciousPhrases,
       repetitionIssues,
       citationProblems,
       aiPatterns,
       wordDiversity,
-      externalMatches
+      externalMatches,
+      paraphrasingDetected
     },
     sources: {
       crossref: crossrefMatches.length,
-      arxiv: arxivMatches.length,
-      scholar: scholarMatches.length
+      arxiv: arxivMatches.length
     }
   };
 }
@@ -410,7 +621,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { projectId, text } = body;
+    const { projectId, text, sections } = body;
 
     if (!projectId || !text) {
       return NextResponse.json(
@@ -433,17 +644,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get project to access sections and citations
+    await connectDB();
+    const project = await Project.findOne({ 
+      _id: projectId, 
+      userId: session.user.email 
+    });
+
+    if (!project) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    // Use provided sections or project sections, with validation
+    const rawSections = sections || project.sections || [];
+    // Validate and sanitize sections to ensure content is always a string
+    const sectionsToAnalyze = rawSections
+      .filter((section: any) => section && typeof section === 'object' && section.id && section.title)
+      .map((section: any) => ({
+        ...section,
+        content: typeof section.content === 'string' ? section.content : String(section.content || ''),
+        title: typeof section.title === 'string' ? section.title : String(section.title || ''),
+        id: typeof section.id === 'string' ? section.id : String(section.id || ''),
+        type: section.type || 'custom',
+        order: typeof section.order === 'number' ? section.order : 0,
+      }));
+    const existingCitations = project.citations || [];
+
     // Perform enhanced plagiarism check
-    const result = await checkPlagiarism(text);
+    const result = await checkPlagiarism(text, sectionsToAnalyze, existingCitations);
 
     // Store result in project
-    await connectDB();
-    
     const plagiarismCheck = {
       checkedAt: new Date(),
       matchPercentage: result.matchPercentage,
       matches: result.matches,
       analysis: result.analysis,
+      sectionAnalysis: result.sectionAnalysis,
     };
 
     await Project.findOneAndUpdate(
@@ -461,6 +697,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       matchPercentage: result.matchPercentage,
       matches: result.matches,
+      sectionAnalysis: result.sectionAnalysis,
       analysis: result.analysis,
       sources: result.sources,
       remaining: usageCheck.remaining - 1,

@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import User from '@/models/User';
 import { PLAN_LIMITS, PlanType } from '@/types';
+import { createProjectInternal } from '@/lib/project-creation';
 
 // Helper function to create contextual writing guidance
 function getContextualGuidance(type: string, citationStyle: string, methodology: string, topic: string, targetWordCount: number) {
@@ -771,12 +772,12 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const session = await auth();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
+  try {
     const body = await request.json();
     const { name, type, topic, targetWordCount, citationStyle, methodology } = body;
 
@@ -784,51 +785,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    await connectDB();
-    
-    // Check project limits for free users
-    const user = await User.findOne({ email: session.user.email });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-    
-    const limits = PLAN_LIMITS[user.plan as PlanType];
-    if (limits.maxProjects && limits.maxProjects !== Infinity) {
-      const currentProjectCount = await Project.countDocuments({ userId: session.user.email });
-      if (currentProjectCount >= limits.maxProjects) {
-        return NextResponse.json(
-          { 
-            error: 'Project limit reached',
-            limit: limits.maxProjects,
-            current: currentProjectCount,
-            message: `Free plan allows ${limits.maxProjects} projects maximum. Upgrade to Pro for unlimited projects.`
-          },
-          { status: 429 }
-        );
-      }
-    }
-    
     // Create initial sections based on project type
     const initialSections = createInitialSections(type, name, topic, citationStyle, methodology, targetWordCount);
     
-    const project = new Project({
-      userId: session.user.email,
+    // Use shared project creation function
+    const project = await createProjectInternal(session.user.email, {
       name,
       type,
       topic,
       targetWordCount: targetWordCount || 0,
       citationStyle: citationStyle || 'APA',
       methodology,
+      sections: initialSections as any, // Type assertion needed due to Date objects
       status: 'draft',
       wordCount: 0,
-      sections: initialSections,
     });
-
-    await project.save();
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (error) {
     console.error('Error creating project:', error);
+    
+    // Handle specific errors from createProjectInternal
+    if (error instanceof Error) {
+      if (error.message.includes('Project limit reached') || error.message.includes('Free plan allows')) {
+        await connectDB();
+        const user = await User.findOne({ email: session.user.email });
+        const limits = PLAN_LIMITS[user?.plan as PlanType || 'free'];
+        const currentProjectCount = await Project.countDocuments({ userId: session.user.email });
+        return NextResponse.json(
+          { 
+            error: 'Project limit reached',
+            limit: limits.maxProjects,
+            current: currentProjectCount,
+            message: error.message
+          },
+          { status: 429 }
+        );
+      }
+      if (error.message === 'User not found') {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      if (error.message === 'Missing required fields') {
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      }
+    }
+    
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
   }
 }

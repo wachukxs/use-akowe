@@ -181,6 +181,12 @@ export default function DashboardPage() {
                   Create New Project
                 </button>
                 <button
+                  onClick={() => router.push('/dashboard/import')}
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                >
+                  Import Document
+                </button>
+                <button
                   onClick={() => router.push('/settings')}
                   className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >

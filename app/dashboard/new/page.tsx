@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { ProjectType } from '@/types';
-import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const projectTypes: { 
@@ -159,12 +160,39 @@ export default function NewProjectPage() {
             </button>
             <span className="hidden sm:inline">New project workspace</span>
           </div>
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
-            <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Create New Project</h1>
-            <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              Start a new academic writing project with AI-powered guidance.
-            </p>
+          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Create New Project</h1>
+                <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mt-2">
+                  Start a new academic writing project with AI-powered guidance.
+                </p>
+              </div>
+              <Link href="/dashboard/import">
+                <Button variant="outline" className="w-full sm:w-auto">
+                  Import Existing Document
+                </Button>
+              </Link>
+            </div>
           </div>
+
+          {/* New User Guide */}
+          <Card className="p-4 md:p-6 border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10">
+            <div className="flex items-start gap-3">
+              <Info className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">Getting Started</h3>
+                <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
+                  New to Akọ̀wé? Fill in your project details below. We'll create structured sections with AI-powered guidance to help you write your academic work.
+                </p>
+                <div className="text-xs uppercase tracking-[0.16em] space-y-1">
+                  <p>• Choose your project type to get tailored sections</p>
+                  <p>• Specify your research topic for contextual AI assistance</p>
+                  <p>• Select citation style (APA, MLA, etc.) for proper formatting</p>
+                </div>
+              </div>
+            </div>
+          </Card>
 
           {/* Validation Errors */}
           {validationErrors.length > 0 && (
@@ -297,19 +325,24 @@ export default function NewProjectPage() {
                   <button type="button" className="relative group" aria-label="What is research methodology?">
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                     <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
-                      Describe your approach, e.g. qualitative, quantitative, mixed methods.
+                      Select your research approach
                     </span>
                   </button>
                 </div>
-                <Input
-                  type="text"
-                  placeholder="e.g., Qualitative case study, Literature review, Experimental design"
+                <select
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value)}
-                  className="text-base md:text-lg"
-                />
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-base md:text-lg uppercase tracking-[0.08em]"
+                >
+                  <option value="">Select methodology...</option>
+                  <option value="qualitative">Qualitative Research</option>
+                  <option value="quantitative">Quantitative Research</option>
+                  <option value="mixed methods">Mixed Methods</option>
+                  <option value="literature review">Literature Review</option>
+                  <option value="case study">Case Study</option>
+                </select>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
-                  Common methodologies: {currentType?.commonMethodologies.join(', ')}
+                  Common for {currentType?.label.toLowerCase()}: {currentType?.commonMethodologies.join(', ')}
                 </p>
               </Card>
             </div>

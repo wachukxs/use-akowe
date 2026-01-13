@@ -7,6 +7,8 @@ import { isVIPUser } from './vip-users';
 import { ensureUserReferralCode, createWithReferralCode } from './referral';
 
 export const authOptions: NextAuthConfig = {
+  // Suppress verbose error logging
+  debug: false,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -20,8 +22,8 @@ export const authOptions: NextAuthConfig = {
       },
         async authorize(credentials) {
           if (!credentials?.email || !credentials?.password) {
-            console.log('Auth: Missing email or password');
-            return null; // Return null instead of throwing error
+            // Silent fail - validation happens on frontend
+            return null;
           }
 
           try {
@@ -30,21 +32,21 @@ export const authOptions: NextAuthConfig = {
             const user = await User.findOne({ email: credentials.email });
 
             if (!user) {
-              console.log('Auth: User not found for email:', credentials.email);
-              return null; // Return null instead of throwing error
+              // Silent fail - user will see message on frontend
+              return null;
             }
 
             // Check if user has a password (not OAuth user)
             if (!user.password) {
-              console.log('Auth: User has no password (Google OAuth user)');
-              return null; // Return null instead of throwing error
+              // Silent fail - user will see message on frontend
+              return null;
             }
 
             // Validate password using bcrypt
             const isValidPassword = await (user as any).comparePassword(credentials.password);
             if (!isValidPassword) {
-              console.log('Auth: Invalid password for user:', credentials.email);
-              return null; // Return null instead of throwing error
+              // Silent fail - user will see message on frontend
+              return null;
             }
             return {
               id: user._id.toString(),
@@ -53,7 +55,9 @@ export const authOptions: NextAuthConfig = {
               image: user.image,
             };
           } catch (error) {
-            console.error('Auth: Error during authentication:', error);
+            // Only log error message, not full stack trace
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error(`❌ Auth failed: ${errorMessage}`);
             return null; // Return null instead of throwing error
           }
         },

@@ -145,12 +145,27 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
   const [plagiarismResult, setPlagiarismResult] = useState<{
     matchPercentage: number;
-    matches: Array<{ text: string; source: string; url?: string; similarity?: number }>;
+    matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }>;
+    sectionAnalysis?: Array<{
+      sectionId: string;
+      sectionTitle: string;
+      matchPercentage: number;
+      matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }>;
+      wordCount: number;
+    }>;
+    analysis?: {
+      overusedPhrases: number;
+      repetitionIssues: number;
+      citationProblems: number;
+      aiPatterns: number;
+      wordDiversity: number;
+      externalMatches: number;
+      paraphrasingDetected?: number;
+    };
     remaining: number;
     sources?: {
       crossref: number;
       arxiv: number;
-      scholar: number;
     };
   } | null>(null);
   const [expandedSections, setExpandedSections] = useState({
@@ -1544,7 +1559,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           projectId: resolvedParams.id,
-          text: allContent 
+          text: allContent,
+          sections: project.sections || [] // Pass sections for section-level analysis
         }),
       });
 
@@ -3950,18 +3966,67 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <span>arXiv</span>
                         <span className="font-semibold">{plagiarismResult.sources?.arxiv ?? 0}</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span>Scholar</span>
-                        <span className="font-semibold">{plagiarismResult.sources?.scholar ?? 0}</span>
-                      </div>
                     </div>
                   </div>
             </div>
 
+              {/* Section-Level Analysis */}
+              {plagiarismResult.sectionAnalysis && plagiarismResult.sectionAnalysis.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold uppercase tracking-[0.24em]">
+                    Section-by-Section Analysis
+                  </h4>
+                  <div className="space-y-3">
+                    {plagiarismResult.sectionAnalysis.map((section, index) => (
+                      <div
+                        key={index}
+                        className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface-muted))]"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="text-xs font-semibold uppercase tracking-[0.18em]">
+                            {section.sectionTitle}
+                          </h5>
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em]",
+                              section.matchPercentage < 10
+                                ? "bg-green-500/20"
+                                : section.matchPercentage < 25
+                                  ? "bg-yellow-500/20"
+                                  : "bg-red-500/20"
+                            )}>
+                              {section.matchPercentage}% issues
+                            </span>
+                            <span className="text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                              {section.wordCount} words
+                            </span>
+                          </div>
+                        </div>
+                        {section.matches.length > 0 && (
+                          <div className="space-y-2 mt-3">
+                            {section.matches.slice(0, 3).map((match, matchIndex) => (
+                              <div key={matchIndex} className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))] pl-2 border-l-2 border-[hsl(var(--border-strong))]">
+                                <p className="text-[hsl(var(--foreground))]">{match.text}</p>
+                                {match.suggestion && (
+                                  <p className="mt-1 text-[hsl(var(--secondary))] italic">
+                                    💡 {match.suggestion}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Overall Issues */}
               {plagiarismResult.matches.length > 0 ? (
                   <div className="space-y-4">
                     <h4 className="text-sm font-semibold uppercase tracking-[0.24em]">
-                      Detected Issues
+                      Detected Issues & Recommendations
                     </h4>
                 <div className="space-y-3">
                   {plagiarismResult.matches.map((match, index) => (
@@ -3969,16 +4034,28 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           key={index}
                           className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                         >
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start justify-between gap-3 mb-2">
                             <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] flex-1 leading-relaxed">
                               "{match.text}"
                             </p>
                             {typeof match.similarity === 'number' && (
-                              <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em]">
+                              <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] whitespace-nowrap">
                             {match.similarity}% similar
                           </span>
                         )}
                       </div>
+                          {match.suggestion && (
+                            <div className="mt-2 p-2 bg-[hsl(var(--accent))]/10 border-l-2 border-[hsl(var(--accent))] rounded">
+                              <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--accent-foreground))]">
+                                💡 {match.suggestion}
+                              </p>
+                            </div>
+                          )}
+                          {match.section && (
+                            <p className="text-[8px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                              Location: {match.section}
+                            </p>
+                          )}
                           <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                             <span>Source: {match.source}</span>
                       {match.url && (

@@ -41,7 +41,6 @@ export default function SignInPage() {
       return;
     }
 
-    console.log('Sign in button clicked!', { email });
     setIsLoading(true);
 
     try {
@@ -51,11 +50,9 @@ export default function SignInPage() {
         redirect: false,
       });
 
-      console.log('Sign in result:', result);
-
       // Check for errors FIRST - this is the key fix
       if (result?.error) {
-        // Handle specific error cases without console.error for cleaner UX
+        // Handle specific error cases with clean messages
         if (result.error === 'CredentialsSignin') {
           alert('Invalid email or password. Please check your credentials and try again.');
         } else if (result.error.includes('No account found')) {
@@ -67,16 +64,13 @@ export default function SignInPage() {
         }
       } else if (result?.ok) {
         // Only redirect if there's no error AND ok is true
-        console.log('Sign in successful, redirecting...');
         router.push('/dashboard');
         router.refresh();
       } else {
         // Fallback for unexpected cases
-        console.error('Unexpected sign in result:', result);
         alert('An unexpected error occurred. Please try again.');
       }
     } catch (error) {
-      console.error('Sign in error:', error);
       // Handle all possible error types
       if (error instanceof Error) {
         if (error.message.includes('No account found')) {
