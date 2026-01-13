@@ -207,19 +207,19 @@ export default function HomePage() {
               {/* Social Proof */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-4">Trusted by serious students and researchers</h3>
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
-                  <div className="flex items-start gap-3">
-                    <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
+              <div className="flex items-start gap-3">
+                <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                <div>
+                  <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
                         "Akọ̀wé helped me reduce revisions and saved at least 10 hours every month."
-                      </p>
-                      <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                  </p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
                         — PhD Candidate, Europe
-                      </p>
-                    </div>
-                  </div>
+                  </p>
                 </div>
+              </div>
+            </div>
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
                   <div className="flex items-start gap-3">
                     <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
@@ -230,6 +230,19 @@ export default function HomePage() {
                       <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
                         — Masters Student, North America
                       </p>
+          </div>
+                  </div>
+                </div>
+                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
+                        "I have a proposal to write, and it helps with alignment by showing sections and progress. I love that it automatically detects citations."
+                      </p>
+                      <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                        — Fatima, Student, South Africa
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -237,36 +250,36 @@ export default function HomePage() {
 
               {/* Product Preview - Show for all variants */}
               <div className="space-y-4 pt-4">
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] mb-4">
-                    <span>Project overview</span>
-                    <span>Thesis</span>
-                  </div>
-                  <Image
-                    src="/product-demo.png"
-                    alt="Akọ̀wé interface"
-                    width={800}
-                    height={480}
-                    className="w-full border-2 border-[hsl(var(--border-strong))]"
-                  />
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                    <h3 className="text-sm uppercase tracking-[0.28em] mb-4">AI co-author</h3>
-                    <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                      Outline, draft, and refine without leaving the structured editor.
-                    </p>
-                  </Card>
-                  <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
-                    <h3 className="text-sm uppercase tracking-[0.28em] mb-4">Integrity tools</h3>
-                    <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
-                      Citations, originality checks, and PDF insights in one view.
-                    </p>
-                  </Card>
-                </div>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
+              <div className="flex items-center justify-between text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] mb-4">
+                <span>Project overview</span>
+                <span>Thesis</span>
               </div>
+              <Image
+                src="/product-demo.png"
+                alt="Akọ̀wé interface"
+                width={800}
+                height={480}
+                className="w-full border-2 border-[hsl(var(--border-strong))]"
+              />
             </div>
-        </section>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">AI co-author</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  Outline, draft, and refine without leaving the structured editor.
+                </p>
+              </Card>
+              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
+                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">Integrity tools</h3>
+                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
+                  Citations, originality checks, and PDF insights in one view.
+                </p>
+              </Card>
+                </div>
+          </div>
+        </div>
+      </section>
 
         {/* A/B Test: Pain/Risk Section */}
         {abVariant === 'variant_a' && (
@@ -380,11 +393,11 @@ export default function HomePage() {
 
         {/* A/B Test: How It Works Section - Variant A */}
         {abVariant === 'variant_a' && (
-          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+        <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
                 How it works
-              </h2>
+            </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6 mb-8">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
@@ -413,7 +426,7 @@ export default function HomePage() {
               <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
                 How Akowe supports safe writing
               </h2>
-            </div>
+          </div>
             <div className="grid md:grid-cols-3 gap-6 mb-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <div className="flex items-start gap-3">
@@ -478,7 +491,7 @@ export default function HomePage() {
             </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
               <p className="text-sm uppercase tracking-[0.18em]">Start literature reviews with built-in source search</p>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
