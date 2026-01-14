@@ -1,10 +1,11 @@
 import type { NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
+import { cookies } from 'next/headers';
 import connectDB from './mongodb';
 import User from '@/models/User';
 import { isVIPUser } from './vip-users';
-import { ensureUserReferralCode, createWithReferralCode } from './referral';
+import { ensureUserReferralCode, createWithReferralCode, lookupReferralCode } from './referral';
 
 export const authOptions: NextAuthConfig = {
   // Suppress verbose error logging
@@ -71,6 +72,30 @@ export const authOptions: NextAuthConfig = {
         let existingUser = await User.findOne({ email: user.email });
 
         if (!existingUser) {
+          // Check for pending referral code from signup flow
+          let referredBy = undefined;
+          let referredByInfluencer = undefined;
+          
+          try {
+            const cookieStore = await cookies();
+            const pendingReferral = cookieStore.get('pending_referral')?.value;
+            
+            if (pendingReferral) {
+              const referrer = await lookupReferralCode(pendingReferral);
+              if (referrer) {
+                if (referrer.type === 'user') {
+                  referredBy = referrer.id;
+                } else {
+                  referredByInfluencer = referrer.id;
+                }
+              }
+              // Clear the pending referral cookie
+              cookieStore.delete('pending_referral');
+            }
+          } catch (err) {
+            console.error('Error processing referral code:', err);
+          }
+          
           // VIP users get pro plan on signup, others get free
           const initialPlan = isVIPUser(user.email) ? 'pro' : 'free';
           // Create user with referral code, handling duplicate key errors
@@ -81,10 +106,15 @@ export const authOptions: NextAuthConfig = {
               image: user.image,
               plan: initialPlan,
               referralCode,
+              referredBy,
+              referredByInfluencer,
             });
           });
           if (initialPlan === 'pro') {
             console.log(`VIP user ${user.email} created with pro plan`);
+          }
+          if (referredBy || referredByInfluencer) {
+            console.log(`Google user ${user.email} signed up via referral`);
           }
         } else {
           // Ensure existing user has a referral code
