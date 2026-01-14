@@ -1149,8 +1149,8 @@ export default function HomePage() {
             <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Blog
             </Link>
-            <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
-              Sign in
+            <Link href="/privacy" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              Privacy
             </Link>
           </nav>
           <p className="text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
