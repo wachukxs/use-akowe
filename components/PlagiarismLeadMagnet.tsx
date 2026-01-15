@@ -28,6 +28,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
   const [error, setError] = useState('');
   const [capturedEmail, setCapturedEmail] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasTrackedPaste = useRef(false);
 
   useEffect(() => {
     trackLeadMagnet.view('plagiarism', variant);
@@ -36,8 +37,12 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
-    if (newText.length > 50 && text.length <= 50) {
+    // Track only once when crossing 50 char threshold
+    if (newText.length > 50 && !hasTrackedPaste.current) {
+      hasTrackedPaste.current = true;
       trackLeadMagnet.textPasted('plagiarism', newText.length);
+    } else if (newText.length <= 50) {
+      hasTrackedPaste.current = false; // Reset if user deletes text
     }
   };
 

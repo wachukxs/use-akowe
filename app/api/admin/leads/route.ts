@@ -30,37 +30,46 @@ export async function GET(request: NextRequest) {
     // Get total count
     const total = await LeadCapture.countDocuments(filter);
 
-    // Get conversion stats
-    const stats = await LeadCapture.aggregate([
-      {
-        $group: {
-          _id: '$source',
-          total: { $sum: 1 },
-          converted: {
-            $sum: { $cond: [{ $ifNull: ['$convertedAt', false] }, 1, 0] }
-          },
+    // Get conversion stats (apply same filter for consistency)
+    const statsFilter: any = {};
+    if (source) statsFilter.source = source;
+    if (converted === 'true') statsFilter.convertedAt = { $exists: true };
+    if (converted === 'false') statsFilter.convertedAt = { $exists: false };
+    
+    const statsPipeline: any[] = [];
+    if (Object.keys(statsFilter).length > 0) {
+      statsPipeline.push({ $match: statsFilter });
+    }
+    statsPipeline.push({
+      $group: {
+        _id: '$source',
+        total: { $sum: 1 },
+        converted: {
+          $sum: { $cond: [{ $ifNull: ['$convertedAt', false] }, 1, 0] }
         },
       },
-    ]);
+    });
+    
+    const stats = await LeadCapture.aggregate(statsPipeline);
 
     // Check which leads have signed up (by email)
     const leadEmails = leads.map(l => l.email);
     const signedUpUsers = await User.find({ email: { $in: leadEmails } })
-      .select('email createdAt')
+      .select('_id email createdAt')
       .lean();
-    const signedUpMap = new Map(signedUpUsers.map(u => [u.email, u.createdAt]));
+    const signedUpMap = new Map(signedUpUsers.map(u => [u.email, { id: u._id.toString(), createdAt: u.createdAt }]));
 
     // Update conversion status for leads that signed up
     for (const lead of leads) {
-      const signupDate = signedUpMap.get(lead.email);
-      if (signupDate && !lead.convertedAt) {
-        // Mark as converted
+      const userInfo = signedUpMap.get(lead.email);
+      if (userInfo && !lead.convertedAt) {
+        // Mark as converted with proper userId reference
         await LeadCapture.updateOne(
           { _id: lead._id },
-          { convertedAt: signupDate, userId: lead.email }
+          { convertedAt: userInfo.createdAt, userId: userInfo.id }
         );
-        lead.convertedAt = signupDate;
-        lead.userId = lead.email;
+        lead.convertedAt = userInfo.createdAt;
+        lead.userId = userInfo.id;
       }
     }
 

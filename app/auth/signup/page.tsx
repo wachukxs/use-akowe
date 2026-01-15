@@ -73,11 +73,10 @@ function SignUpForm() {
     }
 
     // Store lead magnet source for redirect after signup
+    // Only set if present, don't clear - preserves value if user navigates away and back
     const fromParam = searchParams.get('from');
     if (fromParam) {
       sessionStorage.setItem('signup_from', fromParam);
-    } else {
-      sessionStorage.removeItem('signup_from');
     }
   }, [searchParams, lastProcessedParams]);
 

@@ -26,14 +26,19 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Upsert: update if exists, create if not
+    // Use $setOnInsert for capturedAt to preserve original capture date
     const lead = await LeadCapture.findOneAndUpdate(
       { email: email.toLowerCase(), source },
       {
-        email: email.toLowerCase(),
-        source,
-        variant,
-        metadata,
-        capturedAt: new Date(),
+        $set: {
+          email: email.toLowerCase(),
+          source,
+          variant,
+          metadata,
+        },
+        $setOnInsert: {
+          capturedAt: new Date(),
+        },
       },
       { upsert: true, new: true }
     );

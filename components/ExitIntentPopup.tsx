@@ -32,13 +32,17 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
       return;
     }
 
+    // Don't add listener if already shown
+    if (hasShown) return;
+
     const handleMouseLeave = (e: MouseEvent) => {
       // Only trigger when mouse leaves toward top of viewport (exit intent)
-      if (e.clientY <= 0 && !hasShown) {
+      if (e.clientY <= 0) {
         setIsVisible(true);
         setHasShown(true);
         sessionStorage.setItem('exit_intent_shown', 'true');
-        trackLeadMagnet.view(tool, `${variant}_exit_intent`);
+        // Track with base variant for consistency, exit_intent is tracked via metadata
+        trackLeadMagnet.view(tool, variant);
       }
     };
 
@@ -86,10 +90,10 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
         body: JSON.stringify({
           email,
           source: tool,
-          variant: `${variant}_exit_intent`,
+          variant: variant, // Use base variant, not exit_intent suffix (schema only allows control/variant_a/variant_b)
           metadata: file 
-            ? { fileType: file.name.split('.').pop(), fileName: file.name }
-            : { charCount: text.length },
+            ? { fileType: file.name.split('.').pop(), fileName: file.name, exitIntent: true }
+            : { charCount: text.length, exitIntent: true },
         }),
       });
 
@@ -128,6 +132,17 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
 
   const handleSignupClick = () => {
     trackLeadMagnet.signupClicked(tool);
+    
+    // Store result for continuation flow after signup
+    if (result) {
+      sessionStorage.setItem('lead_magnet_content', JSON.stringify({
+        type: tool,
+        text: tool === 'plagiarism' ? text : undefined,
+        result: tool === 'import' ? result : undefined,
+        fileName: file?.name,
+        timestamp: Date.now(),
+      }));
+    }
   };
 
   if (!isVisible) return null;

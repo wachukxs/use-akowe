@@ -9,11 +9,13 @@ interface StoredContent {
   type: 'plagiarism' | 'import';
   text?: string;
   result?: {
-    title: string;
-    sections: Array<{ title: string; preview: string }>;
-    sectionCount: number;
-    wordCount: number;
-    citationCount: number;
+    title?: string;
+    sections?: Array<{ title: string; preview: string }>;
+    sectionCount?: number;
+    wordCount?: number;
+    citationCount?: number;
+    riskScore?: number;
+    [key: string]: any; // Allow other properties for different result types
   };
   fileName?: string;
   timestamp: number;
@@ -51,7 +53,15 @@ export default function LeadMagnetContinuation() {
   };
 
   const handleContinuePlagiarism = async () => {
-    if (!storedContent?.text) return;
+    // Need either text (pasted) or result (file upload) to continue
+    if (!storedContent?.text && !storedContent?.result) return;
+    
+    // For file uploads without text, we can't create a project with content
+    // Redirect to import page instead where they can re-upload
+    if (!storedContent.text && storedContent.fileName) {
+      router.push('/dashboard/import?continue=true');
+      return;
+    }
     
     setIsCreating(true);
     try {
@@ -65,7 +75,7 @@ export default function LeadMagnetContinuation() {
           topic: 'Imported from plagiarism check',
           citationStyle: 'apa',
           methodology: 'Not applicable',
-          initialContent: storedContent.text,
+          initialContent: storedContent.text || '',
         }),
       });
 
@@ -114,19 +124,32 @@ export default function LeadMagnetContinuation() {
           </button>
         </div>
 
-        {storedContent.type === 'plagiarism' && storedContent.text && (
+        {storedContent.type === 'plagiarism' && (storedContent.text || storedContent.result) && (
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Your text is ready for a full plagiarism check
+              {storedContent.text ? 'Your text is ready for a full plagiarism check' : 'Your file analysis is ready for a full plagiarism check'}
             </p>
-            <div className="border-[2px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3 rounded">
-              <p className="text-xs tracking-wide line-clamp-3">
-                {storedContent.text.substring(0, 200)}...
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                {storedContent.text.split(/\s+/).length} words
-              </p>
-            </div>
+            {storedContent.text ? (
+              <div className="border-[2px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3 rounded">
+                <p className="text-xs tracking-wide line-clamp-3">
+                  {storedContent.text.substring(0, 200)}...
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                  {storedContent.text.split(/\s+/).length} words
+                </p>
+              </div>
+            ) : storedContent.fileName ? (
+              <div className="border-[2px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3 rounded">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em]">
+                  {storedContent.fileName}
+                </p>
+                {storedContent.result?.riskScore !== undefined && (
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                    Risk Score: {storedContent.result.riskScore}%
+                  </p>
+                )}
+              </div>
+            ) : null}
             <Button
               onClick={handleContinuePlagiarism}
               className="w-full"

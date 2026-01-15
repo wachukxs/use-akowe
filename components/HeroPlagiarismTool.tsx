@@ -40,6 +40,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
   const [error, setError] = useState('');
   const [capturedEmail, setCapturedEmail] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasTrackedPaste = useRef(false);
 
   useEffect(() => {
     trackLeadMagnet.view('plagiarism', variant);
@@ -48,8 +49,12 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
-    if (newText.length > 50 && text.length <= 50) {
+    // Track only once when crossing 50 char threshold
+    if (newText.length > 50 && !hasTrackedPaste.current) {
+      hasTrackedPaste.current = true;
       trackLeadMagnet.textPasted('plagiarism', newText.length);
+    } else if (newText.length <= 50) {
+      hasTrackedPaste.current = false; // Reset if user deletes text
     }
   };
 
@@ -106,9 +111,11 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
       trackLeadMagnet.resultViewed('plagiarism', data.riskScore);
       
       // Store content for continuation after signup
+      // Store both text (if pasted) and result (for file uploads)
       sessionStorage.setItem('lead_magnet_content', JSON.stringify({
         type: 'plagiarism',
         text: text.trim() || null,
+        result: data, // Store result for file-based checks
         fileName: file?.name || null,
         timestamp: Date.now()
       }));

@@ -46,10 +46,13 @@ export default function ImportProjectPage() {
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          if (parsed.type === 'import' && parsed.result) {
+          // Handle both import and plagiarism (file upload) continuations
+          if ((parsed.type === 'import' && parsed.result) || (parsed.type === 'plagiarism' && parsed.fileName && !parsed.text)) {
             // Pre-fill with stored data
-            setProjectName(parsed.result.title || parsed.fileName?.replace(/\.(docx|pdf|txt)$/i, '') || 'Imported Project');
-            setContinuationMessage(`Welcome back! Please re-upload "${parsed.fileName || 'your document'}" to continue where you left off.`);
+            const fileName = parsed.fileName || 'your document';
+            const title = parsed.result?.title || fileName.replace(/\.(docx|pdf|txt)$/i, '') || 'Imported Project';
+            setProjectName(title);
+            setContinuationMessage(`Welcome back! Please re-upload "${fileName}" to continue where you left off.`);
             // Clear the stored content since we've used it
             sessionStorage.removeItem('lead_magnet_content');
           }
@@ -57,6 +60,9 @@ export default function ImportProjectPage() {
           // Ignore parse errors
         }
       }
+    } else {
+      // Clear continuation message when not in continuation flow
+      setContinuationMessage('');
     }
   }, [searchParams]);
 
