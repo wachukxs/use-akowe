@@ -25,11 +25,13 @@ import {
   Award,
   Shield,
   RefreshCw,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Mail
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
+import LeadsTab from '@/components/admin/LeadsTab';
 
-type AdminTab = 'dashboard' | 'referrals';
+type AdminTab = 'dashboard' | 'referrals' | 'leads';
 
 // Updated interface to match new structure
 interface AdminMetricsResponse {
@@ -700,6 +702,17 @@ export default function AdminDashboard() {
         <LinkIcon size={16} />
         Referrals
       </button>
+      <button
+        onClick={() => setActiveTab('leads')}
+        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 cursor-pointer ${
+          activeTab === 'leads'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <Mail size={16} />
+        Leads
+      </button>
     </div>
   );
 
@@ -717,6 +730,25 @@ export default function AdminDashboard() {
           </div>
           <TabNavigation />
           <ReferralsTab />
+        </div>
+      </div>
+    );
+  }
+
+  // Render leads tab
+  if (activeTab === 'leads') {
+    return (
+      <div className="min-h-screen bg-[hsl(var(--background))] p-6">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {/* Header */}
+          <div className="pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+            <h1 className="text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Lead Magnet Captures
+            </p>
+          </div>
+          <TabNavigation />
+          <LeadsTab />
         </div>
       </div>
     );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, use, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Sidebar, { MobileMenuButton, MobileProjectToolsButton, MobileToolsDrawer, useSidebar } from '@/components/Sidebar';
 import { Project } from '@/types';
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 export default function ProjectEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { isMobile } = useSidebar();
   const [project, setProject] = useState<Project | null>(null);
@@ -327,6 +328,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       fetchProject();
     }
   }, [session, resolvedParams.id]);
+
+  // Handle auto-trigger for plagiarism check from lead magnet flow
+  const [autoTriggerPlagiarism, setAutoTriggerPlagiarism] = useState(false);
+  
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'plagiarism' && project && !isLoading) {
+      setAutoTriggerPlagiarism(true);
+      // Clear the URL param to prevent re-triggering on refresh
+      const url = new URL(window.location.href);
+      url.searchParams.delete('action');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, project, isLoading]);
 
   useEffect(() => {
     if (project) {
@@ -1581,6 +1596,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       setIsCheckingPlagiarism(false);
     }
   };
+
+  // Auto-trigger plagiarism check from lead magnet continuation
+  useEffect(() => {
+    if (autoTriggerPlagiarism && !isCheckingPlagiarism && !showPlagiarismModal) {
+      setAutoTriggerPlagiarism(false);
+      checkPlagiarism();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoTriggerPlagiarism, isCheckingPlagiarism, showPlagiarismModal]);
 
   // Manual citation function
   const addManualCitation = async () => {

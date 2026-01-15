@@ -9,6 +9,9 @@ import { Zap, BookOpen, Shield, Download, Check, ArrowRight, Star } from 'lucide
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
+import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
+import HeroImportTool from '@/components/HeroImportTool';
+import ExitIntentPopup from '@/components/ExitIntentPopup';
 
 // Helper function to get A/B test variant from cookie
 function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
@@ -202,83 +205,51 @@ export default function HomePage() {
               )}
             </div>
             
-            {/* Right Column: Testimonials and Product Preview */}
+            {/* Right Column: Lead Magnet Tool + Testimonials */}
             <div className="lg:col-span-6 space-y-4">
-              {/* Social Proof */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-4">Trusted by serious students and researchers</h3>
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
-              <div className="flex items-start gap-3">
-                <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-                <div>
-                  <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
-                        "Akọ̀wé helped me reduce revisions and saved at least 10 hours every month."
-                  </p>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                        — PhD Candidate, Europe
-                  </p>
-                </div>
-              </div>
-            </div>
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
-                  <div className="flex items-start gap-3">
-                    <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
-                        "I write with peace of mind now. No last-minute Turnitin surprises."
-                      </p>
-                      <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                        — Masters Student, North America
-                      </p>
-          </div>
+              {/* Lead Magnet Tool - Primary Position */}
+              {(abVariant === 'control' || abVariant === 'variant_a') && (
+                <HeroPlagiarismTool variant={abVariant} />
+              )}
+              {abVariant === 'variant_b' && (
+                <HeroImportTool variant={abVariant} />
+              )}
+
+              {/* Social Proof - Compact */}
+              <div className="space-y-3 pt-2">
+                <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  Trusted by students & researchers
+                </h3>
+                <div className="grid gap-3">
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3">
+                    <div className="flex items-start gap-2">
+                      <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
+                          "Saved at least 10 hours every month."
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
+                          — PhD Candidate, Europe
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 sm:p-6">
-                  <div className="flex items-start gap-3">
-                    <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.16em] text-[hsl(var(--foreground))] italic">
-                        "I have a proposal to write, and it helps with alignment by showing sections and progress. I love that it automatically detects citations."
-                      </p>
-                      <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                        — Fatima, Student, South Africa
-                      </p>
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3">
+                    <div className="flex items-start gap-2">
+                      <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
+                          "No last-minute Turnitin surprises."
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
+                          — Masters Student, North America
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Product Preview - Show for all variants */}
-              <div className="space-y-4 pt-4">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] mb-4">
-                <span>Project overview</span>
-                <span>Thesis</span>
-              </div>
-              <Image
-                src="/product-demo.png"
-                alt="Akọ̀wé interface"
-                width={800}
-                height={480}
-                className="w-full border-2 border-[hsl(var(--border-strong))]"
-              />
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">AI co-author</h3>
-                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Outline, draft, and refine without leaving the structured editor.
-                </p>
-              </Card>
-              <Card className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
-                <h3 className="text-sm uppercase tracking-[0.28em] mb-4">Integrity tools</h3>
-                <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
-                  Citations, originality checks, and PDF insights in one view.
-                </p>
-              </Card>
-                </div>
-          </div>
-        </div>
       </section>
 
         {/* A/B Test: Pain/Risk Section */}
@@ -391,96 +362,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* A/B Test: How It Works Section - Variant A */}
-        {abVariant === 'variant_a' && (
-        <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                How it works
-            </h2>
-            </div>
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
-                <div className="text-3xl sm:text-4xl font-bold mb-3">1</div>
-                <p className="text-sm uppercase tracking-[0.18em]">Enter your thesis topic</p>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
-                <div className="text-3xl sm:text-4xl font-bold mb-3">2</div>
-                <p className="text-sm uppercase tracking-[0.18em]">Write with sourced references</p>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
-                <div className="text-3xl sm:text-4xl font-bold mb-3">3</div>
-                <p className="text-sm uppercase tracking-[0.18em]">Review and submit</p>
-              </div>
-            </div>
-            <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] font-semibold text-center">
-              That is the full loop.
-            </p>
-          </section>
-        )}
-
-        {/* A/B Test: How Akowe Supports Safe Writing - Variant B */}
-        {abVariant === 'variant_b' && (
-          <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
-            <div className="text-center space-y-4 mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                How Akowe supports safe writing
-              </h2>
-          </div>
-            <div className="grid md:grid-cols-3 gap-6 mb-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                <div className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={20} />
-                  <p className="text-sm uppercase tracking-[0.18em]">Pulls from academic sources</p>
-                </div>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                <div className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={20} />
-                  <p className="text-sm uppercase tracking-[0.18em]">Adds citations during writing</p>
-                </div>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-                <div className="flex items-start gap-3">
-                  <Check className="text-[hsl(var(--primary))] mt-1 flex-shrink-0" size={20} />
-                  <p className="text-sm uppercase tracking-[0.18em]">Reviews similarity before export</p>
-                </div>
-              </div>
-            </div>
-            <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] font-semibold text-center">
-              Nothing hidden. Nothing improvised.
-            </p>
-          </section>
-        )}
-
-        {/* A/B Test: How It Works - Variant B */}
-        {abVariant === 'variant_b' && (
-          <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                How it works
-              </h2>
-            </div>
-            <div className="grid md:grid-cols-4 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
-                <div className="text-3xl sm:text-4xl font-bold mb-3">1</div>
-                <p className="text-sm uppercase tracking-[0.18em]">Enter your topic</p>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
-                <div className="text-3xl sm:text-4xl font-bold mb-3">2</div>
-                <p className="text-sm uppercase tracking-[0.18em]">Write with sourced references</p>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
-                <div className="text-3xl sm:text-4xl font-bold mb-3">3</div>
-                <p className="text-sm uppercase tracking-[0.18em]">Review citations and similarity</p>
-              </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
-                <div className="text-3xl sm:text-4xl font-bold mb-3">4</div>
-                <p className="text-sm uppercase tracking-[0.18em]">Submit confidently</p>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Work The Way Students Actually Work - Only show for control */}
         {abVariant === 'control' && (
@@ -725,9 +606,40 @@ export default function HomePage() {
         </section>
         )}
 
-        {/* Features Section - Only show for control */}
-        {abVariant === 'control' && (
-        <section id="features" className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
+        {/* How It Works - Show for all variants */}
+        <section id="features" className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
+              How it works
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="text-3xl sm:text-4xl font-bold mb-3">1</div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">Enter your topic</h3>
+              <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                Start a new project with your thesis topic or research question
+              </p>
+            </div>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="text-3xl sm:text-4xl font-bold mb-3">2</div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">Write with real sources</h3>
+              <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                AI assists your writing while pulling citations from academic databases
+              </p>
+            </div>
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="text-3xl sm:text-4xl font-bold mb-3">3</div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">Review & submit</h3>
+              <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                Check plagiarism, verify citations, and export submission-ready documents
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section - Show for all variants */}
+        <section className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
               Everything you need for serious academic writing
@@ -833,7 +745,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-        )}
 
       </main>
       <section className="px-6 sm:px-8 lg:px-12">
@@ -1158,6 +1069,12 @@ export default function HomePage() {
           </p>
         </div>
       </footer>
+
+      {/* Exit Intent Popup - Backup capture for users who scroll past */}
+      <ExitIntentPopup 
+        variant={abVariant} 
+        tool={abVariant === 'variant_b' ? 'import' : 'plagiarism'} 
+      />
     </div>
   );
 }
