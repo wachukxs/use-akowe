@@ -35,10 +35,25 @@ function SignUpForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Track the last processed URL params to detect navigation changes
+  const [lastProcessedParams, setLastProcessedParams] = useState<string | null>(null);
 
-  // Capture referral code from URL or localStorage on mount
+  // Capture referral code, email, and lead magnet source from URL
+  // Re-runs when searchParams change (e.g., user clicks different lead magnet)
   useEffect(() => {
-    // First check URL for referral code
+    // Create a key from current params to detect changes
+    const currentParamsKey = `${searchParams.get('ref') || ''}-${searchParams.get('email') || ''}-${searchParams.get('from') || ''}`;
+    
+    // Skip if we've already processed these exact params
+    if (currentParamsKey === lastProcessedParams) {
+      return;
+    }
+    
+    // Mark these params as processed
+    setLastProcessedParams(currentParamsKey);
+    
+    // Handle referral code
     const ref = searchParams.get('ref');
     if (ref) {
       setReferralCode(ref);
@@ -49,7 +64,21 @@ function SignUpForm() {
         setReferralCode(storedRef);
       }
     }
-  }, [searchParams]);
+
+    // Pre-fill email from lead magnet
+    // Only update if there's a new email param (allows user edits when params don't change)
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setFormData(prev => ({ ...prev, email: emailParam }));
+    }
+
+    // Store lead magnet source for redirect after signup
+    // Only set if present, don't clear - preserves value if user navigates away and back
+    const fromParam = searchParams.get('from');
+    if (fromParam) {
+      sessionStorage.setItem('signup_from', fromParam);
+    }
+  }, [searchParams, lastProcessedParams]);
 
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
@@ -59,7 +88,17 @@ function SignUpForm() {
       if (referralCode) {
         document.cookie = `pending_referral=${referralCode}; path=/; max-age=3600; samesite=lax`;
       }
-      await signIn('google', { callbackUrl: '/dashboard' });
+      
+      // Determine callback URL based on lead magnet source
+      const fromParam = searchParams.get('from');
+      let callbackUrl = '/dashboard';
+      if (fromParam === 'import') {
+        callbackUrl = '/dashboard/import?continue=true';
+      } else if (fromParam === 'plagiarism') {
+        callbackUrl = '/dashboard?from=plagiarism';
+      }
+      
+      await signIn('google', { callbackUrl });
     } catch (error) {
       console.error('Google sign-up error:', error);
       alert('Failed to sign up with Google. Please try again.');
@@ -149,9 +188,18 @@ function SignUpForm() {
             alert('Account created successfully! However, automatic sign-in failed. Please sign in manually with your credentials.');
             router.push('/auth/signin');
           } else if (result?.ok) {
-            console.log('Auto sign-in successful, redirecting to dashboard...');
-            router.push('/dashboard');
-            router.refresh();
+            console.log('Auto sign-in successful, redirecting...');
+            // Check for lead magnet redirect
+            const signupFrom = sessionStorage.getItem('signup_from');
+            sessionStorage.removeItem('signup_from');
+            if (signupFrom === 'import') {
+              router.push('/dashboard/import?continue=true');
+            } else if (signupFrom === 'plagiarism') {
+              router.push('/dashboard?from=plagiarism');
+            } else {
+              router.push('/dashboard');
+            }
+            // Note: router.refresh() removed - navigation will render the new page automatically
           } else {
             // Fallback for unexpected cases
             console.error('Unexpected auto sign-in result:', result);

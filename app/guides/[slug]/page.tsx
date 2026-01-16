@@ -5,6 +5,7 @@ import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
 import { getGuideBySlug, getAllGuideSlugs } from '@/lib/seo/guides';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
+import InlinePlagiarismTool from '@/components/InlinePlagiarismTool';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -162,6 +163,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
               </section>
             ))}
           </div>
+
+          {/* Inline Plagiarism Tool - mid-article */}
+          <InlinePlagiarismTool />
 
           <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
             <h2 className="text-2xl font-bold mb-4">Conclusion</h2>

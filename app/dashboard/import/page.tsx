@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
@@ -21,12 +21,14 @@ interface ExtractedData {
 
 export default function ImportProjectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [error, setError] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
+  const [continuationMessage, setContinuationMessage] = useState('');
 
   // Form state for review/editing
   const [projectName, setProjectName] = useState('');
@@ -35,6 +37,34 @@ export default function ImportProjectPage() {
   const [targetWordCount, setTargetWordCount] = useState(0);
   const [citationStyle, setCitationStyle] = useState('APA');
   const [methodology, setMethodology] = useState('');
+
+  // Check for continuation from lead magnet
+  useEffect(() => {
+    const isContinuation = searchParams.get('continue') === 'true';
+    if (isContinuation) {
+      const stored = sessionStorage.getItem('lead_magnet_content');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          // Handle both import and plagiarism (file upload) continuations
+          if ((parsed.type === 'import' && parsed.result) || (parsed.type === 'plagiarism' && parsed.fileName && !parsed.text)) {
+            // Pre-fill with stored data
+            const fileName = parsed.fileName || 'your document';
+            const title = parsed.result?.title || fileName.replace(/\.(docx|pdf|txt)$/i, '') || 'Imported Project';
+            setProjectName(title);
+            setContinuationMessage(`Welcome back! Please re-upload "${fileName}" to continue where you left off.`);
+            // Clear the stored content since we've used it
+            sessionStorage.removeItem('lead_magnet_content');
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    } else {
+      // Clear continuation message when not in continuation flow
+      setContinuationMessage('');
+    }
+  }, [searchParams]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -171,6 +201,19 @@ export default function ImportProjectPage() {
               Upload your document to import sections, content, and citations into Akọ̀wé.
             </p>
           </div>
+
+          {continuationMessage && (
+            <div className="border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-4 flex items-center gap-3">
+              <CheckCircle2 className="text-[hsl(var(--primary))] flex-shrink-0" size={20} />
+              <p className="text-xs uppercase tracking-[0.18em]">{continuationMessage}</p>
+              <button 
+                onClick={() => setContinuationMessage('')}
+                className="ml-auto text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
 
           {error && (
             <Card className="p-4 border-red-200 bg-red-50">

@@ -8,6 +8,7 @@ import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/types';
 import { Search, Grid, List, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import LeadMagnetContinuation from '@/components/LeadMagnetContinuation';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -100,6 +101,7 @@ export default function DashboardPage() {
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Sidebar />
       <MobileMenuButton />
+      <LeadMagnetContinuation />
 
       <div className="flex-1 md:ml-64 overflow-auto">
         <div className="max-w-7xl mx-auto p-4 pt-16 md:pt-10 md:p-10 space-y-6 md:space-y-10">

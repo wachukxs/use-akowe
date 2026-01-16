@@ -4,6 +4,7 @@ import { HelpCircle, ArrowLeft } from 'lucide-react';
 import { getFAQBySlug, getAllFAQSlugs } from '@/lib/seo/faqs';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
+import InlineImportTool from '@/components/InlineImportTool';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -147,6 +148,9 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
             </ul>
           </div>
         )}
+
+        {/* Inline Import Tool */}
+        <InlineImportTool />
 
         <div className="mt-12 border-t border-[hsl(var(--border-strong))] pt-8">
           <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4">
