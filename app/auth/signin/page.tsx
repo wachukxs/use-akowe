@@ -211,6 +211,12 @@ function SignInForm() {
               </button>
             </div>
 
+            <div className="flex justify-end text-xs uppercase tracking-[0.18em]">
+              <Link href="/auth/forgot-password" className="underline underline-offset-4 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--secondary))]">
+                Forgot password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               className="w-full py-4 text-sm font-semibold tracking-[0.24em]"

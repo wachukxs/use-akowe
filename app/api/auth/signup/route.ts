@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { createWithReferralCode, lookupReferralCode } from '@/lib/referral';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,6 +63,11 @@ export async function POST(request: NextRequest) {
         referredBy,
         referredByInfluencer,
       });
+    });
+
+    // Fire-and-forget welcome email; don't block signup if email fails
+    sendWelcomeEmail(user.email, user.name).catch(err => {
+      console.error('Welcome email failed:', err);
     });
 
     return NextResponse.json({ 

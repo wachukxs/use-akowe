@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 /**
  * Middleware to:
  * 1. Protect admin API routes
- * 2. Assign A/B test variants for landing page
+ * 2. Protect signed-in user routes
+ * 3. Assign A/B test variants for landing page
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
 
@@ -111,10 +113,23 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
+  // Protect authenticated user pages
+  const protectedPaths = ['/dashboard', '/project', '/settings', '/payment'];
+  const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path));
+
+  if (requiresAuth) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      const callbackUrl = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search);
+      return NextResponse.redirect(new URL(`/auth/signin?callbackUrl=${callbackUrl}`, request.url));
+    }
+    return response;
+  }
+
   return response;
 }
 
 // Run middleware on admin API routes and landing page
 export const config = {
-  matcher: ['/api/admin/:path*', '/'],
+  matcher: ['/api/admin/:path*', '/', '/dashboard/:path*', '/project/:path*', '/settings/:path*', '/payment/:path*'],
 };
