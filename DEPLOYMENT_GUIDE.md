@@ -158,3 +158,5 @@ git status --ignored
 ## 🎉 You're Ready to Deploy!
 
 Your project is properly configured for safe deployment. The `.gitignore` file will prevent any sensitive information from being committed to GitHub.
+
+Schedule a POST to /api/auth/password-reset/cleanup every 5 hours with header x-cron-secret: <PASSWORD_RESET_CLEANUP_SECRET> to enforce periodic cleanup (tokens still auto-expire at 30 minutes via TTL).
