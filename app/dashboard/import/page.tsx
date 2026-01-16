@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
@@ -19,7 +19,7 @@ interface ExtractedData {
   topic: string;
 }
 
-export default function ImportProjectPage() {
+function ImportProjectPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -472,5 +472,30 @@ export default function ImportProjectPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ImportProjectPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+          <Sidebar />
+          <MobileMenuButton />
+          <div className="flex-1 md:ml-64 overflow-auto">
+            <div className="max-w-6xl mx-auto p-4 pt-16 md:pt-10 md:p-10 space-y-6 md:space-y-10">
+              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
+                <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Import Existing Project</h1>
+                <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                  Loading...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <ImportProjectPageInner />
+    </Suspense>
   );
 }
