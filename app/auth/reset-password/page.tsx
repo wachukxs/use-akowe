@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token') || '';
@@ -141,5 +141,31 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+        <div className="w-full max-w-md px-6">
+          <Card className="p-10 space-y-8">
+            <div className="text-center space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                Akọ̀wé studio
+              </span>
+              <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
+                Set new password
+              </h1>
+              <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                Loading...
+              </p>
+            </div>
+          </Card>
+        </div>
+      </div>
+    }>
+      <ResetPasswordPageInner />
+    </Suspense>
   );
 }
