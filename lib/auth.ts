@@ -6,6 +6,7 @@ import connectDB from './mongodb';
 import User from '@/models/User';
 import { isVIPUser } from './vip-users';
 import { ensureUserReferralCode, createWithReferralCode, lookupReferralCode } from './referral';
+import { markLeadAsConverted } from './lead-conversion';
 
 export const authOptions: NextAuthConfig = {
   // Suppress verbose error logging
@@ -116,6 +117,11 @@ export const authOptions: NextAuthConfig = {
           if (referredBy || referredByInfluencer) {
             console.log(`Google user ${user.email} signed up via referral`);
           }
+          
+          // Mark any leads as converted (fire-and-forget, don't block signup)
+          markLeadAsConverted(existingUser.email, existingUser._id.toString(), existingUser.createdAt).catch(err => {
+            console.error('Lead conversion tracking failed:', err);
+          });
         } else {
           // Ensure existing user has a referral code
           if (!existingUser.referralCode) {

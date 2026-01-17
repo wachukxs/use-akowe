@@ -174,6 +174,9 @@ export default function LeadsTab() {
                   Captured
                 </th>
                 <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
+                  Converted
+                </th>
+                <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
                   Status
                 </th>
               </tr>
@@ -181,52 +184,82 @@ export default function LeadsTab() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  <td colSpan={6} className="px-4 py-8 text-center text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                     Loading...
                   </td>
                 </tr>
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  <td colSpan={6} className="px-4 py-8 text-center text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                     No leads found
                   </td>
                 </tr>
               ) : (
-                leads.map((lead) => (
-                  <tr key={lead._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))]">
-                    <td className="px-4 py-3 text-xs tracking-wide">
-                      {lead.email}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 text-[10px] uppercase tracking-[0.2em] border-2 border-[hsl(var(--border-strong))] rounded ${
-                        lead.source === 'plagiarism' 
-                          ? 'bg-blue-500/10' 
-                          : 'bg-purple-500/10'
-                      }`}>
-                        {lead.source}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
-                      {lead.variant}
-                    </td>
-                    <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
-                      {new Date(lead.capturedAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      {lead.convertedAt ? (
-                        <span className="flex items-center gap-2 text-green-600">
-                          <CheckCircle size={14} />
-                          <span className="text-[10px] uppercase tracking-[0.2em]">Converted</span>
+                leads.map((lead) => {
+                  const capturedDate = new Date(lead.capturedAt);
+                  const convertedDate = lead.convertedAt ? new Date(lead.convertedAt) : null;
+                  const daysToConvert = convertedDate 
+                    ? Math.round((convertedDate.getTime() - capturedDate.getTime()) / (1000 * 60 * 60 * 24))
+                    : null;
+                  
+                  // Determine the time-to-convert display text
+                  const getTimeToConvertText = () => {
+                    if (daysToConvert === null) return null;
+                    if (daysToConvert < 0) return 'Already converted';
+                    if (daysToConvert === 0) return 'Same day';
+                    return `${daysToConvert}d later`;
+                  };
+                  
+                  return (
+                    <tr key={lead._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))]">
+                      <td className="px-4 py-3 text-xs tracking-wide">
+                        {lead.email}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 text-[10px] uppercase tracking-[0.2em] border-2 border-[hsl(var(--border-strong))] rounded ${
+                          lead.source === 'plagiarism' 
+                            ? 'bg-blue-500/10' 
+                            : 'bg-purple-500/10'
+                        }`}>
+                          {lead.source}
                         </span>
-                      ) : (
-                        <span className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
-                          <Clock size={14} />
-                          <span className="text-[10px] uppercase tracking-[0.2em]">Pending</span>
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                        {lead.variant}
+                      </td>
+                      <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                        {capturedDate.toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                        {convertedDate ? (
+                          <div>
+                            <div>{convertedDate.toLocaleDateString()}</div>
+                            {getTimeToConvertText() && (
+                              <div className="text-[10px] text-[hsl(var(--muted-foreground))]">
+                                {getTimeToConvertText()}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-[hsl(var(--muted-foreground))]">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {lead.convertedAt ? (
+                          <span className="flex items-center gap-2 text-green-600">
+                            <CheckCircle size={14} />
+                            <span className="text-[10px] uppercase tracking-[0.2em]">Converted</span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
+                            <Clock size={14} />
+                            <span className="text-[10px] uppercase tracking-[0.2em]">Pending</span>
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

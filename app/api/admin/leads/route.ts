@@ -20,14 +20,45 @@ export async function GET(request: NextRequest) {
     if (converted === 'true') filter.convertedAt = { $exists: true };
     if (converted === 'false') filter.convertedAt = { $exists: false };
 
-    // Get leads
+    // Check ALL leads for conversions and update them FIRST
+    // This ensures stats, total count, and paginated results are calculated with the latest conversion data
+    // Get all lead emails that haven't been converted yet
+    const allUnconvertedLeads = await LeadCapture.find({
+      convertedAt: { $exists: false },
+    })
+      .select('email')
+      .lean();
+    
+    const allLeadEmails = [...new Set(allUnconvertedLeads.map(l => l.email))];
+    
+    if (allLeadEmails.length > 0) {
+      const signedUpUsers = await User.find({ email: { $in: allLeadEmails } })
+        .select('_id email createdAt')
+        .lean();
+      const signedUpMap = new Map(signedUpUsers.map(u => [u.email, { id: u._id.toString(), createdAt: u.createdAt }]));
+
+      // Update conversion status for ALL unconverted leads that have signed up
+      for (const email of allLeadEmails) {
+        const userInfo = signedUpMap.get(email);
+        if (userInfo) {
+          await LeadCapture.updateMany(
+            { email, convertedAt: { $exists: false } },
+            { convertedAt: userInfo.createdAt, userId: userInfo.id }
+          );
+        }
+      }
+    }
+
+    // Re-query leads AFTER updating conversions to ensure pagination consistency
+    // This ensures we get the correct number of leads that match the filter after updates
     const leads = await LeadCapture.find(filter)
       .sort({ capturedAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    // Get total count
+    // Now calculate total count and stats AFTER updating conversions to ensure accuracy
+    // Get total count with the same filter (now reflects updated conversion status)
     const total = await LeadCapture.countDocuments(filter);
 
     // Get conversion stats (apply same filter for consistency)
@@ -51,27 +82,6 @@ export async function GET(request: NextRequest) {
     });
     
     const stats = await LeadCapture.aggregate(statsPipeline);
-
-    // Check which leads have signed up (by email)
-    const leadEmails = leads.map(l => l.email);
-    const signedUpUsers = await User.find({ email: { $in: leadEmails } })
-      .select('_id email createdAt')
-      .lean();
-    const signedUpMap = new Map(signedUpUsers.map(u => [u.email, { id: u._id.toString(), createdAt: u.createdAt }]));
-
-    // Update conversion status for leads that signed up
-    for (const lead of leads) {
-      const userInfo = signedUpMap.get(lead.email);
-      if (userInfo && !lead.convertedAt) {
-        // Mark as converted with proper userId reference
-        await LeadCapture.updateOne(
-          { _id: lead._id },
-          { convertedAt: userInfo.createdAt, userId: userInfo.id }
-        );
-        lead.convertedAt = userInfo.createdAt;
-        lead.userId = userInfo.id;
-      }
-    }
 
     return NextResponse.json({
       leads,
