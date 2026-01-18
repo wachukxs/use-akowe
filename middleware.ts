@@ -119,10 +119,20 @@ export async function middleware(request: NextRequest) {
   const isProtected = ['/dashboard', '/project', '/settings', '/payment'].some((path) =>
     pathname.startsWith(path)
   );
-  if (!isProtected && !isAuthRoute && searchParams.has('callbackUrl')) {
-    const cleanUrl = new URL(request.url);
-    cleanUrl.searchParams.delete('callbackUrl');
-    return NextResponse.redirect(cleanUrl);
+  if (!isProtected && !isAuthRoute) {
+    const callbackCookie = request.cookies.get('next-auth.callback-url');
+    if (callbackCookie?.value && callbackCookie.value.includes('/auth')) {
+      // Clear callback-url cookies that point to auth pages to prevent loops
+      response.cookies.delete('next-auth.callback-url');
+    }
+
+    if (searchParams.has('callbackUrl')) {
+      const cleanUrl = new URL(request.url);
+      cleanUrl.searchParams.delete('callbackUrl');
+      const redirectResponse = NextResponse.redirect(cleanUrl);
+      redirectResponse.cookies.delete('next-auth.callback-url');
+      return redirectResponse;
+    }
   }
 
   // Protect authenticated user pages
