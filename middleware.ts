@@ -135,20 +135,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect authenticated user pages
-  const protectedPaths = [
-    // '/dashboard', // this is causing a redirect loop
-    '/project', '/settings', '/payment'];
-  const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path));
-
-  if (requiresAuth) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
-      return NextResponse.redirect(new URL('/auth/signin', request.url));
-    }
-    return response;
-  }
-
   return response;
 }
 
