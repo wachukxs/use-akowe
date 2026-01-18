@@ -11,6 +11,7 @@ import { getToken } from 'next-auth/jwt';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const response = NextResponse.next();
+  const searchParams = request.nextUrl.searchParams;
 
   // Handle admin API routes
   if (pathname.startsWith('/api/admin')) {
@@ -111,6 +112,17 @@ export async function middleware(request: NextRequest) {
     });
 
     return response;
+  }
+
+  // Strip stray callbackUrl on public routes to avoid unintended auth redirects
+  const isAuthRoute = pathname.startsWith('/auth');
+  const isProtected = ['/dashboard', '/project', '/settings', '/payment'].some((path) =>
+    pathname.startsWith(path)
+  );
+  if (!isProtected && !isAuthRoute && searchParams.has('callbackUrl')) {
+    const cleanUrl = new URL(request.url);
+    cleanUrl.searchParams.delete('callbackUrl');
+    return NextResponse.redirect(cleanUrl);
   }
 
   // Protect authenticated user pages

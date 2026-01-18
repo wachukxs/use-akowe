@@ -9,8 +9,8 @@ import { ensureUserReferralCode, createWithReferralCode, lookupReferralCode } fr
 import { markLeadAsConverted } from './lead-conversion';
 
 export const authOptions: NextAuthConfig = {
-  // Suppress verbose error logging
-  debug: false,
+  // Enable debug logging temporarily to surface auth issues in production
+  debug: true,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
