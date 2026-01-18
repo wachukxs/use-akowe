@@ -212,6 +212,21 @@ export const authOptions: NextAuthConfig = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // Allow relative callback URLs
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      
+      // Check if URL is absolute and on the same origin
+      try {
+        const urlObj = new URL(url);
+        if (urlObj.origin === baseUrl) return url;
+      } catch (error) {
+        // If URL is invalid or not absolute, fall through to default
+      }
+      
+      // Default to dashboard for invalid or external URLs
+      return `${baseUrl}/dashboard`;
+    },
   },
   pages: {
     signIn: '/auth/signin',

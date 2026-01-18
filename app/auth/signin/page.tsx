@@ -31,6 +31,27 @@ function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Validate and sanitize callbackUrl to prevent open redirect attacks
+  const getValidatedCallbackUrl = (): string => {
+    const rawCallbackUrl = searchParams.get('callbackUrl');
+    if (!rawCallbackUrl) return '/dashboard';
+    
+    try {
+      // Decode the URL-encoded callbackUrl
+      const decodedUrl = decodeURIComponent(rawCallbackUrl);
+      // Only allow relative URLs (starting with /) to prevent open redirects
+      // Reject URLs starting with // (protocol-relative) or containing :// (absolute URLs)
+      if (decodedUrl.startsWith('/') && !decodedUrl.startsWith('//') && !decodedUrl.includes('://')) {
+        return decodedUrl;
+      }
+    } catch (error) {
+      // If decoding fails, use default dashboard
+      console.error('Invalid callbackUrl:', error);
+    }
+    
+    return '/dashboard';
+  };
+
   // Check for referral code from URL or localStorage
   useEffect(() => {
     const ref = searchParams.get('ref');
@@ -52,7 +73,10 @@ function SignInForm() {
       if (referralCode) {
         document.cookie = `pending_referral=${referralCode}; path=/; max-age=3600; samesite=lax`;
       }
-      await signIn('google', { callbackUrl: '/dashboard' });
+      // Use validated callbackUrl to prevent open redirect attacks
+      // OAuth flow is also protected by redirect callback in authOptions
+      const callbackUrl = getValidatedCallbackUrl();
+      await signIn('google', { callbackUrl });
     } catch (error) {
       console.error('Google sign-in error:', error);
       alert('Failed to sign in with Google. Please try again.');
@@ -108,8 +132,10 @@ function SignInForm() {
         }
       } else if (result?.ok) {
         // Only redirect if there's no error AND ok is true
-        router.push('/dashboard');
-        router.refresh();
+        // Use validated callbackUrl to prevent open redirect attacks
+        const callbackUrl = getValidatedCallbackUrl();
+        router.push(callbackUrl);
+        // Note: router.refresh() removed - navigation will render the new page automatically
       } else {
         // Fallback for unexpected cases
         alert('An unexpected error occurred. Please try again.');
