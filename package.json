@@ -29,7 +29,7 @@
     "mongoose": "^8.9.4",
     "next": "15.5.7",
     "next-auth": "^5.0.0-beta.25",
-    "nodemailer": "^6.9.0",
+    "nodemailer": "^7.0.12",
     "openai": "^4.79.0",
     "pdf-parse": "^2.4.5",
     "pdf2json": "^4.0.1",
@@ -52,5 +52,9 @@
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@next/swc-darwin-arm64": "15.5.7",
+    "@next/swc-darwin-x64": "15.5.7"
   }
 }
