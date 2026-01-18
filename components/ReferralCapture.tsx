@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 const REFERRAL_STORAGE_KEY = 'akowe_referral_code';
@@ -8,15 +8,32 @@ const REFERRAL_STORAGE_KEY = 'akowe_referral_code';
 /**
  * Captures referral codes from URL and persists them in localStorage.
  * This ensures referral tracking works regardless of which page a user lands on.
+ * Also tracks referral link clicks for affiliate stats.
  */
 export default function ReferralCapture() {
   const searchParams = useSearchParams();
+  const hasTrackedClick = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const ref = searchParams.get('ref');
     if (ref) {
       // Store the referral code in localStorage
       localStorage.setItem(REFERRAL_STORAGE_KEY, ref);
+
+      // Track the click (only once per page load to avoid duplicate tracking)
+      if (!hasTrackedClick.current.has(ref)) {
+        hasTrackedClick.current.add(ref);
+        
+        // Fire-and-forget click tracking (don't block the user)
+        fetch('/api/referral/track-click', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ referralCode: ref }),
+        }).catch(err => {
+          // Silently fail - tracking shouldn't break user experience
+          console.error('Failed to track referral click:', err);
+        });
+      }
     }
   }, [searchParams]);
 

@@ -4,6 +4,7 @@ import User from '@/models/User';
 import { createWithReferralCode, lookupReferralCode } from '@/lib/referral';
 import { sendWelcomeEmail } from '@/lib/email';
 import { markLeadAsConverted } from '@/lib/lead-conversion';
+import { markReferralClicksAsConverted } from '@/lib/referral-click-conversion';
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,6 +76,13 @@ export async function POST(request: NextRequest) {
     markLeadAsConverted(user.email, user._id.toString(), user.createdAt).catch(err => {
       console.error('Lead conversion tracking failed:', err);
     });
+
+    // Mark referral clicks as converted if user signed up with a referral code (fire-and-forget)
+    if (referralCode) {
+      markReferralClicksAsConverted(referralCode, user.createdAt).catch(err => {
+        console.error('Referral click conversion tracking failed:', err);
+      });
+    }
 
     return NextResponse.json({ 
       message: 'User created successfully',

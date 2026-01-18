@@ -102,7 +102,8 @@ export default function HomePage() {
 
       <main className="px-6 sm:px-8 lg:px-12">
           <section className="max-w-7xl mx-auto py-14 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-6 space-y-6 sm:space-y-7">
+            {/* Copy Section - Order: 2 on mobile, 1 on desktop */}
+            <div className="lg:col-span-6 space-y-6 sm:space-y-7 order-2 lg:order-1">
               {/* A/B Test: Hero Section */}
               {abVariant === 'control' ? (
                 <>
@@ -205,8 +206,8 @@ export default function HomePage() {
               )}
             </div>
             
-            {/* Right Column: Lead Magnet Tool + Testimonials */}
-            <div className="lg:col-span-6 space-y-4">
+            {/* Right Column: Lead Magnet Tool + Testimonials - Order: 1 on mobile, 2 on desktop */}
+            <div className="lg:col-span-6 space-y-4 order-1 lg:order-2">
               {/* Lead Magnet Tool - Primary Position */}
               {(abVariant === 'control' || abVariant === 'variant_a') && (
                 <HeroPlagiarismTool variant={abVariant} />
