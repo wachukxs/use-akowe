@@ -26,7 +26,7 @@ function getStripeClient(): Stripe | null {
   
   try {
     return new Stripe(stripeKey, {
-      apiVersion: '2025-09-30.clover',
+      apiVersion: '2025-10-29.clover',
     });
   } catch (error) {
     return null;
