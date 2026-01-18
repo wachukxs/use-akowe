@@ -136,7 +136,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect authenticated user pages
-  const protectedPaths = ['/dashboard', '/project', '/settings', '/payment'];
+  const protectedPaths = [
+    // '/dashboard', // this is causing a redirect loop
+    '/project', '/settings', '/payment'];
   const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path));
 
   if (requiresAuth) {
