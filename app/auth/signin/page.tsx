@@ -119,7 +119,7 @@ function SignInForm() {
         email,
         password,
         redirect: false,
-        callbackUrl: getValidatedCallbackUrl(),
+        // callbackUrl: getValidatedCallbackUrl(),
       });
 
       // Check for errors FIRST - this is the key fix
