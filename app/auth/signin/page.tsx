@@ -41,7 +41,10 @@ function SignInForm() {
       const decodedUrl = decodeURIComponent(rawCallbackUrl);
       // Only allow relative URLs (starting with /) to prevent open redirects
       // Reject URLs starting with // (protocol-relative) or containing :// (absolute URLs)
-      if (decodedUrl.startsWith('/') && !decodedUrl.startsWith('//') && !decodedUrl.includes('://')) {
+      const isRelative = decodedUrl.startsWith('/') && !decodedUrl.startsWith('//') && !decodedUrl.includes('://');
+      // Prevent loops by ignoring auth pages as callback targets
+      const isAuthPage = decodedUrl.startsWith('/auth');
+      if (isRelative && !isAuthPage) {
         return decodedUrl;
       }
     } catch (error) {
@@ -116,6 +119,7 @@ function SignInForm() {
         email,
         password,
         redirect: false,
+        callbackUrl: getValidatedCallbackUrl(),
       });
 
       // Check for errors FIRST - this is the key fix
