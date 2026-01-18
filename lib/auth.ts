@@ -213,19 +213,33 @@ export const authOptions: NextAuthConfig = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Allow relative callback URLs
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-      
-      // Check if URL is absolute and on the same origin
-      try {
-        const urlObj = new URL(url);
-        if (urlObj.origin === baseUrl) return url;
-      } catch (error) {
-        // If URL is invalid or not absolute, fall through to default
-      }
-      
-      // Default to dashboard for invalid or external URLs
-      return `${baseUrl}/dashboard`;
+      // Normalize auth-path callbacks to prevent loops
+      const normalize = (candidate: string) => {
+        // Only allow same-origin relative paths
+        if (candidate.startsWith('/') && !candidate.startsWith('//') && !candidate.includes('://')) {
+          if (candidate.startsWith('/auth')) {
+            return `${baseUrl}/dashboard`;
+          }
+          return `${baseUrl}${candidate}`;
+        }
+
+        // Absolute URL on same origin
+        try {
+          const urlObj = new URL(candidate);
+          if (urlObj.origin === baseUrl) {
+            if (urlObj.pathname.startsWith('/auth')) {
+              return `${baseUrl}/dashboard`;
+            }
+            return candidate;
+          }
+        } catch {
+          // fall through
+        }
+
+        return `${baseUrl}/dashboard`;
+      };
+
+      return normalize(url);
     },
   },
   pages: {
