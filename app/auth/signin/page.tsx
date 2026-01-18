@@ -31,30 +31,6 @@ function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Validate and sanitize callbackUrl to prevent open redirect attacks
-  const getValidatedCallbackUrl = (): string => {
-    const rawCallbackUrl = searchParams.get('callbackUrl');
-    if (!rawCallbackUrl) return '/dashboard';
-    
-    try {
-      // Decode the URL-encoded callbackUrl
-      const decodedUrl = decodeURIComponent(rawCallbackUrl);
-      // Only allow relative URLs (starting with /) to prevent open redirects
-      // Reject URLs starting with // (protocol-relative) or containing :// (absolute URLs)
-      const isRelative = decodedUrl.startsWith('/') && !decodedUrl.startsWith('//') && !decodedUrl.includes('://');
-      // Prevent loops by ignoring auth pages as callback targets
-      const isAuthPage = decodedUrl.startsWith('/auth');
-      if (isRelative && !isAuthPage) {
-        return decodedUrl;
-      }
-    } catch (error) {
-      // If decoding fails, use default dashboard
-      console.error('Invalid callbackUrl:', error);
-    }
-    
-    return '/dashboard';
-  };
-
   // Check for referral code from URL or localStorage
   useEffect(() => {
     const ref = searchParams.get('ref');
@@ -76,10 +52,7 @@ function SignInForm() {
       if (referralCode) {
         document.cookie = `pending_referral=${referralCode}; path=/; max-age=3600; samesite=lax`;
       }
-      // Use validated callbackUrl to prevent open redirect attacks
-      // OAuth flow is also protected by redirect callback in authOptions
-      const callbackUrl = getValidatedCallbackUrl();
-      await signIn('google', { callbackUrl });
+      await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error) {
       console.error('Google sign-in error:', error);
       alert('Failed to sign in with Google. Please try again.');
@@ -119,7 +92,6 @@ function SignInForm() {
         email,
         password,
         redirect: false,
-        callbackUrl: getValidatedCallbackUrl(),
       });
 
       // Check for errors FIRST - this is the key fix
@@ -136,9 +108,7 @@ function SignInForm() {
         }
       } else if (result?.ok) {
         // Only redirect if there's no error AND ok is true
-        // Use validated callbackUrl to prevent open redirect attacks
-        const callbackUrl = getValidatedCallbackUrl();
-        router.push(callbackUrl);
+        router.push('/dashboard');
         // Note: router.refresh() removed - navigation will render the new page automatically
       } else {
         // Fallback for unexpected cases

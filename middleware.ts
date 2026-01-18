@@ -142,8 +142,7 @@ export async function middleware(request: NextRequest) {
   if (requiresAuth) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
     if (!token) {
-      const callbackUrl = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search);
-      return NextResponse.redirect(new URL(`/auth/signin?callbackUrl=${callbackUrl}`, request.url));
+      return NextResponse.redirect(new URL('/auth/signin', request.url));
     }
     return response;
   }
