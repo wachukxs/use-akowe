@@ -206,7 +206,7 @@ export default function HomePage() {
               )}
             </div>
             
-            {/* Right Column: Lead Magnet Tool + Testimonials - Order: 1 on mobile, 2 on desktop */}
+            {/* Right Column: Lead Magnet Tool - Order: 1 on mobile, 2 on desktop */}
             <div className="lg:col-span-6 space-y-4 order-1 lg:order-2">
               {/* Lead Magnet Tool - Primary Position */}
               {(abVariant === 'control' || abVariant === 'variant_a') && (
@@ -216,7 +216,45 @@ export default function HomePage() {
                 <HeroImportTool variant={abVariant} />
               )}
 
-              {/* Social Proof - Compact */}
+              {/* Social Proof - Compact (Desktop Only - Hidden on Mobile) */}
+              <div className="space-y-3 pt-2 hidden lg:block">
+                <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                  Trusted by students & researchers
+                </h3>
+                <div className="grid gap-3">
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3">
+                    <div className="flex items-start gap-2">
+                      <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
+                          "Saved at least 10 hours every month."
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
+                          — PhD Candidate, Europe
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3">
+                    <div className="flex items-start gap-2">
+                      <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
+                          "No last-minute Turnitin surprises."
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
+                          — Masters Student, North America
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonials Section - Mobile Only (Order: 3 - After Copy) */}
+            <div className="lg:col-span-6 space-y-4 order-3 lg:hidden">
+              {/* Social Proof - Mobile Only (shown after copy) */}
               <div className="space-y-3 pt-2">
                 <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   Trusted by students & researchers
