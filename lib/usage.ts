@@ -115,6 +115,93 @@ export async function checkPlagiarismLimit(userEmail: string): Promise<{ allowed
   };
 }
 
+/**
+ * Atomically checks and increments plagiarism checks count.
+ * This prevents race conditions where multiple concurrent requests could exceed the limit.
+ * 
+ * @param userEmail - User's email address
+ * @returns Object with success status, remaining checks, and limit, or null if limit reached
+ */
+export async function tryIncrementPlagiarismChecks(userEmail: string): Promise<{ 
+  success: boolean; 
+  remaining: number; 
+  limit: number;
+  newCount: number;
+} | null> {
+  await connectDB();
+  
+  // Get user by email to get their ID and plan
+  const user = await User.findOne({ email: userEmail });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  const userId = user._id.toString();
+  const limits = PLAN_LIMITS[user.plan as PlanType];
+  
+  // Pro and Team plans have unlimited checks - increment without limit check
+  if (limits.plagiarismChecksPerDay === Infinity) {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const updated = await DailyUsage.findOneAndUpdate(
+      { userId, date: today },
+      { $inc: { plagiarismChecks: 1 } },
+      { upsert: true, new: true }
+    );
+    return {
+      success: true,
+      remaining: Infinity,
+      limit: Infinity,
+      newCount: updated.plagiarismChecks,
+    };
+  }
+  
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const limit = limits.plagiarismChecksPerDay;
+  
+  // Atomically check and increment: only increment if current count is less than limit
+  // This prevents race conditions where multiple requests check the limit simultaneously
+  // Strategy: Try to increment, but only if count is below limit OR document doesn't exist
+  // MongoDB's $lt operator returns false for non-existent fields, so we need to handle that
+  
+  // First, ensure the document exists (create if needed with 0 count)
+  await DailyUsage.findOneAndUpdate(
+    { userId, date: today },
+    { $setOnInsert: { userId, date: today, aiWordsGenerated: 0, plagiarismChecks: 0 } },
+    { upsert: true }
+  );
+  
+  // Now atomically increment only if count is below limit
+  const updated = await DailyUsage.findOneAndUpdate(
+    {
+      userId,
+      date: today,
+      plagiarismChecks: { $lt: limit }, // Only match if current count is below limit
+    },
+    { $inc: { plagiarismChecks: 1 } },
+    { new: true }
+  );
+  
+  // If update succeeded, we got a document back and the increment happened
+  if (updated) {
+    const remaining = limit - updated.plagiarismChecks;
+    return {
+      success: true,
+      remaining: Math.max(0, remaining), // Ensure non-negative
+      limit,
+      newCount: updated.plagiarismChecks,
+    };
+  }
+  
+  // Update failed because limit was reached - get current usage for error message
+  const currentUsage = await getUserUsageToday(userEmail);
+  return {
+    success: false,
+    remaining: 0,
+    limit,
+    newCount: currentUsage.plagiarismChecks,
+  };
+}
+
 export async function incrementPlagiarismChecks(userEmail: string) {
   await connectDB();
   
