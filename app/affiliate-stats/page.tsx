@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { RefreshCw } from 'lucide-react';
 
 export default function AffiliateStatsPage() {
   const router = useRouter();
@@ -13,10 +14,19 @@ export default function AffiliateStatsPage() {
     clicks: number;
     signups: number;
     conversionRate: string;
+    month: number;
+    year: number;
+    monthName: string;
+    period: string;
   } | null>(null);
+  
+  // Default to current month
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1); // 1-12
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Reusable function to fetch stats
+  const fetchStats = async () => {
     if (!input.trim()) {
       setError('Please enter a referral code or link');
       return;
@@ -24,10 +34,18 @@ export default function AffiliateStatsPage() {
 
     setLoading(true);
     setError(null);
-    setStats(null);
 
     try {
-      const response = await fetch(`/api/affiliate/stats?${input.includes('http') || input.includes('?ref=') ? 'link=' : 'code='}${encodeURIComponent(input.trim())}`);
+      const params = new URLSearchParams();
+      if (input.includes('http') || input.includes('?ref=')) {
+        params.append('link', input.trim());
+      } else {
+        params.append('code', input.trim());
+      }
+      params.append('month', selectedMonth.toString());
+      params.append('year', selectedYear.toString());
+      
+      const response = await fetch(`/api/affiliate/stats?${params.toString()}`);
       
       if (!response.ok) {
         const data = await response.json();
@@ -43,6 +61,24 @@ export default function AffiliateStatsPage() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStats(null); // Clear stats on new submit
+    await fetchStats();
+  };
+
+  const handleRefresh = async () => {
+    await fetchStats();
+  };
+
+  // Auto-submit when month/year changes if we already have stats
+  useEffect(() => {
+    if (stats && input.trim()) {
+      fetchStats();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, selectedYear]);
+
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -51,7 +87,7 @@ export default function AffiliateStatsPage() {
             Affiliate Stats
           </h1>
           <p className="text-[hsl(var(--muted-foreground))] text-sm uppercase tracking-[0.2em]">
-            Track your referral performance
+            Track your monthly referral performance
           </p>
         </div>
 
@@ -74,6 +110,57 @@ export default function AffiliateStatsPage() {
               </p>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="month-select" className="block text-sm font-semibold uppercase tracking-[0.18em] mb-2">
+                  Month
+                </label>
+                <select
+                  id="month-select"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] rounded focus:outline-none focus:border-[hsl(var(--primary))] uppercase tracking-[0.1em]"
+                >
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="year-select" className="block text-sm font-semibold uppercase tracking-[0.18em] mb-2">
+                  Year
+                </label>
+                <select
+                  id="year-select"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] rounded focus:outline-none focus:border-[hsl(var(--primary))] uppercase tracking-[0.1em]"
+                >
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const year = now.getFullYear() - 2 + i;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+
+            <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.15em]">
+              Stats shown are for the selected month only. Each signup is counted once.
+            </p>
+
             <button
               type="submit"
               disabled={loading}
@@ -92,9 +179,23 @@ export default function AffiliateStatsPage() {
 
         {stats && (
           <div className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-6 rounded-lg">
-            <h2 className="text-xl font-bold uppercase tracking-[0.16em] mb-6 text-center">
-              Your Stats
-            </h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-bold uppercase tracking-[0.16em]">
+                Your Stats
+              </h2>
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--background))] border-2 border-[hsl(var(--border-strong))] rounded uppercase tracking-[0.12em] text-xs font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh stats"
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                Refresh
+              </button>
+            </div>
+            <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.15em] text-center mb-6">
+              {stats.period}
+            </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 rounded text-center">
@@ -102,7 +203,7 @@ export default function AffiliateStatsPage() {
                   {stats.clicks}
                 </div>
                 <div className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Total Clicks
+                  Clicks This Month
                 </div>
               </div>
 
@@ -111,7 +212,10 @@ export default function AffiliateStatsPage() {
                   {stats.signups}
                 </div>
                 <div className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Total Signups
+                  Signups This Month
+                </div>
+                <div className="text-xs text-[hsl(var(--primary))] font-semibold mt-2 uppercase tracking-[0.15em]">
+                  ${(stats.signups * 0.2).toFixed(2)} earned
                 </div>
               </div>
 
@@ -128,6 +232,9 @@ export default function AffiliateStatsPage() {
             <div className="mt-6 pt-6 border-t border-[hsl(var(--border-strong))]">
               <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.15em] text-center">
                 Referral Code: <span className="font-mono font-bold">{stats.referralCode}</span>
+              </p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] text-center mt-2">
+                These stats are for {stats.period} only. Each signup is counted once.
               </p>
             </div>
           </div>
