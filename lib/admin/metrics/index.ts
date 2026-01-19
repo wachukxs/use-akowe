@@ -286,6 +286,7 @@ async function getPeriodRevenue(range: DateRange) {
   const defaultRevenue = {
     revenueInPeriod: 0,
     revenueLast7Days: 0,
+    growth: [] as Array<{ _id: string; count: number }>,
   };
 
   if (!stripe || validPriceIds.length === 0) {
@@ -356,7 +357,7 @@ async function getPeriodRevenue(range: DateRange) {
       }
     }
 
-    // Calculate revenue in period
+    // Calculate revenue in period and daily breakdown
     let revenueInPeriod = 0;
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
@@ -364,12 +365,20 @@ async function getPeriodRevenue(range: DateRange) {
     const sevenDaysAgoTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
     let revenue7Days = 0;
 
+    // Group revenue by day for growth chart
+    const dailyRevenueMap = new Map<string, number>();
+
     for (const invoice of allInvoices) {
       const inv = invoice as any;
       const amount = inv.amount_paid / 100;
       
       if (inv.created >= range.startTimestamp && inv.created <= range.endTimestamp) {
         revenueInPeriod += amount;
+        
+        // Group by date (YYYY-MM-DD)
+        const invoiceDate = new Date(inv.created * 1000);
+        const dateStr = invoiceDate.toISOString().split('T')[0];
+        dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amount);
       }
       
       if (inv.created >= sevenDaysAgoTimestamp) {
@@ -377,9 +386,18 @@ async function getPeriodRevenue(range: DateRange) {
       }
     }
 
+    // Convert map to sorted array format matching user growth
+    const revenueGrowth = Array.from(dailyRevenueMap.entries())
+      .map(([date, amount]) => ({
+        _id: date,
+        count: amount,
+      }))
+      .sort((a, b) => a._id.localeCompare(b._id));
+
     return {
       revenueInPeriod,
       revenueLast7Days: revenue7Days,
+      growth: revenueGrowth,
     };
   } catch (error) {
     console.warn('Error fetching period revenue:', error);

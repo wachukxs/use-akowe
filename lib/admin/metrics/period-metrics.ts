@@ -94,7 +94,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
   }>(cacheKey);
   if (cached) return cached;
 
-  // Use $facet to combine total usage and top users in one query
+  // Use $facet to combine total usage, daily growth, and top users in one query
   const aggregationResult = await DailyUsage.aggregate([
     {
       $match: {
@@ -110,6 +110,18 @@ export async function getPeriodUsageMetrics(range: DateRange) {
               totalAIWords: { $sum: '$aiWordsGenerated' },
               totalPlagiarismChecks: { $sum: '$plagiarismChecks' }
             }
+          }
+        ],
+        dailyGrowth: [
+          {
+            $group: {
+              _id: '$date',
+              aiWords: { $sum: '$aiWordsGenerated' },
+              plagiarismChecks: { $sum: '$plagiarismChecks' }
+            }
+          },
+          {
+            $sort: { _id: 1 }
           }
         ],
         topUsers: [
@@ -132,6 +144,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
   ]);
 
   const usage = aggregationResult[0]?.totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0 };
+  const dailyGrowth = aggregationResult[0]?.dailyGrowth || [];
   const topUsersAggregation = aggregationResult[0]?.topUsers || [];
 
   // Batch fetch user details (single query instead of N queries)
@@ -166,6 +179,10 @@ export async function getPeriodUsageMetrics(range: DateRange) {
   const result = {
     aiWordsInPeriod: usage.totalAIWords,
     plagiarismChecksInPeriod: usage.totalPlagiarismChecks,
+    growth: dailyGrowth.map((day: { _id: string; aiWords: number; plagiarismChecks: number }) => ({
+      _id: day._id,
+      count: day.aiWords,
+    })),
     topUsersByUsage,
   };
 

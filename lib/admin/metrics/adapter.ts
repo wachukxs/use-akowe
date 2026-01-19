@@ -43,6 +43,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
       totalPlagiarismChecks: 0, // Not in new structure, can be calculated if needed
       aiWordsLast30Days: response.periodPerformance.usage.aiWordsInPeriod,
       plagiarismChecksLast30Days: response.periodPerformance.usage.plagiarismChecksInPeriod,
+      growth: response.periodPerformance.usage.growth || [],
       topUsersByUsage: response.detailedLists.topUsersByUsage,
     },
     revenue: {
@@ -55,6 +56,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
       canceledSubscriptions: response.businessMetrics.revenue.canceledSubscriptions,
       revenueLast30Days: response.periodPerformance.revenue.revenueInPeriod,
       revenueLast7Days: response.periodPerformance.revenue.revenueLast7Days,
+      growth: response.periodPerformance.revenue.growth || [],
       subscriptionDetails: response.detailedLists.subscriptionDetails,
     },
     engagement: {

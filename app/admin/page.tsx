@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
 import LeadsTab from '@/components/admin/LeadsTab';
+import TimeSeriesChart from '@/components/admin/TimeSeriesChart';
 
 type AdminTab = 'dashboard' | 'referrals' | 'leads';
 
@@ -56,6 +57,7 @@ interface AdminMetricsResponse {
     usage: {
       aiWordsInPeriod: number;
       plagiarismChecksInPeriod: number;
+      growth: Array<{ _id: string; count: number }>;
       topUsersByUsage: Array<{
         userId: string;
         email: string;
@@ -68,6 +70,7 @@ interface AdminMetricsResponse {
     revenue: {
       revenueInPeriod: number;
       revenueLast7Days: number;
+      growth: Array<{ _id: string; count: number }>;
     };
     engagement: {
       activeUsers: number;
@@ -996,6 +999,40 @@ export default function AdminDashboard() {
                 trend={metrics.comparisons?.changes.aiWords}
                 icon={<Activity size={16} />}
                 timeContext="period"
+              />
+            </div>
+            
+            {/* Growth Charts */}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <TimeSeriesChart
+                data={metrics.periodPerformance.users.growth || []}
+                title="User Growth"
+                valueLabel="New Users"
+                color="hsl(var(--primary))"
+                height={250}
+                startDate={metrics.dateRange.start}
+                endDate={metrics.dateRange.end}
+                days={metrics.dateRange.days}
+              />
+              <TimeSeriesChart
+                data={metrics.periodPerformance.usage.growth || []}
+                title="AI Words Generated"
+                valueLabel="Words"
+                color="hsl(var(--accent))"
+                height={250}
+                startDate={metrics.dateRange.start}
+                endDate={metrics.dateRange.end}
+                days={metrics.dateRange.days}
+              />
+              <TimeSeriesChart
+                data={metrics.periodPerformance.revenue.growth || []}
+                title="Revenue"
+                valueLabel="USD"
+                color="hsl(var(--primary))"
+                height={250}
+                startDate={metrics.dateRange.start}
+                endDate={metrics.dateRange.end}
+                days={metrics.dateRange.days}
               />
             </div>
           </div>

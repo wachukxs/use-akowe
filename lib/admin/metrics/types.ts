@@ -38,6 +38,7 @@ export interface PeriodPerformance {
   usage: {
     aiWordsInPeriod: number;
     plagiarismChecksInPeriod: number;
+    growth: Array<{ _id: string; count: number }>;
     topUsersByUsage: Array<{
       userId: string;
       email: string;
@@ -50,6 +51,7 @@ export interface PeriodPerformance {
   revenue: {
     revenueInPeriod: number;
     revenueLast7Days: number;
+    growth: Array<{ _id: string; count: number }>;
   };
   engagement: {
     activeUsers: number; // Users active in the period
