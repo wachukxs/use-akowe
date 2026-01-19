@@ -7,6 +7,7 @@ import User from '@/models/User';
 import { isVIPUser } from './vip-users';
 import { ensureUserReferralCode, createWithReferralCode, lookupReferralCode } from './referral';
 import { markLeadAsConverted } from './lead-conversion';
+import { markReferralClicksAsConverted } from './referral-click-conversion';
 
 export const authOptions: NextAuthConfig = {
   // Enable debug logging temporarily to surface auth issues in production
@@ -76,12 +77,14 @@ export const authOptions: NextAuthConfig = {
           // Check for pending referral code from signup flow
           let referredBy = undefined;
           let referredByInfluencer = undefined;
+          let pendingReferralCode: string | undefined = undefined;
           
           try {
             const cookieStore = await cookies();
             const pendingReferral = cookieStore.get('pending_referral')?.value;
             
             if (pendingReferral) {
+              pendingReferralCode = pendingReferral;
               const referrer = await lookupReferralCode(pendingReferral);
               if (referrer) {
                 if (referrer.type === 'user') {
@@ -122,6 +125,13 @@ export const authOptions: NextAuthConfig = {
           markLeadAsConverted(existingUser.email, existingUser._id.toString(), existingUser.createdAt).catch(err => {
             console.error('Lead conversion tracking failed:', err);
           });
+
+          // Mark referral clicks as converted if user signed up with a referral code (fire-and-forget)
+          if (pendingReferralCode) {
+            markReferralClicksAsConverted(pendingReferralCode, existingUser.createdAt).catch(err => {
+              console.error('Referral click conversion tracking failed:', err);
+            });
+          }
         } else {
           // Ensure existing user has a referral code
           if (!existingUser.referralCode) {
