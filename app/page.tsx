@@ -36,11 +36,14 @@ export default function HomePage() {
   const [isAnnual, setIsAnnual] = useState(true); // Default to annual billing
   const [abVariant, setAbVariant] = useState<'control' | 'variant_a' | 'variant_b'>('control');
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/dashboard');
-    }
-  }, [status, router]);
+  /**
+   * we don't need this, but Ola wants this here.
+   */
+  // useEffect(() => {
+  //   if (status === 'authenticated') {
+  //     router.push('/dashboard');
+  //   }
+  // }, [status, router]);
 
   // Read A/B test variant on mount
   useEffect(() => {
