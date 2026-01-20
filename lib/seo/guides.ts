@@ -16,6 +16,97 @@ export interface Guide {
 
 export const guides: Guide[] = [
   {
+    slug: 'best-tools-for-thesis-writing',
+    title: 'Best Tools for Thesis Writing: Complete Comparison Guide',
+    description: 'Compare the best tools for thesis and dissertation writing. Learn where Akowe fits among citation managers, AI tools, and writing apps.',
+    keywords: [
+      'best tools for thesis writing',
+      'thesis writing tools',
+      'ai tools for thesis writing',
+      'best software for theses',
+      'akowe thesis tool',
+    ],
+    content: {
+      introduction:
+        'Choosing the right tools for thesis writing can save you dozens of hours. This guide compares common categories—word processors, citation managers, and AI writing assistants—and explains where Akowe fits in.',
+      sections: [
+        {
+          heading: '1. Traditional Writing Stack',
+          content:
+            'Most students use a combination of Word or Google Docs, a citation manager like Zotero or Mendeley, and manual plagiarism checks. This stack works but forces you to jump between tools and keep everything in sync yourself.',
+        },
+        {
+          heading: '2. Generic AI Tools',
+          content:
+            'General-purpose AI tools like ChatGPT can help you brainstorm and draft, but they are not designed for academic writing. They often hallucinate citations, mix sources, and ignore citation style requirements. You must manually verify everything.',
+        },
+        {
+          heading: '3. All-in-One Academic Tools',
+          content:
+            'All-in-one tools bring writing, citations, and checks into a single workspace. Akowe falls into this category: it combines AI writing assistance, real academic source search, citation formatting, and plagiarism checking for long-form research projects.',
+        },
+        {
+          heading: '4. When Akowe Is the Right Choice',
+          content:
+            'Akowe is ideal if you want AI help that respects academic integrity. It searches real academic sources, manages citations across your whole thesis, and lets you organize chapters and sections. Instead of juggling three different tools, you work inside one structured editor.',
+        },
+        {
+          heading: '5. Recommended Stack for Theses',
+          content:
+            'For most students, the best stack is: Akowe for writing, citations, and plagiarism checks; a reference backup in Zotero or your library account if required; and your university template for final formatting. This setup lets you stay focused on the research instead of the tooling.',
+        },
+      ],
+      conclusion:
+        'There is no single “best tool” for every thesis, but tools that integrate AI, citations, and plagiarism checking give you a clear advantage. Akowe is built specifically for that workflow, so you can spend more time thinking about your argument and less time fighting your tools.',
+    },
+  },
+  {
+    slug: 'ai-tools-for-academic-writing',
+    title: 'AI Tools for Academic Writing: How to Use Akowe Effectively',
+    description:
+      'Learn how to use AI tools safely for academic writing. Understand where Akowe fits alongside ChatGPT, Claude, and other assistants.',
+    keywords: [
+      'ai tools for academic writing',
+      'akowe vs chatgpt',
+      'how to use ai for theses',
+      'ai for research papers',
+      'academic writing ai comparison',
+    ],
+    content: {
+      introduction:
+        'AI can speed up academic writing—but only if you use it carefully. This guide explains how to combine general AI chat tools with Akowe, and when to rely on Akowe instead of generic assistants.',
+      sections: [
+        {
+          heading: '1. What General AI Tools Are Good At',
+          content:
+            'ChatGPT, Claude, and similar tools are great for brainstorming ideas, explaining complex concepts, and generating rough drafts. However, they are not optimized for academic integrity, citation management, or long-term project structure.',
+        },
+        {
+          heading: '2. What Akowe Is Optimized For',
+          content:
+            'Akowe focuses on academic workflows: precise section structure, real academic sources, proper citation formatting, and plagiarism checks. It understands that you are writing a thesis or research paper—not a generic blog post.',
+        },
+        {
+          heading: '3. Safe Ways to Use AI in Academic Writing',
+          content:
+            'Use general AI tools to clarify concepts or suggest alternative explanations, but move serious writing into Akowe. In Akowe, use AI assistance to expand sections, improve clarity, or restructure paragraphs while keeping your citations and references intact.',
+        },
+        {
+          heading: '4. Avoiding Hallucinated Citations',
+          content:
+            'Never copy citations directly from generic AI tools. Instead, use Akowe’s citation search, which pulls real records from academic databases. Once you find the correct source, you can safely integrate it into your writing.',
+        },
+        {
+          heading: '5. A Practical Workflow',
+          content:
+            'Start with an outline and basic ideas in Akowe. If you get stuck, ask a general AI tool to explain a concept, then summarize it in your own words inside Akowe. Use Akowe’s source search to find real references, and run plagiarism checks on each chapter before you submit.',
+        },
+      ],
+      conclusion:
+        'AI should support your thinking, not replace it. By combining high-level exploration in general AI tools with structured, citation-aware writing in Akowe, you get the best of both worlds while staying within academic guidelines.',
+    },
+  },
+  {
     slug: 'how-to-write-a-literature-review',
     title: 'How to Write a Literature Review: Step-by-Step Guide',
     description: 'Learn how to write a comprehensive literature review for your research paper or thesis. Step-by-step guide with examples and best practices.',

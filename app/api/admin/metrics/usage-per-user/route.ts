@@ -3,7 +3,6 @@ import connectDB from '@/lib/mongodb';
 import DailyUsage from '@/models/DailyUsage';
 import User from '@/models/User';
 import Project from '@/models/Project';
-import mongoose from 'mongoose';
 
 export async function GET(request: Request) {
   try {
@@ -80,7 +79,7 @@ export async function GET(request: Request) {
     const startStr = startDate.toISOString().split('T')[0];
     const endStr = endDate.toISOString().split('T')[0];
 
-    // Get all users with usage in the period (not just top 20)
+    // Aggregate usage for all users in the period
     const usageAggregation = await DailyUsage.aggregate([
       {
         $match: {
@@ -94,42 +93,56 @@ export async function GET(request: Request) {
           totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
           activeDays: { $sum: 1 }
         }
-      },
-      {
-        $sort: { totalAIWords: -1 }
       }
     ]);
 
-    // Batch fetch all user details
-    const userIds = usageAggregation
-      .map((u: { _id: string }) => u._id)
-      .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
-      .map((id: string) => new mongoose.Types.ObjectId(id));
-    
-    const usersMap = new Map<string, any>();
-    if (userIds.length > 0) {
-      const users = await User.find({ _id: { $in: userIds } })
-        .select('email name plan _id')
-        .lean();
-      
-      users.forEach((user: any) => {
-        usersMap.set(user._id.toString(), user);
-      });
-    }
+    // Build a usage map keyed by userId (string)
+    const usageMap = new Map<
+      string,
+      { totalAIWords: number; totalPlagiarismChecks: number; activeDays: number }
+    >();
+    usageAggregation.forEach(
+      (usage: {
+        _id: string;
+        totalAIWords: number;
+        totalPlagiarismChecks: number;
+        activeDays: number;
+      }) => {
+        usageMap.set(usage._id, {
+          totalAIWords: usage.totalAIWords,
+          totalPlagiarismChecks: usage.totalPlagiarismChecks,
+          activeDays: usage.activeDays,
+        });
+      },
+    );
 
-    // Combine usage data with user details
-    const usersWithUsage = usageAggregation.map((usage: { _id: string; totalAIWords: number; totalPlagiarismChecks: number; activeDays: number }) => {
-      const user = usersMap.get(usage._id) || null;
+    // Fetch all users so that export truly includes every account,
+    // even users with zero usage in the selected period.
+    const allUsers = await User.find()
+      .select('email name plan _id')
+      .lean();
+
+    const usersWithUsage = allUsers.map((user: any) => {
+      const userId = user._id.toString();
+      const usage = usageMap.get(userId) || {
+        totalAIWords: 0,
+        totalPlagiarismChecks: 0,
+        activeDays: 0,
+      };
+
       return {
-        userId: usage._id,
-        email: user?.email || 'Unknown',
-        name: user?.name || 'Unknown',
-        plan: user?.plan || 'free',
+        userId,
+        email: user.email || 'Unknown',
+        name: user.name || 'Unknown',
+        plan: user.plan || 'free',
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
         activeDays: usage.activeDays,
       };
     });
+
+    // Sort by total AI words (descending) to keep behavior consistent
+    usersWithUsage.sort((a, b) => b.totalAIWords - a.totalAIWords);
 
     return NextResponse.json({
       users: usersWithUsage,

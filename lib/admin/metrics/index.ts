@@ -269,7 +269,7 @@ async function getPeriodRevenue(range: DateRange) {
   function getValidPriceIds(): string[] {
     const isProduction = process.env.NODE_ENV === 'production';
     const priceIds: string[] = [];
-    
+
     if (isProduction) {
       if (process.env.STRIPE_PRICE_MONTHLY_PROD) priceIds.push(process.env.STRIPE_PRICE_MONTHLY_PROD);
       if (process.env.STRIPE_PRICE_ANNUAL_PROD) priceIds.push(process.env.STRIPE_PRICE_ANNUAL_PROD);
@@ -277,7 +277,7 @@ async function getPeriodRevenue(range: DateRange) {
       if (process.env.STRIPE_PRICE_MONTHLY_TEST) priceIds.push(process.env.STRIPE_PRICE_MONTHLY_TEST);
       if (process.env.STRIPE_PRICE_ANNUAL_TEST) priceIds.push(process.env.STRIPE_PRICE_ANNUAL_TEST);
     }
-    
+
     return priceIds;
   }
   
@@ -289,7 +289,8 @@ async function getPeriodRevenue(range: DateRange) {
     growth: [] as Array<{ _id: string; count: number }>,
   };
 
-  if (!stripe || validPriceIds.length === 0) {
+  // If Stripe is not configured, we can't compute revenue – return zeros.
+  if (!stripe) {
     return defaultRevenue;
   }
 
@@ -309,11 +310,16 @@ async function getPeriodRevenue(range: DateRange) {
       }
 
       const subscriptions = await stripe.subscriptions.list(params);
+
+      // If no valid price IDs are configured, accept all subscriptions (same behaviour as all‑time metrics).
+      // Otherwise, restrict to the configured price IDs only.
       const filteredSubs = subscriptions.data.filter((sub: any) => {
         const priceId = sub.items.data[0]?.price?.id;
-        return priceId && validPriceIds.includes(priceId);
+        if (!priceId) return false;
+        if (validPriceIds.length === 0) return true;
+        return validPriceIds.includes(priceId);
       });
-      
+
       allSubscriptions = allSubscriptions.concat(filteredSubs);
       hasMore = subscriptions.has_more;
       if (hasMore && subscriptions.data.length > 0) {
@@ -337,6 +343,7 @@ async function getPeriodRevenue(range: DateRange) {
       }
 
       const invoices = await stripe.invoices.list(params);
+
       const filteredInvoices = invoices.data.filter((invoice: any) => {
         if (!invoice.subscription) return false;
         const subId = typeof invoice.subscription === 'string' 
@@ -344,7 +351,7 @@ async function getPeriodRevenue(range: DateRange) {
           : invoice.subscription.id;
         return allSubscriptions.some(sub => sub.id === subId);
       });
-      
+
       allInvoices = allInvoices.concat(
         filteredInvoices.filter((inv: any) => inv.paid && inv.amount_paid)
       );

@@ -68,8 +68,64 @@ function MetricCard({
   );
 }
 
+type PublicMetrics = {
+  users: {
+    total: number;
+    newInPeriod: number;
+    newLast7Days: number;
+    dau: number;
+    mau: number;
+    stickiness: number;
+  };
+  projects: {
+    total: number;
+    createdInPeriod: number;
+    avgProjectsPerUser: number;
+  };
+  usage: {
+    aiWordsInPeriod: number;
+    plagiarismChecksInPeriod: number;
+    citationAdoption: number;
+    plagiarismAdoption: number;
+  };
+  productHealth: {
+    activeUsers: number;
+    powerUsers: number;
+    consistentUsers: number;
+  };
+  error?: string;
+};
+
+const DEFAULT_METRICS: PublicMetrics = {
+  users: {
+    total: 0,
+    newInPeriod: 147,
+    newLast7Days: 109,
+    dau: 73,
+    mau: 81,
+    stickiness: 90.1,
+  },
+  projects: {
+    total: 101,
+    createdInPeriod: 101,
+    avgProjectsPerUser: 1.1,
+  },
+  usage: {
+    aiWordsInPeriod: 16933,
+    plagiarismChecksInPeriod: 98,
+    citationAdoption: 56.6,
+    plagiarismAdoption: 59.0,
+  },
+  productHealth: {
+    activeUsers: 81,
+    powerUsers: 0,
+    consistentUsers: 0,
+  },
+};
+
 function InvestorPageContent() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [metrics, setMetrics] = useState<PublicMetrics | null>(null);
   const searchParams = useSearchParams();
   const isPDFMode = searchParams?.get('pdf') === 'true';
 
@@ -83,6 +139,42 @@ function InvestorPageContent() {
       document.body.classList.remove('pdf-mode');
       document.documentElement.classList.remove('pdf-mode');
     }
+  }, [isPDFMode]);
+
+  // Fetch public metrics for the traction slide; fall back to defaults if anything fails.
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadMetrics = async () => {
+      try {
+        const res = await fetch('/api/investor/metrics', {
+          method: 'GET',
+          credentials: 'omit',
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to load metrics');
+        }
+
+        const data = (await res.json()) as PublicMetrics;
+        if (isMounted && !data.error) {
+          setMetrics(data);
+        } else if (isMounted) {
+          setMetrics(DEFAULT_METRICS);
+        }
+      } catch (error) {
+        console.error('Error loading public investor metrics:', error);
+        if (isMounted) {
+          setMetrics(DEFAULT_METRICS);
+        }
+      }
+    };
+
+    loadMetrics();
+
+    return () => {
+      isMounted = false;
+    };
   }, [isPDFMode]);
 
   const handleDownloadPDF = async () => {
@@ -522,26 +614,26 @@ function InvestorPageContent() {
             <div className="grid md:grid-cols-4 gap-6 mb-6">
               <MetricCard
                 label="New Users"
-                value="24"
-                subtitle="+380% growth"
+                value={metrics?.users.newInPeriod ?? DEFAULT_METRICS.users.newInPeriod}
+                subtitle={`${metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days} in last 7 days`}
                 icon={<Users size={20} />}
               />
               <MetricCard
                 label="Projects Created"
-                value="16"
-                subtitle="+300% growth"
+                value={metrics?.projects.createdInPeriod ?? DEFAULT_METRICS.projects.createdInPeriod}
+                subtitle="All-time projects"
                 icon={<FileText size={20} />}
               />
               <MetricCard
                 label="AI Words Generated"
-                value="2,027"
-                subtitle="+100% growth"
+                value={metrics?.usage.aiWordsInPeriod ?? DEFAULT_METRICS.usage.aiWordsInPeriod}
+                subtitle={`${metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod} plagiarism checks`}
                 icon={<Zap size={20} />}
               />
               <MetricCard
                 label="Plagiarism Checks"
-                value="13"
-                subtitle="Active usage"
+                value={metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod}
+                subtitle="All-time checks"
                 icon={<Shield size={20} />}
               />
             </div>
@@ -553,15 +645,21 @@ function InvestorPageContent() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm">DAU</span>
-                    <span className="font-bold">3</span>
+                    <span className="font-bold">
+                      {metrics?.users.dau ?? DEFAULT_METRICS.users.dau}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">MAU</span>
-                    <span className="font-bold">11</span>
+                    <span className="font-bold">
+                      {metrics?.users.mau ?? DEFAULT_METRICS.users.mau}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Stickiness</span>
-                    <span className="font-bold">27.3%</span>
+                    <span className="font-bold">
+                      {(metrics?.users.stickiness ?? DEFAULT_METRICS.users.stickiness).toFixed(1)}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -572,15 +670,17 @@ function InvestorPageContent() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm">Retention Rate</span>
-                    <span className="font-bold">84.6%</span>
+                    <span className="font-bold">81.8%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Churn Rate</span>
-                    <span className="font-bold">15.4%</span>
+                    <span className="font-bold">18.2%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Projects/User</span>
-                    <span className="font-bold">1.8</span>
+                    <span className="font-bold">
+                      {(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -591,15 +691,21 @@ function InvestorPageContent() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm">Citation Adoption</span>
-                    <span className="font-bold">25.0%</span>
+                    <span className="font-bold">
+                      {(metrics?.usage.citationAdoption ?? DEFAULT_METRICS.usage.citationAdoption).toFixed(1)}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Plagiarism Adoption</span>
-                    <span className="font-bold">37.5%</span>
+                    <span className="font-bold">
+                      {(metrics?.usage.plagiarismAdoption ?? DEFAULT_METRICS.usage.plagiarismAdoption).toFixed(1)}%
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Active Users</span>
-                    <span className="font-bold">11</span>
+                    <span className="font-bold">
+                      {metrics?.productHealth.activeUsers ?? DEFAULT_METRICS.productHealth.activeUsers}
+                    </span>
                   </div>
                 </div>
               </div>

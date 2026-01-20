@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { 
   Users, 
   DollarSign, 
@@ -411,6 +411,35 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [topUsersUsage, setTopUsersUsage] = useState<
+    Array<{
+      userId: string;
+      email: string;
+      name: string;
+      plan: string;
+      totalAIWords: number;
+      totalPlagiarismChecks: number;
+      activeDays: number;
+    }> | null
+  >(null);
+  const [recentUsersPage, setRecentUsersPage] = useState(1);
+  const recentUsersPageRef = useRef(1); // Ref to track current page for interval callback
+  const recentUsersRequestIdRef = useRef(0); // Ref to track latest recent-users request for race condition prevention
+  const [recentUsersPageSize] = useState(20);
+  const [recentUsers, setRecentUsers] = useState<
+    Array<{
+      _id: string;
+      name: string;
+      email: string;
+      plan: string;
+      createdAt: string;
+      stripeSubscriptionId?: string;
+      totalAIWords: number;
+      totalPlagiarismChecks: number;
+      activeDays: number;
+    }>
+  >([]);
+  const [recentUsersTotal, setRecentUsersTotal] = useState(0);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     executiveSummary: true,
     periodPerformance: true,
@@ -442,7 +471,7 @@ export default function AdminDashboard() {
     return () => clearTimeout(timer);
   }, [daysFilter, customDateRange]);
 
-  // Fetch metrics when debounced filter changes
+  // Fetch metrics and lists when debounced filter or search changes
   useEffect(() => {
     // Cancel previous request if still in flight
     if (abortController) {
@@ -454,19 +483,24 @@ export default function AdminDashboard() {
 
     fetchHealthStatus();
     fetchMetrics(controller.signal);
+    fetchTopUsersUsage(controller.signal);
+    fetchRecentUsers(1, controller.signal);
     
     const interval = setInterval(() => {
       fetchHealthStatus();
       const newController = new AbortController();
       setAbortController(newController);
       fetchMetrics(newController.signal);
+      fetchTopUsersUsage(newController.signal);
+      fetchRecentUsers(recentUsersPageRef.current, newController.signal); // Use ref to get current page value
     }, 5 * 60 * 1000);
     
     return () => {
       clearInterval(interval);
       controller.abort();
     };
-  }, [debouncedDaysFilter, debouncedCustomDateRange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedDaysFilter, debouncedCustomDateRange, debouncedSearch]);
 
   const fetchHealthStatus = async () => {
     try {
@@ -504,6 +538,100 @@ export default function AdminDashboard() {
     } finally {
       if (!signal?.aborted) {
         setIsLoading(false);
+      }
+    }
+  };
+
+  const fetchTopUsersUsage = async (signal?: AbortSignal) => {
+    try {
+      let apiUrl = `/api/admin/metrics/usage-per-user?days=${debouncedDaysFilter}`;
+      if (debouncedCustomDateRange) {
+        apiUrl += `&start=${debouncedCustomDateRange.start}&end=${debouncedCustomDateRange.end}`;
+      }
+
+      const response = await fetch(apiUrl, { signal });
+      if (!response.ok) {
+        throw new Error('Failed to fetch usage data');
+      }
+
+      const data = await response.json();
+      if (!signal?.aborted) {
+        if (Array.isArray(data.users)) {
+          setTopUsersUsage(data.users);
+        } else {
+          setTopUsersUsage(null);
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        // Request was cancelled, ignore
+        return;
+      }
+      console.error('Failed to fetch top users usage:', err);
+      if (!signal?.aborted) {
+        setTopUsersUsage(null);
+      }
+    }
+  };
+
+  const fetchRecentUsers = async (page: number, signal?: AbortSignal) => {
+    // Generate a unique request id for this invocation to prevent race conditions
+    const requestId = ++recentUsersRequestIdRef.current;
+
+    try {
+      const params = new URLSearchParams();
+      params.set('page', page.toString());
+      params.set('limit', recentUsersPageSize.toString());
+      if (debouncedSearch) {
+        params.set('search', debouncedSearch);
+      }
+
+      const response = await fetch(`/api/admin/users/recent?${params.toString()}`, { signal });
+      if (!response.ok) {
+        throw new Error('Failed to fetch recent users');
+      }
+
+      const data = await response.json();
+      if (!signal?.aborted) {
+        // Only update state if this response matches the latest request id
+        // This prevents stale responses from overwriting newer data
+        if (recentUsersRequestIdRef.current === requestId) {
+          if (Array.isArray(data.users)) {
+            setRecentUsers(data.users);
+            setRecentUsersTotal(data.total || data.users.length);
+            const newPage = data.page || page;
+            setRecentUsersPage(newPage);
+            recentUsersPageRef.current = newPage; // Update ref to track current page
+          }
+        }
+        // If ids don't match, a newer request has been made, ignore this stale response
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        // Request was cancelled, ignore
+        return;
+      }
+      console.error('Failed to fetch recent users:', err);
+      // Fall back to metrics-based recent users if API fails
+      // Only do this if this response matches the latest request id
+      if (!signal?.aborted && recentUsersRequestIdRef.current === requestId && metrics?.detailedLists?.recentUsers) {
+        const fallbackUsers = metrics.detailedLists.recentUsers.map(user => ({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          plan: user.plan,
+          createdAt: user.createdAt,
+          stripeSubscriptionId: user.stripeSubscriptionId,
+          totalAIWords: user.totalAIWords || 0,
+          totalPlagiarismChecks: user.totalPlagiarismChecks || 0,
+          activeDays: user.activeDays || 0,
+        }));
+
+        setRecentUsers(fallbackUsers);
+        setRecentUsersTotal(fallbackUsers.length);
+        // Fallback data represents a simple, non-paginated list; ensure UI reflects page 1
+        setRecentUsersPage(1);
+        recentUsersPageRef.current = 1;
       }
     }
   };
@@ -1206,13 +1334,19 @@ export default function AdminDashboard() {
           onToggle={() => toggleSection('detailedLists')}
         >
           <div className="space-y-6">
-            {metrics.detailedLists.topUsersByUsage.length > 0 && (
+            {(topUsersUsage && topUsersUsage.length > 0) || metrics.detailedLists.topUsersByUsage.length > 0 ? (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold uppercase tracking-[0.24em]">Top Users by Usage</h3>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => exportUsersToCSV(metrics.detailedLists.topUsersByUsage)}
+                      onClick={() =>
+                        exportUsersToCSV(
+                          (topUsersUsage && topUsersUsage.length > 0
+                            ? topUsersUsage
+                            : metrics.detailedLists.topUsersByUsage) as any[],
+                        )
+                      }
                       className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
                     >
                       <FileText size={14} />
@@ -1241,7 +1375,10 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {metrics.detailedLists.topUsersByUsage.slice(0, 10).map((user, idx) => (
+                      {(topUsersUsage && topUsersUsage.length > 0
+                        ? topUsersUsage.slice(0, 10)
+                        : metrics.detailedLists.topUsersByUsage.slice(0, 10)
+                      ).map((user, idx) => (
                         <tr key={user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-bold">#{idx + 1}</td>
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
@@ -1263,23 +1400,29 @@ export default function AdminDashboard() {
                   </table>
                 </div>
               </div>
-            )}
+            ) : null}
 
-            {metrics.detailedLists.recentUsers.length > 0 && (
+            {(recentUsers && recentUsers.length > 0) || metrics.detailedLists.recentUsers.length > 0 ? (
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold uppercase tracking-[0.24em]">Recent Users</h3>
                   <button
-                    onClick={() => exportUsersToCSV(metrics.detailedLists.recentUsers.map(u => ({
-                      userId: u._id,
-                      email: u.email,
-                      name: u.name,
-                      plan: u.plan,
-                      createdAt: u.createdAt,
-                      stripeSubscriptionId: u.stripeSubscriptionId,
-                      totalAIWords: u.totalAIWords || 0,
-                      totalPlagiarismChecks: u.totalPlagiarismChecks || 0,
-                    })))}
+                    onClick={() =>
+                      exportUsersToCSV(
+                        (recentUsers && recentUsers.length > 0
+                          ? recentUsers
+                          : metrics.detailedLists.recentUsers.map(u => ({
+                              userId: u._id,
+                              email: u.email,
+                              name: u.name,
+                              plan: u.plan,
+                              createdAt: u.createdAt,
+                              stripeSubscriptionId: u.stripeSubscriptionId,
+                              totalAIWords: u.totalAIWords || 0,
+                              totalPlagiarismChecks: u.totalPlagiarismChecks || 0,
+                            }))) as any[],
+                      )
+                    }
                     className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
                   >
                     <FileText size={14} />
@@ -1301,7 +1444,10 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {metrics.detailedLists.recentUsers.slice(0, 20).map((user) => (
+                      {(recentUsers && recentUsers.length > 0
+                        ? recentUsers
+                        : metrics.detailedLists.recentUsers.slice(0, 20)
+                      ).map(user => (
                         <tr key={user._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
                           <td className="py-2 px-3">{user.email}</td>
@@ -1329,9 +1475,45 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
+                  {recentUsersTotal > recentUsersPageSize && (
+                    <div className="flex items-center justify-between mt-3 text-xs text-[hsl(var(--muted-foreground))]">
+                      <span>
+                        Page {recentUsersPage} of {Math.ceil(recentUsersTotal / recentUsersPageSize)}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const prev = Math.max(1, recentUsersPage - 1);
+                            setRecentUsersPage(prev);
+                            recentUsersPageRef.current = prev; // Update ref when page changes
+                            fetchRecentUsers(prev);
+                          }}
+                          disabled={recentUsersPage === 1}
+                          className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] rounded disabled:opacity-50 cursor-pointer"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => {
+                            const next = Math.min(
+                              Math.ceil(recentUsersTotal / recentUsersPageSize),
+                              recentUsersPage + 1,
+                            );
+                            setRecentUsersPage(next);
+                            recentUsersPageRef.current = next; // Update ref when page changes
+                            fetchRecentUsers(next);
+                          }}
+                          disabled={recentUsersPage >= Math.ceil(recentUsersTotal / recentUsersPageSize)}
+                          className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] rounded disabled:opacity-50 cursor-pointer"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </CollapsibleSection>
       </div>
