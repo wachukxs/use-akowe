@@ -30,19 +30,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // If payment was successful and user is not already pro, update to pro
-    if (checkoutSession.payment_status === 'paid' && user.plan !== 'pro') {
+    // If payment was successful and user is not already on a paying plan, update to pro
+    const isPayingPlan = user.plan === 'pro' || user.plan === 'team';
+    if (checkoutSession.payment_status === 'paid' && !isPayingPlan) {
       user.plan = 'pro';
       // Save billing cycle from metadata
       const billingCycle = checkoutSession.metadata?.billingCycle || 'monthly';
       user.billingCycle = billingCycle as 'monthly' | 'annual';
       if (checkoutSession.subscription) {
-        user.stripeSubscriptionId = typeof checkoutSession.subscription === 'string' 
+        const subscriptionId = typeof checkoutSession.subscription === 'string' 
           ? checkoutSession.subscription 
           : checkoutSession.subscription.id;
+        user.stripeSubscriptionId = subscriptionId;
+        
+        // Fetch subscription to get creation date
+        try {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          user.subscriptionStartDate = new Date(subscription.created * 1000);
+          user.subscriptionEndDate = null; // Active subscription - use null for consistency with schema
+        } catch (error) {
+          console.error('Error fetching subscription in confirm-upgrade:', error);
+          // Fallback: use current date as start and clear end date (user is re-subscribing)
+          user.subscriptionStartDate = new Date();
+          user.subscriptionEndDate = null; // Clear any stale end date from previous cancellation
+        }
       }
       await user.save();
-      console.log(`✅ Updated user ${user._id} to pro plan (${billingCycle}) via confirmation`);
+      console.log(`✅ Updated user ${user._id} to pro plan (${billingCycle}) via confirmation with subscription dates`);
       
       // Trigger a session update by calling the internal NextAuth update
       // This is done by returning a flag that the client can use

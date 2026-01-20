@@ -79,7 +79,7 @@ export async function getPeriodProductMetrics(range: DateRange) {
         ]
       }
     }
-  ]);
+  ], { maxTimeMS: 30000 }); // 30 second timeout
 
   const projectsInPeriod = aggregationResult[0]?.total[0]?.count || 0;
   const completedInPeriod = aggregationResult[0]?.completed[0]?.count || 0;

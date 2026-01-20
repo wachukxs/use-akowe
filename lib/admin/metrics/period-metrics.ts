@@ -141,7 +141,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
         ]
       }
     }
-  ]);
+  ], { maxTimeMS: 30000 }); // 30 second timeout
 
   const usage = aggregationResult[0]?.totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0 };
   const dailyGrowth = aggregationResult[0]?.dailyGrowth || [];
@@ -238,7 +238,7 @@ export async function getPeriodEngagementMetrics(range: DateRange) {
         ]
       }
     }
-  ]);
+  ], { maxTimeMS: 30000 }); // 30 second timeout
 
   const activeUsersCount = aggregationResult[0]?.distinctUsers[0]?.count || 0;
   const usageConsistency = aggregationResult[0]?.consistency[0] || { avgActiveDays: 0, powerUsers: 0, consistentUsers: 0 };

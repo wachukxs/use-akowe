@@ -6,6 +6,8 @@ interface IUser extends Omit<UserType, '_id'> {
   _id?: mongoose.Types.ObjectId;
   password?: string; // Add password field for internal use
   billingCycle?: 'monthly' | 'annual'; // Add billing cycle field
+  subscriptionStartDate?: Date | null; // When subscription started (from Stripe)
+  subscriptionEndDate?: Date | null; // When subscription ended (null if active)
   // Referral system fields
   referralCode?: string; // Unique code for this user to share
   referredBy?: mongoose.Types.ObjectId; // User who referred this user
@@ -46,6 +48,14 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ['monthly', 'annual'],
       default: 'monthly',
+    },
+    subscriptionStartDate: {
+      type: Date,
+      default: null,
+    },
+    subscriptionEndDate: {
+      type: Date,
+      default: null,
     },
     // Referral system fields
     referralCode: {

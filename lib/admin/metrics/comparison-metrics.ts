@@ -9,15 +9,17 @@ import { createPreviousPeriodRange } from './date-utils';
 
 function getStripeClient(): Stripe | null {
   let stripeKey: string | undefined;
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  if (process.env.STRIPE_SECRET_KEY) {
-    stripeKey = process.env.STRIPE_SECRET_KEY;
-  } else if (process.env.NODE_ENV === 'production') {
+  // Prioritize environment-specific keys to avoid using production keys in dev
+  if (isProduction) {
     stripeKey = process.env.STRIPE_SECRET_KEY_PROD_V2 || 
-                process.env.STRIPE_SECRET_KEY_PROD;
+                process.env.STRIPE_SECRET_KEY_PROD ||
+                process.env.STRIPE_SECRET_KEY; // Fallback to generic key only in prod
   } else {
     stripeKey = process.env.STRIPE_SECRET_KEY_TEST || 
-                process.env.STRIPE_SECRET_KEY_DEV;
+                process.env.STRIPE_SECRET_KEY_DEV ||
+                process.env.STRIPE_SECRET_KEY; // Fallback to generic key only in dev
   }
   
   if (!stripeKey) {
@@ -98,7 +100,7 @@ export async function getComparisonMetrics(
         totalPlagiarismChecks: { $sum: '$plagiarismChecks' }
       }
     }
-  ]);
+  ], { maxTimeMS: 30000 }); // 30 second timeout
   const previousAIWords = previousUsagePeriod[0]?.totalAIWords || 0;
   const previousPlagiarismChecks = previousUsagePeriod[0]?.totalPlagiarismChecks || 0;
   

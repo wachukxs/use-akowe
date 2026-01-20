@@ -8,15 +8,17 @@ import { metricsCache, getCacheKey, CACHE_TTL } from './cache';
 
 function getStripeClient(): Stripe | null {
   let stripeKey: string | undefined;
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  if (process.env.STRIPE_SECRET_KEY) {
-    stripeKey = process.env.STRIPE_SECRET_KEY;
-  } else if (process.env.NODE_ENV === 'production') {
+  // Prioritize environment-specific keys to avoid using production keys in dev
+  if (isProduction) {
     stripeKey = process.env.STRIPE_SECRET_KEY_PROD_V2 || 
-                process.env.STRIPE_SECRET_KEY_PROD;
+                process.env.STRIPE_SECRET_KEY_PROD ||
+                process.env.STRIPE_SECRET_KEY; // Fallback to generic key only in prod
   } else {
     stripeKey = process.env.STRIPE_SECRET_KEY_TEST || 
-                process.env.STRIPE_SECRET_KEY_DEV;
+                process.env.STRIPE_SECRET_KEY_DEV ||
+                process.env.STRIPE_SECRET_KEY; // Fallback to generic key only in dev
   }
   
   if (!stripeKey) {
@@ -83,7 +85,7 @@ export async function getAllTimeUserMetrics() {
           activeDays: { $sum: 1 }
         }
       }
-    ]);
+    ]).option({ maxTimeMS: 30000 }); // 30 second timeout
 
     usageData.forEach((usage: any) => {
       usageMap.set(usage._id, {
@@ -131,6 +133,13 @@ export async function getAllTimeProjectMetrics() {
 }
 
 export async function getAllTimeUsageMetrics() {
+  const cacheKey = getCacheKey('alltime:usage');
+  const cached = metricsCache.get<{
+    totalAIWords: number;
+    totalPlagiarismChecks: number;
+  }>(cacheKey);
+  if (cached) return cached;
+
   const totalUsage = await DailyUsage.aggregate([
     {
       $group: {
@@ -139,14 +148,18 @@ export async function getAllTimeUsageMetrics() {
         totalPlagiarismChecks: { $sum: '$plagiarismChecks' }
       }
     }
-  ]);
+  ], { maxTimeMS: 30000 }); // 30 second timeout
 
   const usage = totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0 };
 
-  return {
+  const result = {
     totalAIWords: usage.totalAIWords,
     totalPlagiarismChecks: usage.totalPlagiarismChecks,
   };
+
+  // Cache all-time usage metrics for longer (they don't change often)
+  metricsCache.set(cacheKey, result, CACHE_TTL.allTimeMetrics);
+  return result;
 }
 
 export async function getAllTimeRevenueMetrics() {
@@ -177,7 +190,8 @@ export async function getAllTimeRevenueMetrics() {
     subscriptionDetails: [] as any[],
   };
 
-  if (!stripe || validPriceIds.length === 0) {
+  // If Stripe is not configured, we can't compute revenue – return zeros.
+  if (!stripe) {
     return defaultRevenue;
   }
 
@@ -198,9 +212,13 @@ export async function getAllTimeRevenueMetrics() {
 
       const subscriptions = await stripe.subscriptions.list(params);
       
+      // If no valid price IDs are configured, accept all subscriptions (same behaviour as period metrics).
+      // Otherwise, restrict to the configured price IDs only.
       const filteredSubs = subscriptions.data.filter((sub: any) => {
         const priceId = sub.items.data[0]?.price?.id;
-        return validPriceIds.length === 0 || (priceId && validPriceIds.includes(priceId));
+        if (!priceId) return false;
+        if (validPriceIds.length === 0) return true;
+        return validPriceIds.includes(priceId);
       });
       
       allSubscriptions = allSubscriptions.concat(filteredSubs);
@@ -224,6 +242,7 @@ export async function getAllTimeRevenueMetrics() {
     for (const subscription of allSubscriptions) {
       const priceId = subscription.items.data[0]?.price?.id;
       
+      // Skip if no price ID, or if price IDs are configured and this one doesn't match
       if (!priceId || (validPriceIds.length > 0 && !validPriceIds.includes(priceId))) {
         continue;
       }
@@ -279,45 +298,60 @@ export async function getAllTimeRevenueMetrics() {
       }
     }
 
-    // Get all invoices for total revenue
-    let allInvoices: any[] = [];
-    hasMore = true;
-    startingAfter = undefined;
-
-    while (hasMore) {
-      const params: any = {
-        limit: 100,
-      };
-      if (startingAfter) {
-        params.starting_after = startingAfter;
-      }
-
-      const invoices = await stripe.invoices.list(params);
-      
-      const filteredInvoices = invoices.data.filter((invoice: any) => {
-        if (!invoice.subscription) return false;
-        const subId = typeof invoice.subscription === 'string' 
-          ? invoice.subscription 
-          : invoice.subscription.id;
-        return allSubscriptions.some(sub => sub.id === subId);
-      });
-      
-      allInvoices = allInvoices.concat(
-        filteredInvoices.filter((inv: any) => inv.paid && inv.amount_paid)
-      );
-
-      hasMore = invoices.has_more;
-      if (hasMore && invoices.data.length > 0) {
-        startingAfter = invoices.data[invoices.data.length - 1].id;
-      } else {
-        hasMore = false;
-      }
-    }
-
+    // Calculate total revenue from subscriptions (not invoices)
+    // Count billing cycles from subscription creation to now
     let totalRevenue = 0;
-    for (const invoice of allInvoices) {
-      const inv = invoice as any;
-      totalRevenue += inv.amount_paid / 100;
+    const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+
+    for (const subscription of allSubscriptions) {
+      const priceId = subscription.items.data[0]?.price?.id;
+      
+      // Skip if no price ID, or if price IDs are configured and this one doesn't match
+      if (!priceId || (validPriceIds.length > 0 && !validPriceIds.includes(priceId))) {
+        continue;
+      }
+
+      try {
+        const price = await stripe.prices.retrieve(priceId);
+        const amount = price.unit_amount || 0;
+        const interval = price.recurring?.interval;
+        
+        if (!interval || amount === 0) continue;
+
+        // Get subscription creation time and current period end
+        const subscriptionCreated = subscription.created; // Unix timestamp
+        const currentPeriodEnd = subscription.current_period_end; // Unix timestamp
+        
+        // Count billing cycles from creation to now
+        // For canceled subscriptions, count up to cancellation date
+        // For active subscriptions, count up to current period end
+        const endTime = subscription.status === 'canceled' && subscription.canceled_at
+          ? subscription.canceled_at
+          : Math.min(currentPeriodEnd, now);
+        
+        if (interval === 'month') {
+          // Calculate number of billing cycles completed
+          // Each cycle is approximately 30.44 days (average month length)
+          const secondsPerMonth = Math.floor(30.44 * 24 * 60 * 60);
+          const monthsSinceStart = Math.floor((endTime - subscriptionCreated) / secondsPerMonth);
+          
+          // Always count at least 1 cycle (initial payment on subscription creation)
+          const cyclesCompleted = Math.max(1, monthsSinceStart + 1);
+          
+          totalRevenue += (amount / 100) * cyclesCompleted;
+        } else if (interval === 'year') {
+          // Calculate number of annual billing cycles completed
+          const secondsPerYear = Math.floor(365.25 * 24 * 60 * 60); // Account for leap years
+          const yearsSinceStart = (endTime - subscriptionCreated) / secondsPerYear;
+          
+          // Always count at least 1 cycle (initial payment on subscription creation)
+          const cyclesCompleted = Math.max(1, Math.floor(yearsSinceStart) + 1);
+          
+          totalRevenue += (amount / 100) * cyclesCompleted;
+        }
+      } catch (priceError) {
+        console.error('Error calculating revenue for subscription:', priceError);
+      }
     }
 
     const result = {

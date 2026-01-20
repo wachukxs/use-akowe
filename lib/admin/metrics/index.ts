@@ -269,7 +269,7 @@ async function getPeriodRevenue(range: DateRange) {
   function getValidPriceIds(): string[] {
     const isProduction = process.env.NODE_ENV === 'production';
     const priceIds: string[] = [];
-
+    
     if (isProduction) {
       if (process.env.STRIPE_PRICE_MONTHLY_PROD) priceIds.push(process.env.STRIPE_PRICE_MONTHLY_PROD);
       if (process.env.STRIPE_PRICE_ANNUAL_PROD) priceIds.push(process.env.STRIPE_PRICE_ANNUAL_PROD);
@@ -277,7 +277,7 @@ async function getPeriodRevenue(range: DateRange) {
       if (process.env.STRIPE_PRICE_MONTHLY_TEST) priceIds.push(process.env.STRIPE_PRICE_MONTHLY_TEST);
       if (process.env.STRIPE_PRICE_ANNUAL_TEST) priceIds.push(process.env.STRIPE_PRICE_ANNUAL_TEST);
     }
-
+    
     return priceIds;
   }
   
@@ -319,7 +319,7 @@ async function getPeriodRevenue(range: DateRange) {
         if (validPriceIds.length === 0) return true;
         return validPriceIds.includes(priceId);
       });
-
+      
       allSubscriptions = allSubscriptions.concat(filteredSubs);
       hasMore = subscriptions.has_more;
       if (hasMore && subscriptions.data.length > 0) {
@@ -329,42 +329,8 @@ async function getPeriodRevenue(range: DateRange) {
       }
     }
 
-    // Get invoices for period
-    let allInvoices: any[] = [];
-    hasMore = true;
-    startingAfter = undefined;
-
-    while (hasMore) {
-      const params: any = {
-        limit: 100,
-      };
-      if (startingAfter) {
-        params.starting_after = startingAfter;
-      }
-
-      const invoices = await stripe.invoices.list(params);
-
-      const filteredInvoices = invoices.data.filter((invoice: any) => {
-        if (!invoice.subscription) return false;
-        const subId = typeof invoice.subscription === 'string' 
-          ? invoice.subscription 
-          : invoice.subscription.id;
-        return allSubscriptions.some(sub => sub.id === subId);
-      });
-
-      allInvoices = allInvoices.concat(
-        filteredInvoices.filter((inv: any) => inv.paid && inv.amount_paid)
-      );
-
-      hasMore = invoices.has_more;
-      if (hasMore && invoices.data.length > 0) {
-        startingAfter = invoices.data[invoices.data.length - 1].id;
-      } else {
-        hasMore = false;
-      }
-    }
-
-    // Calculate revenue in period and daily breakdown
+    // Calculate revenue in period from subscriptions (not invoices)
+    // Count billing cycles that occurred within the date range
     let revenueInPeriod = 0;
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
@@ -375,21 +341,135 @@ async function getPeriodRevenue(range: DateRange) {
     // Group revenue by day for growth chart
     const dailyRevenueMap = new Map<string, number>();
 
-    for (const invoice of allInvoices) {
-      const inv = invoice as any;
-      const amount = inv.amount_paid / 100;
+    for (const subscription of allSubscriptions) {
+      const priceId = subscription.items.data[0]?.price?.id;
       
-      if (inv.created >= range.startTimestamp && inv.created <= range.endTimestamp) {
-        revenueInPeriod += amount;
-        
-        // Group by date (YYYY-MM-DD)
-        const invoiceDate = new Date(inv.created * 1000);
-        const dateStr = invoiceDate.toISOString().split('T')[0];
-        dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amount);
+      if (!priceId || (validPriceIds.length > 0 && !validPriceIds.includes(priceId))) {
+        continue;
       }
-      
-      if (inv.created >= sevenDaysAgoTimestamp) {
-        revenue7Days += amount;
+
+      try {
+        const price = await stripe.prices.retrieve(priceId);
+        const amount = price.unit_amount || 0;
+        const interval = price.recurring?.interval;
+        
+        if (!interval || amount === 0) continue;
+
+        const subscriptionCreated = subscription.created;
+        const currentPeriodStart = subscription.current_period_start;
+        const currentPeriodEnd = subscription.current_period_end;
+        const amountDollars = amount / 100;
+        
+        // Calculate billing cycles that occurred in the period
+        if (interval === 'month') {
+          // For monthly subscriptions, count cycles that occurred in the period
+          // Process ALL subscriptions (including canceled ones) to count revenue
+          // that occurred during the period, even if subscription is now canceled
+          
+          // Determine when subscription ended (canceled_at if canceled, otherwise currentPeriodEnd)
+          const subscriptionEndTime = subscription.status === 'canceled' && subscription.canceled_at
+            ? subscription.canceled_at
+            : currentPeriodEnd;
+          
+          // Skip if subscription ended before the period started
+          if (subscriptionEndTime < range.startTimestamp) {
+            continue;
+          }
+          
+          // A billing cycle occurs on subscription.created + N months
+          const secondsPerMonth = Math.floor(30.44 * 24 * 60 * 60); // ~30.44 days per month
+          
+          // Find all billing cycles that occurred during the period
+          // Start from subscription creation and iterate forward
+          let cycleDate = subscriptionCreated;
+          let cycleNumber = 0;
+          
+          // Iterate through billing cycles until we've passed the period end
+          // Limit to 120 cycles (10 years) as a safety check
+          while (cycleDate <= range.endTimestamp && cycleNumber <= 120) {
+            // Check if this billing cycle occurred within the period
+            if (cycleDate >= range.startTimestamp && cycleDate <= range.endTimestamp) {
+              // Only count if subscription was active at this cycle date
+              // (i.e., cycle date is before or equal to when subscription ended)
+              if (cycleDate <= subscriptionEndTime) {
+                revenueInPeriod += amountDollars;
+                
+                // Group by date (YYYY-MM-DD) for growth chart
+                const cycleDateObj = new Date(cycleDate * 1000);
+                const dateStr = cycleDateObj.toISOString().split('T')[0];
+                dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amountDollars);
+                
+                // Check if within last 7 days
+                if (cycleDate >= sevenDaysAgoTimestamp) {
+                  revenue7Days += amountDollars;
+                }
+              }
+            }
+            
+            // Move to next billing cycle
+            cycleNumber++;
+            cycleDate = subscriptionCreated + (cycleNumber * secondsPerMonth);
+            
+            // Stop if we've passed the period end or subscription end
+            if (cycleDate > range.endTimestamp || cycleDate > subscriptionEndTime) break;
+          }
+        } else if (interval === 'year') {
+          // For annual subscriptions, count if subscription started/renewed in the period
+          // Check if subscription creation falls within the period
+          if (subscriptionCreated >= range.startTimestamp && subscriptionCreated <= range.endTimestamp) {
+            revenueInPeriod += amountDollars;
+            
+            // Group by date (YYYY-MM-DD)
+            const cycleDateObj = new Date(subscriptionCreated * 1000);
+            const dateStr = cycleDateObj.toISOString().split('T')[0];
+            dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amountDollars);
+            
+            // Check if within last 7 days
+            if (subscriptionCreated >= sevenDaysAgoTimestamp) {
+              revenue7Days += amountDollars;
+            }
+          }
+          
+          // Check for renewals (if subscription is older than 1 year)
+          // Calculate potential renewal dates
+          if (subscriptionCreated < range.endTimestamp) {
+            const secondsPerYear = Math.floor(365.25 * 24 * 60 * 60);
+            let renewalDate = subscriptionCreated + secondsPerYear;
+            
+            // Determine when subscription ended (canceled_at if canceled, otherwise currentPeriodEnd)
+            // For canceled subscriptions, use canceled_at; for active, use currentPeriodEnd
+            const subscriptionEndTime = subscription.status === 'canceled' && subscription.canceled_at
+              ? subscription.canceled_at
+              : currentPeriodEnd;
+            
+            // Check renewals that occurred in the period
+            // Use < (strictly less than) for subscriptionEndTime to exclude unpaid future renewals
+            // currentPeriodEnd is when the next payment is due, not when it was paid
+            while (renewalDate <= range.endTimestamp && renewalDate < subscriptionEndTime) {
+              if (renewalDate >= range.startTimestamp && renewalDate <= range.endTimestamp) {
+                revenueInPeriod += amountDollars;
+                
+                // Group by date
+                const renewalDateObj = new Date(renewalDate * 1000);
+                const dateStr = renewalDateObj.toISOString().split('T')[0];
+                dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amountDollars);
+                
+                // Check if within last 7 days
+                if (renewalDate >= sevenDaysAgoTimestamp) {
+                  revenue7Days += amountDollars;
+                }
+              }
+              
+              // Move to next renewal
+              renewalDate += secondsPerYear;
+              
+              // Stop if we've passed the period end or subscription end
+              if (renewalDate > range.endTimestamp || renewalDate >= subscriptionEndTime) break;
+            }
+          }
+        }
+      } catch (priceError) {
+        console.error('Error calculating period revenue for subscription:', priceError);
       }
     }
 
@@ -414,15 +494,17 @@ async function getPeriodRevenue(range: DateRange) {
 
 function getStripeClient() {
   let stripeKey: string | undefined;
+  const isProduction = process.env.NODE_ENV === 'production';
   
-  if (process.env.STRIPE_SECRET_KEY) {
-    stripeKey = process.env.STRIPE_SECRET_KEY;
-  } else if (process.env.NODE_ENV === 'production') {
+  // Prioritize environment-specific keys to avoid using production keys in dev
+  if (isProduction) {
     stripeKey = process.env.STRIPE_SECRET_KEY_PROD_V2 || 
-                process.env.STRIPE_SECRET_KEY_PROD;
+                process.env.STRIPE_SECRET_KEY_PROD ||
+                process.env.STRIPE_SECRET_KEY; // Fallback to generic key only in prod
   } else {
     stripeKey = process.env.STRIPE_SECRET_KEY_TEST || 
-                process.env.STRIPE_SECRET_KEY_DEV;
+                process.env.STRIPE_SECRET_KEY_DEV ||
+                process.env.STRIPE_SECRET_KEY; // Fallback to generic key only in dev
   }
   
   if (!stripeKey) {

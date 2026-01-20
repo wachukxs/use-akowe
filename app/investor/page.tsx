@@ -93,6 +93,12 @@ type PublicMetrics = {
     powerUsers: number;
     consistentUsers: number;
   };
+  revenue: {
+    totalRevenue: number;
+    monthlyRecurringRevenue: number;
+    annualRecurringRevenue: number;
+    activeSubscriptions: number;
+  };
   error?: string;
 };
 
@@ -120,6 +126,12 @@ const DEFAULT_METRICS: PublicMetrics = {
     activeUsers: 81,
     powerUsers: 0,
     consistentUsers: 0,
+  },
+  revenue: {
+    totalRevenue: 0,
+    monthlyRecurringRevenue: 0,
+    annualRecurringRevenue: 0,
+    activeSubscriptions: 0,
   },
 };
 
@@ -635,6 +647,32 @@ function InvestorPageContent() {
                 value={metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod}
                 subtitle="All-time checks"
                 icon={<Shield size={20} />}
+              />
+            </div>
+            <div className="grid md:grid-cols-4 gap-6 mb-6">
+              <MetricCard
+                label="Total Revenue"
+                value={`$${((metrics?.revenue.totalRevenue ?? DEFAULT_METRICS.revenue.totalRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+                subtitle="All-time"
+                icon={<DollarSign size={20} />}
+              />
+              <MetricCard
+                label="MRR"
+                value={`$${((metrics?.revenue.monthlyRecurringRevenue ?? DEFAULT_METRICS.revenue.monthlyRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+                subtitle="Monthly recurring"
+                icon={<TrendingUp size={20} />}
+              />
+              <MetricCard
+                label="ARR"
+                value={`$${((metrics?.revenue.annualRecurringRevenue ?? DEFAULT_METRICS.revenue.annualRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+                subtitle="Annual recurring"
+                icon={<TrendingUp size={20} />}
+              />
+              <MetricCard
+                label="Active Subscriptions"
+                value={metrics?.revenue.activeSubscriptions ?? DEFAULT_METRICS.revenue.activeSubscriptions}
+                subtitle="Current"
+                icon={<Users size={20} />}
               />
             </div>
             <div className="grid md:grid-cols-3 gap-6">
