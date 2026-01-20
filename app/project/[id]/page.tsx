@@ -2792,6 +2792,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       {/* Editor */}
                       <div
                         contentEditable
+                        spellCheck="true"
                         suppressContentEditableWarning
                         onInput={handleTextInput}
                         onMouseUp={checkFormattingState}
@@ -3035,10 +3036,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           });
                         }}
                         className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed prose prose-sm max-w-none"
-                      style={{ 
-                        fontFamily: 'inherit',
-                        lineHeight: '1.6'
-                      }}
+                        style={{ 
+                          fontFamily: 'inherit',
+                          lineHeight: '1.6'
+                        }}
                         key={activeS.id}
                         ref={(el) => {
                           if (el && !el.dataset.initialized) {
