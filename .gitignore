@@ -54,3 +54,4 @@ Thumbs.db
 
 # Test files (not to be committed)
 test-plagiarism-race-condition.ts
+tools/video/
