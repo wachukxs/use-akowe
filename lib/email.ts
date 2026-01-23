@@ -13,7 +13,7 @@ function buildTransporter(): TransporterOrNull {
     return null;
   }
 
-  return nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host,
     port,
     secure: port === 465,
@@ -22,6 +22,15 @@ function buildTransporter(): TransporterOrNull {
       pass,
     },
   });
+
+  console.info('[email] Transporter created', {
+    host,
+    port,
+    secure: port === 465,
+    from: process.env.SMTP_FROM || process.env.EMAIL_FROM,
+  });
+
+  return transporter;
 }
 
 const transporter = buildTransporter();
@@ -47,26 +56,33 @@ export async function sendPasswordResetEmail(
 
   const expiresAtLocal = expiresAt.toLocaleString();
 
-  await transporter.sendMail({
-    from: defaultFrom,
-    to,
-    subject: 'Reset your Akọ̀wé password',
-    text: [
-      'You requested to reset your Akọ̀wé password.',
-      'If you did not make this request, you can ignore this email.',
-      '',
-      `Reset link (valid for 30 minutes): ${resetUrl}`,
-      '',
-      `Expires: ${expiresAtLocal}`,
-    ].join('\n'),
-    html: `
-      <p>You requested to reset your Akọ̀wé password.</p>
-      <p>If you did not make this request, you can ignore this email.</p>
-      <p><a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="padding: 10px 16px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 6px; display: inline-block;">Reset password</a></p>
-      <p>Or copy and paste this link into your browser:<br /><a href="${resetUrl}">${resetUrl}</a></p>
-      <p>This link expires in 30 minutes (by ${expiresAtLocal}).</p>
-    `,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: defaultFrom,
+      to,
+      subject: 'Reset your Akọ̀wé password',
+      text: [
+        'You requested to reset your Akọ̀wé password.',
+        'If you did not make this request, you can ignore this email.',
+        '',
+        `Reset link (valid for 30 minutes): ${resetUrl}`,
+        '',
+        `Expires: ${expiresAtLocal}`,
+      ].join('\n'),
+      html: `
+        <p>You requested to reset your Akọ̀wé password.</p>
+        <p>If you did not make this request, you can ignore this email.</p>
+        <p><a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="padding: 10px 16px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 6px; display: inline-block;">Reset password</a></p>
+        <p>Or copy and paste this link into your browser:<br /><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>This link expires in 30 minutes (by ${expiresAtLocal}).</p>
+      `,
+    });
+
+    console.info('[email] Password reset sent', { to, messageId: info.messageId, response: info.response });
+  } catch (err) {
+    console.error('[email] Password reset failed', { to, error: err });
+    throw err;
+  }
 }
 
 export async function sendWelcomeEmail(to: string, name: string) {
@@ -133,11 +149,18 @@ export async function sendWelcomeEmail(to: string, name: string) {
     <p>Think about this: What assignment are you most stressed about right now? Start it inside Akọ̀wé today.</p>
   `;
 
-  await transporter.sendMail({
-    from: defaultFrom,
-    to,
-    subject,
-    text,
-    html,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: defaultFrom,
+      to,
+      subject,
+      text,
+      html,
+    });
+
+    console.info('[email] Welcome email sent', { to, messageId: info.messageId, response: info.response });
+  } catch (err) {
+    console.error('[email] Welcome email failed', { to, error: err });
+    throw err;
+  }
 }
