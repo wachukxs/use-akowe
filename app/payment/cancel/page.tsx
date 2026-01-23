@@ -26,10 +26,10 @@ export default function PaymentCancelPage() {
             Back to Plans
           </button>
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/settings')}
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-4 rounded-lg transition-colors"
           >
-            Go to Dashboard
+            Go to Settings
           </button>
         </div>
       </div>
