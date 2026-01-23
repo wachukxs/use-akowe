@@ -58,8 +58,8 @@ export default function DashboardPage() {
       const response = await fetch('/api/projects');
       if (response.ok) {
         const data = await response.json();
-        console.log('Dashboard fetched projects:', data.projects?.length, 'projects');
-        console.log('Project citations:', data.projects?.map((p: Project) => ({ name: p.name, citations: p.citations?.length || 0 })));
+        // console.log('Dashboard fetched projects:', data.projects?.length, 'projects');
+        // console.log('Project citations:', data.projects?.map((p: Project) => ({ name: p.name, citations: p.citations?.length || 0 })));
         setProjects(data.projects || []);
       } else if (response.status === 401) {
         // User not authenticated - this is normal

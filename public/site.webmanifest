@@ -1,0 +1,18 @@
+{
+  "name": "Akowe",
+  "short_name": "Akowe",
+  "description": "AI-powered academic writing and research assistant.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
