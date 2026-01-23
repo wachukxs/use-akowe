@@ -355,11 +355,14 @@ export default function SettingsPage() {
                 <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
                   Annual
                 </span>
-                {isAnnual && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-                    Save 47%
-                  </span>
-                )}
+                <span
+                  className={`text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium transition-opacity duration-200 ${
+                    isAnnual ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  aria-hidden={!isAnnual}
+                >
+                  Save 47%
+                </span>
               </div>
             ) : subscriptionStatus && (
               <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
