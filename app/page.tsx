@@ -835,11 +835,15 @@ export default function HomePage() {
               >
               Annual
               </button>
-            {isAnnual && (
-                <span className="px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))]">
+              <span
+                className={cn(
+                  'px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))] transition-opacity duration-200 min-w-[110px] text-center',
+                  isAnnual ? 'opacity-100' : 'opacity-0'
+                )}
+                aria-hidden={!isAnnual}
+              >
                 Save 47%
               </span>
-            )}
             </div>
           </div>
           
