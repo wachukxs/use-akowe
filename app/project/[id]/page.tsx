@@ -1840,7 +1840,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         <Sidebar />
         <div className="flex-1 ml-64 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 border-[4px] border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-16 h-16 border-4 border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Loading workspace</p>
           </div>
         </div>
@@ -2014,7 +2014,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       )}>
         <div className="max-w-7xl mx-auto p-4 pt-16 md:pt-6 md:p-8 lg:p-10 space-y-6 md:space-y-10">
           {/* Project Header */}
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-6 lg:p-8 space-y-3">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-6 lg:p-8 space-y-3">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-[0.12em]">
                 {project.name}
@@ -2059,7 +2059,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               'hidden md:block space-y-6 lg:space-y-8 col-span-12 md:col-span-4 lg:col-span-3 md:sticky md:top-4 self-start'
             )}>
               {/* Sections Panel */}
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                 <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Paper Sections</h3>
@@ -2233,7 +2233,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Research & Quality Tools */}
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                 <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))]">
                   <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Tools</h3>
                   <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">Research & quality</p>
@@ -2604,7 +2604,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             {/* Right Column - Editor */}
             <div className="col-span-12 md:col-span-8 lg:col-span-9 space-y-4 md:space-y-6">
               {activeS ? (
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                   <div className="p-4 md:p-6 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <h2 className="text-lg md:text-xl font-semibold uppercase tracking-[0.18em]">{activeS.title}</h2>
@@ -3056,7 +3056,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
               ) : (
                 // Empty state - no section selected or no sections exist
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] p-6 md:p-8 lg:p-10">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] p-6 md:p-8 lg:p-10">
                   {project?.sections && project.sections.length > 0 ? (
                     // Has sections but none selected
                     <div className="text-center space-y-4">
@@ -3155,7 +3155,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
                 
                 {/* Smart Encouragement Message */}
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-4 text-center">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-4 text-center">
                   <p className="text-xs uppercase tracking-[0.2em] font-semibold">
                     {getEncouragementMessage(Math.round((localWordCount / (project.targetWordCount || 1)) * 100))}
                   </p>
@@ -3163,19 +3163,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Summary Statistics */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-6 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
                   <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">{project.sections?.length || 0}</h4>
                   <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Sections</p>
                 </div>
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-6 text-center">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
                   <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">{project.citations?.length || 0}</h4>
                   <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Total citations</p>
                   <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                     {lastDetectionResult ? `${lastDetectionResult.detectedCount} auto-detected` : '0 auto-detected'}
                   </p>
                 </div>
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-6 text-center">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
                   <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">{Math.round((localWordCount / (project.targetWordCount || 1)) * 100)}%</h4>
                   <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">Complete</p>
                   <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Word count target</p>
@@ -3465,7 +3465,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {/* Citation Discovery Modal */}
       {showCitationDiscovery && (
         <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-6xl max-h-[90vh] overflow-hidden border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-hidden border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
             {/* Header */}
             <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-6 bg-[hsl(var(--surface))]">
               <div className="flex items-center justify-between">
@@ -3695,7 +3695,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {showExportModal && (
         <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
               <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                   Export Project
@@ -3837,7 +3837,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {showManualCitationModal && (
         <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
               <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                   Add Manual Citation
@@ -3930,7 +3930,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {showPlagiarismModal && plagiarismResult && (
         <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-4xl">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col max-h-[90vh]">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col max-h-[90vh]">
               <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                   Plagiarism Check Results
@@ -4126,7 +4126,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {sectionToDelete && (
         <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
               <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))]">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--destructive))]">
                   Delete Section
@@ -4199,7 +4199,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {/* Simple Math Modal */}
       {showMathModal && (
         <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-3xl border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8">
+          <div className="w-full max-w-3xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">Insert Math Equation</h3>
                 <button
@@ -4374,7 +4374,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       {/* Chart Modal */}
       {showChartModal && (
         <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-2xl border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8 text-center">
+          <div className="w-full max-w-2xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8 text-center">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                 Insert Chart
@@ -4388,7 +4388,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
             
             <div className="space-y-4 py-6">
-              <div className="w-20 h-20 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto text-[hsl(var(--muted-foreground))]">
+              <div className="w-20 h-20 border-4 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto text-[hsl(var(--muted-foreground))]">
                 <BarChart3 className="h-8 w-8" />
               </div>
               <h4 className="text-lg font-semibold uppercase tracking-[0.18em]">
