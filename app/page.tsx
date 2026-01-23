@@ -33,7 +33,7 @@ function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
 export default function HomePage() {
   const router = useRouter();
   const { status } = useSession();
-  const [isAnnual, setIsAnnual] = useState(true); // Default to annual billing
+  const [isAnnual, setIsAnnual] = useState(false); // Default to monthly billing
   const [abVariant, setAbVariant] = useState<'control' | 'variant_a' | 'variant_b'>('control');
 
   /**
@@ -899,7 +899,7 @@ export default function HomePage() {
                     'text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] min-h-[14px]'
                   )}
                 >
-                  {isAnnual ? '≈$10/mo equivalent' : 'First month 15% off'}
+                  {isAnnual ? '≈$10/mo equivalent' : <span className="font-semibold">First month 15% off</span>}
                 </p>
               </div>
               <ul className="space-y-3 text-xs uppercase tracking-[0.24em]">
