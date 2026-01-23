@@ -890,9 +890,18 @@ export default function HomePage() {
                 </span>
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em]">Pro plan</span>
-                <span className="text-5xl font-bold">{isAnnual ? '$10' : '$19'}</span>
+                <span className="text-5xl font-bold">{isAnnual ? '$120' : '$19'}</span>
                 <p className="text-[10px] uppercase tracking-[0.28em]">
-                  {isAnnual ? 'Per month, billed annually.' : 'Per month on flexible billing.'}
+                  {isAnnual ? 'Billed once annually (≈$10/mo equivalent).' : 'Billed monthly on flexible billing.'}
+                </p>
+                <p
+                  className={cn(
+                    'text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] transition-opacity duration-200 min-h-[14px]',
+                    isAnnual ? 'opacity-0' : 'opacity-100'
+                  )}
+                  aria-hidden={isAnnual}
+                >
+                  First month 15% off
                 </p>
               </div>
               <ul className="space-y-3 text-xs uppercase tracking-[0.24em]">

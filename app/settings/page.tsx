@@ -437,6 +437,22 @@ export default function SettingsPage() {
                           <div className="text-sm text-gray-600">
                             {isAnnual ? plan.annualPeriod : plan.monthlyPeriod}
                           </div>
+                          <div
+                            className={`text-xs text-gray-600 mt-1 min-h-[16px] transition-opacity duration-200 ${
+                              isAnnual ? 'opacity-100' : 'opacity-0'
+                            }`}
+                            aria-hidden={!isAnnual}
+                          >
+                            Billed once annually (≈$10/mo equivalent).
+                          </div>
+                          <div
+                            className={`text-xs text-blue-600 mt-1 font-medium min-h-[16px] transition-opacity duration-200 ${
+                              !isAnnual && plan.type === 'pro' ? 'opacity-100' : 'opacity-0'
+                            }`}
+                            aria-hidden={isAnnual || plan.type !== 'pro'}
+                          >
+                            First month 15% off
+                          </div>
                           {plan.annualSavings && (
                             <div
                               className={`text-sm text-green-600 mt-1 font-medium min-h-[20px] transition-opacity duration-200 ${
