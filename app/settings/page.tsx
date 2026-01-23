@@ -199,7 +199,8 @@ export default function SettingsPage() {
       annualSavings: 'Save $108 per year',
       type: 'pro' as PlanType,
       icon: Crown,
-      color: 'from-primary to-accent-purple',
+      // Use standard Tailwind colors to ensure the gradient class resolves
+      color: 'from-indigo-500 to-purple-500',
           features: [
             'Unlimited AI words',
             // 'Unlimited AI auto-complete (faster model)', // Coming soon
@@ -217,7 +218,8 @@ export default function SettingsPage() {
       period: '',
       type: 'team' as PlanType,
       icon: Users,
-      color: 'from-accent-teal to-accent-blue',
+      // Use standard Tailwind colors to ensure the gradient class resolves
+      color: 'from-teal-500 to-blue-500',
           features: [
             'Everything in Pro',
             '10 team members',
@@ -406,7 +408,7 @@ export default function SettingsPage() {
                   >
                     {plan.popular && (
                       <div className="mb-4">
-                        <span className="px-3 py-1 bg-gradient-to-r from-primary to-accent-purple text-white text-xs font-semibold rounded-full">
+                        <span className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-semibold rounded-full">
                           MOST POPULAR
                         </span>
                       </div>
@@ -435,8 +437,13 @@ export default function SettingsPage() {
                           <div className="text-sm text-gray-600">
                             {isAnnual ? plan.annualPeriod : plan.monthlyPeriod}
                           </div>
-                          {isAnnual && plan.annualSavings && (
-                            <div className="text-sm text-green-600 mt-1 font-medium">
+                          {plan.annualSavings && (
+                            <div
+                              className={`text-sm text-green-600 mt-1 font-medium min-h-[20px] transition-opacity duration-200 ${
+                                isAnnual ? 'opacity-100' : 'opacity-0'
+                              }`}
+                              aria-hidden={!isAnnual}
+                            >
                               {plan.annualSavings}
                             </div>
                           )}
