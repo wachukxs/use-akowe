@@ -890,7 +890,7 @@ export default function HomePage() {
                 </span>
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em]">Pro plan</span>
-                <span className="text-5xl font-bold">{isAnnual ? '$120' : '$19'}</span>
+                <span className="text-5xl font-bold">{isAnnual ? '$120' : '$12'}</span>
                 <p className="text-[10px] uppercase tracking-[0.28em]">
                   {isAnnual ? 'Billed once annually.' : 'Billed monthly on flexible billing.'}
                 </p>

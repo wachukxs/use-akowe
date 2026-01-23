@@ -192,11 +192,11 @@ export default function SettingsPage() {
     },
     {
       name: 'Pro',
-      monthlyPrice: '$19',
+      monthlyPrice: '$12',
       monthlyPeriod: 'per month',
       annualPrice: '$120',
       annualPeriod: 'per year',
-      annualSavings: 'Save $108 per year',
+      annualSavings: 'Save $24 per year',
       type: 'pro' as PlanType,
       icon: Crown,
       // Use standard Tailwind colors to ensure the gradient class resolves

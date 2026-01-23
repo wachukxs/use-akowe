@@ -550,7 +550,7 @@ function InvestorPageContent() {
                   <div className="border-b border-[hsl(var(--border-strong))] pb-4">
                     <div className="font-semibold mb-2">Pricing</div>
                     <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                      Akowe: $19/month (Pro) vs. Jenni AI: Higher pricing
+                      Akowe: $12/month (Pro) vs. Jenni AI: Higher pricing
                       <br />
                       Better value proposition for students
                     </div>
@@ -783,9 +783,9 @@ function InvestorPageContent() {
                 <h3 className="text-xl font-bold uppercase tracking-[0.16em] mb-4">
                   Pro
                 </h3>
-                <div className="text-4xl font-bold mb-1">$19</div>
+                <div className="text-4xl font-bold mb-1">$12</div>
                 <div className="text-sm text-[hsl(var(--muted-foreground))] mb-4">per month</div>
-                <div className="text-sm font-semibold mb-4">or $120/year (save $108)</div>
+                <div className="text-sm font-semibold mb-4">or $120/year (save $24)</div>
                 <ul className="space-y-2 text-sm mb-6">
                   <li>• Unlimited AI words</li>
                   <li>• Unlimited plagiarism checks</li>
@@ -1072,11 +1072,11 @@ function InvestorPageContent() {
                   </div>
                   <div>
                     <div className="text-sm text-[hsl(var(--muted-foreground))]">MRR</div>
-                    <div className="text-2xl font-bold text-[hsl(var(--primary))]">$47,500</div>
+                    <div className="text-2xl font-bold text-[hsl(var(--primary))]">$30,000</div>
                   </div>
                   <div>
                     <div className="text-sm text-[hsl(var(--muted-foreground))]">ARR</div>
-                    <div className="text-2xl font-bold">$570,000</div>
+                    <div className="text-2xl font-bold">$360,000</div>
                   </div>
                 </div>
               </div>
@@ -1093,11 +1093,11 @@ function InvestorPageContent() {
                   </div>
                   <div>
                     <div className="text-sm text-[hsl(var(--muted-foreground))]">MRR</div>
-                    <div className="text-2xl font-bold text-[hsl(var(--primary))]">$182,400</div>
+                    <div className="text-2xl font-bold text-[hsl(var(--primary))]">$115,200</div>
                   </div>
                   <div>
                     <div className="text-sm text-[hsl(var(--muted-foreground))]">ARR</div>
-                    <div className="text-2xl font-bold">$2,188,800</div>
+                    <div className="text-2xl font-bold">$1,382,400</div>
                   </div>
                 </div>
               </div>
@@ -1107,7 +1107,7 @@ function InvestorPageContent() {
                 <h3 className="text-lg font-bold uppercase tracking-[0.16em] mb-4">Key Assumptions</h3>
                 <ul className="space-y-2 text-sm">
                   <li>• 8% free-to-paid conversion (Year 1) → 12% (Year 3)</li>
-                  <li>• $19/month average subscription (mix of monthly/annual)</li>
+                  <li>• $12/month average subscription (mix of monthly/annual)</li>
                   <li>• 5% monthly churn rate (improving to 4% by Year 3)</li>
                   <li>• Aggressive marketing with $250K investment drives rapid growth</li>
                   <li>• CAC: $60 (Year 1) → $40 (Year 3) with paid + organic mix</li>
