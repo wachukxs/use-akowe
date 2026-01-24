@@ -2546,14 +2546,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={undo}
-                            className="p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                            className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Undo (Ctrl+Z)"
                           >
                             <Undo className="h-4 w-4" />
                           </button>
                           <button
                             onClick={redo}
-                            className="p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                            className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Redo (Ctrl+Shift+Z)"
                           >
                             <Redo className="h-4 w-4" />
@@ -2567,7 +2567,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={applyBold}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.bold 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2579,7 +2579,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={applyItalic}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.italic 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2591,7 +2591,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={applyUnderline}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.underline 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2609,7 +2609,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={applyUnorderedList}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.unorderedList 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2621,7 +2621,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={applyOrderedList}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.orderedList 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2639,7 +2639,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={() => applyHeader(1)}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.h1 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2651,7 +2651,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={() => applyHeader(2)}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.h2 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2663,7 +2663,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={() => applyHeader(3)}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.h3 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2675,7 +2675,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                             onClick={applyNormal}
                             className={cn(
-                              'p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
+                              'cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent',
                               formattingState.normal 
                                 ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]'
                                 : 'hover:border-[hsl(var(--border-strong))]'
@@ -2692,14 +2692,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setShowMathModal(true)}
-                            className="p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                            className="cursor-pointer p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Insert Math Equation"
                           >
                             <Calculator className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setShowChartModal(true)}
-                            className="p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                            className="cursor-pointer p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                             title="Insert Chart"
                           >
                             <BarChart3 className="h-4 w-4" />
