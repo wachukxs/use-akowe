@@ -233,7 +233,7 @@ export default function HomePage() {
                           "Saved at least 10 hours every month."
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                          — PhD Candidate, Europe
+                          — Fatima Adeoye, PhD Candidate, Europe
                         </p>
                       </div>
                     </div>
@@ -246,7 +246,7 @@ export default function HomePage() {
                           "No last-minute Turnitin surprises."
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                          — Masters Student, North America
+                          — Anjali Patel, Masters Student, North America
                         </p>
                       </div>
                     </div>
@@ -271,7 +271,7 @@ export default function HomePage() {
                           "Saved at least 10 hours every month."
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                          — PhD Candidate, Europe
+                          — Fatima Adeoye, PhD Candidate, Europe
                         </p>
                       </div>
                     </div>
@@ -284,7 +284,7 @@ export default function HomePage() {
                           "No last-minute Turnitin surprises."
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                          — Masters Student, North America
+                          — Anjali Patel, Masters Student, North America
                         </p>
                       </div>
                     </div>
