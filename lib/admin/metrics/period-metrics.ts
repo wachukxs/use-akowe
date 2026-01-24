@@ -4,7 +4,7 @@ import { DateRange } from './types';
 import User from '@/models/User';
 import Project from '@/models/Project';
 import DailyUsage from '@/models/DailyUsage';
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import { metricsCache, getCacheKey, CACHE_TTL } from './cache';
 
 export async function getPeriodUserMetrics(range: DateRange) {

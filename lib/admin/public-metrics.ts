@@ -1,7 +1,5 @@
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import Project from '@/models/Project';
-import DailyUsage from '@/models/DailyUsage';
 import { createDateRange } from './metrics/date-utils';
 import * as periodMetrics from './metrics/period-metrics';
 import * as periodProductMetrics from './metrics/period-product-metrics';

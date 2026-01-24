@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, AlertTriangle, CheckCircle2, ArrowRight, Shield } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, ArrowRight, Shield } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 import { trackLeadMagnet } from '@/lib/gtag';

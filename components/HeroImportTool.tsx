@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, CheckCircle2, ArrowRight, BookOpen, AlertTriangle, XCircle } from 'lucide-react';
+import { Upload, FileText, ArrowRight, BookOpen, AlertTriangle, XCircle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 import { trackLeadMagnet } from '@/lib/gtag';
@@ -33,7 +33,6 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState('');
-  const [capturedEmail, setCapturedEmail] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -116,8 +115,6 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
   };
 
   const handleEmailSubmit = async (email: string) => {
-    setCapturedEmail(email);
-    
     // Capture lead
     await fetch('/api/leads/capture', {
       method: 'POST',
@@ -168,7 +165,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
       </div>
 
       {!result ? (
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
           <div className="space-y-3">
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -231,7 +228,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
           </div>
         </div>
       ) : (
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 space-y-4">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 space-y-4">
           {/* Readiness Score - Primary Focus */}
           <div className="text-center space-y-2">
             <p className="text-[9px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">

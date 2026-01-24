@@ -191,7 +191,7 @@ export const authOptions: NextAuthConfig = {
 
       return true;
     },
-    async jwt({ token, user, trigger }: any) {
+    async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
         token.email = user.email;

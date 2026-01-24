@@ -45,17 +45,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     activeSectionRef.current = activeSection;
   }, [activeSection]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
   const [aiInput, setAiInput] = useState('');
   const [aiIsLoading, setAiIsLoading] = useState(false);
   const [aiMessages, setAiMessages] = useState<Array<{ id: number; type: 'user' | 'assistant'; content: string; timestamp: Date }>>([]);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [isDiscoveringCitations, setIsDiscoveringCitations] = useState(false);
   const [discoveredCitations, setDiscoveredCitations] = useState<any[]>([]);
   const [showCitationDiscovery, setShowCitationDiscovery] = useState(false);
   const [citationSearchQuery, setCitationSearchQuery] = useState('');
-  const [isSearchingCitations, setIsSearchingCitations] = useState(false);
   const [citationFilter, setCitationFilter] = useState<'all' | 'recent' | 'highly_cited'>('all');
   const [citationSortBy, setCitationSortBy] = useState<'relevance' | 'year' | 'title'>('relevance');
   const [isLoadingMoreCitations, setIsLoadingMoreCitations] = useState(false);
@@ -83,7 +80,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     normal: false
   });
 
-  // Track active formatting for new text input
+  // Track active formatting for new text input (@todo: confirm it's not used)
   const [activeFormatting, setActiveFormatting] = useState({
     bold: false,
     italic: false,
@@ -95,31 +92,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     h3: false,
     normal: false
   });
-
-  // Simple formatting functions that actually work
-  const toggleBold = () => {
-    setActiveFormatting(prev => ({ ...prev, bold: !prev.bold }));
-  };
-
-  const toggleItalic = () => {
-    setActiveFormatting(prev => ({ ...prev, italic: !prev.italic }));
-  };
-
-  const toggleUnorderedList = () => {
-    setActiveFormatting(prev => ({ 
-      ...prev, 
-      unorderedList: !prev.unorderedList,
-      orderedList: false // Turn off ordered list
-    }));
-  };
-
-  const toggleOrderedList = () => {
-    setActiveFormatting(prev => ({ 
-      ...prev, 
-      orderedList: !prev.orderedList,
-      unorderedList: false // Turn off unordered list
-    }));
-  };
 
   const [manualCitation, setManualCitation] = useState({
     title: '',
@@ -478,7 +450,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
     // Only save after user stops typing for 3 seconds - don't update state to prevent cursor reset
     debounceTimeoutRef.current = setTimeout(async () => {
-      setIsSaving(true);
       try {
         // Recalculate sections with current project state to ensure we have the latest data
         const currentProject = project;
@@ -522,8 +493,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         isTypingRef.current = false;
       } catch (error) {
         console.error('Error saving section:', error);
-      } finally {
-        setIsSaving(false);
       }
     }, 3000); // 3 seconds after user stops typing
   }, [project, resolvedParams.id]);

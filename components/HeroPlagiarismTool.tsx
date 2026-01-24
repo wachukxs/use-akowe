@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, AlertTriangle, CheckCircle2, ArrowRight, Shield, BookOpen, Sparkles, RefreshCw, Lock } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, CheckCircle2, ArrowRight, Shield, Lock } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 import { trackLeadMagnet } from '@/lib/gtag';
@@ -38,7 +38,6 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [result, setResult] = useState<PlagiarismResult | null>(null);
   const [error, setError] = useState('');
-  const [capturedEmail, setCapturedEmail] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasTrackedPaste = useRef(false);
 
@@ -133,8 +132,6 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
   };
 
   const handleEmailSubmit = async (email: string) => {
-    setCapturedEmail(email);
-    
     try {
       await fetch('/api/leads/capture', {
         method: 'POST',
@@ -189,7 +186,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
       </div>
 
       {!result ? (
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4">
           <div className="space-y-3">
             <textarea
               value={text}
@@ -262,7 +259,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
           </div>
         </div>
       ) : (
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 space-y-4">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 space-y-4">
           {/* Risk Score Header */}
           <div className={cn('text-center p-3 rounded border-2', getRiskBgColor(result.riskScore))}>
             <div className={cn('text-4xl font-bold', getRiskColor(result.riskScore))}>

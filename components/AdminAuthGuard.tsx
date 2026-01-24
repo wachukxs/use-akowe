@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Shield, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;

@@ -120,7 +120,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
   };
 
   return (
-    <section className="max-w-7xl mx-auto py-12 sm:py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
+    <section className="max-w-7xl mx-auto py-12 sm:py-16 border-t-4 border-[hsl(var(--border-strong))]">
       <div className="text-center space-y-4 mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]">
           <BookOpen size={16} />
@@ -136,7 +136,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
 
       {!result ? (
         <div className="max-w-3xl mx-auto">
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
             <div className="space-y-4">
               {/* File upload */}
               <div

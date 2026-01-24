@@ -11,7 +11,6 @@ import {
   AlertCircle,
   TrendingUp,
   RefreshCw,
-  ExternalLink,
 } from 'lucide-react';
 
 interface ReferralStats {
