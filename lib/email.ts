@@ -21,6 +21,17 @@ function buildTransporter(): TransporterOrNull {
       user,
       pass,
     },
+    verify: () => {
+      return new Promise((resolve, reject) => {
+        transporter.verify((error, success) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(success);
+          }
+        });
+      });
+    },
   });
 
   console.info('[email] Transporter created', {
@@ -28,6 +39,7 @@ function buildTransporter(): TransporterOrNull {
     port,
     secure: port === 465,
     from: process.env.SMTP_FROM || process.env.EMAIL_FROM,
+    verified: transporter.verify(),
   });
 
   return transporter;
@@ -60,9 +72,9 @@ export async function sendPasswordResetEmail(
     const info = await transporter.sendMail({
       from: defaultFrom,
       to,
-      subject: 'Reset your Akọ̀wé password',
+      subject: 'Reset your Akowe password',
       text: [
-        'You requested to reset your Akọ̀wé password.',
+        'You requested to reset your Akowe password.',
         'If you did not make this request, you can ignore this email.',
         '',
         `Reset link (valid for 30 minutes): ${resetUrl}`,
@@ -70,7 +82,7 @@ export async function sendPasswordResetEmail(
         `Expires: ${expiresAtLocal}`,
       ].join('\n'),
       html: `
-        <p>You requested to reset your Akọ̀wé password.</p>
+        <p>You requested to reset your Akowe password.</p>
         <p>If you did not make this request, you can ignore this email.</p>
         <p><a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="padding: 10px 16px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 6px; display: inline-block;">Reset password</a></p>
         <p>Or copy and paste this link into your browser:<br /><a href="${resetUrl}">${resetUrl}</a></p>
@@ -94,10 +106,10 @@ export async function sendWelcomeEmail(to: string, name: string) {
   const baseUrl = getBaseUrl();
   const newProjectUrl = `${baseUrl}/dashboard/new`;
 
-  const subject = 'Welcome to Akọ̀wé — your first project awaits';
+  const subject = 'Welcome to Akowe — your first project awaits';
 
   const text = [
-    `Hi ${name || 'there'}, Welcome to Akọ̀wé. My name is Olamide, a Co-founder at Akọ̀wé.`,
+    `Hi ${name || 'there'}, Welcome to Akowe. My name is Olamide, a Co-founder at Akowe.`,
     '',
     'You chose a tool built for academic writing without juggling tools. This email is about one clear step: to help you create your first project.',
     '',
@@ -108,20 +120,20 @@ export async function sendWelcomeEmail(to: string, name: string) {
     '- Word goals give focus and track progress.',
     '',
     'How to start:',
-    '- Log into Akọ̀wé.',
+    '- Log into Akowe.',
     '- Click Create Project.',
     '- Choose your document type (Essay, Thesis, Research Paper).',
     '- Enter a title and select your citation style (APA, MLA, IEEE).',
     '',
-    'Once you create your first project, the editor opens and you’re ready to write.',
+    'Once you create your first project, the editor opens and you&rsquo;re ready to write.',
     '',
     `Action step: Start your first project now: ${newProjectUrl}`,
     '',
-    'Think about this: What assignment are you most stressed about right now? Start it inside Akọ̀wé today.',
+    'Think about this: What assignment are you most stressed about right now? Start it inside Akowe today.',
   ].join('\n');
 
   const html = `
-    <p>Hi ${name || 'there'}, Welcome to <strong>Akọ̀wé</strong>. My name is Olamide, a Co-founder at Akọ̀wé.</p>
+    <p>Hi ${name || 'there'}, Welcome to <strong>Akowe</strong>. My name is Olamide, a Co-founder at Akowe.</p>
     <p>You chose a tool built for academic writing without juggling tools. This email is about one clear step: <strong>To help you create your first project.</strong></p>
     <h4 style="margin-bottom:8px;">Why it matters:</h4>
     <ul>
@@ -132,13 +144,13 @@ export async function sendWelcomeEmail(to: string, name: string) {
     </ul>
     <h4 style="margin-bottom:8px;">How to start:</h4>
     <ol>
-      <li>Log into Akọ̀wé.</li>
+      <li>Log into Akowe.</li>
       <li>Click Create Project.</li>
       <li>Choose your document type (Essay, Thesis, Research Paper).</li>
       <li>Enter a title and select your citation style (APA, MLA, IEEE).</li>
     </ol>
     <h4 style="margin-bottom:8px;">Your next win</h4>
-    <p>Once you create your first project, the editor opens and you’re ready to write.</p>
+    <p>Once you create your first project, the editor opens and you&rsquo;re ready to write.</p>
     <p style="margin:16px 0;">Action step</p>
     <p>
       <a href="${newProjectUrl}" target="_blank" rel="noopener noreferrer"
@@ -146,7 +158,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
         Create a new project
       </a>
     </p>
-    <p>Think about this: What assignment are you most stressed about right now? Start it inside Akọ̀wé today.</p>
+    <p>Think about this: What assignment are you most stressed about right now? Start it inside Akowe today.</p>
   `;
 
   try {
