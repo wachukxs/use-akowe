@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Always respond with success message to avoid account enumeration
     const genericResponse = NextResponse.json({
-      message: 'If we found an account for that email, a reset link has been sent.',
+      message: 'If we find an account for that email, a reset link will be sent.',
     });
 
     if (!user) {

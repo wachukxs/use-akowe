@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
       }
 
       setStatus('success');
-      setMessage('If we found an account for that email, a reset link has been sent.');
+      setMessage('If we find an account for that email, a reset link will be sent.');
     } catch (error) {
       console.error('Failed to request password reset:', error);
       setStatus('error');
