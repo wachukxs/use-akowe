@@ -80,19 +80,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     normal: false
   });
 
-  // Track active formatting for new text input (@todo: confirm it's not used)
-  const [activeFormatting, setActiveFormatting] = useState({
-    bold: false,
-    italic: false,
-    underline: false,
-    unorderedList: false,
-    orderedList: false,
-    h1: false,
-    h2: false,
-    h3: false,
-    normal: false
-  });
-
   const [manualCitation, setManualCitation] = useState({
     title: '',
     authors: '',
@@ -692,18 +679,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             normal: isNormal
         });
         
-        // Also update active formatting for consistency
-        setActiveFormatting({
-          bold: isBold,
-          italic: isItalic,
-            underline: isUnderline,
-          unorderedList: isUnorderedList,
-            orderedList: isOrderedList,
-            h1: isH1,
-            h2: isH2,
-            h3: isH3,
-            normal: isNormal
-        });
+        
       }
     } else {
       // No selection, reset formatting state
@@ -718,33 +694,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           h3: false,
           normal: false
       });
-      setActiveFormatting({
-        bold: false,
-        italic: false,
-          underline: false,
-        unorderedList: false,
-          orderedList: false,
-          h1: false,
-          h2: false,
-          h3: false,
-          normal: false
-        });
       }
     } catch (error) {
       console.warn('Formatting state check failed:', error);
       // Reset to safe state on error
       setFormattingState({
-        bold: false,
-        italic: false,
-        underline: false,
-        unorderedList: false,
-        orderedList: false,
-        h1: false,
-        h2: false,
-        h3: false,
-        normal: false
-      });
-      setActiveFormatting({
         bold: false,
         italic: false,
         underline: false,
@@ -2991,18 +2945,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             h3: false,
                             normal: false
                           });
-                          // Also reset active formatting
-                          setActiveFormatting({
-                            bold: false,
-                            italic: false,
-                            underline: false,
-                            unorderedList: false,
-                            orderedList: false,
-                            h1: false,
-                            h2: false,
-                            h3: false,
-                            normal: false
-                          });
+                          
                         }}
                         className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed prose prose-sm max-w-none"
                         style={{ 
