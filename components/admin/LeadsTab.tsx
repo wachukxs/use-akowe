@@ -33,6 +33,36 @@ export default function LeadsTab() {
   const [filter, setFilter] = useState<'all' | 'plagiarism' | 'import'>('all');
   const [convertedFilter, setConvertedFilter] = useState<'all' | 'converted' | 'pending'>('all');
 
+  const exportEmailsToCSV = () => {
+    if (leads.length === 0) return;
+
+    const uniqueEmails = Array.from(
+      new Set(
+        leads
+          .map((lead) => lead.email?.trim())
+          .filter((email): email is string => Boolean(email))
+      )
+    );
+
+    const csvContent = ['Email', ...uniqueEmails.map((email) => `"${email.replace(/"/g, '""')}"`)].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const sourcePart = filter === 'all' ? 'all-sources' : filter;
+    const statusPart = convertedFilter === 'all' ? 'all-status' : convertedFilter;
+    const filename = `leads-${sourcePart}-${statusPart}-${dateStr}.csv`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const fetchLeads = async () => {
     setIsLoading(true);
     try {
@@ -153,10 +183,17 @@ export default function LeadsTab() {
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
           Refresh
         </button>
+        <button
+          onClick={exportEmailsToCSV}
+          disabled={isLoading || leads.length === 0}
+          className="flex items-center gap-2 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="text-[10px] uppercase tracking-[0.24em]">Export Emails CSV</span>
+        </button>
       </div>
 
       {/* Leads Table */}
-      <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] overflow-hidden">
+      <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
