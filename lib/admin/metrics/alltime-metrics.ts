@@ -196,6 +196,46 @@ export async function getAllTimeRevenueMetrics() {
   }
 
   try {
+    // Sum ACTUAL paid invoices (most accurate for total revenue)
+    let totalRevenue = 0;
+    let invoiceStartingAfter: string | undefined = undefined;
+    let invoiceHasMore = true;
+
+    while (invoiceHasMore) {
+      const invoices: Stripe.ApiList<Stripe.Invoice> = await stripe.invoices.list({
+        limit: 100,
+        status: 'paid',
+        starting_after: invoiceStartingAfter,
+        expand: ['data.lines.data.price'],
+      });
+
+      for (const invoice of invoices.data) {
+        let invoiceAmountCents = 0;
+
+        if (validPriceIds.length > 0 && invoice.lines?.data?.length) {
+          invoice.lines.data.forEach((line: any) => {
+            const priceId = line.price?.id;
+            if (priceId && validPriceIds.includes(priceId)) {
+              invoiceAmountCents += line.amount || 0;
+            }
+          });
+        }
+
+        if (invoiceAmountCents === 0) {
+          invoiceAmountCents = invoice.amount_paid || 0;
+        }
+
+        totalRevenue += invoiceAmountCents / 100;
+      }
+
+      invoiceHasMore = invoices.has_more;
+      if (invoiceHasMore && invoices.data.length > 0) {
+        invoiceStartingAfter = invoices.data[invoices.data.length - 1].id;
+      } else {
+        invoiceHasMore = false;
+      }
+    }
+
     // Get all subscriptions with pagination
     let allSubscriptions: any[] = [];
     let hasMore = true;
@@ -295,62 +335,6 @@ export async function getAllTimeRevenueMetrics() {
         }
       } catch (priceError) {
         console.error('Error retrieving price:', priceError);
-      }
-    }
-
-    // Calculate total revenue from subscriptions (not invoices)
-    // Count billing cycles from subscription creation to now
-    let totalRevenue = 0;
-    const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
-
-    for (const subscription of allSubscriptions) {
-      const priceId = subscription.items.data[0]?.price?.id;
-      
-      // Skip if no price ID, or if price IDs are configured and this one doesn't match
-      if (!priceId || (validPriceIds.length > 0 && !validPriceIds.includes(priceId))) {
-        continue;
-      }
-
-      try {
-        const price = await stripe.prices.retrieve(priceId);
-        const amount = price.unit_amount || 0;
-        const interval = price.recurring?.interval;
-        
-        if (!interval || amount === 0) continue;
-
-        // Get subscription creation time and current period end
-        const subscriptionCreated = subscription.created; // Unix timestamp
-        const currentPeriodEnd = subscription.current_period_end; // Unix timestamp
-        
-        // Count billing cycles from creation to now
-        // For canceled subscriptions, count up to cancellation date
-        // For active subscriptions, count up to current period end
-        const endTime = subscription.status === 'canceled' && subscription.canceled_at
-          ? subscription.canceled_at
-          : Math.min(currentPeriodEnd, now);
-        
-        if (interval === 'month') {
-          // Calculate number of billing cycles completed
-          // Each cycle is approximately 30.44 days (average month length)
-          const secondsPerMonth = Math.floor(30.44 * 24 * 60 * 60);
-          const monthsSinceStart = Math.floor((endTime - subscriptionCreated) / secondsPerMonth);
-          
-          // Always count at least 1 cycle (initial payment on subscription creation)
-          const cyclesCompleted = Math.max(1, monthsSinceStart + 1);
-          
-          totalRevenue += (amount / 100) * cyclesCompleted;
-        } else if (interval === 'year') {
-          // Calculate number of annual billing cycles completed
-          const secondsPerYear = Math.floor(365.25 * 24 * 60 * 60); // Account for leap years
-          const yearsSinceStart = (endTime - subscriptionCreated) / secondsPerYear;
-          
-          // Always count at least 1 cycle (initial payment on subscription creation)
-          const cyclesCompleted = Math.max(1, Math.floor(yearsSinceStart) + 1);
-          
-          totalRevenue += (amount / 100) * cyclesCompleted;
-        }
-      } catch (priceError) {
-        console.error('Error calculating revenue for subscription:', priceError);
       }
     }
 

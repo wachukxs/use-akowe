@@ -295,195 +295,78 @@ async function getPeriodRevenue(range: DateRange) {
   }
 
   try {
-    // Get all subscriptions for this product
-    let allSubscriptions: any[] = [];
-    let hasMore = true;
+    // Fetch paid invoices within the period to get actual collected revenue
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+    const sevenDaysAgoTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
+
     let startingAfter: string | undefined = undefined;
+    let hasMore = true;
+
+    let revenueInPeriod = 0;
+    let revenueLast7Days = 0;
+    const dailyRevenueMap = new Map<string, number>();
 
     while (hasMore) {
-      const params: any = {
+      const page: Stripe.ApiList<Stripe.Invoice> = await stripe.invoices.list({
         limit: 100,
-        status: 'all',
-      };
-      if (startingAfter) {
-        params.starting_after = startingAfter;
+        status: 'paid',
+        created: {
+          gte: range.startTimestamp,
+          lte: range.endTimestamp,
+        },
+        starting_after: startingAfter,
+        expand: ['data.lines.data.price'],
+      });
+
+      for (const invoice of page.data) {
+        const createdTs = typeof invoice.created === 'number'
+          ? invoice.created
+          : Math.floor(new Date(invoice.created as any).getTime() / 1000);
+
+        // Sum only matching price IDs when provided; otherwise use the invoice total
+        let invoiceAmountCents = 0;
+        if (validPriceIds.length > 0 && invoice.lines?.data?.length) {
+          invoice.lines.data.forEach((line: any) => {
+            const priceId = line.price?.id;
+            if (priceId && validPriceIds.includes(priceId)) {
+              invoiceAmountCents += line.amount || 0;
+            }
+          });
+        }
+
+        // Fallback to amount_paid when no line items matched or filtering not applied
+        if (invoiceAmountCents === 0) {
+          invoiceAmountCents = invoice.amount_paid || 0;
+        }
+
+        const invoiceAmount = invoiceAmountCents / 100;
+        revenueInPeriod += invoiceAmount;
+
+        const dateStr = new Date(createdTs * 1000).toISOString().split('T')[0];
+        dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + invoiceAmount);
+
+        if (createdTs >= sevenDaysAgoTimestamp) {
+          revenueLast7Days += invoiceAmount;
+        }
       }
 
-      const subscriptions = await stripe.subscriptions.list(params);
-
-      // If no valid price IDs are configured, accept all subscriptions (same behaviour as all‑time metrics).
-      // Otherwise, restrict to the configured price IDs only.
-      const filteredSubs = subscriptions.data.filter((sub: any) => {
-        const priceId = sub.items.data[0]?.price?.id;
-        if (!priceId) return false;
-        if (validPriceIds.length === 0) return true;
-        return validPriceIds.includes(priceId);
-      });
-      
-      allSubscriptions = allSubscriptions.concat(filteredSubs);
-      hasMore = subscriptions.has_more;
-      if (hasMore && subscriptions.data.length > 0) {
-        startingAfter = subscriptions.data[subscriptions.data.length - 1].id;
+      hasMore = page.has_more;
+      if (hasMore && page.data.length > 0) {
+        startingAfter = page.data[page.data.length - 1].id;
       } else {
         hasMore = false;
       }
     }
 
-    // Calculate revenue in period from subscriptions (not invoices)
-    // Count billing cycles that occurred within the date range
-    let revenueInPeriod = 0;
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
-    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
-    const sevenDaysAgoTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
-    let revenue7Days = 0;
-
-    // Group revenue by day for growth chart
-    const dailyRevenueMap = new Map<string, number>();
-
-    for (const subscription of allSubscriptions) {
-      const priceId = subscription.items.data[0]?.price?.id;
-      
-      if (!priceId || (validPriceIds.length > 0 && !validPriceIds.includes(priceId))) {
-        continue;
-      }
-
-      try {
-        const price = await stripe.prices.retrieve(priceId);
-        const amount = price.unit_amount || 0;
-        const interval = price.recurring?.interval;
-        
-        if (!interval || amount === 0) continue;
-
-        const subscriptionCreated = subscription.created;
-        const currentPeriodStart = subscription.current_period_start;
-        const currentPeriodEnd = subscription.current_period_end;
-        const amountDollars = amount / 100;
-        
-        // Calculate billing cycles that occurred in the period
-        if (interval === 'month') {
-          // For monthly subscriptions, count cycles that occurred in the period
-          // Process ALL subscriptions (including canceled ones) to count revenue
-          // that occurred during the period, even if subscription is now canceled
-          
-          // Determine when subscription ended (canceled_at if canceled, otherwise currentPeriodEnd)
-          const subscriptionEndTime = subscription.status === 'canceled' && subscription.canceled_at
-            ? subscription.canceled_at
-            : currentPeriodEnd;
-          
-          // Skip if subscription ended before the period started
-          if (subscriptionEndTime < range.startTimestamp) {
-            continue;
-          }
-          
-          // A billing cycle occurs on subscription.created + N months
-          const secondsPerMonth = Math.floor(30.44 * 24 * 60 * 60); // ~30.44 days per month
-          
-          // Find all billing cycles that occurred during the period
-          // Start from subscription creation and iterate forward
-          let cycleDate = subscriptionCreated;
-          let cycleNumber = 0;
-          
-          // Iterate through billing cycles until we've passed the period end
-          // Limit to 120 cycles (10 years) as a safety check
-          while (cycleDate <= range.endTimestamp && cycleNumber <= 120) {
-            // Check if this billing cycle occurred within the period
-            if (cycleDate >= range.startTimestamp && cycleDate <= range.endTimestamp) {
-              // Only count if subscription was active at this cycle date
-              // (i.e., cycle date is before or equal to when subscription ended)
-              if (cycleDate <= subscriptionEndTime) {
-                revenueInPeriod += amountDollars;
-                
-                // Group by date (YYYY-MM-DD) for growth chart
-                const cycleDateObj = new Date(cycleDate * 1000);
-                const dateStr = cycleDateObj.toISOString().split('T')[0];
-                dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amountDollars);
-                
-                // Check if within last 7 days
-                if (cycleDate >= sevenDaysAgoTimestamp) {
-                  revenue7Days += amountDollars;
-                }
-              }
-            }
-            
-            // Move to next billing cycle
-            cycleNumber++;
-            cycleDate = subscriptionCreated + (cycleNumber * secondsPerMonth);
-            
-            // Stop if we've passed the period end or subscription end
-            if (cycleDate > range.endTimestamp || cycleDate > subscriptionEndTime) break;
-          }
-        } else if (interval === 'year') {
-          // For annual subscriptions, count if subscription started/renewed in the period
-          // Check if subscription creation falls within the period
-          if (subscriptionCreated >= range.startTimestamp && subscriptionCreated <= range.endTimestamp) {
-            revenueInPeriod += amountDollars;
-            
-            // Group by date (YYYY-MM-DD)
-            const cycleDateObj = new Date(subscriptionCreated * 1000);
-            const dateStr = cycleDateObj.toISOString().split('T')[0];
-            dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amountDollars);
-            
-            // Check if within last 7 days
-            if (subscriptionCreated >= sevenDaysAgoTimestamp) {
-              revenue7Days += amountDollars;
-            }
-          }
-          
-          // Check for renewals (if subscription is older than 1 year)
-          // Calculate potential renewal dates
-          if (subscriptionCreated < range.endTimestamp) {
-            const secondsPerYear = Math.floor(365.25 * 24 * 60 * 60);
-            let renewalDate = subscriptionCreated + secondsPerYear;
-            
-            // Determine when subscription ended (canceled_at if canceled, otherwise currentPeriodEnd)
-            // For canceled subscriptions, use canceled_at; for active, use currentPeriodEnd
-            const subscriptionEndTime = subscription.status === 'canceled' && subscription.canceled_at
-              ? subscription.canceled_at
-              : currentPeriodEnd;
-            
-            // Check renewals that occurred in the period
-            // Use < (strictly less than) for subscriptionEndTime to exclude unpaid future renewals
-            // currentPeriodEnd is when the next payment is due, not when it was paid
-            while (renewalDate <= range.endTimestamp && renewalDate < subscriptionEndTime) {
-              if (renewalDate >= range.startTimestamp && renewalDate <= range.endTimestamp) {
-                revenueInPeriod += amountDollars;
-                
-                // Group by date
-                const renewalDateObj = new Date(renewalDate * 1000);
-                const dateStr = renewalDateObj.toISOString().split('T')[0];
-                dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + amountDollars);
-                
-                // Check if within last 7 days
-                if (renewalDate >= sevenDaysAgoTimestamp) {
-                  revenue7Days += amountDollars;
-                }
-              }
-              
-              // Move to next renewal
-              renewalDate += secondsPerYear;
-              
-              // Stop if we've passed the period end or subscription end
-              if (renewalDate > range.endTimestamp || renewalDate >= subscriptionEndTime) break;
-            }
-          }
-        }
-      } catch (priceError) {
-        console.error('Error calculating period revenue for subscription:', priceError);
-      }
-    }
-
-    // Convert map to sorted array format matching user growth
     const revenueGrowth = Array.from(dailyRevenueMap.entries())
-      .map(([date, amount]) => ({
-        _id: date,
-        count: amount,
-      }))
+      .map(([date, amount]) => ({ _id: date, count: amount }))
       .sort((a, b) => a._id.localeCompare(b._id));
 
     return {
       revenueInPeriod,
-      revenueLast7Days: revenue7Days,
+      revenueLast7Days,
       growth: revenueGrowth,
     };
   } catch (error) {
