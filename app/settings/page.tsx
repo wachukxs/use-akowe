@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
@@ -31,10 +31,10 @@ export default function SettingsPage() {
   const [checkoutFeedbackMessage, setCheckoutFeedbackMessage] = useState('');
   const [checkoutFeedbackSubmitting, setCheckoutFeedbackSubmitting] = useState(false);
   const [checkoutFeedbackError, setCheckoutFeedbackError] = useState('');
+  const [hasCheckoutCancelledParam, setHasCheckoutCancelledParam] = useState(false);
 
-  const searchParams = useSearchParams();
   const showCheckoutFeedback =
-    searchParams.get('checkout_cancelled') === '1' &&
+    hasCheckoutCancelledParam &&
     !checkoutFeedbackDismissed &&
     !checkoutFeedbackSubmitted;
 
@@ -83,6 +83,14 @@ export default function SettingsPage() {
       fetchUsage();
     }
   }, [session]);
+
+  // Read checkout_cancelled from URL on client (avoids useSearchParams Suspense requirement)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout_cancelled') === '1') {
+      setHasCheckoutCancelledParam(true);
+    }
+  }, []);
 
   // Refresh session when coming back from payment success
   useEffect(() => {
