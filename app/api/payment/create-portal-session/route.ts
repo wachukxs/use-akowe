@@ -19,17 +19,38 @@ export async function POST() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if user has a Stripe customer ID
-    if (!user.stripeCustomerId) {
-      return NextResponse.json(
-        { error: 'No active subscription found' },
-        { status: 400 }
-      );
+    // Get or create Stripe customer (we never delete stripeCustomerId on cancel/refund,
+    // but users may not have one from older flows or edge cases)
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      // Try to find existing Stripe customer by email (e.g. from a previous payment/refund)
+      const existing = await stripe.customers.list({
+        email: session.user.email,
+        limit: 1,
+      });
+      if (existing.data.length > 0) {
+        console.log('Found existing Stripe customer:', existing.data[0].id);
+        customerId = existing.data[0].id;
+        user.stripeCustomerId = customerId;
+        await user.save();
+      } else {
+        const customer = await stripe.customers.create({
+          email: session.user.email,
+          name: user.name,
+          metadata: {
+            userId: user._id.toString(),
+          },
+        });
+        console.log('Created new Stripe customer:', customer.id);
+        customerId = customer.id;
+        user.stripeCustomerId = customerId;
+        await user.save();
+      }
     }
 
     // Create a billing portal session
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: user.stripeCustomerId,
+      customer: customerId,
       return_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/settings`,
     });
 

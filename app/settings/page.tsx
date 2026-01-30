@@ -101,7 +101,9 @@ export default function SettingsPage() {
           window.location.href = data.url;
         }
       } else {
-        alert('Failed to open billing portal. Please try again.');
+        const data = await response.json().catch(() => ({}));
+        const message = typeof data?.error === 'string' ? data.error : 'Failed to open billing portal. Please try again.';
+        alert(message);
       }
     } catch (error) {
       console.error('Error opening billing portal:', error);
