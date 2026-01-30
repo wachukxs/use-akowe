@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
@@ -26,6 +26,51 @@ export default function SettingsPage() {
   const [isUpgrading, setIsUpgrading] = useState(false); // Loading state for upgrade
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null); // Store subscription status
   const [copiedReferral, setCopiedReferral] = useState(false); // Track copy state for referral
+  const [checkoutFeedbackDismissed, setCheckoutFeedbackDismissed] = useState(false);
+  const [checkoutFeedbackSubmitted, setCheckoutFeedbackSubmitted] = useState(false);
+  const [checkoutFeedbackMessage, setCheckoutFeedbackMessage] = useState('');
+  const [checkoutFeedbackSubmitting, setCheckoutFeedbackSubmitting] = useState(false);
+  const [checkoutFeedbackError, setCheckoutFeedbackError] = useState('');
+
+  const searchParams = useSearchParams();
+  const showCheckoutFeedback =
+    searchParams.get('checkout_cancelled') === '1' &&
+    !checkoutFeedbackDismissed &&
+    !checkoutFeedbackSubmitted;
+
+  const dismissCheckoutFeedback = () => {
+    setCheckoutFeedbackDismissed(true);
+    window.history.replaceState({}, '', '/settings');
+  };
+
+  const handleCheckoutFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.user || !checkoutFeedbackMessage.trim()) return;
+    setCheckoutFeedbackSubmitting(true);
+    setCheckoutFeedbackError('');
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: session.user.name || session.user.email || 'Unknown',
+          email: session.user.email || '',
+          message: checkoutFeedbackMessage.trim(),
+          context: 'checkout_cancelled',
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Failed to send');
+      }
+      setCheckoutFeedbackSubmitted(true);
+      window.history.replaceState({}, '', '/settings');
+    } catch (err) {
+      setCheckoutFeedbackError(err instanceof Error ? err.message : 'Failed to send. Please try again.');
+    } finally {
+      setCheckoutFeedbackSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -265,6 +310,73 @@ export default function SettingsPage() {
               Manage your account and subscription
             </p>
           </div>
+
+          {/* Checkout cancelled feedback (when user left Stripe without paying) */}
+          {showCheckoutFeedback && (
+            <Card className="p-4 md:p-6 mb-6 md:mb-8 border-amber-200 bg-amber-50/50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                    We noticed you didn&apos;t complete your payment
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Would you tell us why? (optional) Your feedback helps us improve.
+                  </p>
+                  {checkoutFeedbackSubmitted ? (
+                    <div className="flex items-center gap-2 text-green-700">
+                      <Check size={20} />
+                      <span className="text-sm font-medium">Thanks for your feedback.</span>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleCheckoutFeedbackSubmit} className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Your feedback
+                        </label>
+                        <textarea
+                          placeholder="e.g. Too expensive, changed mind, technical issues..."
+                          value={checkoutFeedbackMessage}
+                          onChange={(e) => setCheckoutFeedbackMessage(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        />
+                      </div>
+                      {checkoutFeedbackError && (
+                        <p className="text-xs font-medium text-red-600 uppercase tracking-wide">
+                          {checkoutFeedbackError}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="submit"
+                          disabled={checkoutFeedbackSubmitting || !checkoutFeedbackMessage.trim()}
+                        >
+                          {checkoutFeedbackSubmitting ? 'Sending...' : 'Send feedback'}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={dismissCheckoutFeedback}
+                          className="text-sm text-gray-500 hover:text-gray-700 underline"
+                        >
+                          Skip
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+                {!checkoutFeedbackSubmitted && (
+                  <button
+                    type="button"
+                    onClick={dismissCheckoutFeedback}
+                    className="shrink-0 p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    aria-label="Dismiss"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
+            </Card>
+          )}
 
           {/* Usage Stats */}
           {usage && (

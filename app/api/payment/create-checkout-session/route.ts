@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       ],
       mode: 'subscription',
       success_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/settings`,
+      cancel_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/settings?checkout_cancelled=1`,
       metadata: {
         userId: user._id.toString(),
         userEmail: session.user.email,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, message } = await request.json();
+    const { name, email, message, context } = await request.json();
 
     // Validate input
     if (!name || !message) {
@@ -23,6 +23,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const isCheckoutCancelled = context === 'checkout_cancelled';
+    const headerText = isCheckoutCancelled
+      ? '💳 Payment abandoned feedback'
+      : '📬 New Feedback Received';
+
     // Format message for Slack
     const slackMessage = {
       blocks: [
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
           type: 'header',
           text: {
             type: 'plain_text',
-            text: '📬 New Feedback Received',
+            text: headerText,
             emoji: true,
           },
         },
@@ -54,6 +59,16 @@ export async function POST(request: NextRequest) {
             text: `*Message:*\n${message}`,
           },
         },
+        ...(isCheckoutCancelled
+          ? [
+              {
+                type: 'context',
+                elements: [
+                  { type: 'mrkdwn', text: 'Context: User left Stripe Checkout without completing payment' },
+                ],
+              },
+            ]
+          : []),
         {
           type: 'context',
           elements: [
