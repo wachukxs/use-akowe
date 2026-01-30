@@ -1,10 +1,13 @@
 /**
  * Stripe Webhook Handler
- * 
- * Handles Stripe webhook events to keep user subscriptions in sync:
- * - Upgrades users to Pro on successful payment
- * - Downgrades users to Free on payment failures/expiration
- * - Prevents revenue loss from failed payments
+ *
+ * Listens to:
+ * - checkout.session.completed — upgrade to Pro after successful checkout
+ * - customer.subscription.updated — sync plan when subscription status changes (active, past_due, canceled, etc.)
+ * - customer.subscription.deleted — downgrade when subscription is removed
+ * - charge.refunded — downgrade when a charge is refunded (refunds don’t always cancel the subscription in Stripe)
+ *
+ * In Stripe Dashboard: Developers → Webhooks → your endpoint → ensure “charge.refunded” is in the list of events to send.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
@@ -154,6 +157,29 @@ export async function POST(request: NextRequest) {
           user.subscriptionEndDate = canceledAt;
           await user.save();
           console.log(`⬇️ Downgraded user ${user._id} to free plan with end date`);
+        }
+        break;
+      }
+
+      case 'charge.refunded': {
+        // Refunding a charge doesn't cancel the subscription in Stripe, so we need to
+        // downgrade the user when a refund is issued (e.g. support refund).
+        const charge = event.data.object as any;
+        const customerId = charge.customer;
+        if (!customerId) break;
+
+        const user = await User.findOne({ stripeCustomerId: customerId });
+        if (!user) {
+          console.log(`⚠️ User not found for customer ${customerId} (charge.refunded)`);
+          break;
+        }
+
+        if (user.plan === 'pro' || user.plan === 'team') {
+          user.plan = 'free';
+          user.stripeSubscriptionId = undefined;
+          user.subscriptionEndDate = new Date();
+          await user.save();
+          console.log(`⬇️ Downgraded user ${user._id} to free plan (charge refunded)`);
         }
         break;
       }
