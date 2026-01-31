@@ -4226,40 +4226,44 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               )}
 
       {showSuccessMessage && (
-        <div className="fixed top-4 right-4 z-50">
-          <div className={`px-6 py-4 rounded-xl shadow-lg max-w-md ${
-            showSuccessMessage.includes('❌') 
-              ? 'bg-gradient-to-r from-red-500 to-red-600 text-white' 
-              : showSuccessMessage.includes('✅')
-              ? 'bg-gradient-to-r from-blue-500 to-slate-500 text-white'
-              : 'bg-gradient-to-r from-blue-600 to-slate-600 text-white'
-          }`}>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                {showSuccessMessage.includes('❌') ? (
-                  <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center">
-                    <span className="text-white text-xs">!</span>
-                  </div>
-                ) : showSuccessMessage.includes('✅') ? (
-                  <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                    <span className="text-white text-xs">i</span>
-        </div>
-      )}
-    </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium leading-relaxed">{showSuccessMessage}</p>
-              </div>
-              <button
-                onClick={() => setShowSuccessMessage('')}
-                className="flex-shrink-0 text-white hover:text-gray-200 transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
+        <div className="fixed top-4 right-4 left-4 sm:left-auto z-50 max-w-md">
+          <div
+            className={`flex items-start gap-3 px-4 py-3 sm:px-6 sm:py-4 border-2 rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] bg-[hsl(var(--surface))] ${
+              showSuccessMessage.includes('❌')
+                ? 'border-[hsl(var(--destructive))]'
+                : showSuccessMessage.includes('✅')
+                  ? 'border-[hsl(var(--secondary))]'
+                  : 'border-[hsl(var(--border-strong))]'
+            }`}
+          >
+            <div className="flex-shrink-0 mt-0.5">
+              {showSuccessMessage.includes('❌') ? (
+                <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 flex items-center justify-center">
+                  <span className="text-[hsl(var(--destructive))] text-xs font-bold">!</span>
+                </div>
+              ) : showSuccessMessage.includes('✅') ? (
+                <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))]/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-4 w-4 text-[hsl(var(--secondary-foreground))]" />
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
+                  <AlertCircle className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                </div>
+              )}
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.1em] leading-relaxed text-[hsl(var(--foreground))]">
+                {showSuccessMessage}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSuccessMessage('')}
+              aria-label="Dismiss"
+              className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--foreground))]/30 transition-colors cursor-pointer touch-manipulation"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

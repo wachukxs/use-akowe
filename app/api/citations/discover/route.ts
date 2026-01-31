@@ -266,9 +266,10 @@ function getContextMatch(citation: any, projectType: string, methodology: string
   return 'General relevance';
 }
 
-function isRetractedWork(work: { relation?: Array<{ type?: string }> }): boolean {
-  const relations = work.relation ?? [];
-  return relations.some((r) => r.type === 'is-retracted-by');
+function isRetractedWork(work: { relation?: unknown }): boolean {
+  const raw = work.relation;
+  const relations = Array.isArray(raw) ? raw : [];
+  return relations.some((r: { type?: string }) => r?.type === 'is-retracted-by');
 }
 
 async function discoverCitationsFromCrossref(
