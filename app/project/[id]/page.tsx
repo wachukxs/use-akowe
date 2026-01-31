@@ -3438,20 +3438,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Citation Discovery Modal */}
       {showCitationDiscovery && (
-        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4" aria-hidden="false">
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" aria-hidden="false">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="citation-dialog-title"
             aria-describedby="citation-dialog-description"
-            className="w-full max-w-6xl max-h-[90vh] overflow-hidden border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col"
+            className="w-full max-w-6xl h-[95dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden border-0 sm:border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-t-2xl sm:rounded-[var(--radius)] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col"
           >
             {/* Header */}
-            <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-6 bg-[hsl(var(--surface))]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 id="citation-dialog-title" className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">Research Citations</h3>
-                  <p id="citation-dialog-description" className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+            <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-4 sm:p-6 bg-[hsl(var(--surface))] shrink-0">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 id="citation-dialog-title" className="text-lg sm:text-xl font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[hsl(var(--foreground))]">Research Citations</h3>
+                  <p id="citation-dialog-description" className="text-xs sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1.5 sm:mt-2 break-words">
                     {citationTotalResults != null
                       ? `Showing ${discoveredCitations.length} of ${citationTotalResults.toLocaleString()} results`
                       : `Found ${discoveredCitations.length} relevant citations for your research`}
@@ -3464,7 +3464,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 type="button"
                 onClick={() => setShowCitationDiscovery(false)}
                 aria-label="Close citation discovery"
-                className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer"
+                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer touch-manipulation"
               >
                   <X className="h-6 w-6" />
               </button>
@@ -3472,11 +3472,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Search and Filter Bar */}
-            <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))]">
+            <div className="p-4 sm:p-6 border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] shrink-0">
               <div className="flex flex-col lg:flex-row gap-4">
                 {/* Search Input + Search for new citations */}
-                <div className="flex-1 flex flex-col sm:flex-row gap-3">
-                  <div className="relative flex-1">
+                <div className="flex-1 flex flex-col gap-3 w-full">
+                  <div className="relative flex-1 w-full">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                     <input
                       type="text"
@@ -3488,8 +3488,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           searchForNewCitations();
                         }
                       }}
-                      placeholder="Filter list or type a query and press Enter to find new citations..."
-                      className="w-full pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                      placeholder="Filter or type a query and search..."
+                      className="w-full min-h-[44px] pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                       aria-label="Filter citations or search for new citations (press Enter)"
                     />
                   </div>
@@ -3497,18 +3497,18 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="button"
                     onClick={searchForNewCitations}
                     disabled={isDiscoveringCitations || !citationSearchQuery.trim()}
-                    className="shrink-0 px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full sm:w-auto shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
                   >
                     {isDiscoveringCitations ? 'Searching…' : 'Search for new citations'}
                   </button>
                 </div>
 
                 {/* Filter Dropdown */}
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3 flex-wrap">
                   <select
                     value={citationFilter}
                     onChange={(e) => setCitationFilter(e.target.value as any)}
-                    className="px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                    className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                   >
                     <option value="all">All citations</option>
                     <option value="recent">Recent (Last 5 years)</option>
@@ -3518,7 +3518,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <select
                     value={citationSortBy}
                     onChange={(e) => setCitationSortBy(e.target.value as any)}
-                    className="px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                    className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                   >
                     <option value="relevance">Sort by relevance</option>
                     <option value="year">Sort by year</option>
@@ -3528,7 +3528,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Results Summary */}
-              <div className="mt-4 flex items-center justify-between flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+              <div className="mt-3 sm:mt-4 flex items-center justify-between flex-wrap gap-2 text-xs sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                 <span>
                   Showing {getFilteredAndSortedCitations().length} citations
                   {lastDiscoverySearchTerm && (
@@ -3549,7 +3549,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <button
                     type="button"
                     onClick={() => setCitationSearchQuery('')}
-                    className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold cursor-pointer"
+                    className="min-h-[44px] min-w-[44px] flex items-center text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold cursor-pointer touch-manipulation"
                   >
                     Clear filter
                   </button>
@@ -3558,21 +3558,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Citations List */}
-            <div className="p-6 overflow-y-auto max-h-[50vh] space-y-6 bg-[hsl(var(--surface))]">
+            <div className="flex-1 min-h-0 p-4 sm:p-6 overflow-y-auto overflow-x-hidden space-y-4 sm:space-y-6 bg-[hsl(var(--surface))]">
               {discoveredCitations.length === 0 && citationDiscoveryError && !isDiscoveringCitations ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 border-2 border-[hsl(var(--destructive))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4 bg-[hsl(var(--destructive))]/10">
-                    <AlertCircle className="h-8 w-8 text-[hsl(var(--destructive))]" />
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--destructive))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4 bg-[hsl(var(--destructive))]/10">
+                    <AlertCircle className="h-7 w-7 sm:h-8 sm:w-8 text-[hsl(var(--destructive))]" />
                   </div>
-                  <h3 className="text-lg font-semibold uppercase tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">Search failed</h3>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-6 max-w-md mx-auto">
+                  <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">Search failed</h3>
+                  <p className="text-xs sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-6 max-w-md mx-auto px-2">
                     {citationDiscoveryError}
                   </p>
                   <button
                     type="button"
                     onClick={retryCitationDiscovery}
                     disabled={isDiscoveringCitations}
-                    className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 mx-auto cursor-pointer"
+                    className="min-h-[44px] px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center justify-center gap-2 mx-auto cursor-pointer touch-manipulation"
                   >
                     {isDiscoveringCitations ? (
                       <>
@@ -3588,23 +3588,23 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   </button>
                 </div>
               ) : discoveredCitations.length === 0 && isDiscoveringCitations ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-2 border-[hsl(var(--border-strong))] border-t-transparent mx-auto mb-4"></div>
-                  <h3 className="text-lg font-semibold uppercase tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">Searching for citations</h3>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                <div className="text-center py-8 sm:py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-2 border-[hsl(var(--border-strong))] border-t-transparent mx-auto mb-4"></div>
+                  <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">Searching for citations</h3>
+                  <p className="text-xs sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                     This may take a moment…
                   </p>
                 </div>
               ) : getFilteredAndSortedCitations().length > 0 ? (
-                <div className="grid gap-6">
+                <div className="grid gap-4 sm:gap-6">
                   {getFilteredAndSortedCitations().map((citation, index) => (
-                    <div key={index} className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h4 className="text-lg font-semibold uppercase tracking-[0.12em] text-[hsl(var(--foreground))] mb-2 leading-tight">
+                    <div key={index} className="border-2 sm:border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 sm:p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[4px_4px_0_rgba(29,41,57,0.1)] sm:shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3 sm:mb-4">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-base sm:text-lg font-semibold uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] mb-2 leading-tight line-clamp-3">
                             {citation.title}
                           </h4>
-                          <div className="flex flex-wrap items-center gap-4 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
                             <div className="flex items-center gap-1">
                               <span className="font-semibold text-[hsl(var(--foreground))]">Authors:</span>
                               <span>
@@ -3636,14 +3636,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             )}
                           </div>
                         </div>
-                        <div className="flex gap-2 ml-4">
+                        <div className="flex gap-2 sm:ml-4 shrink-0">
                       {citation.url && (
                         <a
                           href={citation.url}
-                            target="_blank" 
+                            target="_blank"
                             rel="noopener noreferrer"
-                              className="p-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
-                              title="View Source"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] touch-manipulation"
+                            title="View Source"
                         >
                               <Link className="h-4 w-4" />
                         </a>
@@ -3651,7 +3651,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           <button
                         onClick={() => addCitationToEditor(citation)}
                             disabled={isAddingCitation}
-                            className={`px-4 py-2 rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center gap-2 ${
+                            className={`min-h-[44px] px-4 py-2 rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center justify-center gap-2 touch-manipulation ${
                               isAddingCitation 
                                 ? 'bg-[hsl(var(--muted))] cursor-not-allowed text-[hsl(var(--muted-foreground))]'
                                 : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] cursor-pointer'
@@ -3679,23 +3679,23 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       )}
 
                       {citation.abstract && (
-                        <div className="mb-4">
-                          <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed line-clamp-3">
+                        <div className="mb-3 sm:mb-4">
+                          <p className="text-xs uppercase tracking-[0.1em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed line-clamp-3">
                             {citation.abstract}
                           </p>
                         </div>
                       )}
 
                       {citation.doi && (
-                        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                          <span className="font-semibold text-[hsl(var(--foreground))]">DOI:</span>
-                          <code className="border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-2 py-1">
+                        <div className="flex items-center gap-2 text-xs sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                          <span className="font-semibold text-[hsl(var(--foreground))] shrink-0 whitespace-nowrap">DOI:</span>
+                          <code className="border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-2 py-1 break-all min-w-0">
                             {citation.doi}
                           </code>
                         </div>
                       )}
                       {citation.source && (
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                        <p className="mt-2 text-xs sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                           Source: {citation.source}
                         </p>
                       )}
@@ -3724,7 +3724,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           )}
                         </button>
                       ) : (
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                        <p className="text-xs sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                           No more results for this search
                         </p>
                       )}
@@ -3732,12 +3732,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   )}
             </div>
               ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4">
-                    <Search className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4">
+                    <Search className="h-7 w-7 sm:h-8 sm:w-8 text-[hsl(var(--muted-foreground))]" />
                   </div>
-                  <h3 className="text-lg font-semibold uppercase tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">No citations found</h3>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">No citations found</h3>
+                  <p className="text-xs sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-6 px-2">
                     {citationSearchQuery 
                       ? `No citations match your search "${citationSearchQuery}"`
                       : 'No citations available for the current filters'
@@ -3747,7 +3747,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     <button
                       type="button"
                       onClick={() => setCitationSearchQuery('')}
-                      className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold text-xs uppercase tracking-[0.18em] cursor-pointer"
+                      className="min-h-[44px] px-4 py-2 text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold text-xs uppercase tracking-[0.18em] cursor-pointer touch-manipulation"
                     >
                       Clear filter to see all citations
                     </button>
