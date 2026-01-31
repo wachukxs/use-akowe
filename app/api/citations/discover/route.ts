@@ -6,6 +6,10 @@ import {
   type CitationLike,
 } from '@/lib/citation-relevance';
 import {
+  getCrossrefOffset,
+  hasMoreResults,
+} from '@/lib/citation-discovery-pagination';
+import {
   extractPublicationYearFromCrossref,
   formatYearForDisplay,
   type CrossrefWorkLike,
@@ -14,7 +18,7 @@ import {
 const DISCOVER_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const discoverCache = new Map<
   string,
-  { citations: unknown[]; searchTerm: string; ts: number }
+  { citations: unknown[]; searchTerm: string; hasMore: boolean; totalResults?: number; ts: number }
 >();
 
 export async function POST(request: NextRequest) {
@@ -32,6 +36,7 @@ export async function POST(request: NextRequest) {
       methodology,
       searchQuery,
       limit = 5,
+      offset = 0,
     } = body;
 
     const searchTerm = searchQuery || topic;
@@ -40,12 +45,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Search query or topic is required' }, { status: 400 });
     }
 
-    const cacheKey = `${searchTerm}|${citationStyle}|${limit}|${methodology ?? ''}|${projectType ?? ''}`;
+    const cacheKey = `${searchTerm}|${citationStyle}|${limit}|${offset}|${methodology ?? ''}|${projectType ?? ''}`;
     const cached = discoverCache.get(cacheKey);
     if (cached && Date.now() - cached.ts < DISCOVER_CACHE_TTL_MS) {
       return NextResponse.json({
         citations: cached.citations,
         searchTerm: cached.searchTerm,
+        hasMore: cached.hasMore,
+        totalResults: cached.totalResults,
         message: `Found ${cached.citations.length} relevant citations for "${cached.searchTerm}"`,
       });
     }
@@ -55,7 +62,8 @@ export async function POST(request: NextRequest) {
       citationStyle,
       projectType,
       methodology,
-      limit
+      limit,
+      offset
     );
 
     if (result.failed) {
@@ -69,12 +77,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { citations } = result;
-    discoverCache.set(cacheKey, { citations, searchTerm, ts: Date.now() });
+    const { citations, hasMore, totalResults } = result;
+    discoverCache.set(cacheKey, { citations, searchTerm, hasMore, totalResults, ts: Date.now() });
 
     return NextResponse.json({
       citations,
       searchTerm,
+      hasMore,
+      totalResults,
       message: `Found ${citations.length} relevant citations for "${searchTerm}"`,
     });
   } catch (error) {
@@ -88,18 +98,28 @@ async function discoverCitationsWithContext(
   citationStyle: string,
   projectType: string,
   methodology: string,
-  limit: number
-): Promise<{ citations: unknown[]; failed?: boolean }> {
+  limit: number,
+  offset: number
+): Promise<{ citations: unknown[]; hasMore: boolean; totalResults?: number; failed?: boolean }> {
   try {
     const requestedRows = Math.min(Math.max(limit * 3, 15), 30);
-    const rawCitations = await discoverCitationsFromCrossref(
+    const crossrefOffset = getCrossrefOffset(offset, limit, requestedRows);
+    const { citations: rawCitations, totalResults } = await discoverCitationsFromCrossref(
       searchTerm,
       citationStyle,
-      requestedRows
+      requestedRows,
+      crossrefOffset
+    );
+
+    const hasMore = hasMoreResults(
+      crossrefOffset,
+      rawCitations.length,
+      totalResults
     );
 
     const seenDoi = new Set<string>();
-    const dedupedCitations = rawCitations.filter((c: { doi?: string }) => {
+    type RawItem = { doi?: string; [key: string]: unknown };
+    const dedupedCitations = (rawCitations as RawItem[]).filter((c) => {
       const doi = (c.doi ?? '').toString().toLowerCase().trim();
       if (!doi || seenDoi.has(doi)) return false;
       seenDoi.add(doi);
@@ -114,8 +134,8 @@ async function discoverCitationsWithContext(
       [key: string]: unknown;
     };
 
-    const withTopicScore: DiscoveredCitation[] = dedupedCitations.map(
-      (citation: DiscoveredCitation) => ({
+    const withTopicScore: DiscoveredCitation[] = (dedupedCitations as DiscoveredCitation[]).map(
+      (citation) => ({
         ...citation,
         topicRelevanceScore: calculateTopicRelevanceScore(
           citation as CitationLike,
@@ -144,10 +164,14 @@ async function discoverCitationsWithContext(
     );
 
     const trimmed = sortedByTopic.slice(0, limit);
-    return { citations: enhanceCitationsWithContext(trimmed, projectType, methodology) };
+    return {
+      citations: enhanceCitationsWithContext(trimmed, projectType, methodology),
+      hasMore,
+      totalResults: typeof totalResults === 'number' && totalResults > 0 ? totalResults : undefined,
+    };
   } catch (error) {
     console.error('Error in contextual citation discovery:', error);
-    return { citations: [], failed: true };
+    return { citations: [], hasMore: false, totalResults: undefined, failed: true };
   }
 }
 
@@ -247,10 +271,15 @@ function isRetractedWork(work: { relation?: Array<{ type?: string }> }): boolean
   return relations.some((r) => r.type === 'is-retracted-by');
 }
 
-async function discoverCitationsFromCrossref(topic: string, citationStyle: string, limit: number) {
+async function discoverCitationsFromCrossref(
+  topic: string,
+  citationStyle: string,
+  rows: number,
+  offset: number
+): Promise<{ citations: unknown[]; totalResults: number }> {
   try {
     const query = encodeURIComponent(topic);
-    const url = `https://api.crossref.org/works?query=${query}&rows=${limit}&sort=relevance&order=desc`;
+    const url = `https://api.crossref.org/works?query=${query}&rows=${rows}&offset=${offset}&sort=relevance&order=desc`;
 
     const headers = {
       'User-Agent': 'Akowe Research Assistant (mailto:ola@placeholderllc.name.ng)',
@@ -272,12 +301,16 @@ async function discoverCitationsFromCrossref(topic: string, citationStyle: strin
 
     const data = await response.json();
     const items = data.message?.items || [];
+    const totalResults =
+      typeof data.message?.['total-results'] === 'number'
+        ? data.message['total-results']
+        : 0;
 
     const works = items.filter(
       (work: { relation?: Array<{ type?: string }> }) => !isRetractedWork(work)
     );
 
-    return works.map((work: { author?: Array<{ given?: string; family?: string }>; title?: string[]; 'container-title'?: string[]; publisher?: string; DOI?: string; URL?: string; abstract?: string; relation?: Array<{ type?: string }> }, index: number) => {
+    const citations = works.map((work: { author?: Array<{ given?: string; family?: string }>; title?: string[]; 'container-title'?: string[]; publisher?: string; DOI?: string; URL?: string; abstract?: string; relation?: Array<{ type?: string }> }, index: number) => {
       const authors = work.author?.map((author: { given?: string; family?: string }) => 
         `${author.given || ''} ${author.family || ''}`.trim()
       ).join(', ') || 'Unknown Author';
@@ -327,6 +360,8 @@ async function discoverCitationsFromCrossref(topic: string, citationStyle: strin
         source: 'Crossref'
       };
     });
+
+    return { citations, totalResults };
   } catch (error) {
     console.error('Crossref API error:', error);
     throw error;

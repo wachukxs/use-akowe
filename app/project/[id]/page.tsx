@@ -9,7 +9,7 @@ import {
   BookOpen, Plus, Download, CheckCircle2, FileText, X, Send, Bot, 
   Edit3, Trash2, BookMarked, Search, 
   Shield, Bold, Italic, Underline, List, Hash, Link, Undo, Redo,
-  Calculator, BarChart3, GripVertical
+  Calculator, BarChart3, GripVertical, AlertCircle, RefreshCw
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -59,6 +59,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [citationSortBy, setCitationSortBy] = useState<'relevance' | 'year' | 'title'>('relevance');
   const [isLoadingMoreCitations, setIsLoadingMoreCitations] = useState(false);
   const [currentCitationOffset, setCurrentCitationOffset] = useState(0);
+  const [citationHasMore, setCitationHasMore] = useState(true);
+  const [citationTotalResults, setCitationTotalResults] = useState<number | null>(null);
+  const [citationDiscoveryError, setCitationDiscoveryError] = useState<string | null>(null);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
@@ -565,6 +568,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     if (offset === 0) {
       setIsDiscoveringCitations(true);
       setCurrentCitationOffset(0);
+      setCitationHasMore(true);
+      setCitationTotalResults(null);
+      setCitationDiscoveryError(null);
     } else {
       setIsLoadingMoreCitations(true);
     }
@@ -598,27 +604,47 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           setLastDiscoverySearchTerm(data.searchTerm);
         }
 
+        setCitationHasMore(data.hasMore !== false);
+        if (typeof data.totalResults === 'number' && data.totalResults >= 0) {
+          setCitationTotalResults(data.totalResults);
+        }
         setCurrentCitationOffset(offset + 8);
 
         if (offset === 0) {
           setShowCitationDiscovery(true);
         }
+        setCitationDiscoveryError(null);
       } else {
         if (!append) {
           setDiscoveredCitations([]);
+          setCitationTotalResults(null);
+          setCitationHasMore(true);
+          setLastDiscoverySearchTerm(null);
+          const message =
+            data.error ||
+            (response.status === 503
+              ? 'Citation search is temporarily unavailable. Please try again in a moment.'
+              : 'Failed to discover citations. Please try again.');
+          setCitationDiscoveryError(message);
+          setShowCitationDiscovery(true);
         }
-        const message =
+        setShowSuccessMessage(
           data.error ||
           (response.status === 503
             ? 'Citation search is temporarily unavailable. Please try again in a moment.'
-            : 'Failed to discover citations. Please try again.');
-        setShowSuccessMessage(message);
+            : 'Failed to discover citations. Please try again.')
+        );
         setTimeout(() => setShowSuccessMessage(''), 5000);
       }
     } catch (error) {
       console.error('Error discovering citations:', error);
       if (!append) {
         setDiscoveredCitations([]);
+        setCitationTotalResults(null);
+        setCitationHasMore(true);
+        setLastDiscoverySearchTerm(null);
+        setCitationDiscoveryError('Citation search failed. Please try again.');
+        setShowCitationDiscovery(true);
       }
       setShowSuccessMessage('Citation search failed. Please try again.');
       setTimeout(() => setShowSuccessMessage(''), 5000);
@@ -634,6 +660,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   const loadMoreCitations = () => {
     discoverCitations(currentCitationOffset, true);
+  };
+
+  const retryCitationDiscovery = () => {
+    discoverCitations(0, false, citationSearchQuery);
   };
 
   // Function to check current formatting state using document.queryCommandState
@@ -3407,19 +3437,29 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       {/* Citation Discovery Modal */}
       {showCitationDiscovery && (
-        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-6xl max-h-[90vh] overflow-hidden border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4" aria-hidden="false">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="citation-dialog-title"
+            aria-describedby="citation-dialog-description"
+            className="w-full max-w-6xl max-h-[90vh] overflow-hidden border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col"
+          >
             {/* Header */}
             <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-6 bg-[hsl(var(--surface))]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">Research Citations</h3>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                    Found {discoveredCitations.length} relevant citations for your research
+                  <h3 id="citation-dialog-title" className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">Research Citations</h3>
+                  <p id="citation-dialog-description" className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
+                    {citationTotalResults != null
+                      ? `Showing ${discoveredCitations.length} of ${citationTotalResults.toLocaleString()} results`
+                      : `Found ${discoveredCitations.length} relevant citations for your research`}
                   </p>
                 </div>
               <button
+                type="button"
                 onClick={() => setShowCitationDiscovery(false)}
+                aria-label="Close citation discovery"
                   className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
               >
                   <X className="h-6 w-6" />
@@ -3496,7 +3536,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   {!citationSearchQuery && citationFilter === 'all' && citationSortBy === 'relevance' && (
                     <span className="text-[hsl(var(--muted-foreground))]/80">
                       {' '}
-                      • Loaded {discoveredCitations.length} total
+                      • Loaded {discoveredCitations.length}
+                      {citationTotalResults != null ? ` of ${citationTotalResults.toLocaleString()}` : ''} total
                     </span>
                   )}
                 </span>
@@ -3513,7 +3554,43 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
             {/* Citations List */}
             <div className="p-6 overflow-y-auto max-h-[50vh] space-y-6 bg-[hsl(var(--surface))]">
-              {getFilteredAndSortedCitations().length > 0 ? (
+              {discoveredCitations.length === 0 && citationDiscoveryError && !isDiscoveringCitations ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 border-2 border-[hsl(var(--destructive))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4 bg-[hsl(var(--destructive))]/10">
+                    <AlertCircle className="h-8 w-8 text-[hsl(var(--destructive))]" />
+                  </div>
+                  <h3 className="text-lg font-semibold uppercase tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">Search failed</h3>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-6 max-w-md mx-auto">
+                    {citationDiscoveryError}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={retryCitationDiscovery}
+                    disabled={isDiscoveringCitations}
+                    className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 mx-auto"
+                  >
+                    {isDiscoveringCitations ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-[hsl(var(--border-strong))] border-t-transparent"></div>
+                        Retrying...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4" />
+                        Retry search
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : discoveredCitations.length === 0 && isDiscoveringCitations ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-2 border-[hsl(var(--border-strong))] border-t-transparent mx-auto mb-4"></div>
+                  <h3 className="text-lg font-semibold uppercase tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">Searching for citations</h3>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                    This may take a moment…
+                  </p>
+                </div>
+              ) : getFilteredAndSortedCitations().length > 0 ? (
                 <div className="grid gap-6">
                   {getFilteredAndSortedCitations().map((citation, index) => (
                     <div key={index} className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
@@ -3620,26 +3697,32 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
               ))}
                   
-                  {/* Find More Button */}
+                  {/* Find More / End of list */}
                   {!citationSearchQuery && citationFilter === 'all' && citationSortBy === 'relevance' && (
                     <div className="flex justify-center pt-6">
-                      <button
-                        onClick={loadMoreCitations}
-                        disabled={isLoadingMoreCitations}
-                        className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2"
-                      >
-                        {isLoadingMoreCitations ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-[hsl(var(--border-strong))] border-t-transparent"></div>
-                            Loading more...
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="h-4 w-4" />
-                            Find more citations
-                          </>
-                        )}
-                      </button>
+                      {citationHasMore ? (
+                        <button
+                          onClick={loadMoreCitations}
+                          disabled={isLoadingMoreCitations}
+                          className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2"
+                        >
+                          {isLoadingMoreCitations ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-[hsl(var(--border-strong))] border-t-transparent"></div>
+                              Loading more...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4" />
+                              Find more citations
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                          No more results for this search
+                        </p>
+                      )}
                     </div>
                   )}
             </div>
