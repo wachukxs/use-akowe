@@ -612,6 +612,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
         if (offset === 0) {
           setShowCitationDiscovery(true);
+          setCitationSearchQuery('');
         }
         setCitationDiscoveryError(null);
       } else {
@@ -3454,13 +3455,16 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     {citationTotalResults != null
                       ? `Showing ${discoveredCitations.length} of ${citationTotalResults.toLocaleString()} results`
                       : `Found ${discoveredCitations.length} relevant citations for your research`}
+                    {lastDiscoverySearchTerm && (
+                      <span className="block mt-1">for &quot;{lastDiscoverySearchTerm}&quot;</span>
+                    )}
                   </p>
                 </div>
               <button
                 type="button"
                 onClick={() => setShowCitationDiscovery(false)}
                 aria-label="Close citation discovery"
-                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer"
               >
                   <X className="h-6 w-6" />
               </button>
@@ -3479,7 +3483,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       value={citationSearchQuery}
                       onChange={(e) => setCitationSearchQuery(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' && citationSearchQuery.trim()) {
                           e.preventDefault();
                           searchForNewCitations();
                         }
@@ -3492,8 +3496,8 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   <button
                     type="button"
                     onClick={searchForNewCitations}
-                    disabled={isDiscoveringCitations}
-                    className="shrink-0 px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={isDiscoveringCitations || !citationSearchQuery.trim()}
+                    className="shrink-0 px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isDiscoveringCitations ? 'Searching…' : 'Search for new citations'}
                   </button>
@@ -3543,8 +3547,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </span>
                 {citationSearchQuery && (
                   <button
+                    type="button"
                     onClick={() => setCitationSearchQuery('')}
-                    className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold"
+                    className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold cursor-pointer"
                   >
                     Clear filter
                   </button>
@@ -3567,7 +3572,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     type="button"
                     onClick={retryCitationDiscovery}
                     disabled={isDiscoveringCitations}
-                    className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 mx-auto"
+                    className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 mx-auto cursor-pointer"
                   >
                     {isDiscoveringCitations ? (
                       <>
@@ -3649,7 +3654,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             className={`px-4 py-2 rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center gap-2 ${
                               isAddingCitation 
                                 ? 'bg-[hsl(var(--muted))] cursor-not-allowed text-[hsl(var(--muted-foreground))]'
-                                : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
+                                : 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] cursor-pointer'
                             }`}
                           >
                             {isAddingCitation ? (
@@ -3704,7 +3709,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         <button
                           onClick={loadMoreCitations}
                           disabled={isLoadingMoreCitations}
-                          className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2"
+                          className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 cursor-pointer"
                         >
                           {isLoadingMoreCitations ? (
                             <>
@@ -3740,8 +3745,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                   </p>
                   {citationSearchQuery && (
                     <button
+                      type="button"
                       onClick={() => setCitationSearchQuery('')}
-                      className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold text-xs uppercase tracking-[0.18em]"
+                      className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold text-xs uppercase tracking-[0.18em] cursor-pointer"
                     >
                       Clear filter to see all citations
                     </button>
