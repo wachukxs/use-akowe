@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
+import { formatYearForDisplay } from '@/lib/citation-year';
 import OpenAI from 'openai';
 import { checkAIWordLimit, incrementAIWords } from '@/lib/usage';
 import { countWords } from '@/lib/utils';
@@ -50,37 +51,38 @@ export async function POST(request: NextRequest) {
     // Determine which model to use based on plan
     const model = user.plan === 'free' ? 'gpt-3.5-turbo' : 'gpt-4o-mini';
 
-    // Create citation text based on style
-    const authorsText = Array.isArray(citation.authors) 
-      ? citation.authors.join(', ') 
+    // Create citation text based on style (use "n.d." when year is unknown)
+    const authorsText = Array.isArray(citation.authors)
+      ? citation.authors.join(', ')
       : citation.authors || 'Unknown Author';
-    
+    const yearDisplay = formatYearForDisplay(citation.year);
+
     let citationText = '';
     switch (citationStyle) {
       case 'APA':
-        citationText = `(${authorsText}, ${citation.year})`;
+        citationText = `(${authorsText}, ${yearDisplay})`;
         break;
       case 'MLA':
-        citationText = `(${authorsText} ${citation.year})`;
+        citationText = `(${authorsText} ${yearDisplay})`;
         break;
       case 'Chicago':
-        citationText = `(${authorsText} ${citation.year})`;
+        citationText = `(${authorsText} ${yearDisplay})`;
         break;
       case 'IEEE':
-        citationText = `[${citation.year}]`;
+        citationText = `[${yearDisplay}]`;
         break;
       case 'Harvard':
-        citationText = `(${authorsText} ${citation.year})`;
+        citationText = `(${authorsText} ${yearDisplay})`;
         break;
       default:
-        citationText = `(${authorsText}, ${citation.year})`;
+        citationText = `(${authorsText}, ${yearDisplay})`;
     }
 
     const systemPrompt = `You are an expert academic editor specializing in intelligent citation integration. Your task is to seamlessly place a citation within existing section content in the most natural and academically appropriate way.
 
 CITATION TO INTEGRATE:
 - Authors: ${authorsText}
-- Year: ${citation.year}
+- Year: ${yearDisplay}
 - Title: ${citation.title}
 - Citation Text: ${citationText}
 - Citation Style: ${citationStyle}

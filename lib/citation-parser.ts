@@ -1,4 +1,5 @@
 import { Citation } from '@/types';
+import { formatYearForDisplay, formatYearForCitationKey } from '@/lib/citation-year';
 
 // Citation patterns for different styles
 const CITATION_PATTERNS = {
@@ -44,7 +45,7 @@ export interface ParsedCitation {
   id: string;
   title: string;
   authors: string[];
-  year: number;
+  year?: number;
   journal?: string;
   doi?: string;
   url?: string;
@@ -114,30 +115,34 @@ export function parseCitationsFromText(
         continue;
       }
       
+      // Extract author(s) and year (never use current year when year is missing)
+      const authors = extractAuthors(authorPart);
+      const year =
+        yearPart != null && String(yearPart).trim() !== ''
+          ? parseInt(String(yearPart), 10)
+          : undefined;
+      const yearForKey = Number.isInteger(year) ? year : formatYearForCitationKey(undefined);
+
       // Skip if we've already seen this citation
-      const citationKey = `${authorPart}-${yearPart}`.toLowerCase();
+      const citationKey = `${authorPart}-${yearForKey}`.toLowerCase();
       if (seenCitations.has(citationKey)) {
         continue;
       }
       seenCitations.add(citationKey);
-      
-      // Extract author(s) and year
-      const authors = extractAuthors(authorPart);
-      const year = parseInt(yearPart) || new Date().getFullYear();
-      
+
       // Create citation object
       const citation: ParsedCitation = {
         id: `parsed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        title: `Research by ${authors[0]} (${year})`, // Placeholder title
+        title: `Research by ${authors[0]} (${formatYearForDisplay(year)})`, // Placeholder title
         authors,
-        year,
+        year: Number.isInteger(year) ? year : undefined,
         journal: 'Unknown Journal', // Placeholder
         citationKey: `cite_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         citationText: formatCitationText(authors, year, citationStyle),
         addedAt: new Date(),
         source: 'parsed'
       };
-      
+
       citations.push(citation);
     }
   }
@@ -172,19 +177,21 @@ function extractAuthors(authorText: string): string[] {
 }
 
 /**
- * Format citation text based on style
+ * Format citation text based on style (uses "n.d." when year is unknown)
  */
-function formatCitationText(authors: string[], year: number, style: string): string {
+function formatCitationText(authors: string[], year: number | undefined, style: string): string {
+  const yearDisplay = formatYearForDisplay(year);
+
   switch (style.toLowerCase()) {
     case 'apa':
       if (authors.length === 1) {
-        return `${authors[0]} (${year})`;
+        return `${authors[0]} (${yearDisplay})`;
       } else if (authors.length === 2) {
-        return `${authors[0]} & ${authors[1]} (${year})`;
+        return `${authors[0]} & ${authors[1]} (${yearDisplay})`;
       } else {
-        return `${authors[0]} et al. (${year})`;
+        return `${authors[0]} et al. (${yearDisplay})`;
       }
-    
+
     case 'mla':
       if (authors.length === 1) {
         return `${authors[0]}`;
@@ -193,22 +200,22 @@ function formatCitationText(authors: string[], year: number, style: string): str
       } else {
         return `${authors[0]} et al.`;
       }
-    
+
     case 'chicago':
     case 'harvard':
       if (authors.length === 1) {
-        return `${authors[0]} (${year})`;
+        return `${authors[0]} (${yearDisplay})`;
       } else if (authors.length === 2) {
-        return `${authors[0]} and ${authors[1]} (${year})`;
+        return `${authors[0]} and ${authors[1]} (${yearDisplay})`;
       } else {
-        return `${authors[0]} et al. (${year})`;
+        return `${authors[0]} et al. (${yearDisplay})`;
       }
-    
+
     case 'ieee':
-      return `[${year}]`; // IEEE uses numbers, we'll use year as placeholder
-    
+      return `[${yearDisplay}]`; // IEEE uses numbers; use year or n.d. as placeholder
+
     default:
-      return `${authors[0]} (${year})`;
+      return `${authors[0]} (${yearDisplay})`;
   }
 }
 
@@ -223,14 +230,16 @@ export function mergeCitations(
   const existingKeys = new Set(existingCitations.map(c => c.citationKey));
   
   for (const parsedCitation of parsedCitations) {
-    // Check if citation already exists
-    const exists = existingCitations.some(existing => 
-      existing.authors.some(author => 
-        parsedCitation.authors.some(parsedAuthor => 
-          author.toLowerCase().includes(parsedAuthor.toLowerCase()) ||
-          parsedAuthor.toLowerCase().includes(author.toLowerCase())
-        )
-      ) && existing.year === parsedCitation.year
+    // Check if citation already exists (year comparison handles undefined)
+    const exists = existingCitations.some(
+      (existing) =>
+        existing.authors.some((author) =>
+          parsedCitation.authors.some(
+            (parsedAuthor) =>
+              author.toLowerCase().includes(parsedAuthor.toLowerCase()) ||
+              parsedAuthor.toLowerCase().includes(author.toLowerCase())
+          )
+        ) && existing.year === parsedCitation.year
     );
     
     if (!exists) {
@@ -266,11 +275,13 @@ export function extractCitationsFromProject(sections: any[], citationStyle: stri
     }
   }
   
-  // Remove duplicates
-  const uniqueCitations = allCitations.filter((citation, index, self) => 
-    index === self.findIndex(c => 
-      c.authors[0] === citation.authors[0] && c.year === citation.year
-    )
+  // Remove duplicates (year may be undefined)
+  const uniqueCitations = allCitations.filter(
+    (citation, index, self) =>
+      index ===
+      self.findIndex(
+        (c) => c.authors[0] === citation.authors[0] && c.year === citation.year
+      )
   );
   
   return uniqueCitations;

@@ -1,3 +1,9 @@
+import {
+  extractPublicationYearFromCrossref,
+  formatYearForDisplay,
+  formatYearForCitationKey,
+} from '@/lib/citation-year';
+
 export interface CitationData {
   doi?: string;
   title: string;
@@ -53,7 +59,7 @@ export async function getCitationByDOI(doi: string): Promise<CitationData | null
       doi: work.DOI,
       title: work.title?.[0] || '',
       authors: work.author?.map((a: any) => `${a.given} ${a.family}`) || [],
-      year: work.published?.['date-parts']?.[0]?.[0],
+      year: extractPublicationYearFromCrossref(work),
       journal: work['container-title']?.[0],
       publisher: work.publisher,
       url: `https://doi.org/${work.DOI}`,
@@ -64,21 +70,21 @@ export async function getCitationByDOI(doi: string): Promise<CitationData | null
   }
 }
 
-// Format citation in APA style
+// Format citation in APA style (uses "n.d." when year is unknown)
 export function formatCitationAPA(citation: CitationData): string {
   const authors = citation.authors.slice(0, 3).join(', ') + (citation.authors.length > 3 ? ', et al.' : '');
-  const year = citation.year || 'n.d.';
+  const yearDisplay = formatYearForDisplay(citation.year);
   const title = citation.title;
   const journal = citation.journal ? `${citation.journal}. ` : '';
   const doi = citation.doi ? `https://doi.org/${citation.doi}` : citation.url;
 
-  return `${authors} (${year}). ${title}. ${journal}${doi}`;
+  return `${authors} (${yearDisplay}). ${title}. ${journal}${doi}`;
 }
 
-// Generate citation key (e.g., Smith2023)
+// Generate citation key (e.g. Smith2023 or Smithn.d. when year unknown)
 export function generateCitationKey(citation: CitationData): string {
   const firstAuthor = citation.authors[0]?.split(' ').pop() || 'Unknown';
-  const year = citation.year || new Date().getFullYear();
-  return `${firstAuthor}${year}`;
+  const yearPart = formatYearForCitationKey(citation.year);
+  return `${firstAuthor}${yearPart}`;
 }
 

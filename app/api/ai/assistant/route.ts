@@ -256,9 +256,9 @@ export async function POST(request: NextRequest) {
           `- ${section.title}${section.content?.trim() ? ' [has content]' : ' [empty]'}`
         ).join('\n') || '';
 
-        // Limit citations to first 10
-        const citationsList = project.citations?.slice(0, 10).map((citation: any) => 
-          `${citation.title} (${citation.authors}) - ${citation.year}`
+        // Limit citations to first 10 (use "n.d." when year is unknown)
+        const citationsList = project.citations?.slice(0, 10).map((citation: any) =>
+          `${citation.title} (${citation.authors}) - ${citation.year ?? 'n.d.'}`
         ).join('\n') || '';
         
         const moreCitations = (project.citations?.length || 0) > 10 

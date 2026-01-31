@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { formatYearForDisplay } from '@/lib/citation-year';
 import { cn } from '@/lib/utils';
 
 export default function ProjectEditorPage({ params }: { params: Promise<{ id: string }> }) {
@@ -53,6 +54,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [discoveredCitations, setDiscoveredCitations] = useState<any[]>([]);
   const [showCitationDiscovery, setShowCitationDiscovery] = useState(false);
   const [citationSearchQuery, setCitationSearchQuery] = useState('');
+  const [lastDiscoverySearchTerm, setLastDiscoverySearchTerm] = useState<string | null>(null);
   const [citationFilter, setCitationFilter] = useState<'all' | 'recent' | 'highly_cited'>('all');
   const [citationSortBy, setCitationSortBy] = useState<'relevance' | 'year' | 'title'>('relevance');
   const [isLoadingMoreCitations, setIsLoadingMoreCitations] = useState(false);
@@ -553,16 +555,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   };
 
   // Citation functions
-  const discoverCitations = async (offset: number = 0, append: boolean = false) => {
+  const discoverCitations = async (
+    offset: number = 0,
+    append: boolean = false,
+    customQuery?: string
+  ) => {
     if (!project) return;
-    
+
     if (offset === 0) {
-    setIsDiscoveringCitations(true);
+      setIsDiscoveringCitations(true);
       setCurrentCitationOffset(0);
     } else {
       setIsLoadingMoreCitations(true);
     }
-    
+
     try {
       const response = await fetch('/api/citations/discover', {
         method: 'POST',
@@ -573,32 +579,57 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           citationStyle: project.citationStyle,
           methodology: project.methodology || 'qualitative',
           limit: 8,
-          offset: offset
+          offset: offset,
+          searchQuery: customQuery?.trim() || undefined,
         }),
       });
-      
+
+      const data = await response.json().catch(() => ({}));
+      const newCitations = data.citations ?? [];
+
       if (response.ok) {
-        const data = await response.json();
-        const newCitations = data.citations || [];
-        
         if (append) {
-          setDiscoveredCitations(prev => [...prev, ...newCitations]);
+          setDiscoveredCitations((prev) => [...prev, ...newCitations]);
         } else {
           setDiscoveredCitations(newCitations);
         }
-        
-        setCurrentCitationOffset(offset + 8);
-        
-        if (offset === 0) {
-        setShowCitationDiscovery(true);
+
+        if (offset === 0 && data.searchTerm) {
+          setLastDiscoverySearchTerm(data.searchTerm);
         }
+
+        setCurrentCitationOffset(offset + 8);
+
+        if (offset === 0) {
+          setShowCitationDiscovery(true);
+        }
+      } else {
+        if (!append) {
+          setDiscoveredCitations([]);
+        }
+        const message =
+          data.error ||
+          (response.status === 503
+            ? 'Citation search is temporarily unavailable. Please try again in a moment.'
+            : 'Failed to discover citations. Please try again.');
+        setShowSuccessMessage(message);
+        setTimeout(() => setShowSuccessMessage(''), 5000);
       }
     } catch (error) {
       console.error('Error discovering citations:', error);
+      if (!append) {
+        setDiscoveredCitations([]);
+      }
+      setShowSuccessMessage('Citation search failed. Please try again.');
+      setTimeout(() => setShowSuccessMessage(''), 5000);
     } finally {
       setIsDiscoveringCitations(false);
       setIsLoadingMoreCitations(false);
     }
+  };
+
+  const searchForNewCitations = () => {
+    discoverCitations(0, false, citationSearchQuery);
   };
 
   const loadMoreCitations = () => {
@@ -1263,17 +1294,17 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         setTimeout(() => setShowSuccessMessage(''), 3000);
       } else {
         // Fallback to simple append if integration fails
-        const authorsText = Array.isArray(citation.authors) 
-          ? citation.authors.join(', ') 
+        const authorsText = Array.isArray(citation.authors)
+          ? citation.authors.join(', ')
           : citation.authors || 'Unknown Author';
-        const citationText = `(${authorsText}, ${citation.year})`;
+        const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
         const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
-        
+
         handleSectionChange(activeSection, newContent);
         setLocalSectionContent(newContent);
         setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
         updateEditorContent(newContent);
-        
+
         setShowCitationDiscovery(false);
         setShowSuccessMessage('Citation added to editor!');
         setTimeout(() => setShowSuccessMessage(''), 3000);
@@ -1281,10 +1312,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     } catch (error) {
       console.error('Error integrating citation:', error);
       // Fallback to simple append
-      const authorsText = Array.isArray(citation.authors) 
-        ? citation.authors.join(', ') 
+      const authorsText = Array.isArray(citation.authors)
+        ? citation.authors.join(', ')
         : citation.authors || 'Unknown Author';
-      const citationText = `(${authorsText}, ${citation.year})`;
+      const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
       const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
       
       handleSectionChange(activeSection, newContent);
@@ -3399,18 +3430,33 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             {/* Search and Filter Bar */}
             <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))]">
               <div className="flex flex-col lg:flex-row gap-4">
-                {/* Search Input */}
-                <div className="flex-1">
-                  <div className="relative">
+                {/* Search Input + Search for new citations */}
+                <div className="flex-1 flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                     <input
                       type="text"
                       value={citationSearchQuery}
                       onChange={(e) => setCitationSearchQuery(e.target.value)}
-                      placeholder="Search citations by title, author, journal, or keywords..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          searchForNewCitations();
+                        }
+                      }}
+                      placeholder="Filter list or type a query and press Enter to find new citations..."
                       className="w-full pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                      aria-label="Filter citations or search for new citations (press Enter)"
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={searchForNewCitations}
+                    disabled={isDiscoveringCitations}
+                    className="shrink-0 px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isDiscoveringCitations ? 'Searching…' : 'Search for new citations'}
+                  </button>
                 </div>
 
                 {/* Filter Dropdown */}
@@ -3438,11 +3484,20 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Results Summary */}
-              <div className="mt-4 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+              <div className="mt-4 flex items-center justify-between flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                 <span>
                   Showing {getFilteredAndSortedCitations().length} citations
+                  {lastDiscoverySearchTerm && (
+                    <span className="text-[hsl(var(--muted-foreground))]/80">
+                      {' '}
+                      • Results for &quot;{lastDiscoverySearchTerm}&quot;
+                    </span>
+                  )}
                   {!citationSearchQuery && citationFilter === 'all' && citationSortBy === 'relevance' && (
-                    <span className="text-[hsl(var(--muted-foreground))]/80"> • Loaded {discoveredCitations.length} total</span>
+                    <span className="text-[hsl(var(--muted-foreground))]/80">
+                      {' '}
+                      • Loaded {discoveredCitations.length} total
+                    </span>
                   )}
                 </span>
                 {citationSearchQuery && (
@@ -3450,7 +3505,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     onClick={() => setCitationSearchQuery('')}
                     className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold"
                   >
-                    Clear search
+                    Clear filter
                   </button>
                 )}
               </div>
@@ -3478,8 +3533,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                             </div>
                             <div className="flex items-center gap-1">
                               <span className="font-semibold text-[hsl(var(--foreground))]">Year:</span>
-                              <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]">
-                                {citation.year || 'N/A'}
+                              <span
+                                className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]"
+                                title={
+                                  citation.year == null
+                                    ? 'Publication date not in metadata'
+                                    : undefined
+                                }
+                              >
+                                {formatYearForDisplay(citation.year)}
                               </span>
                             </div>
                             {citation.citationCount && (
@@ -3550,6 +3612,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           </code>
                         </div>
                       )}
+                      {citation.source && (
+                        <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                          Source: {citation.source}
+                        </p>
+                      )}
                 </div>
               ))}
                   
@@ -3593,7 +3660,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       onClick={() => setCitationSearchQuery('')}
                       className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold text-xs uppercase tracking-[0.18em]"
                     >
-                      Clear search to see all citations
+                      Clear filter to see all citations
                     </button>
                   )}
                 </div>
