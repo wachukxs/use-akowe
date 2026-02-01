@@ -62,6 +62,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [citationHasMore, setCitationHasMore] = useState(true);
   const [citationTotalResults, setCitationTotalResults] = useState<number | null>(null);
   const [citationDiscoveryError, setCitationDiscoveryError] = useState<string | null>(null);
+  const searchNewCitationTooltipRef = useRef<HTMLDivElement | null>(null);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
@@ -3493,14 +3494,44 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       aria-label="Filter citations or search for new citations (press Enter)"
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={searchForNewCitations}
-                    disabled={isDiscoveringCitations || !citationSearchQuery.trim()}
-                    className="w-full sm:w-auto shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
+                  <div
+                    className="relative w-full"
+                    onMouseEnter={() => {
+                      const disabled = isDiscoveringCitations || !citationSearchQuery.trim();
+                      if (disabled && searchNewCitationTooltipRef.current) {
+                        const el = searchNewCitationTooltipRef.current;
+                        el.style.display = 'block';
+                        el.setAttribute('aria-hidden', 'false');
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (searchNewCitationTooltipRef.current) {
+                        const el = searchNewCitationTooltipRef.current;
+                        el.style.display = 'none';
+                        el.setAttribute('aria-hidden', 'true');
+                      }
+                    }}
                   >
-                    {isDiscoveringCitations ? 'Searching…' : 'Search for new citations'}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={searchForNewCitations}
+                      disabled={isDiscoveringCitations || !citationSearchQuery.trim()}
+                      className="w-full shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
+                    >
+                      {isDiscoveringCitations ? 'Searching…' : 'Search for new citations'}
+                    </button>
+                    {(isDiscoveringCitations || !citationSearchQuery.trim()) && (
+                      <div
+                        ref={searchNewCitationTooltipRef}
+                        role="tooltip"
+                        className="absolute z-50 bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-56 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs text-left shadow-lg pointer-events-none"
+                        style={{ display: 'none' }}
+                        aria-hidden="true"
+                      >
+                        Enter a search topic in the search box above.
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Filter Dropdown */}
