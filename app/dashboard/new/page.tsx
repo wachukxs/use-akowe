@@ -9,8 +9,9 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { ProjectType } from '@/types';
-import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Upload } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Upload, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import TopicFinderModal from '@/components/TopicFinderModal';
 
 const projectTypes: { 
   type: ProjectType;
@@ -77,9 +78,33 @@ export default function NewProjectPage() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitError, setLimitError] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showTopicFinder, setShowTopicFinder] = useState(false);
+  const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'team'>('free');
 
   // Get current project type details
   const currentType = projectTypes.find(type => type.type === selectedType);
+
+  // Get user plan from session
+  useEffect(() => {
+    if (session?.user) {
+      // Plan is available in session token
+      const plan = (session.user as any).plan || 'free';
+      setUserPlan(plan as 'free' | 'pro' | 'team');
+    }
+  }, [session]);
+
+  // Handle topic from URL query parameter (from landing page topic finder)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const topicParam = params.get('topic');
+      if (topicParam && !topic.trim()) {
+        setTopic(decodeURIComponent(topicParam));
+        // Optionally open topic finder modal if user wants to refine
+        // setShowTopicFinder(true);
+      }
+    }
+  }, []);
 
   // Auto-update word count and citation style based on project type
   useEffect(() => {
@@ -88,6 +113,26 @@ export default function NewProjectPage() {
       setCitationStyle(currentType.citationStyles[0]);
     }
   }, [selectedType]);
+
+  // Handle topic selection from TopicFinderModal
+  const handleTopicSelect = (selectedTopic: string, suggestion?: any) => {
+    setTopic(selectedTopic);
+    // Optionally update project name if suggestion provided
+    if (suggestion && !projectName.trim()) {
+      setProjectName(suggestion.title);
+    }
+    // Update methodology if suggestion has relevant info
+    if (suggestion?.gaps?.length > 0) {
+      const methodologyGap = suggestion.gaps.find((g: any) => g.type === 'methodology');
+      if (methodologyGap && !methodology) {
+        // Extract methodology from gap description if possible
+        const methodMatch = methodologyGap.description.match(/(qualitative|quantitative|mixed methods)/i);
+        if (methodMatch) {
+          setMethodology(methodMatch[1].toLowerCase());
+        }
+      }
+    }
+  };
 
   // Validate form
   const validateForm = () => {
@@ -252,13 +297,25 @@ export default function NewProjectPage() {
                     </span>
                   </button>
                 </div>
-                <Input
-                  type="text"
-                  placeholder="e.g., Impact of rising sea levels on coastal communities"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  className="text-base md:text-lg"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="e.g., Impact of rising sea levels on coastal communities"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    className="text-base md:text-lg flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowTopicFinder(true)}
+                    className="px-4 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] hover:bg-[hsl(var(--surface-muted))] transition-colors flex items-center gap-2 text-xs uppercase tracking-[0.14em] font-semibold"
+                    title="Find unique research topics"
+                  >
+                    <Sparkles className="w-4 h-4 text-[hsl(var(--primary))]" />
+                    <span className="hidden sm:inline">Find Unique Topic</span>
+                    <span className="sm:hidden">Find</span>
+                  </button>
+                </div>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Be specific about what you&apos;re researching. This helps Akowe provide better suggestions.
                 </p>
@@ -488,6 +545,17 @@ export default function NewProjectPage() {
           </div>
         </div>
       )}
+
+      {/* Topic Finder Modal */}
+      <TopicFinderModal
+        isOpen={showTopicFinder}
+        onClose={() => setShowTopicFinder(false)}
+        onSelectTopic={handleTopicSelect}
+        initialTopic={topic}
+        projectType={selectedType}
+        methodology={methodology}
+        userPlan={userPlan}
+      />
     </div>
   );
 }

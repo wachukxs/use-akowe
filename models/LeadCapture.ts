@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ILeadCapture extends Document {
   email: string;
-  source: 'plagiarism' | 'import';
+  source: 'plagiarism' | 'import' | 'topic';
   variant: 'control' | 'variant_a' | 'variant_b';
   capturedAt: Date;
   convertedAt?: Date;
@@ -17,7 +17,7 @@ export interface ILeadCapture extends Document {
 const LeadCaptureSchema = new Schema<ILeadCapture>(
   {
     email: { type: String, required: true, lowercase: true, trim: true },
-    source: { type: String, required: true, enum: ['plagiarism', 'import'] },
+    source: { type: String, required: true, enum: ['plagiarism', 'import', 'topic'] },
     variant: { type: String, required: true, enum: ['control', 'variant_a', 'variant_b'] },
     capturedAt: { type: Date, default: Date.now },
     convertedAt: { type: Date },
@@ -26,6 +26,11 @@ const LeadCaptureSchema = new Schema<ILeadCapture>(
       charCount: Number,
       fileType: String,
       fileName: String,
+      topic: String,
+      projectType: String,
+      methodology: String,
+      uniquenessScore: Number,
+      readinessScore: Number,
     },
   },
   { timestamps: true }

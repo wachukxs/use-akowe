@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     const daysParam = searchParams.get('days');
     const startParam = searchParams.get('start');
     const endParam = searchParams.get('end');
+    const search = searchParams.get('search')?.trim() || '';
     
     let startDate: Date;
     let endDate: Date;
@@ -116,9 +117,28 @@ export async function GET(request: Request) {
       },
     );
 
+    // Build user filter for search
+    const userFilter: Record<string, any> = {};
+    if (search && search.trim().length > 0) {
+      const trimmedSearch = search.trim();
+      
+      // Prevent extremely long search queries
+      if (trimmedSearch.length > 100) {
+        return NextResponse.json(
+          { error: 'Search query is too long. Maximum 100 characters.' },
+          { status: 400 }
+        );
+      }
+      
+      // Escape special regex characters to prevent regex injection
+      const escapedSearch = trimmedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escapedSearch, 'i');
+      userFilter.$or = [{ email: regex }, { name: regex }];
+    }
+    
     // Fetch all users so that export truly includes every account,
     // even users with zero usage in the selected period.
-    const allUsers = await User.find()
+    const allUsers = await User.find(userFilter)
       .select('email name plan _id')
       .lean();
 

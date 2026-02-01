@@ -12,6 +12,11 @@ interface IUser extends Omit<UserType, '_id'> {
   referralCode?: string; // Unique code for this user to share
   referredBy?: mongoose.Types.ObjectId; // User who referred this user
   referredByInfluencer?: mongoose.Types.ObjectId; // Influencer who referred this user
+  // Topic finder usage tracking
+  topicFinderUsage?: {
+    date: Date;
+    count: number;
+  };
 }
 
 const UserSchema = new Schema<IUser>(
@@ -70,6 +75,17 @@ const UserSchema = new Schema<IUser>(
     referredByInfluencer: {
       type: Schema.Types.ObjectId,
       ref: 'Influencer',
+    },
+    // Topic finder usage tracking (for free tier limits)
+    topicFinderUsage: {
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      count: {
+        type: Number,
+        default: 0,
+      },
     },
   },
   {

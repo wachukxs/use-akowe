@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Mail, CheckCircle, Clock, Filter, RefreshCw } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Mail, CheckCircle, Clock, Filter, RefreshCw, Search, X, Calendar } from 'lucide-react';
 
 interface Lead {
   _id: string;
   email: string;
-  source: 'plagiarism' | 'import';
+  source: 'plagiarism' | 'import' | 'topic';
   variant: string;
   capturedAt: string;
   convertedAt?: string;
@@ -15,6 +15,11 @@ interface Lead {
     charCount?: number;
     fileType?: string;
     fileName?: string;
+    topic?: string;
+    projectType?: string;
+    methodology?: string;
+    uniquenessScore?: number;
+    readinessScore?: number;
   };
 }
 
@@ -30,8 +35,54 @@ export default function LeadsTab() {
   const [stats, setStats] = useState<LeadStats>({});
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'plagiarism' | 'import'>('all');
+  const [filter, setFilter] = useState<'all' | 'plagiarism' | 'import' | 'topic'>('all');
   const [convertedFilter, setConvertedFilter] = useState<'all' | 'converted' | 'pending'>('all');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Debounce search query to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Validate date range on client side
+  const validateDateRange = useCallback(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Check if dates are valid
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return; // Invalid dates, let API handle error
+      }
+      
+      // If start is after end, clear end date (don't auto-swap to avoid confusion)
+      if (start > end) {
+        setEndDate('');
+      }
+    }
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    validateDateRange();
+  }, [validateDateRange]);
+
+  const clearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setDebouncedSearch('');
+  };
 
   const exportEmailsToCSV = () => {
     if (leads.length === 0) return;
@@ -52,7 +103,18 @@ export default function LeadsTab() {
     const dateStr = new Date().toISOString().split('T')[0];
     const sourcePart = filter === 'all' ? 'all-sources' : filter;
     const statusPart = convertedFilter === 'all' ? 'all-status' : convertedFilter;
-    const filename = `leads-${sourcePart}-${statusPart}-${dateStr}.csv`;
+    
+    // Sanitize date parts for filename
+    const datePart = startDate && endDate 
+      ? `_${startDate.replace(/-/g, '')}_to_${endDate.replace(/-/g, '')}` 
+      : '';
+    
+    // Sanitize search query for filename (remove special characters)
+    const searchPart = debouncedSearch 
+      ? `_search-${debouncedSearch.substring(0, 10).replace(/[^a-zA-Z0-9]/g, '_')}` 
+      : '';
+    
+    const filename = `leads-${sourcePart}-${statusPart}${datePart}${searchPart}-${dateStr}.csv`;
 
     const link = document.createElement('a');
     link.href = url;
@@ -65,11 +127,52 @@ export default function LeadsTab() {
 
   const fetchLeads = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (filter !== 'all') params.set('source', filter);
       if (convertedFilter === 'converted') params.set('converted', 'true');
       if (convertedFilter === 'pending') params.set('converted', 'false');
+      
+      // Add date filters (validate format first)
+      if (startDate) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+          setError('Invalid start date format');
+          setIsLoading(false);
+          return;
+        }
+        params.set('startDate', startDate);
+      }
+      if (endDate) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+          setError('Invalid end date format');
+          setIsLoading(false);
+          return;
+        }
+        params.set('endDate', endDate);
+      }
+      
+      // Validate date range
+      if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (start > end) {
+          setError('Start date must be before or equal to end date');
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Add search filter (only if not empty and within length limit)
+      if (debouncedSearch && debouncedSearch.trim().length > 0) {
+        const trimmed = debouncedSearch.trim();
+        if (trimmed.length > 100) {
+          setError('Search query is too long. Maximum 100 characters.');
+          setIsLoading(false);
+          return;
+        }
+        params.set('search', trimmed);
+      }
 
       const response = await fetch(`/api/admin/leads?${params.toString()}`);
       if (response.ok) {
@@ -77,8 +180,15 @@ export default function LeadsTab() {
         setLeads(data.leads);
         setStats(data.stats);
         setTotal(data.total);
+        setError(null);
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to fetch leads' }));
+        setError(errorData.error || 'Failed to fetch leads');
+        console.error('Failed to fetch leads:', response.status, errorData);
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error fetching leads';
+      setError(errorMessage);
       console.error('Error fetching leads:', error);
     } finally {
       setIsLoading(false);
@@ -87,7 +197,7 @@ export default function LeadsTab() {
 
   useEffect(() => {
     fetchLeads();
-  }, [filter, convertedFilter]);
+  }, [filter, convertedFilter, startDate, endDate, debouncedSearch]);
 
   const getConversionRate = (source: string) => {
     const stat = stats[source];
@@ -102,7 +212,7 @@ export default function LeadsTab() {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
           <div className="flex items-center gap-3 mb-2">
             <Mail className="text-[hsl(var(--primary))]" size={20} />
@@ -149,47 +259,152 @@ export default function LeadsTab() {
             {getConversionRate('import')}% converted
           </p>
         </div>
+
+        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Topic Finder
+            </span>
+          </div>
+          <p className="text-3xl font-bold">{stats.topic?.total || 0}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1">
+            {getConversionRate('topic')}% converted
+          </p>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Filter size={16} className="text-[hsl(var(--muted-foreground))]" />
+      <div className="space-y-4">
+        {/* First Row: Source, Status, Search */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-[hsl(var(--muted-foreground))]" />
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as any)}
+              className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em]"
+            >
+              <option value="all">All Sources</option>
+              <option value="plagiarism">Plagiarism Tool</option>
+              <option value="import">Import Tool</option>
+              <option value="topic">Topic Finder</option>
+            </select>
+          </div>
+
           <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as any)}
+            value={convertedFilter}
+            onChange={(e) => setConvertedFilter(e.target.value as any)}
             className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em]"
           >
-            <option value="all">All Sources</option>
-            <option value="plagiarism">Plagiarism Tool</option>
-            <option value="import">Import Tool</option>
+            <option value="all">All Status</option>
+            <option value="converted">Converted</option>
+            <option value="pending">Pending</option>
           </select>
+
+          {/* Search Input */}
+          <div className="relative flex items-center gap-2">
+            <Search size={16} className="text-[hsl(var(--muted-foreground))] absolute left-3" />
+            <input
+              type="text"
+              placeholder="Search by email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-8 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] min-w-[200px]"
+            />
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-2 p-1 hover:bg-[hsl(var(--surface-muted))] rounded"
+                aria-label="Clear search"
+              >
+                <X size={14} className="text-[hsl(var(--muted-foreground))]" />
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={fetchLeads}
+            className="flex items-center gap-2 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))]"
+          >
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+          <button
+            onClick={exportEmailsToCSV}
+            disabled={isLoading || leads.length === 0}
+            className="flex items-center gap-2 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="text-[10px] uppercase tracking-[0.24em]">Export Emails CSV</span>
+          </button>
         </div>
 
-        <select
-          value={convertedFilter}
-          onChange={(e) => setConvertedFilter(e.target.value as any)}
-          className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em]"
-        >
-          <option value="all">All Status</option>
-          <option value="converted">Converted</option>
-          <option value="pending">Pending</option>
-        </select>
-
-        <button
-          onClick={fetchLeads}
-          className="flex items-center gap-2 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))]"
-        >
-          <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-          Refresh
-        </button>
-        <button
-          onClick={exportEmailsToCSV}
-          disabled={isLoading || leads.length === 0}
-          className="flex items-center gap-2 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span className="text-[10px] uppercase tracking-[0.24em]">Export Emails CSV</span>
-        </button>
+        {/* Second Row: Date Range Filter */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar size={16} className="text-[hsl(var(--muted-foreground))]" />
+            <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Date Range:
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                // Validate end date is not before start date
+                if (endDate && e.target.value && new Date(e.target.value) > new Date(endDate)) {
+                  setEndDate('');
+                }
+              }}
+              max={endDate || new Date().toISOString().split('T')[0]}
+              className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+            />
+            <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              to
+            </span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                // Validate start date is not after end date
+                if (startDate && e.target.value && new Date(startDate) > new Date(e.target.value)) {
+                  setStartDate('');
+                }
+              }}
+              min={startDate || ''}
+              max={new Date().toISOString().split('T')[0]}
+              className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+            />
+            {(startDate || endDate) && (
+              <button
+                onClick={clearDateFilter}
+                className="flex items-center gap-1 px-2 py-1 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))]"
+                aria-label="Clear date filter"
+              >
+                <X size={12} />
+                Clear
+              </button>
+            )}
+          </div>
+          {(startDate || endDate) && (
+            <span className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+              {startDate && endDate
+                ? `${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`
+                : startDate
+                ? `From ${new Date(startDate).toLocaleDateString()}`
+                : `Until ${new Date(endDate).toLocaleDateString()}`}
+            </span>
+          )}
+        </div>
+        
+        {/* Error Message */}
+        {error && (
+          <div className="px-4 py-2 border-[2px] border-red-300 bg-red-50 rounded text-xs uppercase tracking-[0.14em] text-red-700">
+            {error}
+          </div>
+        )}
       </div>
 
       {/* Leads Table */}
@@ -228,7 +443,9 @@ export default function LeadsTab() {
               ) : leads.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                    No leads found
+                    {debouncedSearch || startDate || endDate
+                      ? 'No leads found matching your filters'
+                      : 'No leads found'}
                   </td>
                 </tr>
               ) : (
@@ -256,7 +473,9 @@ export default function LeadsTab() {
                         <span className={`px-2 py-1 text-[10px] uppercase tracking-[0.2em] border-2 border-[hsl(var(--border-strong))] rounded ${
                           lead.source === 'plagiarism' 
                             ? 'bg-blue-500/10' 
-                            : 'bg-purple-500/10'
+                            : lead.source === 'import'
+                            ? 'bg-purple-500/10'
+                            : 'bg-green-500/10'
                         }`}>
                           {lead.source}
                         </span>

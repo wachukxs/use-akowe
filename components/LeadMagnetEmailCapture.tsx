@@ -8,7 +8,7 @@ interface LeadMagnetEmailCaptureProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (email: string) => void;
-  source: 'plagiarism' | 'import';
+  source: 'plagiarism' | 'import' | 'topic';
   isLoading?: boolean;
 }
 
@@ -39,10 +39,14 @@ export default function LeadMagnetEmailCapture({
 
   const title = source === 'plagiarism' 
     ? 'Get Your Plagiarism Report' 
+    : source === 'topic'
+    ? 'Get All Unique Topics & Research Gaps'
     : 'See Your Document Analysis';
   
   const subtitle = source === 'plagiarism'
     ? 'Enter your email to view your plagiarism risk score and detected issues.'
+    : source === 'topic'
+    ? 'Enter your email to see all unique topic suggestions, detailed research gap analysis, and create your project.'
     : 'Enter your email to see your extracted sections and citations.';
 
   return (

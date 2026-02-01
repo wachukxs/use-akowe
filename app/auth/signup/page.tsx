@@ -196,6 +196,9 @@ function SignUpForm() {
               router.push('/dashboard/import?continue=true');
             } else if (signupFrom === 'plagiarism') {
               router.push('/dashboard?from=plagiarism');
+            } else if (signupFrom === 'topic') {
+              // LeadMagnetContinuation will handle showing the topic finder results
+              router.push('/dashboard');
             } else {
               router.push('/dashboard');
             }

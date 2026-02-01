@@ -16,8 +16,21 @@ export async function GET(request: Request) {
     const limit = Math.max(1, Math.min(100, parseInt(limitParam || '20', 10)));
 
     const filter: Record<string, any> = {};
-    if (search) {
-      const regex = new RegExp(search, 'i');
+    if (search && search.trim().length > 0) {
+      const trimmedSearch = search.trim();
+      
+      // Prevent extremely long search queries
+      if (trimmedSearch.length > 100) {
+        return NextResponse.json(
+          { error: 'Search query is too long. Maximum 100 characters.' },
+          { status: 400 }
+        );
+      }
+      
+      // Escape special regex characters to prevent regex injection
+      // This ensures the search is treated as a literal string match
+      const escapedSearch = trimmedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escapedSearch, 'i');
       filter.$or = [{ email: regex }, { name: regex }];
     }
 

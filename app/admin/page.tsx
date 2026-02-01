@@ -401,6 +401,7 @@ export default function AdminDashboard() {
   const [metrics, setMetrics] = useState<AdminMetricsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingSections, setLoadingSections] = useState<Record<string, boolean>>({});
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [daysFilter, setDaysFilter] = useState<number>(30);
   const [debouncedDaysFilter, setDebouncedDaysFilter] = useState<number>(30);
@@ -411,6 +412,8 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [searchAbortController, setSearchAbortController] = useState<AbortController | null>(null);
+  const [isInitialMount, setIsInitialMount] = useState(true);
   const [topUsersUsage, setTopUsersUsage] = useState<
     Array<{
       userId: string;
@@ -471,7 +474,7 @@ export default function AdminDashboard() {
     return () => clearTimeout(timer);
   }, [daysFilter, customDateRange]);
 
-  // Fetch metrics and lists when debounced filter or search changes
+  // Fetch metrics and lists when date filters change (NOT when search changes)
   useEffect(() => {
     // Cancel previous request if still in flight
     if (abortController) {
@@ -492,7 +495,7 @@ export default function AdminDashboard() {
       setAbortController(newController);
       fetchMetrics(newController.signal);
       fetchTopUsersUsage(newController.signal);
-      fetchRecentUsers(recentUsersPageRef.current, newController.signal); // Use ref to get current page value
+      fetchRecentUsers(recentUsersPageRef.current, newController.signal);
     }, 5 * 60 * 1000);
     
     return () => {
@@ -500,7 +503,45 @@ export default function AdminDashboard() {
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedDaysFilter, debouncedCustomDateRange, debouncedSearch]);
+  }, [debouncedDaysFilter, debouncedCustomDateRange]);
+
+  // Separate effect for search - only updates user lists, not metrics
+  useEffect(() => {
+    // Skip on initial mount (metrics effect handles initial load)
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
+
+    // Cancel previous search requests
+    if (searchAbortController) {
+      searchAbortController.abort();
+    }
+
+    const controller = new AbortController();
+    setSearchAbortController(controller);
+
+    setIsSearching(true);
+
+    // Reset to page 1 when search changes
+    setRecentUsersPage(1);
+    recentUsersPageRef.current = 1;
+
+    // Only fetch user lists, not metrics (search doesn't affect metrics)
+    Promise.all([
+      fetchTopUsersUsage(controller.signal),
+      fetchRecentUsers(1, controller.signal),
+    ]).finally(() => {
+      if (!controller.signal.aborted) {
+        setIsSearching(false);
+      }
+    });
+
+    return () => {
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
 
   const fetchHealthStatus = async () => {
     try {
@@ -547,6 +588,9 @@ export default function AdminDashboard() {
       let apiUrl = `/api/admin/metrics/usage-per-user?days=${debouncedDaysFilter}`;
       if (debouncedCustomDateRange) {
         apiUrl += `&start=${debouncedCustomDateRange.start}&end=${debouncedCustomDateRange.end}`;
+      }
+      if (debouncedSearch && debouncedSearch.trim().length > 0) {
+        apiUrl += `&search=${encodeURIComponent(debouncedSearch.trim())}`;
       }
 
       const response = await fetch(apiUrl, { signal });
@@ -775,7 +819,8 @@ export default function AdminDashboard() {
     { label: 'All time', value: 0 },
   ];
 
-  if (isLoading) {
+  // Only show full-page loading on initial load, not during search
+  if (isLoading && !metrics) {
     return (
       <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -1016,21 +1061,31 @@ export default function AdminDashboard() {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))]" size={20} />
+          <Search className={`absolute left-4 top-1/2 -translate-y-1/2 ${isSearching ? 'animate-pulse' : ''} text-[hsl(var(--muted-foreground))]`} size={20} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search users, emails, subscriptions..."
-            className="w-full pl-12 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.24em] rounded focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))]"
+            className="w-full pl-12 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.24em] rounded focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] transition-all"
+            disabled={isSearching}
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] cursor-pointer"
+              onClick={() => {
+                setSearchQuery('');
+                setDebouncedSearch('');
+              }}
+              disabled={isSearching}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             >
               <XCircle size={18} />
             </button>
+          )}
+          {isSearching && (
+            <div className="absolute right-12 top-1/2 -translate-y-1/2">
+              <RefreshCw size={16} className="animate-spin text-[hsl(var(--primary))]" />
+            </div>
           )}
         </div>
 
@@ -1334,73 +1389,104 @@ export default function AdminDashboard() {
           onToggle={() => toggleSection('detailedLists')}
         >
           <div className="space-y-6">
-            {(topUsersUsage && topUsersUsage.length > 0) || metrics.detailedLists.topUsersByUsage.length > 0 ? (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold uppercase tracking-[0.24em]">Top Users by Usage</h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() =>
-                        exportUsersToCSV(
-                          (topUsersUsage && topUsersUsage.length > 0
-                            ? topUsersUsage
-                            : metrics.detailedLists.topUsersByUsage) as any[],
-                        )
-                      }
-                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
-                    >
-                      <FileText size={14} />
-                      Export Top 20 CSV
-                    </button>
-                    <button
-                      onClick={exportAllUsersUsageToCSV}
-                      disabled={isLoading}
-                      className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:-translate-y-0.5 hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none cursor-pointer"
-                    >
-                      <FileText size={14} />
-                      {isLoading ? 'Loading...' : 'Export All Users Usage'}
-                    </button>
+            {(() => {
+              // Get users list
+              const usersList = topUsersUsage && topUsersUsage.length > 0
+                ? topUsersUsage
+                : metrics.detailedLists.topUsersByUsage;
+              
+              // Filter by search query if present (client-side fallback)
+              let filteredUsers = usersList;
+              if (debouncedSearch && debouncedSearch.trim().length > 0) {
+                const searchLower = debouncedSearch.trim().toLowerCase();
+                filteredUsers = usersList.filter((user: any) => 
+                  (user.email || '').toLowerCase().includes(searchLower) ||
+                  (user.name || '').toLowerCase().includes(searchLower)
+                );
+              }
+              
+              return (filteredUsers.length > 0 || usersList.length > 0) ? (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold uppercase tracking-[0.24em]">Top Users by Usage</h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          exportUsersToCSV(
+                            (topUsersUsage && topUsersUsage.length > 0
+                              ? topUsersUsage
+                              : metrics.detailedLists.topUsersByUsage) as any[],
+                          )
+                        }
+                        className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
+                      >
+                        <FileText size={14} />
+                        Export Top 20 CSV
+                      </button>
+                      <button
+                        onClick={exportAllUsersUsageToCSV}
+                        disabled={isLoading}
+                        className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:-translate-y-0.5 hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none cursor-pointer"
+                      >
+                        <FileText size={14} />
+                        {isLoading ? 'Loading...' : 'Export All Users Usage'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-[hsl(var(--border-strong))]">
+                          <th className="text-left py-2 px-3 text-xs uppercase">Rank</th>
+                          <th className="text-left py-2 px-3 text-xs uppercase">Name</th>
+                          <th className="text-left py-2 px-3 text-xs uppercase">Email</th>
+                          <th className="text-left py-2 px-3 text-xs uppercase">Plan</th>
+                          <th className="text-right py-2 px-3 text-xs uppercase">AI Words</th>
+                          <th className="text-right py-2 px-3 text-xs uppercase">Checks</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {isSearching && filteredUsers.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                              <div className="flex items-center justify-center gap-2">
+                                <RefreshCw size={14} className="animate-spin" />
+                                <span>Searching...</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : filteredUsers.length > 0 ? (
+                          filteredUsers.slice(0, 10).map((user: any, idx: number) => (
+                            <tr key={user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
+                              <td className="py-2 px-3 font-bold">#{idx + 1}</td>
+                              <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
+                              <td className="py-2 px-3">{user.email || 'N/A'}</td>
+                              <td className="py-2 px-3">
+                                <span className={`px-2 py-0.5 rounded text-xs ${
+                                  user.plan === 'pro' ? 'bg-blue-500/20 text-blue-500' :
+                                  user.plan === 'team' ? 'bg-purple-500/20 text-purple-500' :
+                                  'bg-gray-500/20 text-gray-500'
+                                }`}>
+                                  {user.plan || 'free'}
+                                </span>
+                              </td>
+                              <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords)}</td>
+                              <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks)}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={6} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                              {debouncedSearch ? 'No users found matching your search' : 'No users found'}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-[hsl(var(--border-strong))]">
-                        <th className="text-left py-2 px-3 text-xs uppercase">Rank</th>
-                        <th className="text-left py-2 px-3 text-xs uppercase">Name</th>
-                        <th className="text-left py-2 px-3 text-xs uppercase">Email</th>
-                        <th className="text-left py-2 px-3 text-xs uppercase">Plan</th>
-                        <th className="text-right py-2 px-3 text-xs uppercase">AI Words</th>
-                        <th className="text-right py-2 px-3 text-xs uppercase">Checks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(topUsersUsage && topUsersUsage.length > 0
-                        ? topUsersUsage.slice(0, 10)
-                        : metrics.detailedLists.topUsersByUsage.slice(0, 10)
-                      ).map((user, idx) => (
-                        <tr key={user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
-                          <td className="py-2 px-3 font-bold">#{idx + 1}</td>
-                          <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
-                          <td className="py-2 px-3">{user.email || 'N/A'}</td>
-                          <td className="py-2 px-3">
-                            <span className={`px-2 py-0.5 rounded text-xs ${
-                              user.plan === 'pro' ? 'bg-blue-500/20 text-blue-500' :
-                              user.plan === 'team' ? 'bg-purple-500/20 text-purple-500' :
-                              'bg-gray-500/20 text-gray-500'
-                            }`}>
-                              {user.plan || 'free'}
-                            </span>
-                          </td>
-                          <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords)}</td>
-                          <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : null}
+              ) : null;
+            })()}
 
             {(recentUsers && recentUsers.length > 0) || metrics.detailedLists.recentUsers.length > 0 ? (
               <div>
@@ -1444,11 +1530,26 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(recentUsers && recentUsers.length > 0
-                        ? recentUsers
-                        : metrics.detailedLists.recentUsers.slice(0, 20)
-                      ).map(user => (
-                        <tr key={user._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
+                      {(() => {
+                        // Get users list
+                        const usersList = recentUsers && recentUsers.length > 0
+                          ? recentUsers
+                          : metrics.detailedLists.recentUsers;
+                        
+                        // Filter by search query if present (client-side fallback for metrics data)
+                        // Note: API already filters recentUsers, but metrics.detailedLists.recentUsers might not be filtered
+                        let filteredUsers = usersList;
+                        if (debouncedSearch && debouncedSearch.trim().length > 0 && !recentUsers) {
+                          // Only filter metrics data, API data is already filtered
+                          const searchLower = debouncedSearch.trim().toLowerCase();
+                          filteredUsers = usersList.filter((user: any) => 
+                            (user.email || '').toLowerCase().includes(searchLower) ||
+                            (user.name || '').toLowerCase().includes(searchLower)
+                          );
+                        }
+                        
+                        return filteredUsers.slice(0, 20).map((user: any) => (
+                          <tr key={user._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
                           <td className="py-2 px-3">{user.email}</td>
                           <td className="py-2 px-3">
@@ -1472,10 +1573,18 @@ export default function AdminDashboard() {
                           </td>
                           <td className="py-2 px-3">{new Date(user.createdAt).toLocaleDateString()}</td>
                         </tr>
-                      ))}
+                      ));
+                      })()}
                     </tbody>
                   </table>
-                  {recentUsersTotal > recentUsersPageSize && (
+                  {(() => {
+                    // Calculate filtered total for pagination
+                    const usersList = recentUsers && recentUsers.length > 0
+                      ? recentUsers
+                      : metrics.detailedLists.recentUsers;
+                    const displayTotal = recentUsers ? recentUsersTotal : usersList.length;
+                    
+                    return displayTotal > recentUsersPageSize && (
                     <div className="flex items-center justify-between mt-3 text-xs text-[hsl(var(--muted-foreground))]">
                       <span>
                         Page {recentUsersPage} of {Math.ceil(recentUsersTotal / recentUsersPageSize)}
@@ -1510,7 +1619,8 @@ export default function AdminDashboard() {
                         </button>
                       </div>
                     </div>
-                  )}
+                  );
+                  })()}
                 </div>
               </div>
             ) : null}

@@ -11,6 +11,7 @@ import Card from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
 import HeroImportTool from '@/components/HeroImportTool';
+import HeroTopicFinder from '@/components/HeroTopicFinder';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 
 // Helper function to get A/B test variant from cookie
@@ -216,7 +217,7 @@ export default function HomePage() {
                 <HeroPlagiarismTool variant={abVariant} />
               )}
               {abVariant === 'variant_b' && (
-                <HeroImportTool variant={abVariant} />
+                <HeroTopicFinder variant={abVariant} />
               )}
 
               {/* Social Proof - Compact (Desktop Only - Hidden on Mobile) */}
@@ -1123,11 +1124,13 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* Exit Intent Popup - Backup capture for users who scroll past */}
-      <ExitIntentPopup 
-        variant={abVariant} 
-        tool={abVariant === 'variant_b' ? 'import' : 'plagiarism'} 
-      />
+      {/* Exit Intent Popup - Backup capture for users who scroll past (not for variant_b) */}
+      {(abVariant === 'control' || abVariant === 'variant_a') && (
+        <ExitIntentPopup 
+          variant={abVariant} 
+          tool="plagiarism" 
+        />
+      )}
     </div>
   );
 }

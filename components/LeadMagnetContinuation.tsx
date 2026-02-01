@@ -6,7 +6,7 @@ import { X, Shield, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 interface StoredContent {
-  type: 'plagiarism' | 'import';
+  type: 'plagiarism' | 'import' | 'topic';
   text?: string;
   result?: {
     title?: string;
@@ -15,6 +15,9 @@ interface StoredContent {
     wordCount?: number;
     citationCount?: number;
     riskScore?: number;
+    topic?: string;
+    uniquenessScore?: number;
+    suggestions?: Array<{ title: string; researchQuestion: string }>;
     [key: string]: any; // Allow other properties for different result types
   };
   fileName?: string;
@@ -184,6 +187,40 @@ export default function LeadMagnetContinuation() {
               className="w-full"
             >
               Continue Import
+              <ArrowRight size={16} className="ml-2" />
+            </Button>
+          </div>
+        )}
+
+        {storedContent.type === 'topic' && storedContent.result && (
+          <div className="space-y-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Create a project with your unique research topic
+            </p>
+            <div className="border-[2px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3 rounded space-y-2">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em]">
+                {storedContent.result.topic || 'Research Topic'}
+              </p>
+              {storedContent.result.uniquenessScore !== undefined && (
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  <CheckCircle2 size={12} className="text-green-500" />
+                  <span>Uniqueness Score: {storedContent.result.uniquenessScore}%</span>
+                </div>
+              )}
+              {storedContent.result.suggestions && storedContent.result.suggestions.length > 0 && (
+                <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                  {storedContent.result.suggestions.length} unique topic suggestion{storedContent.result.suggestions.length !== 1 ? 's' : ''} available
+                </p>
+              )}
+            </div>
+            <Button
+              onClick={() => {
+                sessionStorage.removeItem('lead_magnet_content');
+                router.push('/dashboard/new?topic=' + encodeURIComponent(storedContent.result?.topic || ''));
+              }}
+              className="w-full"
+            >
+              Create Project with This Topic
               <ArrowRight size={16} className="ml-2" />
             </Button>
           </div>
