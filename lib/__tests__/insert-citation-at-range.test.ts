@@ -63,6 +63,27 @@ describe('insert-citation-at-range', () => {
       document.body.removeChild(editor);
     });
 
+    it('wraps inserted citation in highlight span when wrapInHighlight is true', () => {
+      const editor = document.createElement('div');
+      editor.innerHTML = '<p>Hello world</p>';
+      editor.contentEditable = 'true';
+      document.body.appendChild(editor);
+
+      const p = editor.querySelector('p')!;
+      const range = document.createRange();
+      range.setStart(p.firstChild!, 5);
+      range.setEnd(p.firstChild!, 5);
+
+      insertCitationAtRange(editor, range, ' (Smith, 2023) ', true);
+
+      expect(editor.textContent).toContain('(Smith, 2023)');
+      const span = editor.querySelector('[data-citation-highlight]');
+      expect(span).not.toBeNull();
+      expect(span?.className).toContain('citation-just-added');
+      expect(span?.textContent?.trim()).toBe('(Smith, 2023)');
+      document.body.removeChild(editor);
+    });
+
     it('does nothing when range is not inside the editor (defensive guard)', () => {
       const editor = document.createElement('div');
       editor.innerHTML = '<p>Original</p>';

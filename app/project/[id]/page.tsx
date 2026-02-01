@@ -20,6 +20,13 @@ import {
   SEARCH_TOPIC_REQUIRED_TOOLTIP,
 } from '@/lib/find-citation-constants';
 import { getRangeAtPoint, viewportSafePillPosition } from '@/lib/editor-context-menu-helpers';
+import {
+  CITATION_HIGHLIGHT_ATTR,
+  CITATION_HIGHLIGHT_CLASS,
+  escapeHtmlForCitation,
+  scheduleCitationHighlightRemoval,
+  wrapCitationInHighlight,
+} from '@/lib/citation-highlight';
 import { insertCitationAtRange } from '@/lib/insert-citation-at-range';
 import { scheduleScrollEditorIntoView } from '@/lib/scroll-editor-into-view';
 import { cn } from '@/lib/utils';
@@ -1385,7 +1392,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         ? citation.authors.join(', ')
         : citation.authors || 'Unknown Author';
       const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
-      insertCitationAtRange(editor, storedRange, citationText);
+      insertCitationAtRange(editor, storedRange, citationText, true);
       const newContent = editor.innerHTML;
       const normalized = normalizeCitationForProject(citation);
       const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
@@ -1397,6 +1404,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
       await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
+      scheduleCitationHighlightRemoval(editor);
       scheduleScrollEditorIntoView(editorSectionRef);
       setShowSuccessMessage('✅ Citation added to section!');
       setTimeout(() => setShowSuccessMessage(''), 6000);
@@ -1431,7 +1439,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         
         // Update editor content directly with cursor preservation
         updateEditorContent(integratedContent);
-        
+
+        const citationTextForHighlight = `(${Array.isArray(citation.authors) ? citation.authors.join(', ') : citation.authors ?? 'Unknown Author'}, ${formatYearForDisplay(citation.year)})`;
+        if (editor) {
+          wrapCitationInHighlight(editor, citationTextForHighlight);
+          scheduleCitationHighlightRemoval(editor);
+        }
         setShowCitationDiscovery(false);
         storedInsertRangeRef.current = null;
         await refreshCitationsAfterAdd(project, activeSection, integratedContent, citationsToSave);
@@ -1468,12 +1481,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         setTimeout(() => setShowSuccessMessage(''), 6000);
         storedInsertRangeRef.current = null;
       } else {
-        // Fallback to simple append if integration fails
+        // Fallback to simple append if integration fails (with highlight span)
         const authorsText = Array.isArray(citation.authors)
           ? citation.authors.join(', ')
           : citation.authors || 'Unknown Author';
         const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
-        const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
+        const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(citationText)}</span>`;
+        const newContent = currentContent + (currentContent ? ' ' : '') + highlightedCitation;
         const normalized = normalizeCitationForProject(citation);
         const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
 
@@ -1483,6 +1497,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
         updateEditorContent(newContent);
 
+        if (editor) scheduleCitationHighlightRemoval(editor);
         setShowCitationDiscovery(false);
         storedInsertRangeRef.current = null;
         await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
@@ -1492,12 +1507,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       }
     } catch (error) {
       console.error('Error integrating citation:', error);
-      // Fallback to simple append
+      // Fallback to simple append (with highlight span)
       const authorsText = Array.isArray(citation.authors)
         ? citation.authors.join(', ')
         : citation.authors || 'Unknown Author';
       const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
-      const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
+      const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(citationText)}</span>`;
+      const newContent = currentContent + (currentContent ? ' ' : '') + highlightedCitation;
       const normalized = normalizeCitationForProject(citation);
       const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
 
@@ -1507,6 +1523,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
       updateEditorContent(newContent);
 
+      if (editor) scheduleCitationHighlightRemoval(editor);
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
       await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);

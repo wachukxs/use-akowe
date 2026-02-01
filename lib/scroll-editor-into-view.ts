@@ -3,7 +3,7 @@
  * Used after adding a citation so the user sees where the content was updated.
  * Delay allows the modal to close and layout to settle before scrolling.
  */
-const DEFAULT_DELAY_MS = 150;
+export const DEFAULT_DELAY_MS = 500;
 
 const SCROLL_OPTIONS: ScrollIntoViewOptions = {
   behavior: 'smooth',

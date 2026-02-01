@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { scheduleScrollEditorIntoView } from '@/lib/scroll-editor-into-view';
+import { DEFAULT_DELAY_MS, scheduleScrollEditorIntoView } from '@/lib/scroll-editor-into-view';
 
 describe('scroll-editor-into-view', () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('scroll-editor-into-view', () => {
       scheduleScrollEditorIntoView(ref);
 
       expect(scrollIntoView).not.toHaveBeenCalled();
-      vi.advanceTimersByTime(150);
+      vi.advanceTimersByTime(DEFAULT_DELAY_MS);
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
       expect(scrollIntoView).toHaveBeenCalledWith({
         behavior: 'smooth',
@@ -65,7 +65,7 @@ describe('scroll-editor-into-view', () => {
       // Simulate React attaching the ref before the delay expires (production: modal close + state updates then commit)
       ref.current = { scrollIntoView } as unknown as HTMLDivElement;
 
-      vi.advanceTimersByTime(150);
+      vi.advanceTimersByTime(DEFAULT_DELAY_MS);
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
       expect(scrollIntoView).toHaveBeenCalledWith({
         behavior: 'smooth',
@@ -77,7 +77,7 @@ describe('scroll-editor-into-view', () => {
       const ref = { current: null as HTMLDivElement | null };
 
       scheduleScrollEditorIntoView(ref);
-      vi.advanceTimersByTime(150);
+      vi.advanceTimersByTime(DEFAULT_DELAY_MS);
 
       // ref stayed null (e.g. editor section unmounted) - no throw, no call
       expect(ref.current).toBeNull();
