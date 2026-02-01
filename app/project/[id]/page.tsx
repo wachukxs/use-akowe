@@ -14,6 +14,14 @@ import {
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { formatYearForDisplay } from '@/lib/citation-year';
+import { getCitationsWithAdded, normalizeCitationForProject } from '@/lib/citation-helpers';
+import {
+  CONTEXT_MENU_FIND_CITATION_LABEL,
+  SEARCH_TOPIC_REQUIRED_TOOLTIP,
+} from '@/lib/find-citation-constants';
+import { getRangeAtPoint, viewportSafePillPosition } from '@/lib/editor-context-menu-helpers';
+import { insertCitationAtRange } from '@/lib/insert-citation-at-range';
+import { scheduleScrollEditorIntoView } from '@/lib/scroll-editor-into-view';
 import { cn } from '@/lib/utils';
 
 export default function ProjectEditorPage({ params }: { params: Promise<{ id: string }> }) {
@@ -44,6 +52,11 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   // Update ref whenever activeSection changes
   useEffect(() => {
     activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  // Clear stored insert range when section changes so we never insert into the wrong section
+  useEffect(() => {
+    storedInsertRangeRef.current = null;
   }, [activeSection]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
@@ -402,7 +415,19 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isTypingRef = useRef<boolean>(false);
   const activeSectionRef = useRef<string | null>(null);
-  
+  const editorSectionRef = useRef<HTMLDivElement | null>(null);
+  const editorContentEditableRef = useRef<HTMLDivElement | null>(null);
+  const storedInsertRangeRef = useRef<Range | null>(null);
+  const contextMenuPillRef = useRef<HTMLDivElement | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTouchRef = useRef<{ clientX: number; clientY: number } | null>(null);
+
+  const [contextMenuPillPosition, setContextMenuPillPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [contextMenuPillVisible, setContextMenuPillVisible] = useState(false);
+
   const handleSectionChange = useCallback(async (sectionId: string, content: string) => {
     if (!project) return;
 
@@ -489,6 +514,71 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       }
     }, 3000); // 3 seconds after user stops typing
   }, [project, resolvedParams.id]);
+
+  const refreshCitationsAfterAdd = useCallback(
+    async (
+      currentProject: Project,
+      sectionId: string,
+      sectionContent: string,
+      citationsToSave: NonNullable<Project['citations']>
+    ) => {
+      const updatedSections = (currentProject.sections || []).map((section) =>
+        section.id === sectionId
+          ? { ...section, content: sectionContent, updatedAt: new Date() }
+          : section
+      );
+      const wordCount = calculateTotalWordCount({
+        ...currentProject,
+        sections: updatedSections,
+      });
+      await fetch(`/api/projects/${resolvedParams.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sections: updatedSections,
+          citations: citationsToSave,
+          wordCount,
+        }),
+      });
+    },
+    [resolvedParams.id]
+  );
+
+  const closeCitationDiscoveryModal = useCallback(() => {
+    setShowCitationDiscovery(false);
+    storedInsertRangeRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    if (!contextMenuPillVisible) return;
+    const isInsidePill = (target: EventTarget | null) => {
+      const node = target as Node;
+      const pill = contextMenuPillRef.current;
+      return pill?.contains(node) ?? false;
+    };
+    const handleMouseDown = (e: MouseEvent) => {
+      if (isInsidePill(e.target as Node)) return;
+      setContextMenuPillVisible(false);
+    };
+    const handleTouchStart = (e: TouchEvent) => {
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      if (el && isInsidePill(el)) return;
+      setContextMenuPillVisible(false);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextMenuPillVisible(false);
+    };
+    document.addEventListener('mousedown', handleMouseDown, true);
+    document.addEventListener('touchstart', handleTouchStart, true);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown, true);
+      document.removeEventListener('touchstart', handleTouchStart, true);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [contextMenuPillVisible]);
 
   // AI Assistant functions
   const handleAIWrite = async (sectionId: string) => {
@@ -1278,11 +1368,42 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     const section = project.sections.find(s => s.id === activeSection);
     if (!section) return;
 
-    // Set loading state immediately
     setIsAddingCitation(true);
 
     const currentContent = cleanupSectionContent(section.content || '');
-    
+    const editor = editorContentEditableRef.current;
+    const storedRange = storedInsertRangeRef.current;
+
+    // Insert-at-position path: only when stored range is in the current editor (avoids wrong section after switch)
+    if (
+      editor &&
+      storedRange &&
+      document.contains(storedRange.startContainer) &&
+      editor.contains(storedRange.startContainer)
+    ) {
+      const authorsText = Array.isArray(citation.authors)
+        ? citation.authors.join(', ')
+        : citation.authors || 'Unknown Author';
+      const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
+      insertCitationAtRange(editor, storedRange, citationText);
+      const newContent = editor.innerHTML;
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
+
+      handleSectionChange(activeSection, newContent);
+      setProject((prev) => (prev ? { ...prev, citations: citationsToSave } : null));
+      setLocalSectionContent(newContent);
+      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      setShowCitationDiscovery(false);
+      storedInsertRangeRef.current = null;
+      await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
+      scheduleScrollEditorIntoView(editorSectionRef);
+      setShowSuccessMessage('✅ Citation added to section!');
+      setTimeout(() => setShowSuccessMessage(''), 6000);
+      setIsAddingCitation(false);
+      return;
+    }
+
     // Use intelligent integration for all content lengths
     try {
       const response = await fetch('/api/citations/integrate', {
@@ -1299,9 +1420,12 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       if (response.ok) {
         const data = await response.json();
         const integratedContent = data.integratedContent;
-        
+        const normalized = normalizeCitationForProject(citation);
+        const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
+
         // Update both the project state and local section content for real-time editor update
         handleSectionChange(activeSection, integratedContent);
+        setProject((prev) => (prev ? { ...prev, citations: citationsToSave } : null));
         setLocalSectionContent(integratedContent);
         setRealTimeWordCount(countWords(cleanupSectionContent(integratedContent)));
         
@@ -1309,6 +1433,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         updateEditorContent(integratedContent);
         
         setShowCitationDiscovery(false);
+        storedInsertRangeRef.current = null;
+        await refreshCitationsAfterAdd(project, activeSection, integratedContent, citationsToSave);
+        scheduleScrollEditorIntoView(editorSectionRef);
         
         // Provide context-aware success message based on integration type
         let successMessage = '✅ Citation added to section!';
@@ -1323,7 +1450,23 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         }
         
         setShowSuccessMessage(successMessage);
-        setTimeout(() => setShowSuccessMessage(''), 3000);
+        setTimeout(() => setShowSuccessMessage(''), 6000);
+      } else if (response.status === 429) {
+        // AI word limit – do not add citation; show clear error for 6 seconds
+        let errorMessage = 'Word limit reached.';
+        try {
+          const data = await response.json();
+          if (typeof data?.error === 'string' && data.error.trim()) {
+            errorMessage = data.error.trim();
+          }
+        } catch {
+          // ignore JSON parse failure
+        }
+        setShowSuccessMessage(
+          `Citation not added. ${errorMessage} Upgrade to add more citations.`
+        );
+        setTimeout(() => setShowSuccessMessage(''), 6000);
+        storedInsertRangeRef.current = null;
       } else {
         // Fallback to simple append if integration fails
         const authorsText = Array.isArray(citation.authors)
@@ -1331,15 +1474,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           : citation.authors || 'Unknown Author';
         const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
         const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
+        const normalized = normalizeCitationForProject(citation);
+        const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
 
         handleSectionChange(activeSection, newContent);
+        setProject((prev) => (prev ? { ...prev, citations: citationsToSave } : null));
         setLocalSectionContent(newContent);
         setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
         updateEditorContent(newContent);
 
         setShowCitationDiscovery(false);
+        storedInsertRangeRef.current = null;
+        await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
+        scheduleScrollEditorIntoView(editorSectionRef);
         setShowSuccessMessage('Citation added to editor!');
-        setTimeout(() => setShowSuccessMessage(''), 3000);
+        setTimeout(() => setShowSuccessMessage(''), 6000);
       }
     } catch (error) {
       console.error('Error integrating citation:', error);
@@ -1349,15 +1498,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         : citation.authors || 'Unknown Author';
       const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
       const newContent = currentContent + (currentContent ? ' ' : '') + citationText;
-      
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
+
       handleSectionChange(activeSection, newContent);
+      setProject((prev) => (prev ? { ...prev, citations: citationsToSave } : null));
       setLocalSectionContent(newContent);
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
       updateEditorContent(newContent);
-      
+
       setShowCitationDiscovery(false);
+      storedInsertRangeRef.current = null;
+      await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
+      scheduleScrollEditorIntoView(editorSectionRef);
       setShowSuccessMessage('Citation added to editor!');
-      setTimeout(() => setShowSuccessMessage(''), 3000);
+      setTimeout(() => setShowSuccessMessage(''), 6000);
     } finally {
       // Always reset loading state
       setIsAddingCitation(false);
@@ -2590,7 +2745,10 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             {/* Right Column - Editor */}
             <div className="col-span-12 md:col-span-8 lg:col-span-9 space-y-4 md:space-y-6">
               {activeS ? (
-                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div
+                  ref={editorSectionRef}
+                  className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
+                >
                   <div className="p-4 md:p-6 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <h2 className="text-lg md:text-xl font-semibold uppercase tracking-[0.18em]">{activeS.title}</h2>
@@ -2777,10 +2935,55 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
                       {/* Editor */}
                       <div
+                        ref={(el) => {
+                          editorContentEditableRef.current = el;
+                          if (el && !el.dataset.initialized) {
+                            const sectionContent = activeS?.content || '';
+                            const newContent = cleanupSectionContent(sectionContent) || '<p><br></p>';
+                            el.innerHTML = newContent;
+                            el.dataset.initialized = 'true';
+                          }
+                        }}
                         contentEditable
                         spellCheck="true"
                         suppressContentEditableWarning
                         onInput={handleTextInput}
+                        onContextMenu={(e) => {
+                          const selection = window.getSelection();
+                          if (selection && selection.rangeCount > 0) {
+                            const range = selection.getRangeAt(0).cloneRange();
+                            storedInsertRangeRef.current = range;
+                            setContextMenuPillPosition(viewportSafePillPosition(e.clientX, e.clientY));
+                            setContextMenuPillVisible(true);
+                          }
+                        }}
+                        onTouchStart={(e) => {
+                          if (e.changedTouches.length === 0) return;
+                          const t = e.changedTouches[0];
+                          longPressTouchRef.current = { clientX: t.clientX, clientY: t.clientY };
+                          longPressTimerRef.current = setTimeout(() => {
+                            longPressTimerRef.current = null;
+                            const pos = longPressTouchRef.current;
+                            if (!pos) return;
+                            const range = getRangeAtPoint(pos.clientX, pos.clientY);
+                            if (range) storedInsertRangeRef.current = range;
+                            setContextMenuPillPosition(viewportSafePillPosition(pos.clientX, pos.clientY));
+                            setContextMenuPillVisible(true);
+                          }, 500);
+                        }}
+                        onTouchMove={() => {
+                          if (longPressTimerRef.current) {
+                            clearTimeout(longPressTimerRef.current);
+                            longPressTimerRef.current = null;
+                          }
+                        }}
+                        onTouchEnd={() => {
+                          if (longPressTimerRef.current) {
+                            clearTimeout(longPressTimerRef.current);
+                            longPressTimerRef.current = null;
+                          }
+                          longPressTouchRef.current = null;
+                        }}
                         onMouseUp={checkFormattingState}
                         onMouseDown={checkFormattingState}
                         onKeyUp={(e) => {
@@ -3016,15 +3219,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                           lineHeight: '1.6'
                         }}
                         key={activeS.id}
-                        ref={(el) => {
-                          if (el && !el.dataset.initialized) {
-                            // Use activeS.content directly to avoid race condition with localSectionContent
-                            const sectionContent = activeS?.content || '';
-                            const newContent = cleanupSectionContent(sectionContent) || '<p><br></p>';
-                            el.innerHTML = newContent;
-                            el.dataset.initialized = 'true';
-                          }
-                        }}
               />
                     </div>
                   </div>
@@ -3437,9 +3631,38 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
+      {/* Floating "Find citation" pill shown on editor right-click (Option B: add to browser context menu) */}
+      {contextMenuPillVisible && contextMenuPillPosition && (
+        <div
+          ref={contextMenuPillRef}
+          className="fixed z-[60] rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[44px] flex items-center"
+          style={{
+            left: contextMenuPillPosition.x,
+            top: contextMenuPillPosition.y,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setContextMenuPillVisible(false);
+              discoverCitations(0, false);
+            }}
+            className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors touch-manipulation"
+          >
+            {CONTEXT_MENU_FIND_CITATION_LABEL}
+          </button>
+        </div>
+      )}
+
       {/* Citation Discovery Modal */}
       {showCitationDiscovery && (
-        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" aria-hidden="false">
+        <div
+          className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          aria-hidden="false"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeCitationDiscoveryModal();
+          }}
+        >
           <div
             role="dialog"
             aria-modal="true"
@@ -3463,7 +3686,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                 </div>
               <button
                 type="button"
-                onClick={() => setShowCitationDiscovery(false)}
+                onClick={closeCitationDiscoveryModal}
                 aria-label="Close citation discovery"
                 className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer touch-manipulation"
               >
@@ -3495,7 +3718,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     />
                   </div>
                   <div
-                    className="relative w-full"
+                    className="relative w-full min-w-0"
                     onMouseEnter={() => {
                       const disabled = isDiscoveringCitations || !citationSearchQuery.trim();
                       if (disabled && searchNewCitationTooltipRef.current) {
@@ -3516,21 +3739,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                       type="button"
                       onClick={searchForNewCitations}
                       disabled={isDiscoveringCitations || !citationSearchQuery.trim()}
-                      className="w-full shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
+                      aria-describedby={!citationSearchQuery.trim() && !isDiscoveringCitations ? 'search-new-citation-tooltip' : undefined}
+                      className="w-full min-w-[44px] shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
                     >
                       {isDiscoveringCitations ? 'Searching…' : 'Search for new citations'}
                     </button>
-                    {(isDiscoveringCitations || !citationSearchQuery.trim()) && (
-                      <div
-                        ref={searchNewCitationTooltipRef}
-                        role="tooltip"
-                        className="absolute z-50 bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-56 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs text-left shadow-lg pointer-events-none"
-                        style={{ display: 'none' }}
-                        aria-hidden="true"
-                      >
-                        Enter a search topic in the search box above.
-                      </div>
-                    )}
+                    <div
+                      id="search-new-citation-tooltip"
+                      ref={searchNewCitationTooltipRef}
+                      role="tooltip"
+                      className="absolute z-50 bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-56 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs text-left shadow-lg pointer-events-none"
+                      style={{ display: 'none' }}
+                      aria-hidden="true"
+                    >
+                      {SEARCH_TOPIC_REQUIRED_TOOLTIP}
+                    </div>
                   </div>
                 </div>
 

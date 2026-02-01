@@ -55,7 +55,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "happy-dom": "^15.11.0"
   },
   "optionalDependencies": {
     "@next/swc-darwin-arm64": "15.5.7",
