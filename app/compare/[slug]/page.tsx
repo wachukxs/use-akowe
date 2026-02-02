@@ -4,6 +4,8 @@ import { GitCompare, ArrowLeft, Check, X } from 'lucide-react';
 import { getComparisonBySlug, getAllComparisonSlugs } from '@/lib/seo/comparisons';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
+import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -22,21 +24,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
-  return {
+  return generateSEOMetadata({
     title: comparison.title,
     description: comparison.description,
     keywords: comparison.keywords,
-    openGraph: {
-      title: comparison.title,
-      description: comparison.description,
-      url: `${baseUrl}/compare/${slug}`,
-    },
-    twitter: {
-      card: 'summary',
-      title: comparison.title,
-      description: comparison.description,
-    },
-  };
+    path: `/compare/${slug}`,
+  });
 }
 
 export default async function ComparisonPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -91,6 +84,16 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
                 { label: 'Comparisons', href: '/compare' },
                 { label: comparison.title, href: `/compare/${slug}` },
               ],
+            })),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebPageSchema({
+              url: `${baseUrl}/compare/${slug}`,
+              title: comparison.title,
+              description: comparison.description,
             })),
           }}
         />

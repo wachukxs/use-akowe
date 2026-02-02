@@ -5,6 +5,8 @@ import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getTemplateBySlug, getAllTemplateSlugs } from '@/lib/seo/templates';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
+import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -24,21 +26,12 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
     };
   }
 
-  return {
+  return generateSEOMetadata({
     title: template.title,
     description: template.description,
     keywords: template.keywords,
-    openGraph: {
-      title: template.title,
-      description: template.description,
-      url: `${baseUrl}/templates/${type}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: template.title,
-      description: template.description,
-    },
-  };
+    path: `/templates/${type}`,
+  });
 }
 
 export default async function TemplatePage({ params }: { params: Promise<{ type: string }> }) {
@@ -106,6 +99,16 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebPageSchema({
+              url: `${baseUrl}/templates/${type}`,
+              title: template.title,
+              description: template.description,
+            })),
+          }}
         />
         <article className="prose prose-lg max-w-none">
           <div className="mb-8">

@@ -5,6 +5,8 @@ import { getAllTemplateSlugs } from '@/lib/seo/templates';
 import { getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
 import { getAllFAQSlugs } from '@/lib/seo/faqs';
 import { getAllComparisonSlugs } from '@/lib/seo/comparisons';
+// TODO: Import keyword pages when implemented
+// import { getAllKeywordSlugs } from '@/lib/seo/keywords';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
@@ -113,6 +115,120 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8, // High priority for comparison keywords
   }));
 
+  // Programmatic SEO pages - Topics (keyword-based, for scaling to 20k+)
+  const { getAllKeywordSlugs } = require('@/lib/seo/keywords');
+  
+  const topicRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('topic').map((slug: string) => ({
+    url: `${baseUrl}/topics/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  const methodologyRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('methodology').map((slug: string) => ({
+    url: `${baseUrl}/methods/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  const fieldRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('field').map((slug: string) => ({
+    url: `${baseUrl}/fields/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  // Keyword-based citation pages
+  const citationKeywordRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('citation').map((slug: string) => ({
+    url: `${baseUrl}/citations/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  // Keyword-based guide pages
+  const guideKeywordRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('guide').map((slug: string) => ({
+    url: `${baseUrl}/guides-keywords/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  // Keyword-based template pages
+  const templateKeywordRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('template').map((slug: string) => ({
+    url: `${baseUrl}/templates-keywords/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  // Keyword-based FAQ pages
+  const faqKeywordRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('faq').map((slug: string) => ({
+    url: `${baseUrl}/faq-keywords/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  // Keyword-based comparison pages
+  const comparisonKeywordRoutes: MetadataRoute.Sitemap = getAllKeywordSlugs('comparison').map((slug: string) => ({
+    url: `${baseUrl}/compare-keywords/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  // Combination pages (citation style + purpose)
+  const validPurposes = [
+    'students',
+    'researchers',
+    'graduate-students',
+    'undergraduate-students',
+    'phd-students',
+    'research-papers',
+    'thesis',
+    'dissertation',
+    'essays',
+    'literature-review',
+    'case-study',
+    'qualitative-research',
+    'quantitative-research',
+    'academic-papers',
+    'journal-articles',
+    'conference-papers',
+    'grant-proposals',
+    'systematic-reviews',
+    'meta-analysis',
+    'mixed-methods-research',
+    'experimental-research',
+    'survey-research',
+    'interview-research',
+    'observational-research',
+    'action-research',
+    'ethnographic-research',
+    'phenomenological-research',
+    'grounded-theory-research',
+    'narrative-research',
+    'historical-research',
+    'archival-research',
+    'content-analysis',
+    'discourse-analysis',
+    'textual-analysis',
+  ];
+  const combinationRoutes: MetadataRoute.Sitemap = [];
+  const allStyleSlugs = getAllCitationStyleSlugs();
+  for (const style of allStyleSlugs) {
+    for (const purpose of validPurposes) {
+      combinationRoutes.push({
+        url: `${baseUrl}/combinations/${style}/${purpose}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.8,
+      });
+    }
+  }
+
   return [
     ...staticRoutes,
     ...guideRoutes,
@@ -121,6 +237,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...citationSourceRoutes,
     ...faqRoutes,
     ...comparisonRoutes,
+    ...topicRoutes,
+    ...methodologyRoutes,
+    ...fieldRoutes,
+    ...citationKeywordRoutes,
+    ...guideKeywordRoutes,
+    ...templateKeywordRoutes,
+    ...faqKeywordRoutes,
+    ...comparisonKeywordRoutes,
   ];
 }
 

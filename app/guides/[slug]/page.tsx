@@ -6,6 +6,8 @@ import { getGuideBySlug, getAllGuideSlugs } from '@/lib/seo/guides';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import InlinePlagiarismTool from '@/components/InlinePlagiarismTool';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
+import { generateWebPageSchema, generateHowToSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -25,22 +27,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
-  return {
+  return generateSEOMetadata({
     title: guide.title,
     description: guide.description,
     keywords: guide.keywords,
-    openGraph: {
-      title: guide.title,
-      description: guide.description,
-      url: `${baseUrl}/guides/${slug}`,
-      type: 'article',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: guide.title,
-      description: guide.description,
-    },
-  };
+    path: `/guides/${slug}`,
+    type: 'article',
+    publishedTime: new Date().toISOString(),
+    modifiedTime: new Date().toISOString(),
+  });
 }
 
 export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -112,6 +107,18 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebPageSchema({
+              url: `${baseUrl}/guides/${slug}`,
+              title: guide.title,
+              description: guide.description,
+              datePublished: new Date().toISOString(),
+              dateModified: new Date().toISOString(),
+            })),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Article',
@@ -138,6 +145,21 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             }),
           }}
         />
+        {guide.content.sections.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(generateHowToSchema({
+                name: guide.title,
+                description: guide.description,
+                steps: guide.content.sections.map((section) => ({
+                  name: section.heading,
+                  text: section.content,
+                })),
+              })),
+            }}
+          />
+        )}
         <article className="prose prose-lg max-w-none">
           <div className="mb-8">
             <div className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] mb-4">

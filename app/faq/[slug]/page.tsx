@@ -5,6 +5,8 @@ import { getFAQBySlug, getAllFAQSlugs } from '@/lib/seo/faqs';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import InlineImportTool from '@/components/InlineImportTool';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
+import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -23,21 +25,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
-  return {
+  return generateSEOMetadata({
     title: `${faq.question} - Akowe FAQ`,
     description: faq.answer.substring(0, 160),
     keywords: faq.keywords,
-    openGraph: {
-      title: `${faq.question} - Akowe FAQ`,
-      description: faq.answer.substring(0, 160),
-      url: `${baseUrl}/faq/${slug}`,
-    },
-    twitter: {
-      card: 'summary',
-      title: `${faq.question} - Akowe FAQ`,
-      description: faq.answer.substring(0, 160),
-    },
-  };
+    path: `/faq/${slug}`,
+  });
 }
 
 export default async function FAQPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -109,6 +102,16 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
                 { label: 'FAQ', href: '/faq' },
                 { label: faq.question, href: `/faq/${slug}` },
               ],
+            })),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebPageSchema({
+              url: `${baseUrl}/faq/${slug}`,
+              title: `${faq.question} - Akowe FAQ`,
+              description: faq.answer.substring(0, 160),
             })),
           }}
         />

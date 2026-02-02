@@ -7,6 +7,8 @@ import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcru
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
 import { getCitationSourceByTypeAndStyle } from '@/lib/seo/citation-sources';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
+import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -26,21 +28,12 @@ export async function generateMetadata({ params }: { params: Promise<{ style: st
     };
   }
 
-  return {
-    title: `${citationStyle.name} Citation Guide - Akowe`,
+  return generateSEOMetadata({
+    title: `${citationStyle.name} Citation Guide`,
     description: `Complete ${citationStyle.name} citation guide with examples for books, journals, websites, and in-text citations. Learn how to cite in ${citationStyle.name} style.`,
     keywords: citationStyle.keywords,
-    openGraph: {
-      title: `${citationStyle.name} Citation Guide - Akowe`,
-      description: `Complete ${citationStyle.name} citation guide with examples and formatting rules.`,
-      url: `${baseUrl}/citation-styles/${style}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${citationStyle.name} Citation Guide - Akowe`,
-      description: `Complete ${citationStyle.name} citation guide with examples.`,
-    },
-  };
+    path: `/citation-styles/${style}`,
+  });
 }
 
 export default async function CitationStylePage({ params }: { params: Promise<{ style: string }> }) {
@@ -128,6 +121,16 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebPageSchema({
+              url: `${baseUrl}/citation-styles/${style}`,
+              title: `${citationStyle.name} Citation Guide`,
+              description: citationStyle.description,
+            })),
+          }}
         />
         <article className="prose prose-lg max-w-none">
           <div className="mb-8">

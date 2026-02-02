@@ -6,6 +6,8 @@ import { getCitationSourceByTypeAndStyle, getAllCitationSourceCombinationsScaled
 import { getCitationStyleBySlug, getAllCitationStyleSlugs } from '@/lib/seo/citation-styles';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
+import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -32,23 +34,12 @@ export async function generateMetadata({
     };
   }
 
-  const sourceTypeName = type.charAt(0).toUpperCase() + type.slice(1);
-
-  return {
+  return generateSEOMetadata({
     title: citationSource.title,
     description: citationSource.description,
     keywords: citationSource.keywords,
-    openGraph: {
-      title: citationSource.title,
-      description: citationSource.description,
-      url: `${baseUrl}/citation-sources/${style}/${type}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: citationSource.title,
-      description: citationSource.description,
-    },
-  };
+    path: `/citation-sources/${style}/${type}`,
+  });
 }
 
 export default async function CitationSourcePage({
@@ -145,6 +136,16 @@ export default async function CitationSourcePage({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(generateWebPageSchema({
+              url: `${baseUrl}/citation-sources/${style}/${type}`,
+              title: citationSource.title,
+              description: citationSource.description,
+            })),
+          }}
         />
         <article className="prose prose-lg max-w-none">
           <div className="mb-8">

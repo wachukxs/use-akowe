@@ -837,7 +837,7 @@ export function getAllCitationSourceCombinations(): Array<{ sourceType: string; 
   }));
 }
 
-// Lazy load generated sources to avoid circular dependencies
+// Lazy load generated sources to avoid circular dependencies and reduce build-time memory
 let allCitationSourcesCache: CitationSource[] | null = null;
 
 export function getAllCitationSources(): CitationSource[] {
@@ -845,6 +845,8 @@ export function getAllCitationSources(): CitationSource[] {
     return allCitationSourcesCache;
   }
 
+  // Lazy import the generator to avoid loading 500+ source types at module init
+  const { generateAllCitationSources } = require('./citation-source-generator');
   const generatedSources = generateAllCitationSources();
 
   // Combine manual + generated, removing duplicates (manual takes precedence)
