@@ -756,27 +756,6 @@ See the difference? Be specific, reference their text, show exact improvements.
                                 !response.toLowerCase().includes('detailed explanation') && // Not template text
                                 !response.toLowerCase().includes('present your'); // Not template text
 
-    // Determine operation type based on content analysis
-    const currentContentLength = currentSectionContent?.length || 0;
-    const responseLength = response.length;
-    const isTemplateContent = currentSectionContent?.toLowerCase().includes('begin your') || 
-                             currentSectionContent?.toLowerCase().includes('detailed explanation') ||
-                             currentSectionContent?.toLowerCase().includes('present your') ||
-                             currentSectionContent?.toLowerCase().includes('this is where');
-    
-    let operationType = 'UNKNOWN';
-    if (isTemplateContent) {
-      operationType = 'REPLACE_TEMPLATE';
-    } else if (responseLength > currentContentLength * 1.5) {
-      operationType = 'EXPAND';
-    } else if (responseLength < currentContentLength * 0.7) {
-      operationType = 'CONDENSE';
-    } else if (responseLength > currentContentLength * 0.8 && responseLength < currentContentLength * 1.2) {
-      operationType = 'IMPROVE';
-    } else {
-      operationType = 'REPLACE';
-    }
-
     return NextResponse.json({
       response,
       wordCount,

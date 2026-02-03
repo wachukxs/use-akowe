@@ -99,7 +99,7 @@ export default function LeadMagnetEmailCapture({
             </Button>
 
             <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center">
-              No spam. We'll only send you helpful writing tips.
+              No spam. We&apos;ll only send you helpful writing tips.
             </p>
           </form>
         </div>

@@ -314,7 +314,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
                   <div className="space-y-1">
                     <p className="text-[10px] uppercase tracking-[0.14em] font-semibold">{result.previewIssues[0].type}</p>
                     <p className="text-[9px] tracking-[0.08em] text-[hsl(var(--muted-foreground))] italic">
-                      "{result.previewIssues[0].text}"
+                      &quot;{result.previewIssues[0].text}&quot;
                     </p>
                     <p className="text-[9px] uppercase tracking-[0.12em] text-[hsl(var(--primary))] font-semibold">
                       → {result.previewIssues[0].suggestion}

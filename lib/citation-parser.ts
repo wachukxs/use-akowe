@@ -82,7 +82,7 @@ export function parseCitationsFromText(
   for (const pattern of patternsToTry) {
     let match;
     while ((match = pattern.exec(content)) !== null) {
-      let [fullMatch, authorPart, yearPart] = match;
+      let [, authorPart, yearPart] = match;
       
       // Special handling for WHO citations
       if (pattern === CITATION_PATTERNS.whoCitation) {
@@ -227,7 +227,6 @@ export function mergeCitations(
   parsedCitations: ParsedCitation[]
 ): Citation[] {
   const merged = [...existingCitations];
-  const existingKeys = new Set(existingCitations.map(c => c.citationKey));
   
   for (const parsedCitation of parsedCitations) {
     // Check if citation already exists (year comparison handles undefined)

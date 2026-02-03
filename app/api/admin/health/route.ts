@@ -29,7 +29,7 @@ export async function GET() {
       if (adminDb) {
         serverStatus = await adminDb.ping();
       }
-    } catch (pingError) {
+    } catch {
       // Ping failed, but connection might still work
     }
     

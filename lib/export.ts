@@ -311,7 +311,7 @@ export function generateAcademicHTML(project: Project, template: AcademicTemplat
 
 // Generate LaTeX document
 export function generateLaTeX(project: Project, template: AcademicTemplate = 'research-paper', citationStyle: CitationStyle = 'apa'): string {
-  const academicTemplate = getAcademicTemplate(template);
+  getAcademicTemplate(template);
   
   // Convert HTML content to LaTeX
   const convertHTMLToLaTeX = (html: string): string => {

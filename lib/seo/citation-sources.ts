@@ -845,8 +845,6 @@ export function getAllCitationSources(): CitationSource[] {
     return allCitationSourcesCache;
   }
 
-  // Lazy import the generator to avoid loading 500+ source types at module init
-  const { generateAllCitationSources } = require('./citation-source-generator');
   const generatedSources = generateAllCitationSources();
 
   // Combine manual + generated, removing duplicates (manual takes precedence)

@@ -7,22 +7,18 @@ import {
   Users, 
   DollarSign, 
   Target, 
-  Zap, 
-  BookOpen, 
-  Shield, 
+  Zap,
+  BookOpen,
+  Shield,
   FileText,
   CheckCircle,
-  ArrowRight,
   Download,
   BarChart3,
-  Sparkles,
   Globe,
-  Code,
   Rocket,
   Award,
   Brain,
   Layers,
-  Building2,
   Presentation
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -1390,7 +1386,7 @@ function InvestorPageContent() {
                 Thank You
               </h2>
               <p className="text-2xl uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                Let's build the future of academic writing together
+                Let&apos;s build the future of academic writing together
               </p>
             </div>
             <div className="pt-8">

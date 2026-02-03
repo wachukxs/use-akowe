@@ -300,7 +300,7 @@ export async function getAllTimeRevenueMetrics() {
           if (customer && !customer.deleted && 'email' in customer) {
             customerEmail = customer.email || '';
           }
-        } catch (e) {
+        } catch {
           // Customer might be deleted
         }
         

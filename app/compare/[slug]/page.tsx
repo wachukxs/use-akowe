@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { GitCompare, ArrowLeft, Check, X } from 'lucide-react';
+import { GitCompare, Check, X } from 'lucide-react';
 import { getComparisonBySlug, getAllComparisonSlugs } from '@/lib/seo/comparisons';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';

@@ -5,12 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Zap, BookOpen, Shield, Download, Check, ArrowRight, Star } from 'lucide-react';
+import { Check, ArrowRight, Star } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
-import HeroImportTool from '@/components/HeroImportTool';
 import HeroTopicFinder from '@/components/HeroTopicFinder';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 
@@ -32,8 +30,8 @@ function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
 }
 
 export default function HomePage() {
-  const router = useRouter();
-  const { status } = useSession();
+  useRouter();
+  useSession();
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly billing
   const [abVariant, setAbVariant] = useState<'control' | 'variant_a' | 'variant_b'>('control');
 
@@ -231,7 +229,7 @@ export default function HomePage() {
                       <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                          "Saved at least 10 hours every month."
+                          &quot;Saved at least 10 hours every month.&quot;
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
                           — Fatima Adeoye, PhD Candidate, Europe
@@ -244,7 +242,7 @@ export default function HomePage() {
                       <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                          "No last-minute Turnitin surprises."
+                          &quot;No last-minute Turnitin surprises.&quot;
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
                           — Anjali Patel, Masters Student, North America
@@ -269,7 +267,7 @@ export default function HomePage() {
                       <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                          "Saved at least 10 hours every month."
+                          &quot;Saved at least 10 hours every month.&quot;
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
                           — Fatima Adeoye, PhD Candidate, Europe
@@ -282,7 +280,7 @@ export default function HomePage() {
                       <Star className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
                       <div>
                         <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                          "No last-minute Turnitin surprises."
+                          &quot;No last-minute Turnitin surprises.&quot;
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
                           — Anjali Patel, Masters Student, North America

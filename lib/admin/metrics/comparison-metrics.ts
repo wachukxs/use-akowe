@@ -30,7 +30,7 @@ function getStripeClient(): Stripe | null {
     return new Stripe(stripeKey, {
       apiVersion: '2025-10-29.clover',
     });
-  } catch (error) {
+  } catch {
     return null;
   }
 }

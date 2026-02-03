@@ -4,19 +4,6 @@ import mammoth from 'mammoth';
 // Enhanced plagiarism check for lead magnet (no auth required)
 // Returns limited but valuable results to encourage signup
 
-function calculateSimilarity(text1: string, text2: string): number {
-  const words1 = text1.toLowerCase().split(/\s+/).filter(w => w.length > 0);
-  const words2 = text2.toLowerCase().split(/\s+/).filter(w => w.length > 0);
-  
-  const set1 = new Set(words1);
-  const set2 = new Set(words2);
-  
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
-  
-  return union.size > 0 ? Math.round((intersection.size / union.size) * 100) : 0;
-}
-
 async function parseFile(file: File): Promise<string> {
   const extension = file.name.split('.').pop()?.toLowerCase();
   

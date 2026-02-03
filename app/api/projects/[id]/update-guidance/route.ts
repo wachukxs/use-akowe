@@ -5,7 +5,8 @@ import Project from '@/models/Project';
 import mongoose from 'mongoose';
 
 // Helper function to create contextual writing guidance (copied from main route)
-function getContextualGuidance(type: string, citationStyle: string, methodology: string, topic: string, targetWordCount: number) {
+function getContextualGuidance(type: string, citationStyle: string, methodology: string, topic: string, _targetWordCount: number) {
+  void _targetWordCount;
   // Citation-specific guidance
   const citationGuidance = {
     'APA': {

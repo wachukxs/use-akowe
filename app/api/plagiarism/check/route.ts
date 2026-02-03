@@ -56,13 +56,11 @@ function detectParaphrasing(text: string, sourceText: string): { similarity: num
   
   for (const ngram of textNGrams) {
     let maxSimilarity = 0;
-    let bestMatch = '';
     
     for (const sourceNGram of sourceNGrams) {
       const sim = calculateSimilarity(ngram, sourceNGram);
       if (sim > maxSimilarity) {
         maxSimilarity = sim;
-        bestMatch = sourceNGram;
       }
     }
     
@@ -221,7 +219,7 @@ async function checkArxiv(text: string): Promise<Array<{
 }
 
 // Citation intelligence: detect uncited claims and suggest citations
-function analyzeCitations(text: string, existingCitations: any[]): Array<{
+function analyzeCitations(text: string, _existingCitations: unknown[]): Array<{
   text: string;
   source: string;
   url?: string;
@@ -229,6 +227,7 @@ function analyzeCitations(text: string, existingCitations: any[]): Array<{
   section?: string;
   suggestion?: string;
 }> {
+  void _existingCitations;
   const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
   
   // Patterns that typically require citations
@@ -331,7 +330,7 @@ function analyzeSection(section: Section, allSections: Section[], existingCitati
   });
   
   const repetitionIssues = Object.entries(wordCountMap)
-    .filter(([word, count]) => count > 3)
+    .filter(([, count]) => count > 3)
     .slice(0, 2)
     .map(([word, count]) => ({
       text: `"${word}" appears ${count} times in this section`,
@@ -537,12 +536,12 @@ async function checkPlagiarism(
   });
   
   const repetitionIssues = Object.entries(wordCount)
-    .filter(([word, count]) => count > 3)
+    .filter(([, count]) => count > 3)
     .length;
   
   // Add repetition matches
   Object.entries(wordCount)
-    .filter(([word, count]) => count > 3)
+    .filter(([, count]) => count > 3)
     .slice(0, 3)
     .forEach(([word, count]) => {
       matches.push({

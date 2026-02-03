@@ -229,7 +229,6 @@ export async function checkAILimit(userEmail: string): Promise<{ allowed: boolea
     throw new Error('User not found');
   }
   
-  const userId = user._id.toString();
   const limits = PLAN_LIMITS[user.plan as PlanType];
   
   // Pro and Team plans have unlimited AI usage

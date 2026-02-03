@@ -39,7 +39,7 @@ export default function NotFound() {
             </div>
             
             <p className="text-lg text-[hsl(var(--muted-foreground))]">
-              The page you're looking for doesn't exist or has been moved.
+              The page you&apos;re looking for doesn&apos;t exist or has been moved.
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -76,7 +76,7 @@ export default function NotFound() {
           <div className="space-y-4">
             <div className="text-center lg:text-left">
               <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-2">
-                While you're here...
+                While you&apos;re here...
               </p>
               <h2 className="text-xl font-bold uppercase tracking-[0.1em]">
                 Check Your Work for Plagiarism

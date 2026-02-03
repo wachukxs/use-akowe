@@ -11,13 +11,13 @@ import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
 export async function generateStaticParams() {
-  const citationSlugs = getAllKeywordSlugs('citation');
+  const citationSlugs = await getAllKeywordSlugs('citation');
   return citationSlugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const keywordPage = getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlug(slug);
 
   if (!keywordPage || keywordPage.category !== 'citation') {
     return {
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CitationKeywordPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const keywordPage = getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlug(slug);
 
   if (!keywordPage || keywordPage.category !== 'citation') {
     notFound();
@@ -51,9 +51,10 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
     ],
   });
 
-  const allCitationKeywords = getAllKeywordSlugs('citation')
-    .map((s) => getKeywordPageBySlug(s))
-    .filter((k) => k && k.slug !== slug)
+  const citationSlugs = await getAllKeywordSlugs('citation');
+  const citationPages = await Promise.all(citationSlugs.map((s) => getKeywordPageBySlug(s)));
+  const allCitationKeywords = citationPages
+    .filter((k): k is NonNullable<typeof k> => k != null && k.slug !== slug)
     .slice(0, 6) as Array<{ slug: string; title: string; description: string }>;
 
   return (

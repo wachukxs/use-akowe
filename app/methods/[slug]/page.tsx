@@ -5,19 +5,18 @@ import { ArrowLeft, FileText } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
-import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
 export async function generateStaticParams() {
-  const methodSlugs = getAllKeywordSlugs('methodology');
+  const methodSlugs = await getAllKeywordSlugs('methodology');
   return methodSlugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const keywordPage = getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlug(slug);
   
   if (!keywordPage) {
     const title = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function MethodologyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const keywordPage = getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlug(slug);
   
   if (!keywordPage) {
     notFound();

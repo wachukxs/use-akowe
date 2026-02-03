@@ -1,6 +1,5 @@
 import connectDB from './mongodb';
 import LeadCapture from '@/models/LeadCapture';
-import User from '@/models/User';
 
 /**
  * Marks a lead as converted when a user signs up

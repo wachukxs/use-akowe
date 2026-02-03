@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import ProjectModel from '@/models/Project';
-import { generateProjectHTML, generateAcademicHTML, generateLaTeX, CitationStyle, AcademicTemplate, detectExportSettings } from '@/lib/export';
+import { generateAcademicHTML, generateLaTeX, CitationStyle, AcademicTemplate, detectExportSettings } from '@/lib/export';
 import { Project } from '@/types';
 import puppeteer from 'puppeteer';
 // @ts-expect-error - html-docx-js doesn't have TypeScript definitions

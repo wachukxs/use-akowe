@@ -1,9 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { HelpCircle, ArrowLeft } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { getFAQBySlug, getAllFAQSlugs } from '@/lib/seo/faqs';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
-import { RelatedContent } from '@/components/seo/RelatedContent';
 import InlineImportTool from '@/components/InlineImportTool';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';

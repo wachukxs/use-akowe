@@ -3,7 +3,6 @@ import {
   getTopicTokens,
   calculateTopicRelevanceScore,
   isTopicRelevant,
-  MIN_TOPIC_RELEVANCE_SCORE,
   type CitationLike,
 } from '@/lib/citation-relevance';
 

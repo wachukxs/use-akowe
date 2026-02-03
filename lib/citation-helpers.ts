@@ -1,5 +1,5 @@
 import { Citation } from '@/types';
-import { formatYearForDisplay, formatYearForCitationKey } from '@/lib/citation-year';
+import { formatYearForDisplay } from '@/lib/citation-year';
 
 /**
  * Normalize a discover/modal citation shape to project Citation.
@@ -17,7 +17,6 @@ export function normalizeCitationForProject(
     typeof citation.year === 'number' && Number.isInteger(citation.year)
       ? citation.year
       : undefined;
-  const yearForKey = year ?? formatYearForCitationKey(undefined);
   const firstAuthor = authors[0] ?? 'Unknown';
   const citationKey =
     typeof citation.citationKey === 'string' && citation.citationKey

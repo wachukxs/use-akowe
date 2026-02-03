@@ -3,7 +3,6 @@ import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import User from '@/models/User';
-import { PLAN_LIMITS } from '@/types';
 import { generateId } from '@/lib/utils';
 
 export async function POST(

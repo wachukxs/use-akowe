@@ -21,24 +21,25 @@ export interface KeywordPage {
   intent?: 'informational' | 'commercial' | 'transactional' | 'navigational';
 }
 
+let keywordsListCache: KeywordPage[] | null = null;
+
 /**
  * Load keywords from CSV or database
- * Uses keywords-data.ts which imports from your keyword source
+ * Uses dynamic import to avoid circular dependency with keywords-data.ts
  */
-export function loadKeywordsFromSource(): KeywordPage[] {
+export async function loadKeywordsFromSource(): Promise<KeywordPage[]> {
+  if (keywordsListCache) return keywordsListCache;
   try {
-    // Load from keywords-data.ts
-    const { loadKeywords } = require('./keywords-data');
+    const { loadKeywords } = await import('./keywords-data');
     const keywords = loadKeywords();
-    
-    // Ensure all keywords have slugs
-    return keywords.map((k: KeywordPage) => ({
+    keywordsListCache = keywords.map((k: KeywordPage) => ({
       ...k,
       slug: k.slug || keywordToSlug(k.keyword),
     }));
-  } catch (error) {
-    // Fallback: return empty array if keywords-data.ts doesn't exist or has no data
+    return keywordsListCache;
+  } catch {
     console.warn('No keyword data found. Add keywords to lib/seo/keywords-data.ts');
+    keywordsListCache = [];
     return [];
   }
 }
@@ -48,10 +49,9 @@ export function loadKeywordsFromSource(): KeywordPage[] {
  */
 let keywordCache: Map<string, KeywordPage> | null = null;
 
-export function getKeywordPageBySlug(slug: string): KeywordPage | undefined {
+export async function getKeywordPageBySlug(slug: string): Promise<KeywordPage | undefined> {
   if (!keywordCache) {
-    // Lazy load keywords when first accessed
-    const keywords: KeywordPage[] = loadKeywordsFromSource();
+    const keywords = await loadKeywordsFromSource();
     keywordCache = new Map(keywords.map((k) => [k.slug, k]));
   }
   return keywordCache.get(slug);
@@ -60,8 +60,8 @@ export function getKeywordPageBySlug(slug: string): KeywordPage | undefined {
 /**
  * Get all keyword slugs by category
  */
-export function getAllKeywordSlugs(category?: KeywordPage['category']): string[] {
-  const keywords: KeywordPage[] = loadKeywordsFromSource();
+export async function getAllKeywordSlugs(category?: KeywordPage['category']): Promise<string[]> {
+  const keywords = await loadKeywordsFromSource();
   const filtered = category 
     ? keywords.filter((k) => k.category === category)
     : keywords;

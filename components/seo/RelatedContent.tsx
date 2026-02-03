@@ -14,6 +14,7 @@ interface RelatedContentProps {
 }
 
 export function RelatedContent({ title = 'Related Content', items, type }: RelatedContentProps) {
+  void type;
   if (items.length === 0) return null;
 
   return (

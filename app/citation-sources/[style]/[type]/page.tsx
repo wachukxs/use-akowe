@@ -185,7 +185,7 @@ export default async function CitationSourcePage({
           <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Automate Your Citations</h2>
             <p className="mb-6 text-lg leading-relaxed">
-              Don't memorize citation formats. Use Akowe to automatically cite {type}s in {citationStyle.name} style. 
+              Don&apos;t memorize citation formats. Use Akowe to automatically cite {type}s in {citationStyle.name} style. 
               Search real academic sources, add them to your paper, and Akowe formats them correctly—every time.
             </p>
             <Link

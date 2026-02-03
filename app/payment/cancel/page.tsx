@@ -16,7 +16,7 @@ export default function PaymentCancelPage() {
           Payment Cancelled
         </h2>
         <p className="text-gray-600 mb-6">
-          No worries! Your subscription was not charged. You can try again whenever you're ready.
+          No worries! Your subscription was not charged. You can try again whenever you&apos;re ready.
         </p>
         <div className="flex gap-3">
           <button

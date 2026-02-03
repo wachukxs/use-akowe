@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
-import { Section, Citation } from '@/types';
+import { Citation } from '@/types';
 import mammoth from 'mammoth';
 
 /**
@@ -118,8 +118,7 @@ async function parseDOCX(file: File): Promise<{
     const text = textResult.value;
     
     // Extract HTML for better structure detection
-    const htmlResult = await mammoth.convertToHtml({ buffer });
-    const html = htmlResult.value;
+    await mammoth.convertToHtml({ buffer });
     
     // Parse structure from text (similar to TXT parsing)
     const sections = parseTextIntoSections(text);

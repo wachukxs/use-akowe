@@ -143,7 +143,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
             <h2 className="text-2xl font-bold mb-4">Use This Template in Akowe</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Create a new project in Akowe and use this structure to organize your {template.type.toLowerCase()}. 
-              Akowe's section-based editor makes it easy to follow this template, and you can add citations, 
+              Akowe&apos;s section-based editor makes it easy to follow this template, and you can add citations, 
               check for plagiarism, and export your finished work—all in one place.
             </p>
             <Link

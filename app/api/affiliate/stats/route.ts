@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         const urlString = input.startsWith('http') ? input : `https://${input}`;
         const url = new URL(urlString);
         referralCode = url.searchParams.get('ref') || '';
-      } catch (error) {
+      } catch {
         // If URL parsing fails, try extracting manually
         const match = input.match(/[?&]ref=([^&]+)/);
         referralCode = match ? match[1] : '';

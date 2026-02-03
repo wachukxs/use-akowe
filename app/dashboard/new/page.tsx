@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { ProjectType } from '@/types';
-import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Upload, Sparkles } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TopicFinderModal from '@/components/TopicFinderModal';
 
@@ -228,7 +228,7 @@ export default function NewProjectPage() {
               <div className="flex-1">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">Getting Started</h3>
                 <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
-                  New to Akọ̀wé? Fill in your project details below. We'll create structured sections with AI-powered guidance to help you write your academic work.
+                  New to Akọ̀wé? Fill in your project details below. We&apos;ll create structured sections with AI-powered guidance to help you write your academic work.
                 </p>
                 <div className="text-xs uppercase tracking-[0.16em] space-y-1">
                   <p>• Choose your project type to get tailored sections</p>

@@ -124,7 +124,7 @@ export default function TopicFinderModal({
               : '';
             errorMessage = `${errorMessage} ${limitMessage}`.trim();
           }
-        } catch (jsonError) {
+        } catch {
           // If JSON parsing fails, use status text
           errorMessage = `Server error: ${response.statusText || 'Unknown error'}`;
         }
@@ -135,7 +135,7 @@ export default function TopicFinderModal({
       let data: TopicResult;
       try {
         data = await response.json();
-      } catch (jsonError) {
+      } catch {
         throw new Error('Invalid response from server. Please try again.');
       }
 
@@ -219,7 +219,7 @@ export default function TopicFinderModal({
                 Find Your Unique Research Topic
               </h2>
               <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1">
-                Discover research gaps and ensure your topic hasn't been done before
+                Discover research gaps and ensure your topic hasn&apos;t been done before
               </p>
             </div>
           </div>
@@ -482,7 +482,7 @@ export default function TopicFinderModal({
               {!isPro && result.usageCount !== undefined && result.limit !== undefined && (
                 <div className="text-center">
                   <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
-                    You've used {result.usageCount} of {result.limit} free topic suggestions today
+                    You&apos;ve used {result.usageCount} of {result.limit} free topic suggestions today
                   </p>
                 </div>
               )}
@@ -509,7 +509,7 @@ export default function TopicFinderModal({
                     variant="outline"
                     onClick={handleUseCurrentTopic}
                   >
-                    Use "{topic.trim().substring(0, 30)}{topic.length > 30 ? '...' : ''}"
+                    Use &quot;{topic.trim().substring(0, 30)}{topic.length > 30 ? '...' : ''}&quot;
                   </Button>
                 )}
                 {selectedSuggestion && (

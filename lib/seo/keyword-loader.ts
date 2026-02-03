@@ -103,8 +103,6 @@ export function loadKeywordsFromArray(keywords: Array<{
   content?: KeywordPage['content'];
   relatedKeywords?: string[];
 }>): KeywordPage[] {
-  const { keywordToSlug } = require('./keywords');
-  
   return keywords.map((item) => {
     const slug = item.slug || keywordToSlug(item.keyword || item.title || '');
     return {

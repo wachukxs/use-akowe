@@ -7,7 +7,8 @@ import { PLAN_LIMITS, PlanType } from '@/types';
 import { createProjectInternal } from '@/lib/project-creation';
 
 // Helper function to create contextual writing guidance
-function getContextualGuidance(type: string, citationStyle: string, methodology: string, topic: string, targetWordCount: number) {
+function getContextualGuidance(type: string, citationStyle: string, methodology: string, topic: string, _targetWordCount: number) {
+  void _targetWordCount;
   // Citation-specific guidance
   const citationGuidance = {
     'APA': {

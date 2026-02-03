@@ -338,7 +338,7 @@ export default function ReferralsTab() {
               {data.influencers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-[hsl(var(--muted-foreground))]">
-                    No influencers added yet. Click "Add Influencer" to create one.
+                    No influencers added yet. Click &quot;Add Influencer&quot; to create one.
                   </td>
                 </tr>
               ) : (

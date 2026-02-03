@@ -275,7 +275,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
                           {issue.type}
                         </p>
                         <p className="text-xs uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))] mt-1">
-                          "{issue.text}"
+                          &quot;{issue.text}&quot;
                         </p>
                         <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--secondary))] mt-2">
                           💡 {issue.suggestion}

@@ -114,8 +114,6 @@ async function parseFile(file: File): Promise<{
   
   // Check for expected academic sections
   const sectionTitlesLower = sections.map(s => s.title.toLowerCase());
-  const expectedSections = ['abstract', 'introduction', 'methodology', 'methods', 'literature review', 'conclusion', 'references'];
-  
   const hasMethodology = sectionTitlesLower.some(t => t.includes('method') || t.includes('methodology'));
   const hasLitReview = sectionTitlesLower.some(t => t.includes('literature') || t.includes('review') || t.includes('background'));
   const hasConclusion = sectionTitlesLower.some(t => t.includes('conclusion') || t.includes('summary'));

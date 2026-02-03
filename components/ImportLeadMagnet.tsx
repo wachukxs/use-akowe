@@ -130,7 +130,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
           Import Your Existing Thesis
         </h2>
         <p className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">
-          Upload your document. We'll extract sections, citations, and structure—ready to continue in Akọ̀wé.
+          Upload your document. We&apos;ll extract sections, citations, and structure—ready to continue in Akọ̀wé.
         </p>
       </div>
 

@@ -238,12 +238,6 @@ const BENCHMARKS = {
   featureAdoption: { excellent: 50, good: 30, average: 15 },
 };
 
-const PRODUCT_GOALS = {
-  userTarget: 1600,
-  userTargetPeriodDays: 90,
-  conversionTarget: 15,
-};
-
 function TimeContextBadge({ context }: { context: string }) {
   const badges = {
     current: { label: 'Current', color: 'bg-blue-500/20 text-blue-500' },
@@ -400,7 +394,6 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [metrics, setMetrics] = useState<AdminMetricsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingSections, setLoadingSections] = useState<Record<string, boolean>>({});
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [daysFilter, setDaysFilter] = useState<number>(30);
@@ -1147,7 +1140,7 @@ export default function AdminDashboard() {
         >
           <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
             <strong className="text-[hsl(var(--foreground))]">Why Period-Based?</strong> These metrics show activity within your selected time window, 
-            making it easy to compare performance across different periods (e.g., "How did we do this month vs last month?"). 
+            making it easy to compare performance across different periods (e.g., &quot;How did we do this month vs last month?&quot;). 
             All calculations filter data to only include events within the selected date range.
           </div>
           <div className="space-y-4">
@@ -1232,7 +1225,7 @@ export default function AdminDashboard() {
         >
           <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
             <strong className="text-[hsl(var(--foreground))]">Why Mixed?</strong> Business metrics combine current state (MRR, active subscriptions) 
-            with all-time totals (total revenue, conversion rate, ARPU). Current metrics show today's health, 
+            with all-time totals (total revenue, conversion rate, ARPU). Current metrics show today&apos;s health, 
             while all-time metrics show cumulative performance. This gives both a snapshot and historical context.
           </div>
           <div className="space-y-4">
@@ -1319,7 +1312,7 @@ export default function AdminDashboard() {
           <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
             <strong className="text-[hsl(var(--foreground))]">Why Period-Based?</strong> Product metrics like completion rate and feature adoption 
             are calculated for projects created within your selected period. This shows how product usage trends over time 
-            (e.g., "Are users completing more projects this quarter vs last quarter?") rather than just cumulative totals.
+            (e.g., &quot;Are users completing more projects this quarter vs last quarter?&quot;) rather than just cumulative totals.
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard

@@ -11,13 +11,13 @@ import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
 export async function generateStaticParams() {
-  const faqSlugs = getAllKeywordSlugs('faq');
+  const faqSlugs = await getAllKeywordSlugs('faq');
   return faqSlugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const keywordPage = getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlug(slug);
   
   if (!keywordPage || keywordPage.category !== 'faq') {
     return {
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function FAQKeywordPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const keywordPage = getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlug(slug);
   
   if (!keywordPage || keywordPage.category !== 'faq') {
     notFound();
@@ -51,9 +51,10 @@ export default async function FAQKeywordPage({ params }: { params: Promise<{ slu
     ],
   });
 
-  const allFAQKeywords = getAllKeywordSlugs('faq')
-    .map((s) => getKeywordPageBySlug(s))
-    .filter((k) => k && k.slug !== slug)
+  const faqSlugs = await getAllKeywordSlugs('faq');
+  const faqPages = await Promise.all(faqSlugs.map((s) => getKeywordPageBySlug(s)));
+  const allFAQKeywords = faqPages
+    .filter((k): k is NonNullable<typeof k> => k != null && k.slug !== slug)
     .slice(0, 6) as Array<{ slug: string; title: string; description: string }>;
 
   return (

@@ -89,9 +89,9 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
-  const [totalWordCount, setTotalWordCount] = useState(0);
+  const [, setTotalWordCount] = useState(0);
   const [localWordCount, setLocalWordCount] = useState(0);
-  const [localSectionContent, setLocalSectionContent] = useState<string>('');
+  const [, setLocalSectionContent] = useState<string>('');
   const [realTimeWordCount, setRealTimeWordCount] = useState<number>(0);
   const [showManualCitationModal, setShowManualCitationModal] = useState(false);
   const [formattingState, setFormattingState] = useState({
@@ -154,11 +154,6 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       arxiv: number;
     };
   } | null>(null);
-  const [expandedSections, setExpandedSections] = useState({
-    resources: false,
-    akowe: false,
-  });
-  
   // Math and Chart modal states
   const [showMathModal, setShowMathModal] = useState(false);
   const [showChartModal, setShowChartModal] = useState(false);
@@ -271,7 +266,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         }
         return extracted;
       }
-    } catch (e) {
+    } catch {
       // Not JSON, could be HTML, markdown, or plain text
       if (content.includes('<') && content.includes('>')) {
         // It's HTML, return as is
@@ -901,7 +896,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     try {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
+      selection.getRangeAt(0);
       const selectedText = selection.toString();
       
         let htmlToInsert = '';
@@ -962,7 +957,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     try {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
+        selection.getRangeAt(0);
         const selectedText = selection.toString();
         
         let htmlToInsert = '';
@@ -1036,7 +1031,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
     try {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
+        selection.getRangeAt(0);
         const selectedText = selection.toString();
         
         let htmlToInsert = '';
@@ -1357,7 +1352,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
             selection.removeAllRanges();
             selection.addRange(newRange);
           }
-        } catch (e) {
+        } catch {
           // If cursor restoration fails, just place at end
           const newRange = document.createRange();
           newRange.selectNodeContents(editorElement);
@@ -3439,7 +3434,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                     </div>
                     <div className="flex-1">
                       <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed">
-                        Hi! I'm Akowe, your AI writing assistant. I can help you with:
+                        Hi! I&apos;m Akowe, your AI writing assistant. I can help you with:
                       </p>
                       <ul className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-2 space-y-1">
                         <li>• Improving structure and flow</li>
@@ -4400,7 +4395,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
                         >
                           <div className="flex items-start justify-between gap-3 mb-2">
                             <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] flex-1 leading-relaxed">
-                              "{match.text}"
+                              &quot;{match.text}&quot;
                             </p>
                             {typeof match.similarity === 'number' && (
                               <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] whitespace-nowrap">

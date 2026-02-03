@@ -22,7 +22,7 @@ interface ExtractedData {
 function ImportProjectPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  useSession();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
