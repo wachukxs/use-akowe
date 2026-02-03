@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
 import HeroTopicFinder from '@/components/HeroTopicFinder';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
+import { getProPlanDiscount, formatDiscountPercentage } from '@/lib/annual-discount';
 
 // Helper function to get A/B test variant from cookie
 function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
@@ -841,7 +842,7 @@ export default function HomePage() {
                 )}
                 aria-hidden={!isAnnual}
               >
-                Save 47%
+                Save {formatDiscountPercentage(getProPlanDiscount().discountPercentage)}
               </span>
             </div>
           </div>

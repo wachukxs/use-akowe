@@ -12,6 +12,7 @@ import {
   TrendingUp,
   RefreshCw,
 } from 'lucide-react';
+import { getQualityScoreLabel } from '@/lib/influencer-quality';
 
 interface ReferralStats {
   totalReferrals: number;
@@ -28,6 +29,11 @@ interface Influencer {
   referralCode: string;
   notes?: string;
   referralCount: number;
+  qualityScore?: number;
+  activationRate?: number;
+  paidConversionRate?: number;
+  avgActiveDays?: number;
+  qualityScoreLastCalculated?: string | Date | null;
   createdAt: string;
 }
 
@@ -71,6 +77,7 @@ export default function ReferralsTab() {
   const [newInfluencer, setNewInfluencer] = useState({ name: '', email: '', notes: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [recalculatingQuality, setRecalculatingQuality] = useState<string | null>(null);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -127,6 +134,26 @@ export default function ReferralsTab() {
       setError(err instanceof Error ? err.message : 'Failed to create influencer');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleRecalculateQuality = async (id: string) => {
+    setRecalculatingQuality(id);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/influencers/${id}/quality`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to recalculate quality score');
+      }
+      // Refresh data after recalculation
+      fetchReferralData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to recalculate quality score');
+    } finally {
+      setRecalculatingQuality(null);
     }
   };
 
@@ -330,6 +357,9 @@ export default function ReferralsTab() {
                 <th className="text-left py-3 px-4 text-xs uppercase">Email</th>
                 <th className="text-left py-3 px-4 text-xs uppercase">Referral Link</th>
                 <th className="text-center py-3 px-4 text-xs uppercase">Referrals</th>
+                <th className="text-center py-3 px-4 text-xs uppercase">Quality Score</th>
+                <th className="text-center py-3 px-4 text-xs uppercase">Activation</th>
+                <th className="text-center py-3 px-4 text-xs uppercase">Paid Conv.</th>
                 <th className="text-left py-3 px-4 text-xs uppercase">Notes</th>
                 <th className="text-left py-3 px-4 text-xs uppercase">Added</th>
                 <th className="text-center py-3 px-4 text-xs uppercase">Actions</th>
@@ -338,75 +368,127 @@ export default function ReferralsTab() {
             <tbody>
               {data.influencers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[hsl(var(--muted-foreground))]">
+                  <td colSpan={10} className="py-8 text-center text-[hsl(var(--muted-foreground))]">
                     No influencers added yet. Click &quot;Add Influencer&quot; to create one.
                   </td>
                 </tr>
               ) : (
-                data.influencers.map((influencer) => (
-                  <tr
-                    key={influencer._id}
-                    className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5"
-                  >
-                    <td className="py-3 px-4 font-medium">{influencer.name}</td>
-                    <td className="py-3 px-4">{influencer.email}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs bg-[hsl(var(--accent))]/20 px-2 py-1 rounded">
-                          {influencer.referralCode}
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(influencer.referralCode)}
-                          className="p-1 hover:bg-[hsl(var(--accent))] rounded transition-colors"
-                          title="Copy referral link"
-                        >
-                          {copiedCode === influencer.referralCode ? (
-                            <Check size={14} className="text-green-500" />
-                          ) : (
-                            <Copy size={14} />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="px-2 py-0.5 bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] rounded text-xs font-semibold">
-                        {influencer.referralCount}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-[hsl(var(--muted-foreground))] text-xs">
-                      {influencer.notes || '—'}
-                    </td>
-                    <td className="py-3 px-4 text-xs">
-                      {new Date(influencer.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      {deleteConfirm === influencer._id ? (
-                        <div className="flex items-center gap-2 justify-center">
+                data.influencers.map((influencer) => {
+                  const qualityLabel = influencer.qualityScore !== undefined && influencer.qualityScore !== null
+                    ? getQualityScoreLabel(influencer.qualityScore)
+                    : null;
+
+                  return (
+                    <tr
+                      key={influencer._id}
+                      className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5"
+                    >
+                      <td className="py-3 px-4 font-medium">{influencer.name}</td>
+                      <td className="py-3 px-4">{influencer.email}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <code className="text-xs bg-[hsl(var(--accent))]/20 px-2 py-1 rounded">
+                            {influencer.referralCode}
+                          </code>
                           <button
-                            onClick={() => handleDeleteInfluencer(influencer._id)}
-                            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                            onClick={() => copyToClipboard(influencer.referralCode)}
+                            className="p-1 hover:bg-[hsl(var(--accent))] rounded transition-colors"
+                            title="Copy referral link"
                           >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(null)}
-                            className="px-2 py-1 text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]"
-                          >
-                            Cancel
+                            {copiedCode === influencer.referralCode ? (
+                              <Check size={14} className="text-green-500" />
+                            ) : (
+                              <Copy size={14} />
+                            )}
                           </button>
                         </div>
-                      ) : (
-                        <button
-                          onClick={() => setDeleteConfirm(influencer._id)}
-                          className="p-1 hover:bg-red-500/20 rounded transition-colors text-red-500"
-                          title="Delete influencer"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </td>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className="px-2 py-0.5 bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] rounded text-xs font-semibold">
+                          {influencer.referralCount}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {qualityLabel ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <span
+                              className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                qualityLabel.level === 'excellent'
+                                  ? 'bg-green-500/20 text-green-600'
+                                  : qualityLabel.level === 'good'
+                                  ? 'bg-blue-500/20 text-blue-600'
+                                  : qualityLabel.level === 'fair'
+                                  ? 'bg-yellow-500/20 text-yellow-600'
+                                  : 'bg-red-500/20 text-red-600'
+                              }`}
+                            >
+                              {influencer.qualityScore?.toFixed(1)} - {qualityLabel.label}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-[hsl(var(--muted-foreground))]">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center text-xs">
+                        {influencer.activationRate !== undefined && influencer.activationRate !== null
+                          ? `${influencer.activationRate.toFixed(1)}%`
+                          : '—'}
+                      </td>
+                      <td className="py-3 px-4 text-center text-xs">
+                        {influencer.paidConversionRate !== undefined && influencer.paidConversionRate !== null
+                          ? `${influencer.paidConversionRate.toFixed(1)}%`
+                          : '—'}
+                      </td>
+                      <td className="py-3 px-4 text-[hsl(var(--muted-foreground))] text-xs">
+                        {influencer.notes || '—'}
+                      </td>
+                      <td className="py-3 px-4 text-xs">
+                        {new Date(influencer.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {deleteConfirm === influencer._id ? (
+                          <div className="flex items-center gap-2 justify-center">
+                            <button
+                              onClick={() => handleDeleteInfluencer(influencer._id)}
+                              className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(null)}
+                              className="px-2 py-1 text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 justify-center">
+                            {influencer.referralCount > 0 && (
+                              <button
+                                onClick={() => handleRecalculateQuality(influencer._id)}
+                                disabled={recalculatingQuality === influencer._id}
+                                className="p-1 hover:bg-[hsl(var(--accent))] rounded transition-colors disabled:opacity-50"
+                                title="Recalculate quality score"
+                              >
+                                <RefreshCw
+                                  size={14}
+                                  className={recalculatingQuality === influencer._id ? 'animate-spin' : ''}
+                                />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteConfirm(influencer._id)}
+                              className="p-1 hover:bg-red-500/20 rounded transition-colors text-red-500"
+                              title="Delete influencer"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

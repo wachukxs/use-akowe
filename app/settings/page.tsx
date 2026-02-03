@@ -11,6 +11,7 @@ import { Check, Crown, Users, X, Info, Copy, Gift } from 'lucide-react';
 import { trackFunnel } from '@/lib/gtag';
 import { buildReferralLink } from '@/lib/referral-links';
 import Active37DiscountPopup from '@/components/Active37DiscountPopup';
+import { getProPlanDiscount, formatDiscountPercentage } from '@/lib/annual-discount';
 
 interface UsageData {
   aiWordsGenerated: number;
@@ -544,7 +545,7 @@ export default function SettingsPage() {
                   }`}
                   aria-hidden={!isAnnual}
                 >
-                  Save 47%
+                  Save {formatDiscountPercentage(getProPlanDiscount().discountPercentage)}
                 </span>
               </div>
             ) : subscriptionStatus && (

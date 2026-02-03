@@ -2,18 +2,51 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Influencer from '@/models/Influencer';
+import { calculateInfluencerQuality } from '@/lib/influencer-quality';
 
 export async function GET() {
   try {
     await connectDB();
 
-    // Get all influencers with their referral counts
+    // Get all influencers with their referral counts and quality scores
     const influencers = await Influencer.find().sort({ createdAt: -1 }).lean();
     const influencersWithCounts = await Promise.all(
       influencers.map(async (influencer) => {
         const referralCount = await User.countDocuments({
           referredByInfluencer: influencer._id,
         });
+
+        // Use cached quality score if available and recent (within 24 hours), otherwise calculate
+        const shouldRecalculate = !influencer.qualityScoreLastCalculated ||
+          (Date.now() - new Date(influencer.qualityScoreLastCalculated).getTime()) > 24 * 60 * 60 * 1000;
+
+        let qualityMetrics;
+        if (shouldRecalculate && referralCount > 0) {
+          // Calculate fresh quality metrics
+          qualityMetrics = await calculateInfluencerQuality(influencer._id!);
+          
+          // Update cached scores in database (fire-and-forget, don't block response)
+          Influencer.findByIdAndUpdate(influencer._id, {
+            qualityScore: qualityMetrics.qualityScore,
+            activationRate: qualityMetrics.activationRate,
+            paidConversionRate: qualityMetrics.paidConversionRate,
+            avgActiveDays: qualityMetrics.avgActiveDays,
+            qualityScoreLastCalculated: qualityMetrics.lastCalculated,
+          }).catch(err => console.error('Error updating cached quality score:', err));
+        } else {
+          // Use cached values
+          qualityMetrics = {
+            totalReferrals: referralCount,
+            activatedUsers: 0, // Not cached, would need separate query
+            paidUsers: 0, // Not cached, would need separate query
+            activationRate: influencer.activationRate ?? 0,
+            paidConversionRate: influencer.paidConversionRate ?? 0,
+            avgActiveDays: influencer.avgActiveDays ?? 0,
+            qualityScore: influencer.qualityScore ?? 0,
+            lastCalculated: influencer.qualityScoreLastCalculated ?? null,
+          };
+        }
+
         return {
           _id: influencer._id.toString(),
           name: influencer.name,
@@ -21,6 +54,11 @@ export async function GET() {
           referralCode: influencer.referralCode,
           notes: influencer.notes,
           referralCount,
+          qualityScore: qualityMetrics.qualityScore,
+          activationRate: qualityMetrics.activationRate,
+          paidConversionRate: qualityMetrics.paidConversionRate,
+          avgActiveDays: qualityMetrics.avgActiveDays,
+          qualityScoreLastCalculated: qualityMetrics.lastCalculated,
           createdAt: influencer.createdAt,
         };
       })
