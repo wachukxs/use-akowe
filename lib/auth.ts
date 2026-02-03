@@ -202,16 +202,29 @@ export const authOptions: NextAuthConfig = {
         token.email = user.email;
         token.plan = user.plan || 'free';
         token.billingCycle = user.billingCycle || 'monthly';
+        token.planLastUpdated = Date.now(); // Track when plan was last fetched
       }
       
-      // Always fetch the latest plan from the database when we have a user ID
-      if (token.id) {
-        await connectDB();
-        const dbUser = await User.findById(token.id);
-        if (dbUser) {
-          token.plan = dbUser.plan || 'free';
-          token.billingCycle = dbUser.billingCycle || 'monthly';
-          token.referralCode = dbUser.referralCode || null;
+      // Only fetch the latest plan from database if:
+      // 1. We have a user ID
+      // 2. Plan hasn't been updated in the last 5 minutes (300000ms) OR plan is not set
+      const PLAN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+      const shouldRefreshPlan = !token.planLastUpdated || 
+                                (Date.now() - token.planLastUpdated) > PLAN_CACHE_TTL;
+      
+      if (token.id && shouldRefreshPlan) {
+        try {
+          await connectDB();
+          const dbUser = await User.findById(token.id);
+          if (dbUser) {
+            token.plan = dbUser.plan || 'free';
+            token.billingCycle = dbUser.billingCycle || 'monthly';
+            token.referralCode = dbUser.referralCode || null;
+            token.planLastUpdated = Date.now();
+          }
+        } catch (error) {
+          // If DB query fails, use cached values - don't break auth
+          console.error('Failed to refresh user plan from DB:', error);
         }
       }
       

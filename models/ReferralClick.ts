@@ -24,4 +24,4 @@ const ReferralClickSchema = new Schema<IReferralClick>(
 // Index for efficient queries on referral code and conversion status
 ReferralClickSchema.index({ referralCode: 1, converted: 1 });
 
-export default mongoose.models.ReferralClick || mongoose.model<IReferralClick>('ReferralClick', ReferralClickSchema);
+export default (mongoose.models && mongoose.models.ReferralClick) || mongoose.model<IReferralClick>('ReferralClick', ReferralClickSchema);

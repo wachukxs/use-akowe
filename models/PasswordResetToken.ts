@@ -43,7 +43,7 @@ const PasswordResetTokenSchema = new Schema<IPasswordResetToken>(
 PasswordResetTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const PasswordResetToken: Model<IPasswordResetToken> =
-  mongoose.models.PasswordResetToken ||
+  (mongoose.models && mongoose.models.PasswordResetToken) ||
   mongoose.model<IPasswordResetToken>('PasswordResetToken', PasswordResetTokenSchema);
 
 export default PasswordResetToken;

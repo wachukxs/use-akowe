@@ -95,6 +95,6 @@ ActivationSchema.index({ isActivated: 1, toolEntryPoint: 1 });
 ActivationSchema.index({ activatedAt: 1 });
 ActivationSchema.index({ createdAt: 1 });
 
-const Activation: Model<IActivation> = mongoose.models.Activation || mongoose.model<IActivation>('Activation', ActivationSchema);
+const Activation: Model<IActivation> = (mongoose.models && mongoose.models.Activation) || mongoose.model<IActivation>('Activation', ActivationSchema);
 
 export default Activation;

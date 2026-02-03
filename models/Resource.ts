@@ -68,6 +68,6 @@ ResourceSchema.index({ tags: 1 });
 ResourceSchema.index({ rating: -1 });
 ResourceSchema.index({ downloads: -1 });
 
-const Resource: Model<IResource> = mongoose.models.Resource || mongoose.model<IResource>('Resource', ResourceSchema);
+const Resource: Model<IResource> = (mongoose.models && mongoose.models.Resource) || mongoose.model<IResource>('Resource', ResourceSchema);
 
 export default Resource;

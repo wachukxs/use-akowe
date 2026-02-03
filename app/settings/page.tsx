@@ -95,6 +95,12 @@ export default function SettingsPage() {
   const checkActive37Eligibility = async () => {
     if (!session?.user?.email) return;
 
+    // IMPORTANT: Never show popup to Pro users (client-side check)
+    const userPlan = (session.user as any)?.plan;
+    if (userPlan && userPlan !== 'free') {
+      return;
+    }
+
     // Check if user has already dismissed permanently
     const dismissedPermanently = localStorage.getItem('akowe_active37_dismissed_permanent');
     if (dismissedPermanently === 'true') return;
@@ -108,7 +114,8 @@ export default function SettingsPage() {
       const response = await fetch('/api/user/active-discount-eligibility');
       if (response.ok) {
         const data = await response.json();
-        if (data.eligible) {
+        // Double-check: Only show if eligible AND still on free plan
+        if (data.eligible && userPlan === 'free') {
           setActive37Eligibility(data);
           setShowActive37Popup(true);
           localStorage.setItem('akowe_active37_last_shown', today);

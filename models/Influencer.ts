@@ -66,6 +66,6 @@ const InfluencerSchema = new Schema<IInfluencer>(
 // Note: referralCode and email indexes are already created by unique: true in the schema definition
 
 const Influencer: Model<IInfluencer> = 
-  mongoose.models.Influencer || mongoose.model<IInfluencer>('Influencer', InfluencerSchema);
+  (mongoose.models && mongoose.models.Influencer) || mongoose.model<IInfluencer>('Influencer', InfluencerSchema);
 
 export default Influencer;

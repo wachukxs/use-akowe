@@ -39,4 +39,4 @@ const LeadCaptureSchema = new Schema<ILeadCapture>(
 // Compound index for unique email per source (allow same email for different tools)
 LeadCaptureSchema.index({ email: 1, source: 1 }, { unique: true });
 
-export default mongoose.models.LeadCapture || mongoose.model<ILeadCapture>('LeadCapture', LeadCaptureSchema);
+export default (mongoose.models && mongoose.models.LeadCapture) || mongoose.model<ILeadCapture>('LeadCapture', LeadCaptureSchema);

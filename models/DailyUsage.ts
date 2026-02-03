@@ -35,7 +35,7 @@ DailyUsageSchema.index({ userId: 1, date: 1 }, { unique: true });
 DailyUsageSchema.index({ date: 1 }); // For date range queries
 DailyUsageSchema.index({ date: -1, userId: 1 }); // For engagement queries
 
-const DailyUsage: Model<IDailyUsage> = mongoose.models.DailyUsage || mongoose.model<IDailyUsage>('DailyUsage', DailyUsageSchema);
+const DailyUsage: Model<IDailyUsage> = (mongoose.models && mongoose.models.DailyUsage) || mongoose.model<IDailyUsage>('DailyUsage', DailyUsageSchema);
 
 export default DailyUsage;
 

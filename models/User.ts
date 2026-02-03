@@ -121,7 +121,7 @@ UserSchema.index({ createdAt: -1 }); // For recent users query
 UserSchema.index({ referredBy: 1 }); // For counting referrals per user
 UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+const User: Model<IUser> = (mongoose.models && mongoose.models.User) || mongoose.model<IUser>('User', UserSchema);
 
 export default User;
 

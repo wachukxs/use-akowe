@@ -226,7 +226,7 @@ ProjectSchema.index({ updatedAt: 1 });
 ProjectSchema.index({ status: 1 });
 ProjectSchema.index({ createdAt: 1, status: 1 }); // Compound for period queries
 
-const Project: Model<IProject> = mongoose.models.Project || mongoose.model<IProject>('Project', ProjectSchema);
+const Project: Model<IProject> = (mongoose.models && mongoose.models.Project) || mongoose.model<IProject>('Project', ProjectSchema);
 
 export default Project;
 
