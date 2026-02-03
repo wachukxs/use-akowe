@@ -626,12 +626,21 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           }
         }
         
+        // Handle preview-only mode (Variant B)
+        if (data.previewOnly) {
+          trackFunnel.paywallView('word_limit', 'preview_output');
+          setShowSuccessMessage('Preview mode: You can see the output, but export requires Pro. Upgrade to export!');
+          setTimeout(() => setShowSuccessMessage(''), 6000);
+        }
+        
         // Debug logging
         console.log('AI Assistant Response:', {
           isIntegrated: data.isIntegrated,
           insertionMode: 'integrate',
           hasCurrentContent: !!cleanupSectionContent(section.content || ''),
-          responseLength: data.response?.length
+          responseLength: data.response?.length,
+          previewOnly: data.previewOnly,
+          paywallVariant: data.paywallVariant
         });
         
         // Add assistant response to chat
@@ -640,18 +649,28 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           type: 'assistant' as const,
           content: data.response,
           timestamp: new Date(),
-          isIntegrated: data.isIntegrated || false
+          isIntegrated: data.isIntegrated || false,
+          previewOnly: data.previewOnly || false
         };
         setAiMessages(prev => [...prev, assistantMessage]);
         
         setAiInput('');
       } else if (response.status === 429) {
         // Track paywall view for word limit
-        trackFunnel.paywallView('word_limit', 'ai_assistant');
         const errorData = await response.json();
-        console.error('AI Assistant error:', errorData);
-        setShowSuccessMessage(errorData.error || 'Daily word limit reached. Upgrade to Pro for unlimited AI assistance!');
-        setTimeout(() => setShowSuccessMessage(''), 6000);
+        trackFunnel.paywallView('word_limit', 'ai_assistant');
+        
+        // Check if this is variant B (preview allowed)
+        if (errorData.paywallVariant === 'variant_b') {
+          // Variant B: Allow preview, show message about export paywall
+          // The response should still contain the preview content
+          console.warn('Variant B: Preview mode - export will require upgrade');
+        } else {
+          // Variant A: Block completely
+          console.error('AI Assistant error:', errorData);
+          setShowSuccessMessage(errorData.error || 'Daily word limit reached. Upgrade to Pro for unlimited AI assistance!');
+          setTimeout(() => setShowSuccessMessage(''), 6000);
+        }
       } else {
         const errorData = await response.json();
         console.error('AI Assistant error:', errorData);
@@ -1939,6 +1958,26 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       });
 
       if (!response.ok) {
+        // Handle paywall variant B (preview-only export block)
+        if (response.status === 403) {
+          try {
+            const errorData = await response.json();
+            if (errorData.requiresUpgrade && errorData.paywallVariant === 'variant_b') {
+              // Track paywall view for export
+              trackFunnel.paywallView('word_limit', 'export', 'variant_b');
+              setShowSuccessMessage('Upgrade to Pro to export your project! You can preview it here, but export requires a Pro plan.');
+              setTimeout(() => setShowSuccessMessage(''), 6000);
+              // Optionally redirect to settings/upgrade page
+              setTimeout(() => {
+                router.push('/settings');
+              }, 2000);
+              return;
+            }
+          } catch {
+            // Fall through to generic error handling
+          }
+        }
+        
         const errorText = await response.text();
         throw new Error(`Export failed: ${response.status} ${errorText}`);
       }

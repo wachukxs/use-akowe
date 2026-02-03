@@ -114,6 +114,30 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // Handle Paywall A/B testing for authenticated routes
+  if (pathname.startsWith('/project') || pathname.startsWith('/dashboard')) {
+    // Check for existing paywall variant cookie
+    const existingPaywallVariant = request.cookies.get('akowe_paywall_variant');
+    
+    if (existingPaywallVariant?.value && ['variant_a', 'variant_b'].includes(existingPaywallVariant.value)) {
+      // User already has a variant, keep it
+      return response;
+    }
+
+    // Assign new paywall variant (50/50 split)
+    const paywallVariant = Math.random() < 0.5 ? 'variant_a' : 'variant_b';
+
+    // Set cookie with 30-day expiration
+    response.cookies.set('akowe_paywall_variant', paywallVariant, {
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    return response;
+  }
+
   // Normalize UTM parameters and referrers to fix "Unassigned" traffic
   // If there's a ref parameter but no UTMs, add default UTMs to the response
   const hasRef = searchParams.has('ref');

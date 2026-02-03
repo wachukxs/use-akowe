@@ -100,6 +100,11 @@ export const authOptions: NextAuthConfig = {
             console.error('Error processing referral code:', err);
           }
           
+          // Check for fraud (create a mock request for fraud check)
+          // Note: Google OAuth doesn't provide direct access to request object
+          // We'll rely on email uniqueness check which is already enforced
+          // For more sophisticated fraud detection, we'd need to store IP/device info during OAuth flow
+          
           // VIP users get pro plan on signup, others get free
           const initialPlan = isVIPUser(user.email) ? 'pro' : 'free';
           // Create user with referral code, handling duplicate key errors

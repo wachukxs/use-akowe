@@ -7,6 +7,8 @@ import { Project } from '@/types';
 import puppeteer from 'puppeteer';
 // @ts-expect-error - html-docx-js doesn't have TypeScript definitions
 import htmlDocx from 'html-docx-js';
+import User from '@/models/User';
+import { shouldShowPaywallBeforeExport, type PaywallVariant } from '@/lib/paywall-ab-test';
 
 export async function GET(
   request: NextRequest,
@@ -36,6 +38,34 @@ export async function GET(
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    // Check paywall variant for free users
+    const user = await User.findOne({ email: session.user.email });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Get paywall variant from cookie
+    const paywallVariantCookie = request.cookies.get('akowe_paywall_variant');
+    const paywallVariant: PaywallVariant = (paywallVariantCookie?.value === 'variant_b' ? 'variant_b' : 'variant_a');
+
+    // Variant B: Block export for free users (they saw preview, now need to upgrade)
+    if (user.plan === 'free' && shouldShowPaywallBeforeExport(paywallVariant)) {
+      // Check if project has AI-generated content (word count > 0 indicates usage)
+      const hasAIGeneratedContent = (project.wordCount || 0) > 0;
+      
+      if (hasAIGeneratedContent) {
+        // Track paywall view for export
+        return NextResponse.json(
+          {
+            error: 'Upgrade to Pro to export your project',
+            paywallVariant: 'variant_b',
+            requiresUpgrade: true,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Auto-detect settings from project data

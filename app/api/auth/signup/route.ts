@@ -5,6 +5,7 @@ import { createWithReferralCode, lookupReferralCode } from '@/lib/referral';
 import { sendWelcomeEmail } from '@/lib/email';
 import { markLeadAsConverted } from '@/lib/lead-conversion';
 import { markReferralClicksAsConverted } from '@/lib/referral-click-conversion';
+import { shouldBlockSignup } from '@/lib/fraud-prevention';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +36,20 @@ export async function POST(request: NextRequest) {
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return NextResponse.json({ error: 'An account with this email already exists. Please sign in instead.' }, { status: 400 });
+    }
+
+    // Check for fraud before proceeding with signup
+    const fraudCheck = await shouldBlockSignup(request, email.toLowerCase(), referralCode);
+    if (fraudCheck.block) {
+      // Log fraud attempt
+      console.warn('Fraudulent signup attempt blocked:', {
+        email: email.toLowerCase(),
+        referralCode,
+        reason: fraudCheck.reason,
+        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+      });
+      // Return generic error to avoid revealing fraud detection
+      return NextResponse.json({ error: 'Unable to create account. Please try again later.' }, { status: 400 });
     }
 
     // Look up referral code if provided

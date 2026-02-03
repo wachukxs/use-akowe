@@ -6,6 +6,7 @@ import Project from '@/models/Project';
 import User from '@/models/User';
 import { checkAIWordLimit, incrementAIWords } from '@/lib/usage';
 import { countWords } from '@/lib/utils';
+import { shouldShowPaywallBeforeOutput, type PaywallVariant } from '@/lib/paywall-ab-test';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -223,21 +224,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Get paywall variant from cookie
+    const paywallVariantCookie = request.cookies.get('akowe_paywall_variant');
+    const paywallVariant: PaywallVariant = (paywallVariantCookie?.value === 'variant_b' ? 'variant_b' : 'variant_a');
+
     // Check usage limits for free users
     // Estimate ~300 words per AI response
     const estimatedWordsToGenerate = 300;
     const usageCheck = await checkAIWordLimit(user._id.toString(), estimatedWordsToGenerate);
     
-    if (!usageCheck.allowed) {
+    // Variant A: Block before output generation
+    // Variant B: Allow preview (check happens at export)
+    if (user.plan === 'free' && shouldShowPaywallBeforeOutput(paywallVariant) && !usageCheck.allowed) {
       return NextResponse.json(
         { 
           error: 'Daily word limit reached',
           remaining: usageCheck.remaining,
           limit: usageCheck.limit,
+          paywallVariant: 'variant_a', // Indicate which variant triggered this
         },
         { status: 429 }
       );
     }
+
+    // Variant B: For free users, allow generation but mark as preview-only
+    const isPreviewOnly = user.plan === 'free' && paywallVariant === 'variant_b' && !usageCheck.allowed;
 
     // Get project context if projectId is provided
     let projectContext = '';
@@ -764,8 +775,11 @@ See the difference? Be specific, reference their text, show exact improvements.
     // Check if this is first output (before incrementing)
     const isFirstOutput = usageCheck.remaining === usageCheck.limit;
 
-    // Track usage
-    await incrementAIWords(user._id.toString(), wordCount);
+    // Variant B: Don't increment usage for preview-only outputs
+    if (!isPreviewOnly) {
+      // Track usage
+      await incrementAIWords(user._id.toString(), wordCount);
+    }
 
     // Track activation if this is first output
     if (isFirstOutput) {
@@ -775,6 +789,12 @@ See the difference? Be specific, reference their text, show exact improvements.
         console.error('Activation tracking failed:', err);
         // Don't block output generation if activation tracking fails
       });
+    }
+
+    // Track paywall variant view for Variant B preview
+    if (isPreviewOnly) {
+      // Track that user saw preview (paywall view for variant B)
+      // Note: Client-side tracking will happen via GA4 event
     }
 
     // Advanced integration detection
@@ -809,7 +829,9 @@ See the difference? Be specific, reference their text, show exact improvements.
       response,
       wordCount,
       model,
-      remaining: usageCheck.remaining - wordCount,
+      remaining: isPreviewOnly ? 0 : (usageCheck.remaining - wordCount),
+      previewOnly: isPreviewOnly, // Flag for client to show export paywall
+      paywallVariant,
       intent: 'integrate', // For integrate flow
       isIntegrated: isActuallyIntegrated,
       projectContext: project ? {

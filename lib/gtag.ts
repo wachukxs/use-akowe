@@ -133,10 +133,11 @@ export const trackFunnel = {
   /**
    * Track when paywall/upgrade prompt is shown
    */
-  paywallView: (paywallType: 'project_limit' | 'word_limit' | 'check_limit' | 'feature_upgrade', context?: string) => {
+  paywallView: (paywallType: 'project_limit' | 'word_limit' | 'check_limit' | 'feature_upgrade', context?: string, paywallVariant?: 'variant_a' | 'variant_b') => {
     trackEvent('paywall_view', {
       paywall_type: paywallType,
       context: context || 'unknown',
+      paywall_variant: paywallVariant || 'unknown',
       timestamp: Date.now(),
     });
   },

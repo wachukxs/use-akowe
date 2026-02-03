@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
 import HeroTopicFinder from '@/components/HeroTopicFinder';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { getProPlanDiscount, formatDiscountPercentage } from '@/lib/annual-discount';
+import { getLandingPageVariant, getLandingPageConfig, type LandingPageVariant } from '@/lib/channel-landing-pages';
 
 // Helper function to get A/B test variant from cookie
 function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
@@ -31,10 +32,13 @@ function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
 }
 
 export default function HomePage() {
-  useRouter();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   useSession();
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly billing
   const [abVariant, setAbVariant] = useState<'control' | 'variant_a' | 'variant_b'>('control');
+  const [channelVariant, setChannelVariant] = useState<LandingPageVariant>('default');
+  const [landingPageConfig, setLandingPageConfig] = useState(getLandingPageConfig('default'));
 
   /**
    * we don't need this, but Ola wants this here.
@@ -45,10 +49,20 @@ export default function HomePage() {
   //   }
   // }, [status, router]);
 
-  // Read A/B test variant on mount
+  // Read A/B test variant and channel-specific variant on mount
   useEffect(() => {
     const variant = getABVariant();
     setAbVariant(variant);
+
+    // Determine channel-specific landing page variant
+    const utmSource = searchParams.get('utm_source');
+    const utmMedium = searchParams.get('utm_medium');
+    const utmCampaign = searchParams.get('utm_campaign');
+    const utmContent = searchParams.get('utm_content');
+    
+    const channelVariantValue = getLandingPageVariant(utmSource, utmMedium, utmCampaign, utmContent);
+    setChannelVariant(channelVariantValue);
+    setLandingPageConfig(getLandingPageConfig(channelVariantValue));
 
     // Track A/B test view in GA4
     if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -57,8 +71,18 @@ export default function HomePage() {
         variant: variant,
         timestamp: Date.now()
       });
+
+      // Track channel-specific landing page view
+      (window as any).gtag('event', 'channel_landing_page_viewed', {
+        channel_variant: channelVariantValue,
+        utm_source: utmSource || 'direct',
+        utm_medium: utmMedium || 'direct',
+        utm_campaign: utmCampaign || null,
+        utm_content: utmContent || null,
+        timestamp: Date.now()
+      });
     }
-  }, []);
+  }, [searchParams]);
 
   // Track conversion events
   const trackConversion = (conversionType: string) => {
@@ -67,6 +91,7 @@ export default function HomePage() {
         experiment_name: 'landing_page_headline_v1',
         variant: abVariant,
         conversion_type: conversionType,
+        channel_variant: channelVariant,
         timestamp: Date.now()
       });
     }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import ReferralClick from '@/models/ReferralClick';
+import { shouldBlockReferralClick } from '@/lib/fraud-prevention';
 
 /**
  * Tracks a referral link click
@@ -15,6 +16,19 @@ export async function POST(request: NextRequest) {
     }
 
     await connectDB();
+
+    // Check for fraud before tracking
+    const fraudCheck = await shouldBlockReferralClick(request, referralCode.trim());
+    if (fraudCheck.block) {
+      // Log fraud attempt but don't block (silent fail to avoid revealing detection)
+      console.warn('Fraudulent referral click detected:', {
+        referralCode: referralCode.trim(),
+        reason: fraudCheck.reason,
+        ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+      });
+      // Return success to avoid revealing fraud detection
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
 
     // Get user agent and IP for analytics (optional, can be removed for privacy)
     const userAgent = request.headers.get('user-agent') || undefined;

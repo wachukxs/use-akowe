@@ -5,6 +5,7 @@ import { checkAIWordLimit, incrementAIWords } from '@/lib/usage';
 import { countWords } from '@/lib/utils';
 import User from '@/models/User';
 import connectDB from '@/lib/mongodb';
+import { shouldShowPaywallBeforeOutput, type PaywallVariant } from '@/lib/paywall-ab-test';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -32,19 +33,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Get paywall variant from cookie
+    const paywallVariantCookie = request.cookies.get('akowe_paywall_variant');
+    const paywallVariant: PaywallVariant = (paywallVariantCookie?.value === 'variant_b' ? 'variant_b' : 'variant_a');
+
     // Check usage limits for free users
     const usageCheck = await checkAIWordLimit(session.user.id, 500);
     
-    if (!usageCheck.allowed) {
+    // Variant A: Block before output generation
+    // Variant B: Allow preview (check happens at export)
+    if (user.plan === 'free' && shouldShowPaywallBeforeOutput(paywallVariant) && !usageCheck.allowed) {
       return NextResponse.json(
         { 
           error: 'Daily word limit reached',
           remaining: usageCheck.remaining,
           limit: usageCheck.limit,
+          paywallVariant: 'variant_a', // Indicate which variant triggered this
         },
         { status: 429 }
       );
     }
+
+    // Variant B: For free users, allow generation but mark as preview-only
+    const isPreviewOnly = user.plan === 'free' && paywallVariant === 'variant_b' && !usageCheck.allowed;
 
     // Determine which model to use based on plan
     const model = user.plan === 'free' ? 'gpt-3.5-turbo' : 'gpt-4o-mini';
@@ -170,8 +181,11 @@ Write with the authority of a subject matter expert. Produce content that demons
     // Check if this is first output (before incrementing)
     const isFirstOutput = usageCheck.remaining === usageCheck.limit;
 
-    // Track usage
-    await incrementAIWords(session.user.id, wordCount);
+    // Variant B: Don't increment usage for preview-only outputs
+    if (!isPreviewOnly) {
+      // Track usage
+      await incrementAIWords(session.user.id, wordCount);
+    }
 
     // Track activation if this is first output
     if (isFirstOutput) {
@@ -181,6 +195,15 @@ Write with the authority of a subject matter expert. Produce content that demons
         console.error('Activation tracking failed:', err);
         // Don't block output generation if activation tracking fails
       });
+    }
+
+    // Track paywall variant view for Variant B preview
+    if (isPreviewOnly) {
+      const { trackFunnel } = await import('@/lib/gtag');
+      // Track that user saw preview (paywall view for variant B)
+      if (typeof window !== 'undefined') {
+        trackFunnel.paywallView('word_limit', 'preview_output');
+      }
     }
 
     // Return tracking metadata for first output
@@ -198,7 +221,9 @@ Write with the authority of a subject matter expert. Produce content that demons
       text: generatedText,
       wordCount,
       model,
-      remaining: usageCheck.remaining - wordCount,
+      remaining: isPreviewOnly ? 0 : (usageCheck.remaining - wordCount),
+      previewOnly: isPreviewOnly, // Flag for client to show export paywall
+      paywallVariant,
       ...(tracking && { tracking }),
     });
   } catch (error) {
