@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { buildEducationalResourceLink } from '@/lib/external-links';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -253,7 +254,7 @@ export default function LaTeXGuide() {
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="space-y-3">
               <a 
-                href="https://katex.org/docs/supported.html" 
+                href={buildEducationalResourceLink('https://katex.org/docs/supported.html', 'KaTeX Supported Functions')}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
@@ -262,7 +263,7 @@ export default function LaTeXGuide() {
                 KaTeX Supported Functions
               </a>
               <a 
-                href="https://www.overleaf.com/learn/latex/Mathematical_expressions" 
+                href={buildEducationalResourceLink('https://www.overleaf.com/learn/latex/Mathematical_expressions', 'Overleaf LaTeX Math Guide')}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
@@ -271,7 +272,7 @@ export default function LaTeXGuide() {
                 Overleaf LaTeX Math Guide
               </a>
               <a 
-                href="https://en.wikibooks.org/wiki/LaTeX/Mathematics" 
+                href={buildEducationalResourceLink('https://en.wikibooks.org/wiki/LaTeX/Mathematics', 'LaTeX Mathematics Wikibook')}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-blue-600 hover:text-blue-700"

@@ -4,8 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Check, Zap, Users, Sparkles, Gift, Award, Globe, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { buildFormLink } from '@/lib/external-links';
 
-const APPLICATION_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdNiEq1ChtNKp_Ecv6FSHE25wJSjxWFdUDPQ7mxqL4EotTT9w/viewform?usp=dialog';
+const APPLICATION_FORM_URL = buildFormLink('https://docs.google.com/forms/d/e/1FAIpQLSdNiEq1ChtNKp_Ecv6FSHE25wJSjxWFdUDPQ7mxqL4EotTT9w/viewform?usp=dialog', 'Ambassador Application');
 
 export default function AmbassadorPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
