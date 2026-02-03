@@ -44,11 +44,11 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ success: true, leadId: lead._id });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error capturing lead:', error);
     
     // Handle duplicate key error gracefully
-    if (error.code === 11000) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
       return NextResponse.json({ success: true, message: 'Email already captured' });
     }
     

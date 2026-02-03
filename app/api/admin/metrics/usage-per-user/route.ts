@@ -118,7 +118,7 @@ export async function GET(request: Request) {
     );
 
     // Build user filter for search
-    const userFilter: Record<string, any> = {};
+    const userFilter: Record<string, unknown> = {};
     if (search && search.trim().length > 0) {
       const trimmedSearch = search.trim();
       
@@ -142,7 +142,7 @@ export async function GET(request: Request) {
       .select('email name plan _id')
       .lean();
 
-    const usersWithUsage = allUsers.map((user: any) => {
+    const usersWithUsage = allUsers.map((user: { _id: { toString: () => string }; email?: string; name?: string; plan?: string }) => {
       const userId = user._id.toString();
       const usage = usageMap.get(userId) || {
         totalAIWords: 0,

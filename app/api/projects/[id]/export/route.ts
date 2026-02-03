@@ -9,6 +9,7 @@ import puppeteer from 'puppeteer';
 import htmlDocx from 'html-docx-js';
 import User from '@/models/User';
 import { shouldShowPaywallBeforeExport, type PaywallVariant } from '@/lib/paywall-ab-test';
+import { trackPaywallEvent } from '@/lib/paywall-tracking';
 
 export async function GET(
   request: NextRequest,
@@ -56,7 +57,9 @@ export async function GET(
       const hasAIGeneratedContent = (project.wordCount || 0) > 0;
       
       if (hasAIGeneratedContent) {
-        // Track paywall view for export
+        // Track export attempt event
+        await trackPaywallEvent(user._id.toString(), paywallVariant, 'export_attempt', 'export');
+        
         return NextResponse.json(
           {
             error: 'Upgrade to Pro to export your project',
@@ -108,7 +111,7 @@ export async function GET(
         
         await browser.close();
         
-        return new NextResponse(pdfBuffer as any, {
+        return new NextResponse(Buffer.from(pdfBuffer), {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="${project.name}.pdf"`,

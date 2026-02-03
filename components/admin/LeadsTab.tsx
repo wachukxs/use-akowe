@@ -212,61 +212,61 @@ export default function LeadsTab() {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Mail className="text-[hsl(var(--primary))]" size={20} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <Mail className="text-[hsl(var(--primary))]" size={18} className="sm:w-5 sm:h-5" />
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Total Leads
             </span>
           </div>
-          <p className="text-3xl font-bold">{totalLeads}</p>
+          <p className="text-2xl sm:text-3xl font-bold">{totalLeads}</p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="text-green-500" size={20} />
+        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <CheckCircle className="text-green-500" size={18} className="sm:w-5 sm:h-5" />
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Converted
             </span>
           </div>
-          <p className="text-3xl font-bold">{totalConverted}</p>
+          <p className="text-2xl sm:text-3xl font-bold">{totalConverted}</p>
           <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1">
             {overallConversionRate}% rate
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Plagiarism Tool
             </span>
           </div>
-          <p className="text-3xl font-bold">{stats.plagiarism?.total || 0}</p>
+          <p className="text-2xl sm:text-3xl font-bold">{stats.plagiarism?.total || 0}</p>
           <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1">
             {getConversionRate('plagiarism')}% converted
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Import Tool
             </span>
           </div>
-          <p className="text-3xl font-bold">{stats.import?.total || 0}</p>
+          <p className="text-2xl sm:text-3xl font-bold">{stats.import?.total || 0}</p>
           <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1">
             {getConversionRate('import')}% converted
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Topic Finder
             </span>
           </div>
-          <p className="text-3xl font-bold">{stats.topic?.total || 0}</p>
+          <p className="text-2xl sm:text-3xl font-bold">{stats.topic?.total || 0}</p>
           <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1">
             {getConversionRate('topic')}% converted
           </p>
@@ -274,15 +274,15 @@ export default function LeadsTab() {
       </div>
 
       {/* Filters */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {/* First Row: Source, Status, Search */}
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-[hsl(var(--muted-foreground))]" />
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em]"
+              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
             >
               <option value="all">All Sources</option>
               <option value="plagiarism">Plagiarism Tool</option>
@@ -294,7 +294,7 @@ export default function LeadsTab() {
           <select
             value={convertedFilter}
             onChange={(e) => setConvertedFilter(e.target.value as any)}
-            className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em]"
+            className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
           >
             <option value="all">All Status</option>
             <option value="converted">Converted</option>
@@ -302,19 +302,19 @@ export default function LeadsTab() {
           </select>
 
           {/* Search Input */}
-          <div className="relative flex items-center gap-2">
+          <div className="relative flex items-center gap-2 flex-1">
             <Search size={16} className="text-[hsl(var(--muted-foreground))] absolute left-3" />
             <input
               type="text"
               placeholder="Search by email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] min-w-[200px]"
+              className="flex-1 pl-9 pr-8 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
             />
             {searchQuery && (
               <button
                 onClick={clearSearch}
-                className="absolute right-2 p-1 hover:bg-[hsl(var(--surface-muted))] rounded"
+                className="absolute right-2 p-1.5 min-w-[32px] min-h-[32px] hover:bg-[hsl(var(--surface-muted))] rounded touch-manipulation flex items-center justify-center"
                 aria-label="Clear search"
               >
                 <X size={14} className="text-[hsl(var(--muted-foreground))]" />
@@ -324,29 +324,29 @@ export default function LeadsTab() {
 
           <button
             onClick={fetchLeads}
-            className="flex items-center gap-2 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))]"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] touch-manipulation"
           >
             <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
             onClick={exportEmailsToCSV}
             disabled={isLoading || leads.length === 0}
-            className="flex items-center gap-2 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           >
-            <span className="text-[10px] uppercase tracking-[0.24em]">Export Emails CSV</span>
+            <span className="text-[10px] uppercase tracking-[0.24em]">Export CSV</span>
           </button>
         </div>
 
         {/* Second Row: Date Range Filter */}
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <Calendar size={16} className="text-[hsl(var(--muted-foreground))]" />
             <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
               Date Range:
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <input
               type="date"
               value={startDate}
@@ -358,9 +358,9 @@ export default function LeadsTab() {
                 }
               }}
               max={endDate || new Date().toISOString().split('T')[0]}
-              className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
             />
-            <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+            <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center sm:text-left">
               to
             </span>
             <input
@@ -375,12 +375,12 @@ export default function LeadsTab() {
               }}
               min={startDate || ''}
               max={new Date().toISOString().split('T')[0]}
-              className="px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
             />
             {(startDate || endDate) && (
               <button
                 onClick={clearDateFilter}
-                className="flex items-center gap-1 px-2 py-1 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))]"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 min-h-[44px] border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] touch-manipulation"
                 aria-label="Clear date filter"
               >
                 <X size={12} />
@@ -409,47 +409,54 @@ export default function LeadsTab() {
 
       {/* Leads Table */}
       <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))]">
-                <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
-                  Email
-                </th>
-                <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
-                  Source
-                </th>
-                <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
-                  Variant
-                </th>
-                <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
-                  Captured
-                </th>
-                <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
-                  Converted
-                </th>
-                <th className="px-4 py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                    Loading...
-                  </td>
+        {isLoading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-[hsl(var(--primary))] border-t-transparent mx-auto mb-3"></div>
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              Loading leads...
+            </p>
+          </div>
+        ) : leads.length === 0 ? (
+          <div className="p-8 text-center">
+            <Mail className="text-[hsl(var(--muted-foreground))] mx-auto mb-3" size={32} />
+            <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+              {debouncedSearch || startDate || endDate
+                ? 'No leads found matching your filters'
+                : 'No leads found'}
+            </p>
+            {debouncedSearch || startDate || endDate ? (
+              <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
+                Try adjusting your filters or date range
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <div className="overflow-x-auto -mx-0.5 sm:mx-0">
+            <table className="w-full min-w-[600px]">
+              <thead>
+                <tr className="border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))]">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
+                    Email
+                  </th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
+                    Source
+                  </th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
+                    Variant
+                  </th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
+                    Captured
+                  </th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
+                    Converted
+                  </th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] uppercase tracking-[0.24em] font-semibold">
+                    Status
+                  </th>
                 </tr>
-              ) : leads.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                    {debouncedSearch || startDate || endDate
-                      ? 'No leads found matching your filters'
-                      : 'No leads found'}
-                  </td>
-                </tr>
-              ) : (
-                leads.map((lead) => {
+              </thead>
+              <tbody>
+                {leads.map((lead) => {
                   const capturedDate = new Date(lead.capturedAt);
                   const convertedDate = lead.convertedAt ? new Date(lead.convertedAt) : null;
                   const daysToConvert = convertedDate 
@@ -466,11 +473,11 @@ export default function LeadsTab() {
                   
                   return (
                     <tr key={lead._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))]">
-                      <td className="px-4 py-3 text-xs tracking-wide">
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs tracking-wide break-all">
                         {lead.email}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 text-[10px] uppercase tracking-[0.2em] border-2 border-[hsl(var(--border-strong))] rounded ${
+                      <td className="px-2 sm:px-4 py-2 sm:py-3">
+                        <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] uppercase tracking-[0.2em] border-2 border-[hsl(var(--border-strong))] rounded ${
                           lead.source === 'plagiarism' 
                             ? 'bg-blue-500/10' 
                             : lead.source === 'import'
@@ -480,13 +487,13 @@ export default function LeadsTab() {
                           {lead.source}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
                         {lead.variant}
                       </td>
-                      <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
                         {capturedDate.toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
                         {convertedDate ? (
                           <div>
                             <div>{convertedDate.toLocaleDateString()}</div>
@@ -500,26 +507,26 @@ export default function LeadsTab() {
                           <span className="text-[hsl(var(--muted-foreground))]">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 sm:px-4 py-2 sm:py-3">
                         {lead.convertedAt ? (
-                          <span className="flex items-center gap-2 text-green-600">
-                            <CheckCircle size={14} />
+                          <span className="flex items-center gap-1 sm:gap-2 text-green-600">
+                            <CheckCircle size={12} className="sm:w-3.5 sm:h-3.5" />
                             <span className="text-[10px] uppercase tracking-[0.2em]">Converted</span>
                           </span>
                         ) : (
-                          <span className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
-                            <Clock size={14} />
+                          <span className="flex items-center gap-1 sm:gap-2 text-[hsl(var(--muted-foreground))]">
+                            <Clock size={12} className="sm:w-3.5 sm:h-3.5" />
                             <span className="text-[10px] uppercase tracking-[0.2em]">Pending</span>
                           </span>
                         )}
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {total > leads.length && (

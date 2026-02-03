@@ -7,6 +7,8 @@ import User from '@/models/User';
 import { checkAIWordLimit, incrementAIWords } from '@/lib/usage';
 import { countWords } from '@/lib/utils';
 import { shouldShowPaywallBeforeOutput, type PaywallVariant } from '@/lib/paywall-ab-test';
+import { trackPaywallEvent } from '@/lib/paywall-tracking';
+import type { Project as ProjectType, Section } from '@/types';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -53,7 +55,7 @@ function analyzeSectionState(content: string | null | undefined): 'empty' | 'tem
  * Handles edge cases gracefully (missing project, malformed data, etc.)
  */
 function buildContextSummary(
-  project: any,
+  project: ProjectType | null,
   currentSectionContent: string | null | undefined,
   sectionTitle: string | null | undefined
 ) {
@@ -236,6 +238,9 @@ export async function POST(request: NextRequest) {
     // Variant A: Block before output generation
     // Variant B: Allow preview (check happens at export)
     if (user.plan === 'free' && shouldShowPaywallBeforeOutput(paywallVariant) && !usageCheck.allowed) {
+      // Track paywall view event
+      await trackPaywallEvent(user._id.toString(), paywallVariant, 'paywall_view', 'ai_assistant');
+      
       return NextResponse.json(
         { 
           error: 'Daily word limit reached',
@@ -249,27 +254,47 @@ export async function POST(request: NextRequest) {
 
     // Variant B: For free users, allow generation but mark as preview-only
     const isPreviewOnly = user.plan === 'free' && paywallVariant === 'variant_b' && !usageCheck.allowed;
+    
+    // Track preview view for Variant B users
+    if (isPreviewOnly) {
+      await trackPaywallEvent(user._id.toString(), paywallVariant, 'preview_view', 'ai_assistant');
+    }
 
     // Get project context if projectId is provided
     let projectContext = '';
-    let project: any = null;
+    let project: ProjectType | null = null;
     
     if (projectId) {
-      project = await Project.findOne({ 
+      const projectDoc = await Project.findOne({ 
         _id: projectId, 
         userId: session.user.email 
       }).lean();
+      
+      // Convert Mongoose lean document to ProjectType (convert _id from ObjectId to string)
+      if (projectDoc) {
+        project = {
+          ...projectDoc,
+          _id: projectDoc._id?.toString() || projectId,
+        } as ProjectType;
+      } else {
+        project = null;
+      }
 
       if (project) {
         // Build limited project context to avoid token limit issues
         // Only include section titles (not full content) to keep context manageable
-        const sectionsList = project.sections?.map((section: any) => 
+        const sectionsList = project.sections?.map((section: Section) => 
           `- ${section.title}${section.content?.trim() ? ' [has content]' : ' [empty]'}`
         ).join('\n') || '';
 
         // Limit citations to first 10 (use "n.d." when year is unknown)
-        const citationsList = project.citations?.slice(0, 10).map((citation: any) =>
-          `${citation.title} (${citation.authors}) - ${citation.year ?? 'n.d.'}`
+        interface CitationData {
+          title: string;
+          authors: string[];
+          year?: number;
+        }
+        const citationsList = project.citations?.slice(0, 10).map((citation: CitationData) =>
+          `${citation.title} (${citation.authors.join(', ')}) - ${citation.year ?? 'n.d.'}`
         ).join('\n') || '';
         
         const moreCitations = (project.citations?.length || 0) > 10 
@@ -295,7 +320,7 @@ ${citationsList}${moreCitations}
 
 WRITING PROGRESS:
 - Completion: ${Math.round(((project.wordCount || 0) / project.targetWordCount) * 100)}%
-- Sections completed: ${project.sections?.filter((s: any) => s.content?.trim()).length || 0}/${project.sections?.length || 0}
+- Sections completed: ${project.sections?.filter((s: Section) => s.content?.trim()).length || 0}/${project.sections?.length || 0}
 `;
       }
     }

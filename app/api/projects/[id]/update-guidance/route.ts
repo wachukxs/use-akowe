@@ -194,7 +194,7 @@ Welcome to your ${project.type}! This is where you'll introduce your research to
 ## ${citationStyle} Citation Guidelines
 - **Format**: ${guidance.citation.format}
 - **Example**: ${guidance.citation.example}
-- **Additional**: ${(guidance.citation as any).doi || (guidance.citation as any).page || (guidance.citation as any).note || (guidance.citation as any).technical || (guidance.citation as any).reference}
+- **Additional**: ${('doi' in guidance.citation && guidance.citation.doi) || ('page' in guidance.citation && guidance.citation.page) || ('note' in guidance.citation && guidance.citation.note) || ('technical' in guidance.citation && guidance.citation.technical) || ('reference' in guidance.citation && guidance.citation.reference) || ''}
 
 ## ${methodology} Writing Approach
 - **Methodology**: ${guidance.method.approach}
@@ -243,7 +243,7 @@ This section demonstrates your understanding of existing research and positions 
 ## ${citationStyle} Citation Guidelines
 - **Format**: ${guidance.citation.format}
 - **Example**: ${guidance.citation.example}
-- **Additional**: ${(guidance.citation as any).doi || (guidance.citation as any).page || (guidance.citation as any).note || (guidance.citation as any).technical || (guidance.citation as any).reference}
+- **Additional**: ${('doi' in guidance.citation && guidance.citation.doi) || ('page' in guidance.citation && guidance.citation.page) || ('note' in guidance.citation && guidance.citation.note) || ('technical' in guidance.citation && guidance.citation.technical) || ('reference' in guidance.citation && guidance.citation.reference) || ''}
 
 ## ${methodology} Writing Approach
 - **Synthesis**: ${guidance.method.approach}

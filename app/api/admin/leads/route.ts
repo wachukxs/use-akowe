@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const skip = parseInt(searchParams.get('skip') || '0');
 
     // Build filter
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
     if (source) filter.source = source;
     if (converted === 'true') filter.convertedAt = { $exists: true };
     if (converted === 'false') filter.convertedAt = { $exists: false };
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
     const total = await LeadCapture.countDocuments(filter);
 
     // Get conversion stats (apply same filter for consistency, but exclude search for stats)
-    const statsFilter: any = {};
+    const statsFilter: Record<string, unknown> = {};
     if (source) statsFilter.source = source;
     if (converted === 'true') statsFilter.convertedAt = { $exists: true };
     if (converted === 'false') statsFilter.convertedAt = { $exists: false };
@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
     }
     // Note: We exclude search from stats filter to show overall stats for the date range
     
-    const statsPipeline: any[] = [];
+    const statsPipeline: Array<Record<string, unknown>> = [];
     if (Object.keys(statsFilter).length > 0) {
       statsPipeline.push({ $match: statsFilter });
     }

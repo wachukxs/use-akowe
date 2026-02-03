@@ -35,7 +35,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert imported sections to Section format
-    const sections: Section[] = (importedSections || []).map((section: any, index: number) => ({
+    interface ImportedSection {
+      title: string;
+      content?: string;
+      order?: number;
+    }
+    const sections: Section[] = (importedSections || []).map((section: ImportedSection, index: number) => ({
       id: `section-${Date.now()}-${index}`,
       type: mapSectionType(section.title),
       title: section.title,

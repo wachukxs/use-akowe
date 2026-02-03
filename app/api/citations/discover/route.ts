@@ -194,7 +194,15 @@ function enhanceCitationsWithContext(
     });
 }
 
-function calculateRelevanceScore(citation: any, projectType: string, methodology: string): number {
+interface CitationData {
+  title?: string;
+  abstract?: string;
+  year?: number;
+  relevanceScore?: number;
+  topicRelevanceScore?: number;
+}
+
+function calculateRelevanceScore(citation: CitationData, projectType: string, methodology: string): number {
   let score = 0;
   
   // Check title relevance
@@ -242,7 +250,7 @@ function calculateRelevanceScore(citation: any, projectType: string, methodology
   return Math.max(0, score);
 }
 
-function getContextMatch(citation: any, projectType: string, methodology: string): string {
+function getContextMatch(citation: CitationData, projectType: string, methodology: string): string {
   const title = citation.title?.toLowerCase() || '';
   const abstract = citation.abstract?.toLowerCase() || '';
   const content = `${title} ${abstract}`;

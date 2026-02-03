@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { trackPaywallEvent } from '@/lib/paywall-tracking';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -57,6 +58,9 @@ export async function POST(request: NextRequest) {
               typeof session.subscription === 'string' ? session.subscription : session.subscription.id
             );
             
+            const userBeforeUpdate = await User.findById(userId).lean();
+            const wasFreeUser = userBeforeUpdate && userBeforeUpdate.plan === 'free';
+            
             await User.findByIdAndUpdate(userId, {
               plan: 'pro',
               stripeSubscriptionId: subscription.id,
@@ -65,6 +69,24 @@ export async function POST(request: NextRequest) {
               subscriptionEndDate: null, // Active subscription
             });
             console.log(`✅ Updated user ${userId} to pro plan (${billingCycle}) with subscription start date`);
+            
+            // Track conversion event (if user was previously on free plan)
+            if (wasFreeUser) {
+              // Find the user's most recent paywall event to determine their variant
+              const PaywallEventModel = (await import('@/models/PaywallEvent')).default;
+              const recentPaywallEvent = await PaywallEventModel.findOne({
+                userId: userId,
+                eventType: { $in: ['paywall_view', 'preview_view', 'export_attempt'] },
+              })
+                .sort({ createdAt: -1 })
+                .lean();
+              
+              // Use the variant from their most recent paywall event, or default to variant_a
+              const userVariant = (recentPaywallEvent && 'variant' in recentPaywallEvent && (recentPaywallEvent.variant === 'variant_a' || recentPaywallEvent.variant === 'variant_b'))
+                ? recentPaywallEvent.variant
+                : 'variant_a';
+              await trackPaywallEvent(userId, userVariant, 'conversion', 'checkout_completed');
+            }
             
             // Track purchase event (server-side tracking will be handled via client callback)
             // Store tracking metadata in user document for client to pick up
@@ -88,6 +110,9 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             console.error('Error fetching subscription in webhook:', error);
             // Fallback: use current date as start and clear end date (user is re-subscribing)
+            const userBeforeUpdate = await User.findById(userId).lean();
+            const wasFreeUser = userBeforeUpdate && userBeforeUpdate.plan === 'free';
+            
             await User.findByIdAndUpdate(userId, {
               plan: 'pro',
               stripeSubscriptionId: typeof session.subscription === 'string' ? session.subscription : session.subscription.id,
@@ -95,6 +120,24 @@ export async function POST(request: NextRequest) {
               subscriptionStartDate: new Date(), // Fallback to current date
               subscriptionEndDate: null, // Clear any stale end date from previous cancellation
             });
+            
+            // Track conversion event (if user was previously on free plan)
+            if (wasFreeUser) {
+              // Find the user's most recent paywall event to determine their variant
+              const PaywallEventModel = (await import('@/models/PaywallEvent')).default;
+              const recentPaywallEvent = await PaywallEventModel.findOne({
+                userId: userId,
+                eventType: { $in: ['paywall_view', 'preview_view', 'export_attempt'] },
+              })
+                .sort({ createdAt: -1 })
+                .lean();
+              
+              // Use the variant from their most recent paywall event, or default to variant_a
+              const userVariant = (recentPaywallEvent && 'variant' in recentPaywallEvent && (recentPaywallEvent.variant === 'variant_a' || recentPaywallEvent.variant === 'variant_b'))
+                ? recentPaywallEvent.variant
+                : 'variant_a';
+              await trackPaywallEvent(userId, userVariant, 'conversion', 'checkout_completed');
+            }
           }
         }
         break;

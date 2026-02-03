@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     const page = Math.max(1, parseInt(pageParam || '1', 10));
     const limit = Math.max(1, Math.min(100, parseInt(limitParam || '20', 10)));
 
-    const filter: Record<string, any> = {};
+    const filter: Record<string, unknown> = {};
     if (search && search.trim().length > 0) {
       const trimmedSearch = search.trim();
       
@@ -43,7 +43,10 @@ export async function GET(request: Request) {
       .select('name email plan createdAt stripeSubscriptionId _id')
       .lean();
 
-    const userIds = users.map((u: any) => u._id.toString());
+    interface UserDocument {
+      _id: mongoose.Types.ObjectId | { toString(): string };
+    }
+    const userIds = users.map((u: UserDocument) => u._id.toString());
 
     // All-time usage for these users (no date filter)
     const usageAggregation = await DailyUsage.aggregate([
@@ -81,7 +84,15 @@ export async function GET(request: Request) {
       },
     );
 
-    const usersWithUsage = users.map((user: any) => {
+    interface UserWithId {
+      _id: mongoose.Types.ObjectId | { toString(): string };
+      name?: string;
+      email: string;
+      plan?: string;
+      createdAt: Date;
+      stripeSubscriptionId?: string;
+    }
+    const usersWithUsage = users.map((user: UserWithId) => {
       const userId = user._id.toString();
       const usage = usageMap.get(userId) || {
         totalAIWords: 0,

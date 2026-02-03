@@ -10,8 +10,8 @@ import { markLeadAsConverted } from './lead-conversion';
 import { markReferralClicksAsConverted } from './referral-click-conversion';
 
 export const authOptions: NextAuthConfig = {
-  // Enable debug logging temporarily to surface auth issues in production
-  debug: true,
+  // Debug mode disabled - re-enable only when troubleshooting auth issues
+  debug: false,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',

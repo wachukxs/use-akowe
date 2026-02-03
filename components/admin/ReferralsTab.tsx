@@ -11,8 +11,10 @@ import {
   AlertCircle,
   TrendingUp,
   RefreshCw,
+  Shield,
 } from 'lucide-react';
 import { getQualityScoreLabel } from '@/lib/influencer-quality';
+import FraudTab from './FraudTab';
 
 interface ReferralStats {
   totalReferrals: number;
@@ -68,7 +70,10 @@ interface ReferralData {
   referredUsers: ReferredUser[];
 }
 
+type ReferralSubSection = 'referrals' | 'fraud';
+
 export default function ReferralsTab() {
+  const [activeSection, setActiveSection] = useState<ReferralSubSection>('referrals');
   const [data, setData] = useState<ReferralData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -209,75 +214,104 @@ export default function ReferralsTab() {
     );
   }
 
-  if (!data) return null;
-
   return (
     <div className="space-y-6">
-      {/* Header with Refresh */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold uppercase tracking-[0.16em]">Referral Tracking</h2>
-          <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.24em] mt-1">
-            Track user and influencer referrals
-          </p>
-        </div>
+      {/* Sub-section Navigation */}
+      <div className="flex items-center gap-2 border-b-2 border-[hsl(var(--border-strong))]">
         <button
-          onClick={fetchReferralData}
-          disabled={isLoading}
-          className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+          onClick={() => setActiveSection('referrals')}
+          className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+            activeSection === 'referrals'
+              ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+              : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+          }`}
         >
-          <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-          Refresh
+          <LinkIcon size={14} className="sm:w-4 sm:h-4" />
+          <span>Referrals</span>
+        </button>
+        <button
+          onClick={() => setActiveSection('fraud')}
+          className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+            activeSection === 'fraud'
+              ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+              : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+          }`}
+        >
+          <Shield size={14} className="sm:w-4 sm:h-4" />
+          <span>Fraud Detection</span>
         </button>
       </div>
 
+      {/* Content */}
+      {activeSection === 'fraud' ? (
+        <FraudTab />
+      ) : !data ? null : (
+        <>
+          {/* Header with Refresh */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold uppercase tracking-[0.16em]">Referral Tracking</h2>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.24em] mt-1">
+                Track user and influencer referrals
+              </p>
+            </div>
+            <button
+              onClick={fetchReferralData}
+              disabled={isLoading}
+              className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation"
+            >
+              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
+
       {/* Stats Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
-          <div className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+          <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
             Total Referrals
           </div>
-          <div className="text-2xl font-bold">{formatNumber(data.stats.totalReferrals)}</div>
+          <div className="text-xl sm:text-2xl font-bold">{formatNumber(data.stats.totalReferrals)}</div>
         </div>
-        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
-          <div className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
+        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+          <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
             By Users
           </div>
-          <div className="text-2xl font-bold">{formatNumber(data.stats.referralsByUsers)}</div>
+          <div className="text-xl sm:text-2xl font-bold">{formatNumber(data.stats.referralsByUsers)}</div>
         </div>
-        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
-          <div className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
+        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+          <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
             By Influencers
           </div>
-          <div className="text-2xl font-bold">{formatNumber(data.stats.referralsByInfluencers)}</div>
+          <div className="text-xl sm:text-2xl font-bold">{formatNumber(data.stats.referralsByInfluencers)}</div>
         </div>
-        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
-          <div className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
+        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+          <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
             User Referrers
           </div>
-          <div className="text-2xl font-bold">{formatNumber(data.stats.totalUserReferrers)}</div>
+          <div className="text-xl sm:text-2xl font-bold">{formatNumber(data.stats.totalUserReferrers)}</div>
         </div>
-        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
-          <div className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
+        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+          <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
             Influencers
           </div>
-          <div className="text-2xl font-bold">{formatNumber(data.stats.totalInfluencers)}</div>
+          <div className="text-xl sm:text-2xl font-bold">{formatNumber(data.stats.totalInfluencers)}</div>
         </div>
       </div>
 
       {/* Influencers Section */}
       <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-[hsl(var(--border-strong))] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Users className="text-[hsl(var(--primary))]" size={20} />
-            <h3 className="text-lg font-bold uppercase tracking-[0.16em]">Influencers</h3>
+        <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Users className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
+            <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">Influencers</h3>
             <span className="px-2 py-0.5 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold">
               {data.influencers.length}
             </span>
           </div>
           <button
             onClick={() => setShowAddInfluencer(!showAddInfluencer)}
-            className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center gap-2"
+            className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center justify-center gap-2 touch-manipulation"
           >
             <UserPlus size={14} />
             Add Influencer
@@ -286,9 +320,9 @@ export default function ReferralsTab() {
 
         {/* Add Influencer Form */}
         {showAddInfluencer && (
-          <div className="p-4 border-b border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))]/10">
-            <form onSubmit={handleAddInfluencer} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))]/10">
+            <form onSubmit={handleAddInfluencer} className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <label className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] block mb-1">
                     Name *
@@ -297,7 +331,7 @@ export default function ReferralsTab() {
                     type="text"
                     value={newInfluencer.name}
                     onChange={(e) => setNewInfluencer({ ...newInfluencer, name: e.target.value })}
-                    className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
+                    className="w-full px-3 py-2.5 min-h-[44px] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm touch-manipulation"
                     placeholder="Influencer name"
                     required
                   />
@@ -310,7 +344,7 @@ export default function ReferralsTab() {
                     type="email"
                     value={newInfluencer.email}
                     onChange={(e) => setNewInfluencer({ ...newInfluencer, email: e.target.value })}
-                    className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
+                    className="w-full px-3 py-2.5 min-h-[44px] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm touch-manipulation"
                     placeholder="influencer@example.com"
                     required
                   />
@@ -323,23 +357,23 @@ export default function ReferralsTab() {
                     type="text"
                     value={newInfluencer.notes}
                     onChange={(e) => setNewInfluencer({ ...newInfluencer, notes: e.target.value })}
-                    className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm"
+                    className="w-full px-3 py-2.5 min-h-[44px] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--background))] rounded text-sm touch-manipulation"
                     placeholder="Optional notes"
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity disabled:opacity-50 touch-manipulation"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Influencer'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddInfluencer(false)}
-                  className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]"
+                  className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))] touch-manipulation"
                 >
                   Cancel
                 </button>
@@ -349,31 +383,25 @@ export default function ReferralsTab() {
         )}
 
         {/* Influencers Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[hsl(var(--border-strong))]">
-                <th className="text-left py-3 px-4 text-xs uppercase">Name</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Email</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Referral Link</th>
-                <th className="text-center py-3 px-4 text-xs uppercase">Referrals</th>
-                <th className="text-center py-3 px-4 text-xs uppercase">Quality Score</th>
-                <th className="text-center py-3 px-4 text-xs uppercase">Activation</th>
-                <th className="text-center py-3 px-4 text-xs uppercase">Paid Conv.</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Notes</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Added</th>
-                <th className="text-center py-3 px-4 text-xs uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.influencers.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="py-8 text-center text-[hsl(var(--muted-foreground))]">
-                    No influencers added yet. Click &quot;Add Influencer&quot; to create one.
-                  </td>
+        {data.influencers.length > 0 ? (
+          <div className="overflow-x-auto -mx-0.5 sm:mx-0">
+            <table className="w-full text-xs sm:text-sm min-w-[800px]">
+              <thead>
+                <tr className="border-b border-[hsl(var(--border-strong))]">
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Name</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Email</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referral Link</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referrals</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Quality Score</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Activation</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Paid Conv.</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Notes</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Added</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Actions</th>
                 </tr>
-              ) : (
-                data.influencers.map((influencer) => {
+              </thead>
+              <tbody>
+                {data.influencers.map((influencer) => {
                   const qualityLabel = influencer.qualityScore !== undefined && influencer.qualityScore !== null
                     ? getQualityScoreLabel(influencer.qualityScore)
                     : null;
@@ -383,16 +411,16 @@ export default function ReferralsTab() {
                       key={influencer._id}
                       className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5"
                     >
-                      <td className="py-3 px-4 font-medium">{influencer.name}</td>
-                      <td className="py-3 px-4">{influencer.email}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs bg-[hsl(var(--accent))]/20 px-2 py-1 rounded">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 font-medium">{influencer.name}</td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 break-all">{influencer.email}</td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <code className="text-[10px] sm:text-xs bg-[hsl(var(--accent))]/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded break-all">
                             {influencer.referralCode}
                           </code>
                           <button
                             onClick={() => copyToClipboard(influencer.referralCode)}
-                            className="p-1 hover:bg-[hsl(var(--accent))] rounded transition-colors"
+                            className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-[hsl(var(--accent))] rounded transition-colors touch-manipulation flex items-center justify-center"
                             title="Copy referral link"
                           >
                             {copiedCode === influencer.referralCode ? (
@@ -403,16 +431,16 @@ export default function ReferralsTab() {
                           </button>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="px-2 py-0.5 bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] rounded text-xs font-semibold">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                        <span className="px-1.5 sm:px-2 py-0.5 bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] rounded text-[10px] sm:text-xs font-semibold">
                           {influencer.referralCount}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
                         {qualityLabel ? (
                           <div className="flex flex-col items-center gap-1">
                             <span
-                              className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                              className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold ${
                                 qualityLabel.level === 'excellent'
                                   ? 'bg-green-500/20 text-green-600'
                                   : qualityLabel.level === 'good'
@@ -426,48 +454,48 @@ export default function ReferralsTab() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-xs text-[hsl(var(--muted-foreground))]">—</span>
+                          <span className="text-[10px] sm:text-xs text-[hsl(var(--muted-foreground))]">—</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-center text-xs">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-[10px] sm:text-xs">
                         {influencer.activationRate !== undefined && influencer.activationRate !== null
                           ? `${influencer.activationRate.toFixed(1)}%`
                           : '—'}
                       </td>
-                      <td className="py-3 px-4 text-center text-xs">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-[10px] sm:text-xs">
                         {influencer.paidConversionRate !== undefined && influencer.paidConversionRate !== null
                           ? `${influencer.paidConversionRate.toFixed(1)}%`
                           : '—'}
                       </td>
-                      <td className="py-3 px-4 text-[hsl(var(--muted-foreground))] text-xs">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-[hsl(var(--muted-foreground))] text-[10px] sm:text-xs break-words">
                         {influencer.notes || '—'}
                       </td>
-                      <td className="py-3 px-4 text-xs">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs">
                         {new Date(influencer.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
                         {deleteConfirm === influencer._id ? (
-                          <div className="flex items-center gap-2 justify-center">
+                          <div className="flex items-center gap-1 sm:gap-2 justify-center flex-wrap">
                             <button
                               onClick={() => handleDeleteInfluencer(influencer._id)}
-                              className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                              className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs bg-red-500 text-white rounded hover:bg-red-600 touch-manipulation"
                             >
                               Confirm
                             </button>
                             <button
                               onClick={() => setDeleteConfirm(null)}
-                              className="px-2 py-1 text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]"
+                              className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))] touch-manipulation"
                             >
                               Cancel
                             </button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 justify-center">
+                          <div className="flex items-center gap-1 sm:gap-2 justify-center">
                             {influencer.referralCount > 0 && (
                               <button
                                 onClick={() => handleRecalculateQuality(influencer._id)}
                                 disabled={recalculatingQuality === influencer._id}
-                                className="p-1 hover:bg-[hsl(var(--accent))] rounded transition-colors disabled:opacity-50"
+                                className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-[hsl(var(--accent))] rounded transition-colors disabled:opacity-50 touch-manipulation flex items-center justify-center"
                                 title="Recalculate quality score"
                               >
                                 <RefreshCw
@@ -478,7 +506,7 @@ export default function ReferralsTab() {
                             )}
                             <button
                               onClick={() => setDeleteConfirm(influencer._id)}
-                              className="p-1 hover:bg-red-500/20 rounded transition-colors text-red-500"
+                              className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-red-500/20 rounded transition-colors text-red-500 touch-manipulation flex items-center justify-center"
                               title="Delete influencer"
                             >
                               <Trash2 size={14} />
@@ -486,55 +514,59 @@ export default function ReferralsTab() {
                           </div>
                         )}
                       </td>
-                  </tr>
+                    </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-8 text-center">
+            <Users className="text-[hsl(var(--muted-foreground))] mx-auto mb-3" size={32} />
+            <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.16em] mb-2">
+              No influencers added yet
+            </p>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Click &quot;Add Influencer&quot; to create one
+            </p>
+          </div>
+        )}
       </div>
 
       {/* User Referrers Section */}
       <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-3">
-          <TrendingUp className="text-[hsl(var(--primary))]" size={20} />
-          <h3 className="text-lg font-bold uppercase tracking-[0.16em]">Top User Referrers</h3>
+        <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-2 sm:gap-3">
+          <TrendingUp className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
+          <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">Top User Referrers</h3>
           <span className="px-2 py-0.5 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold">
             {data.userReferrers.length}
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[hsl(var(--border-strong))]">
-                <th className="text-left py-3 px-4 text-xs uppercase">Rank</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Name</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Email</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Plan</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Referral Link</th>
-                <th className="text-center py-3 px-4 text-xs uppercase">Referrals</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.userReferrers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-[hsl(var(--muted-foreground))]">
-                    No users have made referrals yet.
-                  </td>
+        {data.userReferrers.length > 0 ? (
+          <div className="overflow-x-auto -mx-0.5 sm:mx-0">
+            <table className="w-full text-xs sm:text-sm min-w-[600px]">
+              <thead>
+                <tr className="border-b border-[hsl(var(--border-strong))]">
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Rank</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Name</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Email</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Plan</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referral Link</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referrals</th>
                 </tr>
-              ) : (
-                data.userReferrers.map((user, idx) => (
+              </thead>
+              <tbody>
+                {data.userReferrers.map((user, idx) => (
                   <tr
                     key={user._id}
                     className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5"
                   >
-                    <td className="py-3 px-4 font-bold">#{idx + 1}</td>
-                    <td className="py-3 px-4 font-medium">{user.name}</td>
-                    <td className="py-3 px-4">{user.email}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 font-bold">#{idx + 1}</td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 font-medium">{user.name}</td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 break-all">{user.email}</td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       <span
-                        className={`px-2 py-0.5 rounded text-xs ${
+                        className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs ${
                           user.plan === 'pro'
                             ? 'bg-blue-500/20 text-blue-500'
                             : user.plan === 'team'
@@ -545,14 +577,14 @@ export default function ReferralsTab() {
                         {user.plan || 'free'}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs bg-[hsl(var(--accent))]/20 px-2 py-1 rounded">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <code className="text-[10px] sm:text-xs bg-[hsl(var(--accent))]/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded break-all">
                           {user.referralCode}
                         </code>
                         <button
                           onClick={() => copyToClipboard(user.referralCode)}
-                          className="p-1 hover:bg-[hsl(var(--accent))] rounded transition-colors"
+                          className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-[hsl(var(--accent))] rounded transition-colors touch-manipulation flex items-center justify-center"
                           title="Copy referral link"
                         >
                           {copiedCode === user.referralCode ? (
@@ -563,58 +595,59 @@ export default function ReferralsTab() {
                         </button>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="px-2 py-0.5 bg-green-500/20 text-green-500 rounded text-xs font-semibold">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                      <span className="px-1.5 sm:px-2 py-0.5 bg-green-500/20 text-green-500 rounded text-[10px] sm:text-xs font-semibold">
                         {user.referralCount}
                       </span>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-8 text-center">
+            <TrendingUp className="text-[hsl(var(--muted-foreground))] mx-auto mb-3" size={32} />
+            <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.16em]">
+              No users have made referrals yet
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Referred Users Section */}
       <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-3">
-          <LinkIcon className="text-[hsl(var(--primary))]" size={20} />
-          <h3 className="text-lg font-bold uppercase tracking-[0.16em]">Referred Users</h3>
+        <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-2 sm:gap-3">
+          <UserPlus className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
+          <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">Referred Users</h3>
           <span className="px-2 py-0.5 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold">
             {data.referredUsers.length}
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[hsl(var(--border-strong))]">
-                <th className="text-left py-3 px-4 text-xs uppercase">Name</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Email</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Plan</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Referred By</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Type</th>
-                <th className="text-left py-3 px-4 text-xs uppercase">Signed Up</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.referredUsers.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-[hsl(var(--muted-foreground))]">
-                    No users have signed up via referral yet.
-                  </td>
+        {data.referredUsers.length > 0 ? (
+          <div className="overflow-x-auto -mx-0.5 sm:mx-0">
+            <table className="w-full text-xs sm:text-sm min-w-[600px]">
+              <thead>
+                <tr className="border-b border-[hsl(var(--border-strong))]">
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Name</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Email</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Plan</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referred By</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Type</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Signed Up</th>
                 </tr>
-              ) : (
-                data.referredUsers.map((user) => (
+              </thead>
+              <tbody>
+                {data.referredUsers.map((user) => (
                   <tr
                     key={user._id}
                     className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5"
                   >
-                    <td className="py-3 px-4 font-medium">{user.name}</td>
-                    <td className="py-3 px-4">{user.email}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 font-medium">{user.name}</td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 break-all">{user.email}</td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       <span
-                        className={`px-2 py-0.5 rounded text-xs ${
+                        className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs ${
                           user.plan === 'pro'
                             ? 'bg-blue-500/20 text-blue-500'
                             : user.plan === 'team'
@@ -625,17 +658,17 @@ export default function ReferralsTab() {
                         {user.plan || 'free'}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       {user.referredBy ? (
-                        <span className="font-medium">{user.referredBy.name}</span>
+                        <span className="font-medium text-xs sm:text-sm break-all">{user.referredBy.name}</span>
                       ) : (
-                        <span className="text-[hsl(var(--muted-foreground))]">Unknown</span>
+                        <span className="text-[10px] sm:text-xs text-[hsl(var(--muted-foreground))]">Unknown</span>
                       )}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       {user.referredBy && (
                         <span
-                          className={`px-2 py-0.5 rounded text-xs ${
+                          className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs ${
                             user.referredBy.type === 'influencer'
                               ? 'bg-orange-500/20 text-orange-500'
                               : 'bg-blue-500/20 text-blue-500'
@@ -645,16 +678,25 @@ export default function ReferralsTab() {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-xs">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-8 text-center">
+            <UserPlus className="text-[hsl(var(--muted-foreground))] mx-auto mb-3" size={32} />
+            <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.16em]">
+              No users have been referred yet
+            </p>
+          </div>
+        )}
       </div>
+        </>
+      )}
     </div>
   );
 }

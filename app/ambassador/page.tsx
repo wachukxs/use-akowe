@@ -181,7 +181,7 @@ export default function AmbassadorPage() {
         {/* What You'll Get Section */}
         <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-20">
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
-            What You'll Get
+            What You&apos;ll Get
           </h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -209,7 +209,7 @@ export default function AmbassadorPage() {
         <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-20">
           <div className="bg-[hsl(var(--primary))] border-[4px] border-[hsl(var(--border-strong))] rounded-lg p-8 sm:p-12 text-[hsl(var(--primary-foreground))]">
             <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-center">
-              Who We're Looking For
+              Who We&apos;re Looking For
             </h2>
             
             <div className="grid md:grid-cols-2 gap-4">

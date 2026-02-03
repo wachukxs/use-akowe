@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import User from '@/models/User';
-import { PLAN_LIMITS, PlanType } from '@/types';
+import { PLAN_LIMITS, PlanType, Section } from '@/types';
 import { createProjectInternal } from '@/lib/project-creation';
 
 // Helper function to create contextual writing guidance
@@ -155,7 +155,7 @@ Welcome to your ${type}! This is where you'll introduce your research topic and 
 ## ${citationStyle} Citation Guidelines
 - **Format**: ${guidance.citation.format}
 - **Example**: ${guidance.citation.example}
-- **Additional**: ${(guidance.citation as any).doi || (guidance.citation as any).page || (guidance.citation as any).note || (guidance.citation as any).technical || (guidance.citation as any).reference}
+- **Additional**: ${('doi' in guidance.citation && guidance.citation.doi) || ('page' in guidance.citation && guidance.citation.page) || ('note' in guidance.citation && guidance.citation.note) || ('technical' in guidance.citation && guidance.citation.technical) || ('reference' in guidance.citation && guidance.citation.reference) || ''}
 
 ## ${methodology} Writing Approach
 - **Methodology**: ${guidance.method.approach}
@@ -350,7 +350,7 @@ This section demonstrates your understanding of existing research and positions 
 ## ${citationStyle} Citation Guidelines
 - **Format**: ${guidance.citation.format}
 - **Example**: ${guidance.citation.example}
-- **Additional**: ${(guidance.citation as any).doi || (guidance.citation as any).page || (guidance.citation as any).note || (guidance.citation as any).technical || (guidance.citation as any).reference}
+- **Additional**: ${('doi' in guidance.citation && guidance.citation.doi) || ('page' in guidance.citation && guidance.citation.page) || ('note' in guidance.citation && guidance.citation.note) || ('technical' in guidance.citation && guidance.citation.technical) || ('reference' in guidance.citation && guidance.citation.reference) || ''}
 
 ## ${methodology} Writing Approach
 - **Synthesis**: ${guidance.method.approach}
@@ -801,7 +801,7 @@ export async function POST(request: NextRequest) {
       targetWordCount: targetWordCount || 0,
       citationStyle: citationStyle || 'APA',
       methodology,
-      sections: initialSections as any, // Type assertion needed due to Date objects
+      sections: initialSections as Section[], // Type assertion needed due to Date objects
       status: 'draft',
       wordCount: 0,
     });
@@ -822,7 +822,7 @@ export async function POST(request: NextRequest) {
       isFirstProject,
       'first_project_created',
       {
-        user_id: (session.user as any)?.id || session.user.email,
+        user_id: (session.user as { id?: string }).id || session.user.email,
         project_type: type,
       }
     );

@@ -6,6 +6,7 @@ import { countWords } from '@/lib/utils';
 import User from '@/models/User';
 import connectDB from '@/lib/mongodb';
 import { shouldShowPaywallBeforeOutput, type PaywallVariant } from '@/lib/paywall-ab-test';
+import { trackPaywallEvent } from '@/lib/paywall-tracking';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -43,6 +44,9 @@ export async function POST(request: NextRequest) {
     // Variant A: Block before output generation
     // Variant B: Allow preview (check happens at export)
     if (user.plan === 'free' && shouldShowPaywallBeforeOutput(paywallVariant) && !usageCheck.allowed) {
+      // Track paywall view event
+      await trackPaywallEvent(session.user.id, paywallVariant, 'paywall_view', 'ai_write');
+      
       return NextResponse.json(
         { 
           error: 'Daily word limit reached',
@@ -56,6 +60,11 @@ export async function POST(request: NextRequest) {
 
     // Variant B: For free users, allow generation but mark as preview-only
     const isPreviewOnly = user.plan === 'free' && paywallVariant === 'variant_b' && !usageCheck.allowed;
+    
+    // Track preview view for Variant B users
+    if (isPreviewOnly) {
+      await trackPaywallEvent(session.user.id, paywallVariant, 'preview_view', 'ai_write');
+    }
 
     // Determine which model to use based on plan
     const model = user.plan === 'free' ? 'gpt-3.5-turbo' : 'gpt-4o-mini';

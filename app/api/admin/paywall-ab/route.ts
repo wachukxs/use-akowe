@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth-server';
+import { verifyAdminSession } from '@/lib/admin-auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import DailyUsage from '@/models/DailyUsage';
 import Project from '@/models/Project';
+import PaywallEvent from '@/models/PaywallEvent';
 
 /**
  * Admin API endpoint to analyze Paywall A/B test results
@@ -20,72 +21,115 @@ import Project from '@/models/Project';
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    
-    if (!session?.user?.email) {
+    // Check admin session using cookie-based auth
+    const isAdmin = await verifyAdminSession();
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
     await connectDB();
-    const adminUser = await User.findOne({ email: session.user.email }).lean();
-    if (!adminUser || (adminUser as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     const searchParams = request.nextUrl.searchParams;
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // Build date filter
-    const dateFilter: any = {};
+    // Build date filter for PaywallEvent queries
+    interface EventDateFilter {
+      createdAt?: {
+        $gte?: Date;
+        $lte?: Date;
+      };
+    }
+    const eventDateFilter: EventDateFilter = {};
     if (startDate || endDate) {
-      dateFilter.createdAt = {};
+      const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
       if (startDate) {
-        dateFilter.createdAt.$gte = new Date(startDate);
+        createdAtFilter.$gte = new Date(startDate);
       }
       if (endDate) {
-        dateFilter.createdAt.$lte = new Date(endDate);
+        createdAtFilter.$lte = new Date(endDate);
       }
+      eventDateFilter.createdAt = createdAtFilter;
     }
 
-    // Get all users with their paywall variant assignments
-    // Note: Variant is stored in cookies, so we'll infer from behavior
-    // For accurate tracking, we'd need to store variant in User model or separate tracking table
-    
-    // Get paywall view events from GA4 (would need to query GA4 API)
-    // For now, we'll analyze based on:
-    // 1. Users who hit 429 errors (Variant A)
-    // 2. Users who have projects but haven't exported (potential Variant B)
-    // 3. Users who upgraded after hitting limits
+    // Build date filter for User/Project queries
+    interface DateFilter {
+      createdAt?: {
+        $gte?: Date;
+        $lte?: Date;
+      };
+    }
+    const dateFilter: DateFilter = {};
+    if (startDate || endDate) {
+      const createdAtFilter: { $gte?: Date; $lte?: Date } = {};
+      if (startDate) {
+        createdAtFilter.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        createdAtFilter.$lte = new Date(endDate);
+      }
+      dateFilter.createdAt = createdAtFilter;
+    }
 
-    // Get users who upgraded (conversions)
+    // Query PaywallEvent collection for actual tracking data
+    const [variantAEvents, variantBEvents, allPaywallViews, allConversions] = await Promise.all([
+      // Variant A events
+      PaywallEvent.find({
+        variant: 'variant_a',
+        ...eventDateFilter,
+      }).lean(),
+      
+      // Variant B events
+      PaywallEvent.find({
+        variant: 'variant_b',
+        ...eventDateFilter,
+      }).lean(),
+      
+      // All paywall views (for summary)
+      PaywallEvent.find({
+        eventType: 'paywall_view',
+        ...eventDateFilter,
+      }).lean(),
+      
+      // All conversions (for summary)
+      PaywallEvent.find({
+        eventType: 'conversion',
+        ...eventDateFilter,
+      }).lean(),
+    ]);
+
+    // Calculate Variant A metrics
+    const variantAPaywallViews = variantAEvents.filter(e => e.eventType === 'paywall_view').length;
+    const variantAConversions = variantAEvents.filter(e => e.eventType === 'conversion').length;
+    const variantAConversionRate = variantAPaywallViews > 0 
+      ? (variantAConversions / variantAPaywallViews) * 100 
+      : 0;
+
+    // Calculate Variant B metrics
+    const variantBPaywallViews = variantBEvents.filter(e => e.eventType === 'paywall_view').length;
+    const variantBPreviewViews = variantBEvents.filter(e => e.eventType === 'preview_view').length;
+    const variantBExportAttempts = variantBEvents.filter(e => e.eventType === 'export_attempt').length;
+    const variantBConversions = variantBEvents.filter(e => e.eventType === 'conversion').length;
+    // For Variant B, conversion rate is based on export attempts (more relevant metric)
+    const variantBConversionRate = variantBExportAttempts > 0 
+      ? (variantBConversions / variantBExportAttempts) * 100 
+      : (variantBPaywallViews > 0 ? (variantBConversions / variantBPaywallViews) * 100 : 0);
+
+    // Get basic summary metrics
     const upgradedUsers = await User.find({
       plan: { $in: ['pro', 'pro_annual'] },
       ...dateFilter,
     }).lean();
 
-    // Get projects with AI-generated content
     const projectsWithAI = await Project.find({
       wordCount: { $gt: 0 },
       ...dateFilter,
     }).lean();
 
-    // Get daily usage records to identify users who hit limits
     const usageRecords = await DailyUsage.find({
-      aiWordsUsed: { $gte: 500 }, // Hit the free limit
+      aiWordsGenerated: { $gte: 500 }, // Hit the free limit
       ...dateFilter,
     }).lean();
-
-    // Analyze patterns
-    // Variant A users: Hit 429 errors (we can't directly track this without logs)
-    // Variant B users: Have projects with content but may not have exported
-    
-    // For now, return basic metrics
-    // In production, you'd want to:
-    // 1. Store paywall variant in User model or separate PaywallAssignment model
-    // 2. Track paywall views via GA4 events with variant parameter
-    // 3. Track export attempts and conversions
 
     const results = {
       summary: {
@@ -96,21 +140,18 @@ export async function GET(request: NextRequest) {
       },
       variantA: {
         description: 'Paywall before output (block generation)',
-        // Would need actual tracking data
-        paywallViews: 0, // From GA4 events
-        conversions: 0, // Users who upgraded after seeing paywall
-        conversionRate: 0,
+        paywallViews: variantAPaywallViews,
+        conversions: variantAConversions,
+        conversionRate: Math.round(variantAConversionRate * 100) / 100,
       },
       variantB: {
         description: 'Output preview then paywall before export',
-        // Would need actual tracking data
-        paywallViews: 0, // From GA4 events
-        previewViews: 0, // Users who saw preview
-        exportAttempts: 0, // Users who tried to export
-        exportConversions: 0, // Users who upgraded to export
-        conversionRate: 0,
+        paywallViews: variantBPaywallViews,
+        previewViews: variantBPreviewViews,
+        exportAttempts: variantBExportAttempts,
+        exportConversions: variantBConversions,
+        conversionRate: Math.round(variantBConversionRate * 100) / 100,
       },
-      note: 'This endpoint requires GA4 integration or database tracking of paywall variant assignments and events. Currently returns basic user metrics.',
     };
 
     return NextResponse.json(results);

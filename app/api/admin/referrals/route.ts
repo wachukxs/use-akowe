@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Influencer from '@/models/Influencer';
+import mongoose from 'mongoose';
 import { calculateInfluencerQuality } from '@/lib/influencer-quality';
 
 export async function GET() {
@@ -112,6 +113,12 @@ export async function GET() {
       .sort({ createdAt: -1 })
       .lean();
 
+    interface PopulatedReferrer {
+      _id: mongoose.Types.ObjectId | { toString(): string };
+      name: string;
+      email: string;
+    }
+
     const formattedReferredUsers = referredUsers.map((user) => ({
       _id: user._id.toString(),
       name: user.name,
@@ -121,16 +128,16 @@ export async function GET() {
       referredBy: user.referredBy
         ? {
             type: 'user' as const,
-            _id: (user.referredBy as any)._id.toString(),
-            name: (user.referredBy as any).name,
-            email: (user.referredBy as any).email,
+            _id: (user.referredBy as PopulatedReferrer)._id.toString(),
+            name: (user.referredBy as PopulatedReferrer).name,
+            email: (user.referredBy as PopulatedReferrer).email,
           }
         : user.referredByInfluencer
         ? {
             type: 'influencer' as const,
-            _id: (user.referredByInfluencer as any)._id.toString(),
-            name: (user.referredByInfluencer as any).name,
-            email: (user.referredByInfluencer as any).email,
+            _id: (user.referredByInfluencer as PopulatedReferrer)._id.toString(),
+            name: (user.referredByInfluencer as PopulatedReferrer).name,
+            email: (user.referredByInfluencer as PopulatedReferrer).email,
           }
         : null,
     }));

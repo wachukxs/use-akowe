@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth-server';
+import { verifyAdminSession } from '@/lib/admin-auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Project from '@/models/Project';
 import DailyUsage from '@/models/DailyUsage';
-import Activation from '@/models/Activation';
+
+interface DateFilter {
+  createdAt?: {
+    $gte?: Date;
+    $lte?: Date;
+  };
+}
+
+interface UsageDateFilter {
+  date?: {
+    $gte?: string;
+    $lte?: string;
+  };
+}
+
 
 /**
  * Admin API endpoint to analyze "What paid users do differently"
@@ -18,25 +32,20 @@ import Activation from '@/models/Activation';
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    
-    if (!session?.user?.email) {
+    // Check admin session using cookie-based auth
+    const isAdmin = await verifyAdminSession();
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
     await connectDB();
-    const adminUser = await User.findOne({ email: session.user.email }).lean();
-    if (!adminUser || (adminUser as any).role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     const searchParams = request.nextUrl.searchParams;
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
     // Build date filter
-    const dateFilter: any = {};
+    const dateFilter: DateFilter = {};
     if (startDate || endDate) {
       dateFilter.createdAt = {};
       if (startDate) {
@@ -100,7 +109,7 @@ export async function GET(request: NextRequest) {
 async function analyzeProjectBehavior(
   freeUserIds: string[],
   paidUserIds: string[],
-  dateFilter: any
+  dateFilter: DateFilter
 ) {
   // Projects by free users
   const freeProjects = await Project.find({
@@ -178,10 +187,10 @@ async function analyzeProjectBehavior(
 async function analyzeAIUsage(
   freeUserIds: string[],
   paidUserIds: string[],
-  dateFilter: any
+  dateFilter: DateFilter
 ) {
   // Build date filter for DailyUsage
-  const usageDateFilter: any = {};
+  const usageDateFilter: UsageDateFilter = {};
   if (dateFilter.createdAt) {
     usageDateFilter.date = {};
     if (dateFilter.createdAt.$gte) {
@@ -264,7 +273,7 @@ async function analyzeAIUsage(
 async function analyzeFeatureAdoption(
   freeUserIds: string[],
   paidUserIds: string[],
-  dateFilter: any
+  dateFilter: DateFilter
 ) {
   // Free user projects
   const freeProjects = await Project.find({
@@ -340,10 +349,10 @@ async function analyzeFeatureAdoption(
 async function analyzeEngagement(
   freeUserIds: string[],
   paidUserIds: string[],
-  dateFilter: any
+  dateFilter: DateFilter
 ) {
   // Build date filter for DailyUsage
-  const usageDateFilter: any = {};
+  const usageDateFilter: UsageDateFilter = {};
   if (dateFilter.createdAt) {
     usageDateFilter.date = {};
     if (dateFilter.createdAt.$gte) {
@@ -420,7 +429,7 @@ async function analyzeEngagement(
 /**
  * Analyze conversion patterns (what free users do before converting)
  */
-async function analyzeConversionPatterns(dateFilter: any) {
+async function analyzeConversionPatterns(dateFilter: DateFilter) {
   // Get users who converted (have subscriptionStartDate)
   const convertedUsers = await User.find({
     plan: { $in: ['pro', 'pro_annual'] },

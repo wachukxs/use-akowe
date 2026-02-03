@@ -11,7 +11,7 @@ export default function AffiliateProgramPage() {
   const { data: session, status } = useSession();
   const [copiedLink, setCopiedLink] = useState(false);
 
-  const referralCode = (session?.user as any)?.referralCode;
+  const referralCode = (session?.user as { referralCode?: string })?.referralCode;
   const referralLink = useMemo(() => {
     return referralCode ? buildReferralLink(referralCode) : null;
   }, [referralCode]);

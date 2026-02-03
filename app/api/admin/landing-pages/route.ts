@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Activation from '@/models/Activation';
-import User from '@/models/User';
+
+interface ActivationQuery {
+  toolEntryPoint?: string;
+  channel?: string;
+  createdAt?: {
+    $gte?: Date;
+    $lte?: Date;
+  };
+  isActivated?: boolean;
+  firstProjectCreatedAt?: {
+    $ne?: null;
+  };
+}
 
 /**
  * GET /api/admin/landing-pages
@@ -17,7 +29,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('end_date');
     
     // Build query for activation records with landing page data
-    const query: any = {};
+    const query: ActivationQuery = {};
     
     if (variant) {
       // Map variant to channel or tool entry point

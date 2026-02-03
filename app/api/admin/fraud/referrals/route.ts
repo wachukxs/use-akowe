@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import ReferralClick from '@/models/ReferralClick';
-import User from '@/models/User';
-import { checkReferralFraud } from '@/lib/fraud-prevention';
 
 /**
  * GET /api/admin/fraud/referrals

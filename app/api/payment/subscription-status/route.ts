@@ -35,7 +35,7 @@ export async function GET() {
 
       // Determine user's plan based on subscription status
       let plan = user.plan;
-      let status = subscription.status;
+      const status = subscription.status;
       let needsUpdate = false;
 
       // Handle different subscription statuses
@@ -74,12 +74,15 @@ export async function GET() {
         console.log(`🔄 Updated user ${user._id} plan to ${plan} based on subscription status: ${subscription.status}`);
       }
 
+      interface StripeSubscription {
+        current_period_end?: number;
+      }
       return NextResponse.json({
         plan,
         status,
         needsUpdate,
         billingCycle: user.billingCycle || 'monthly',
-        subscriptionEnd: (subscription as any).current_period_end,
+        subscriptionEnd: (subscription as StripeSubscription).current_period_end,
       });
     } catch (stripeError) {
       console.error('Error retrieving subscription from Stripe:', stripeError);

@@ -29,10 +29,11 @@ import {
   Mail
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
-import LeadsTab from '@/components/admin/LeadsTab';
+import MarketingTab from '@/components/admin/MarketingTab';
+import AnalyticsTab from '@/components/admin/AnalyticsTab';
 import TimeSeriesChart from '@/components/admin/TimeSeriesChart';
 
-type AdminTab = 'dashboard' | 'referrals' | 'leads';
+type AdminTab = 'dashboard' | 'marketing' | 'referrals' | 'analytics';
 
 // Updated interface to match new structure
 interface AdminMetricsResponse {
@@ -673,7 +674,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const exportUsersToCSV = (users: Array<{ userId?: string; _id?: string; email: string; name: string; plan: string; totalAIWords?: number; totalPlagiarismChecks?: number; createdAt?: string; stripeSubscriptionId?: string }>) => {
+  const exportUsersToCSV = (users: Array<{ userId?: string; _id?: string; email?: string; name?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; activeDays?: number; createdAt?: string | Date; stripeSubscriptionId?: string }>) => {
     const headers = ['Name', 'Email', 'Plan', 'AI Words', 'Plagiarism Checks', 'Created At', 'Has Subscription'];
     const rows = users.map(user => [
       user.name || 'N/A',
@@ -681,7 +682,7 @@ export default function AdminDashboard() {
       user.plan || 'free',
       user.totalAIWords?.toString() || '0',
       user.totalPlagiarismChecks?.toString() || '0',
-      user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A',
+      user.createdAt ? (typeof user.createdAt === 'string' ? new Date(user.createdAt) : user.createdAt).toLocaleDateString() : 'N/A',
       user.stripeSubscriptionId ? 'Yes' : 'No'
     ]);
 
@@ -717,14 +718,14 @@ export default function AdminDashboard() {
       const data = await response.json();
       
       const headers = ['Name', 'Email', 'Plan', 'AI Words Generated', 'Plagiarism Checks', 'Active Days', 'User ID'];
-      const rows = data.users.map((user: any) => [
+      const rows = data.users.map((user: { name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; activeDays?: number; _id?: string; userId?: string }) => [
         user.name || 'N/A',
         user.email || 'N/A',
         user.plan || 'free',
-        user.totalAIWords?.toString() || '0',
-        user.totalPlagiarismChecks?.toString() || '0',
-        user.activeDays?.toString() || '0',
-        user.userId || 'N/A'
+        (user.totalAIWords || 0).toString(),
+        (user.totalPlagiarismChecks || 0).toString(),
+        (user.activeDays || 0).toString(),
+        user._id || user.userId || 'N/A'
       ]);
 
       const csvContent = [
@@ -848,53 +849,83 @@ export default function AdminDashboard() {
 
   // Tab navigation component
   const TabNavigation = () => (
-    <div className="flex items-center gap-1 border-b-2 border-[hsl(var(--border-strong))] mb-6">
+    <div className="flex items-center gap-1 border-b-2 border-[hsl(var(--border-strong))] mb-6 overflow-x-auto -mx-0.5 sm:mx-0 pb-0.5">
       <button
         onClick={() => setActiveTab('dashboard')}
-        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 cursor-pointer ${
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
           activeTab === 'dashboard'
             ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
             : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
         }`}
       >
-        <BarChart3 size={16} />
-        Dashboard
+        <BarChart3 size={14} className="sm:w-4 sm:h-4" />
+        <span>Dashboard</span>
+      </button>
+      <button
+        onClick={() => setActiveTab('marketing')}
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+          activeTab === 'marketing'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <TrendingUp size={14} className="sm:w-4 sm:h-4" />
+        <span>Marketing</span>
       </button>
       <button
         onClick={() => setActiveTab('referrals')}
-        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 cursor-pointer ${
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
           activeTab === 'referrals'
             ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
             : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
         }`}
       >
-        <LinkIcon size={16} />
-        Referrals
+        <LinkIcon size={14} className="sm:w-4 sm:h-4" />
+        <span>Referrals</span>
       </button>
       <button
-        onClick={() => setActiveTab('leads')}
-        className={`px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-2 cursor-pointer ${
-          activeTab === 'leads'
+        onClick={() => setActiveTab('analytics')}
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+          activeTab === 'analytics'
             ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
             : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
         }`}
       >
-        <Mail size={16} />
-        Leads
+        <BarChart3 size={14} className="sm:w-4 sm:h-4" />
+        <span>Analytics</span>
       </button>
     </div>
   );
 
-  // Render referrals tab
+  // Render marketing tab (Leads + Attribution)
+  if (activeTab === 'marketing') {
+    return (
+      <div className="min-h-screen bg-[hsl(var(--background))] p-3 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
+          {/* Header */}
+          <div className="pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Marketing & Acquisition
+            </p>
+          </div>
+          <TabNavigation />
+          <MarketingTab />
+        </div>
+      </div>
+    );
+  }
+
+  // Render referrals tab (Referrals + Fraud)
   if (activeTab === 'referrals') {
     return (
-      <div className="min-h-screen bg-[hsl(var(--background))] p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
+      <div className="min-h-screen bg-[hsl(var(--background))] p-3 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
           {/* Header */}
-          <div className="pb-4 border-b-2 border-[hsl(var(--border-strong))]">
-            <h1 className="text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
-            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              Manage your platform
+          <div className="pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Referral Program Management
             </p>
           </div>
           <TabNavigation />
@@ -904,20 +935,20 @@ export default function AdminDashboard() {
     );
   }
 
-  // Render leads tab
-  if (activeTab === 'leads') {
+  // Render analytics tab
+  if (activeTab === 'analytics') {
     return (
-      <div className="min-h-screen bg-[hsl(var(--background))] p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
+      <div className="min-h-screen bg-[hsl(var(--background))] p-3 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
           {/* Header */}
-          <div className="pb-4 border-b-2 border-[hsl(var(--border-strong))]">
-            <h1 className="text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
-            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              Lead Magnet Captures
+          <div className="pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              A/B Tests & User Behavior Analysis
             </p>
           </div>
           <TabNavigation />
-          <LeadsTab />
+          <AnalyticsTab />
         </div>
       </div>
     );
@@ -929,10 +960,10 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-[hsl(var(--background))] p-6">
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
-            <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Actionable Insights & Product Metrics
             </p>
           </div>
@@ -1392,7 +1423,7 @@ export default function AdminDashboard() {
               let filteredUsers = usersList;
               if (debouncedSearch && debouncedSearch.trim().length > 0) {
                 const searchLower = debouncedSearch.trim().toLowerCase();
-                filteredUsers = usersList.filter((user: any) => 
+                filteredUsers = usersList.filter((user: { email?: string; name?: string }) => 
                   (user.email || '').toLowerCase().includes(searchLower) ||
                   (user.name || '').toLowerCase().includes(searchLower)
                 );
@@ -1408,7 +1439,7 @@ export default function AdminDashboard() {
                           exportUsersToCSV(
                             (topUsersUsage && topUsersUsage.length > 0
                               ? topUsersUsage
-                              : metrics.detailedLists.topUsersByUsage) as any[],
+                              : metrics.detailedLists.topUsersByUsage) as Array<{ name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; activeDays?: number; _id?: string }>,
                           )
                         }
                         className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
@@ -1449,7 +1480,7 @@ export default function AdminDashboard() {
                             </td>
                           </tr>
                         ) : filteredUsers.length > 0 ? (
-                          filteredUsers.slice(0, 10).map((user: any, idx: number) => (
+                          filteredUsers.slice(0, 10).map((user: { userId?: string; _id?: string; name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; activeDays?: number }, idx: number) => (
                             <tr key={user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                               <td className="py-2 px-3 font-bold">#{idx + 1}</td>
                               <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
@@ -1463,8 +1494,8 @@ export default function AdminDashboard() {
                                   {user.plan || 'free'}
                                 </span>
                               </td>
-                              <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords)}</td>
-                              <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks)}</td>
+                              <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords || 0)}</td>
+                              <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks || 0)}</td>
                             </tr>
                           ))
                         ) : (
@@ -1491,6 +1522,7 @@ export default function AdminDashboard() {
                         (recentUsers && recentUsers.length > 0
                           ? recentUsers
                           : metrics.detailedLists.recentUsers.map(u => ({
+                              _id: u._id,
                               userId: u._id,
                               email: u.email,
                               name: u.name,
@@ -1499,7 +1531,7 @@ export default function AdminDashboard() {
                               stripeSubscriptionId: u.stripeSubscriptionId,
                               totalAIWords: u.totalAIWords || 0,
                               totalPlagiarismChecks: u.totalPlagiarismChecks || 0,
-                            }))) as any[],
+                            }))),
                       )
                     }
                     className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
@@ -1535,23 +1567,23 @@ export default function AdminDashboard() {
                         if (debouncedSearch && debouncedSearch.trim().length > 0 && !recentUsers) {
                           // Only filter metrics data, API data is already filtered
                           const searchLower = debouncedSearch.trim().toLowerCase();
-                          filteredUsers = usersList.filter((user: any) => 
+                          filteredUsers = usersList.filter((user: { email?: string; name?: string }) => 
                             (user.email || '').toLowerCase().includes(searchLower) ||
                             (user.name || '').toLowerCase().includes(searchLower)
                           );
                         }
                         
-                        return filteredUsers.slice(0, 20).map((user: any) => (
-                          <tr key={user._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
+                        return filteredUsers.slice(0, 20).map((user: { _id?: string; userId?: string; name?: string; email?: string; plan?: string; createdAt?: string | Date; totalAIWords?: number; totalPlagiarismChecks?: number; activeDays?: number; stripeSubscriptionId?: string }) => (
+                          <tr key={user._id || user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
-                          <td className="py-2 px-3">{user.email}</td>
+                          <td className="py-2 px-3">{user.email || 'N/A'}</td>
                           <td className="py-2 px-3">
                             <span className={`px-2 py-0.5 rounded text-xs ${
                               user.plan === 'pro' ? 'bg-blue-500/20 text-blue-500' :
                               user.plan === 'team' ? 'bg-purple-500/20 text-purple-500' :
                               'bg-gray-500/20 text-gray-500'
                             }`}>
-                              {user.plan}
+                              {user.plan || 'free'}
                             </span>
                           </td>
                           <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords || 0)}</td>
@@ -1564,7 +1596,7 @@ export default function AdminDashboard() {
                               <span className="text-gray-500">—</span>
                             )}
                           </td>
-                          <td className="py-2 px-3">{new Date(user.createdAt).toLocaleDateString()}</td>
+                          <td className="py-2 px-3">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
                         </tr>
                       ));
                       })()}

@@ -295,8 +295,10 @@ function analyzeCitations(text: string, _existingCitations: unknown[]): Array<{
   return matches.slice(0, 5); // Limit to 5 citation suggestions
 }
 
+import { Citation } from '@/types';
+
 // Section-level analysis
-function analyzeSection(section: Section, allSections: Section[], existingCitations: any[]): {
+function analyzeSection(section: Section, allSections: Section[], existingCitations: Citation[]): {
   sectionId: string;
   sectionTitle: string;
   matchPercentage: number;
@@ -360,7 +362,7 @@ function analyzeSection(section: Section, allSections: Section[], existingCitati
 async function checkPlagiarism(
   text: string, 
   sections?: Section[], 
-  existingCitations?: any[]
+  existingCitations?: Citation[]
 ): Promise<{
   matchPercentage: number;
   matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }>;
@@ -662,8 +664,8 @@ export async function POST(request: NextRequest) {
     const rawSections = sections || project.sections || [];
     // Validate and sanitize sections to ensure content is always a string
     const sectionsToAnalyze = rawSections
-      .filter((section: any) => section && typeof section === 'object' && section.id && section.title)
-      .map((section: any) => ({
+      .filter((section: unknown): section is Section => section !== null && typeof section === 'object' && 'id' in section && 'title' in section)
+      .map((section: Section) => ({
         ...section,
         content: typeof section.content === 'string' ? section.content : String(section.content || ''),
         title: typeof section.title === 'string' ? section.title : String(section.title || ''),

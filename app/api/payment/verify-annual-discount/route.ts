@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getProPlanDiscount, verifyAnnualDiscount } from '@/lib/annual-discount';
 import { stripe, getStripePriceId } from '@/lib/stripe';
 
@@ -6,7 +6,7 @@ import { stripe, getStripePriceId } from '@/lib/stripe';
  * API endpoint to verify annual plan discount configuration
  * Checks that Stripe prices match expected discount
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get expected discount info
     const expectedDiscount = getProPlanDiscount();
