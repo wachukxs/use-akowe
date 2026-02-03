@@ -31,6 +31,7 @@ import { insertCitationAtRange } from '@/lib/insert-citation-at-range';
 import { scheduleScrollEditorIntoView } from '@/lib/scroll-editor-into-view';
 import { cn } from '@/lib/utils';
 import { trackFunnel } from '@/lib/gtag';
+import FirstProjectCompletion from '@/components/FirstProjectCompletion';
 
 export default function ProjectEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -2047,6 +2048,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
+      <FirstProjectCompletion />
       <style jsx>{`
         .prose ul {
           list-style-type: disc;

@@ -9,6 +9,7 @@ import { Project } from '@/types';
 import { Search, Grid, List, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LeadMagnetContinuation from '@/components/LeadMagnetContinuation';
+import Active37DiscountPopup from '@/components/Active37DiscountPopup';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -17,6 +18,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showActive37Popup, setShowActive37Popup] = useState(false);
+  const [active37Eligibility, setActive37Eligibility] = useState<{ eligible: boolean; activeDays?: number } | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -27,8 +30,37 @@ export default function DashboardPage() {
   useEffect(() => {
     if (session?.user?.email) {
       fetchProjects();
+      checkActive37Eligibility();
     }
   }, [session]);
+
+  // Check if user is eligible for ACTIVE37 discount
+  const checkActive37Eligibility = async () => {
+    if (!session?.user?.email) return;
+
+    // Check if user has already dismissed permanently
+    const dismissedPermanently = localStorage.getItem('akowe_active37_dismissed_permanent');
+    if (dismissedPermanently === 'true') return;
+
+    // Check if shown today
+    const lastShownDate = localStorage.getItem('akowe_active37_last_shown');
+    const today = new Date().toDateString();
+    if (lastShownDate === today) return;
+
+    try {
+      const response = await fetch('/api/user/active-discount-eligibility');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.eligible) {
+          setActive37Eligibility(data);
+          setShowActive37Popup(true);
+          localStorage.setItem('akowe_active37_last_shown', today);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking ACTIVE37 eligibility:', error);
+    }
+  };
 
   // Refresh projects when user returns to dashboard (e.g., from project page)
   useEffect(() => {
@@ -99,6 +131,16 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <Active37DiscountPopup
+        isOpen={showActive37Popup}
+        onClose={() => {
+          setShowActive37Popup(false);
+        }}
+        onUpgrade={() => {
+          router.push('/settings');
+        }}
+        activeDays={active37Eligibility?.activeDays || 0}
+      />
       <Sidebar />
       <MobileMenuButton />
       <LeadMagnetContinuation />

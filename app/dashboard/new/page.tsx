@@ -12,6 +12,7 @@ import { ProjectType } from '@/types';
 import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TopicFinderModal from '@/components/TopicFinderModal';
+import GuidedFirstProject from '@/components/GuidedFirstProject';
 import { trackFunnel } from '@/lib/gtag';
 
 const projectTypes: { 
@@ -81,16 +82,50 @@ export default function NewProjectPage() {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showTopicFinder, setShowTopicFinder] = useState(false);
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'team'>('free');
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
+  const [showGuidedModal, setShowGuidedModal] = useState(false);
+  const [hasSeenGuidance, setHasSeenGuidance] = useState(false);
 
   // Get current project type details
   const currentType = projectTypes.find(type => type.type === selectedType);
 
-  // Get user plan from session
+  // Get user plan from session and check if first-time user
   useEffect(() => {
     if (session?.user) {
       // Plan is available in session token
       const plan = (session.user as any).plan || 'free';
       setUserPlan(plan as 'free' | 'pro' | 'team');
+      
+      // Check if user has any projects (first-time user detection)
+      const checkFirstTimeUser = async () => {
+        try {
+          const response = await fetch('/api/projects');
+          if (response.ok) {
+            const data = await response.json();
+            const projectCount = data.projects?.length || 0;
+            const isFirstTime = projectCount === 0;
+            setIsFirstTimeUser(isFirstTime);
+            
+            // Show guided modal if first-time user and hasn't seen it
+            if (isFirstTime) {
+              const hasSeen = localStorage.getItem('akowe_guided_first_project_seen');
+              if (!hasSeen) {
+                setShowGuidedModal(true);
+              }
+              
+              // Pre-fill sensible defaults for first-time users
+              setSelectedType('essay'); // Most common starting point
+              setTargetWordCount(3000); // Already default
+              setCitationStyle('APA'); // Already default
+              // Don't pre-fill name/topic/methodology - let user fill these
+            }
+          }
+        } catch (error) {
+          console.error('Error checking project count:', error);
+        }
+      };
+      
+      checkFirstTimeUser();
     }
   }, [session]);
 
@@ -177,6 +212,12 @@ export default function NewProjectPage() {
         if (data.tracking?.trackEvent) {
           const { eventName, params } = data.tracking.trackEvent;
           trackFunnel.firstProjectCreated(params.user_id, params.project_type);
+          
+          // Mark guided flow as completed
+          if (isFirstTimeUser) {
+            localStorage.setItem('akowe_guided_first_project_seen', 'true');
+            localStorage.setItem('akowe_first_project_completed', 'true');
+          }
         }
         
         router.push(`/project/${data.project._id}`);
@@ -231,23 +272,45 @@ export default function NewProjectPage() {
             </div>
           </div>
 
-          {/* New User Guide */}
-          <Card className="p-4 md:p-6 border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10">
-            <div className="flex items-start gap-3">
-              <Info className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">Getting Started</h3>
-                <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
-                  New to Akọ̀wé? Fill in your project details below. We&apos;ll create structured sections with AI-powered guidance to help you write your academic work.
-                </p>
-                <div className="text-xs uppercase tracking-[0.16em] space-y-1">
-                  <p>• Choose your project type to get tailored sections</p>
-                  <p>• Specify your research topic for contextual AI assistance</p>
-                  <p>• Select citation style (APA, MLA, etc.) for proper formatting</p>
+          {/* New User Guide - Enhanced for first-time users */}
+          {isFirstTimeUser && (
+            <Card className="p-4 md:p-6 border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10">
+              <div className="flex items-start gap-3">
+                <Sparkles className="text-[hsl(var(--primary))] flex-shrink-0 mt-1" size={24} />
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">Welcome! Let&apos;s Create Your First Project</h3>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
+                    We&apos;ll guide you through each step. Fill in the details below and we&apos;ll create structured sections with AI-powered guidance to help you write.
+                  </p>
+                  <div className="text-xs uppercase tracking-[0.16em] space-y-1">
+                    <p>• <strong>Project Type:</strong> Choose Essay, Thesis, Journal, or Research Paper</p>
+                    <p>• <strong>Research Topic:</strong> Be specific - use the Topic Finder if you need ideas</p>
+                    <p>• <strong>Methodology:</strong> Select Qualitative, Quantitative, or Mixed Methods</p>
+                    <p>• <strong>Citation Style:</strong> APA is recommended for most academic work</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          )}
+          
+          {!isFirstTimeUser && (
+            <Card className="p-4 md:p-6 border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10">
+              <div className="flex items-start gap-3">
+                <Info className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">Create New Project</h3>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
+                    Fill in your project details below. We&apos;ll create structured sections with AI-powered guidance to help you write your academic work.
+                  </p>
+                  <div className="text-xs uppercase tracking-[0.16em] space-y-1">
+                    <p>• Choose your project type to get tailored sections</p>
+                    <p>• Specify your research topic for contextual AI assistance</p>
+                    <p>• Select citation style (APA, MLA, etc.) for proper formatting</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Validation Errors */}
           {validationErrors.length > 0 && (
@@ -287,7 +350,10 @@ export default function NewProjectPage() {
                   placeholder="e.g., Climate Change Impact Study"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  className="text-base md:text-lg"
+                  className={cn(
+                    "text-base md:text-lg",
+                    isFirstTimeUser && !projectName && "ring-2 ring-[hsl(var(--primary))] ring-offset-2"
+                  )}
                 />
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Choose a clear, descriptive name that reflects your research focus
@@ -313,7 +379,10 @@ export default function NewProjectPage() {
                     placeholder="e.g., Impact of rising sea levels on coastal communities"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    className="text-base md:text-lg flex-1"
+                    className={cn(
+                      "text-base md:text-lg flex-1",
+                      isFirstTimeUser && !topic && "ring-2 ring-[hsl(var(--primary))] ring-offset-2"
+                    )}
                   />
                   <button
                     type="button"
@@ -399,15 +468,28 @@ export default function NewProjectPage() {
                 <select
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-base md:text-lg uppercase tracking-[0.08em]"
+                  className={cn(
+                    "w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-base md:text-lg uppercase tracking-[0.08em]",
+                    isFirstTimeUser && !methodology && "ring-2 ring-[hsl(var(--primary))] ring-offset-2"
+                  )}
                 >
                   <option value="">Select methodology...</option>
+                  {isFirstTimeUser && (
+                    <option value="" disabled className="text-xs">
+                      💡 Tip: Choose based on your research approach
+                    </option>
+                  )}
                   <option value="qualitative">Qualitative Research</option>
                   <option value="quantitative">Quantitative Research</option>
                   <option value="mixed methods">Mixed Methods</option>
                   <option value="literature review">Literature Review</option>
                   <option value="case study">Case Study</option>
                 </select>
+                {isFirstTimeUser && !methodology && (
+                  <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--primary))] mt-2 font-semibold">
+                    💡 This field is required. Choose the research approach that best fits your project.
+                  </p>
+                )}
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
                   Common for {currentType?.label.toLowerCase()}: {currentType?.commonMethodologies.join(', ')}
                 </p>
@@ -555,6 +637,20 @@ export default function NewProjectPage() {
           </div>
         </div>
       )}
+
+      {/* Guided First Project Modal */}
+      <GuidedFirstProject
+        isOpen={showGuidedModal}
+        onClose={() => {
+          setShowGuidedModal(false);
+          localStorage.setItem('akowe_guided_first_project_seen', 'true');
+        }}
+        onStart={() => {
+          setShowGuidedModal(false);
+          setHasSeenGuidance(true);
+          localStorage.setItem('akowe_guided_first_project_seen', 'true');
+        }}
+      />
 
       {/* Topic Finder Modal */}
       <TopicFinderModal

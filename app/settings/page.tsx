@@ -10,6 +10,7 @@ import { UsageLimits, PlanType } from '@/types';
 import { Check, Crown, Users, X, Info, Copy, Gift } from 'lucide-react';
 import { trackFunnel } from '@/lib/gtag';
 import { buildReferralLink } from '@/lib/referral-links';
+import Active37DiscountPopup from '@/components/Active37DiscountPopup';
 
 interface UsageData {
   aiWordsGenerated: number;
@@ -34,6 +35,8 @@ export default function SettingsPage() {
   const [checkoutFeedbackSubmitting, setCheckoutFeedbackSubmitting] = useState(false);
   const [checkoutFeedbackError, setCheckoutFeedbackError] = useState('');
   const [hasCheckoutCancelledParam, setHasCheckoutCancelledParam] = useState(false);
+  const [showActive37Popup, setShowActive37Popup] = useState(false);
+  const [active37Eligibility, setActive37Eligibility] = useState<{ eligible: boolean; activeDays?: number } | null>(null);
 
   const showCheckoutFeedback =
     hasCheckoutCancelledParam &&
@@ -83,8 +86,37 @@ export default function SettingsPage() {
   useEffect(() => {
     if (session?.user?.email) {
       fetchUsage();
+      checkActive37Eligibility();
     }
   }, [session]);
+
+  // Check if user is eligible for ACTIVE37 discount
+  const checkActive37Eligibility = async () => {
+    if (!session?.user?.email) return;
+
+    // Check if user has already dismissed permanently
+    const dismissedPermanently = localStorage.getItem('akowe_active37_dismissed_permanent');
+    if (dismissedPermanently === 'true') return;
+
+    // Check if shown today
+    const lastShownDate = localStorage.getItem('akowe_active37_last_shown');
+    const today = new Date().toDateString();
+    if (lastShownDate === today) return;
+
+    try {
+      const response = await fetch('/api/user/active-discount-eligibility');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.eligible) {
+          setActive37Eligibility(data);
+          setShowActive37Popup(true);
+          localStorage.setItem('akowe_active37_last_shown', today);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking ACTIVE37 eligibility:', error);
+    }
+  };
 
   // Read checkout_cancelled from URL on client (avoids useSearchParams Suspense requirement)
   useEffect(() => {
@@ -301,6 +333,11 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex h-screen">
+        <Active37DiscountPopup
+          isOpen={false}
+          onClose={() => {}}
+          onUpgrade={() => {}}
+        />
         <Sidebar />
         <MobileMenuButton />
         <div className="flex-1 md:ml-64 flex items-center justify-center">
@@ -315,6 +352,17 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      <Active37DiscountPopup
+        isOpen={showActive37Popup}
+        onClose={() => {
+          setShowActive37Popup(false);
+        }}
+        onUpgrade={() => {
+          // User will be redirected to settings where they can upgrade
+          // The discount code ACTIVE37 will be visible/mentioned in checkout
+        }}
+        activeDays={active37Eligibility?.activeDays || 0}
+      />
       <Sidebar />
       <MobileMenuButton />
       
