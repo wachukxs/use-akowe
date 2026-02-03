@@ -60,7 +60,7 @@ export async function GET(request: Request) {
           activeDays: { $sum: 1 },
         },
       },
-    ]);
+    ], { maxTimeMS: 30000 }); // 30 second timeout
 
     const usageMap = new Map<
       string,

@@ -649,7 +649,7 @@ export async function POST(request: NextRequest) {
     const project = await Project.findOne({ 
       _id: projectId, 
       userId: session.user.email 
-    });
+    }).lean();
 
     if (!project) {
       // If project not found, we need to rollback the increment

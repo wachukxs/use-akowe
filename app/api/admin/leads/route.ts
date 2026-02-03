@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
       },
     });
     
-    const stats = await LeadCapture.aggregate(statsPipeline);
+    const stats = await LeadCapture.aggregate(statsPipeline, { maxTimeMS: 30000 }); // 30 second timeout
 
     return NextResponse.json({
       leads,

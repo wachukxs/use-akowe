@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
         {
           $sort: { total: -1 },
         },
-      ]);
+      ], { maxTimeMS: 30000 }); // 30 second timeout
     }
     
     return NextResponse.json({

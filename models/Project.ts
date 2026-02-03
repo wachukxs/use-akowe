@@ -220,6 +220,8 @@ const ProjectSchema = new Schema<IProject>(
 
 ProjectSchema.index({ userId: 1, createdAt: -1 });
 ProjectSchema.index({ userId: 1, lastEditedAt: -1 });
+// Compound index for user projects with date range filtering (ascending for date ranges)
+ProjectSchema.index({ userId: 1, createdAt: 1 }); // Optimizes queries like: Project.find({ userId: { $in: userIds }, createdAt: { $gte: start, $lte: end } })
 // Indexes for admin metrics queries
 ProjectSchema.index({ createdAt: 1 });
 ProjectSchema.index({ updatedAt: 1 });

@@ -98,7 +98,7 @@ export async function calculateInfluencerQuality(
         avgActiveDays: { $avg: '$activeDays' },
       },
     },
-  ]);
+  ], { maxTimeMS: 30000 }); // 30 second timeout
 
   const avgActiveDays = activeDaysData[0]?.avgActiveDays || 0;
 

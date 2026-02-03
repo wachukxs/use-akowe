@@ -117,6 +117,8 @@ UserSchema.index({ createdAt: 1 });
 UserSchema.index({ plan: 1 });
 UserSchema.index({ stripeSubscriptionId: 1 });
 UserSchema.index({ createdAt: -1 }); // For recent users query
+// Compound index for common query pattern: filter by plan + date range + sort by date
+UserSchema.index({ plan: 1, createdAt: -1 }); // Optimizes queries like: User.find({ plan: 'free', createdAt: { $gte: start, $lte: end } })
 // Note: referralCode index is already created by unique: true in the schema definition
 UserSchema.index({ referredBy: 1 }); // For counting referrals per user
 UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer

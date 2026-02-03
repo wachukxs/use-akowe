@@ -85,7 +85,7 @@ export async function getAllTimeUserMetrics() {
           activeDays: { $sum: 1 }
         }
       }
-    ]).option({ maxTimeMS: 30000 }); // 30 second timeout
+    ], { maxTimeMS: 30000 }); // 30 second timeout
 
     usageData.forEach((usage: any) => {
       usageMap.set(usage._id, {
@@ -381,7 +381,7 @@ export async function getAllTimeProductMetrics() {
         }
       }
     }
-  ]);
+  ], { maxTimeMS: 30000 }); // 30 second timeout
 
   const avgProjectsPerUser = projectsPerUser[0]?.avgProjects || 0;
   const usersWithMultipleProjects = projectsPerUser[0]?.usersWithMultiple || 0;

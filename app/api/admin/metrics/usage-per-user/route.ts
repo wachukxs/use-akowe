@@ -95,7 +95,7 @@ export async function GET(request: Request) {
           activeDays: { $sum: 1 }
         }
       }
-    ]);
+    ], { maxTimeMS: 30000 }); // 30 second timeout
 
     // Build a usage map keyed by userId (string)
     const usageMap = new Map<

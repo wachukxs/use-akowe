@@ -98,7 +98,7 @@ export async function GET() {
       {
         $sort: { referralCount: -1 },
       },
-    ]);
+    ], { maxTimeMS: 30000 }); // 30 second timeout
 
     // Get all referred users (users who signed up via referral)
     const referredUsers = await User.find({

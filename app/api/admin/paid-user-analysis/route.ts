@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Check if user is admin
     await connectDB();
-    const adminUser = await User.findOne({ email: session.user.email });
+    const adminUser = await User.findOne({ email: session.user.email }).lean();
     if (!adminUser || (adminUser as any).role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

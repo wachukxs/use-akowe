@@ -41,7 +41,7 @@ export async function GET(
     }
 
     // Check paywall variant for free users
-    const user = await User.findOne({ email: session.user.email });
+    const user = await User.findOne({ email: session.user.email }).lean();
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }

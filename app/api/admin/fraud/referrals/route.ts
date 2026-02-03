@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         { $group: { _id: '$ipAddress', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 10 },
-      ]);
+      ], { maxTimeMS: 30000 }); // 30 second timeout
       
       return NextResponse.json({
         referralCode,
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
       {
         $limit: 20,
       },
-    ]);
+    ], { maxTimeMS: 30000 }); // 30 second timeout
     
     return NextResponse.json({
       overall: {
