@@ -413,6 +413,16 @@ Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is importa
       // Track usage
       await incrementAIWords(user._id.toString(), wordCount);
 
+      // Track activation if this is first output
+      if (isFirstOutput) {
+        const { recordFirstOutputGenerated, extractAttributionFromRequest } = await import('@/lib/activation-tracking');
+        const attribution = extractAttributionFromRequest(request);
+        await recordFirstOutputGenerated(user._id.toString(), attribution).catch(err => {
+          console.error('Activation tracking failed:', err);
+          // Don't block output generation if activation tracking fails
+        });
+      }
+
       // Return tracking metadata for first output
       const { createTrackingMetadata } = await import('@/lib/gtag-server');
       const tracking = createTrackingMetadata(
@@ -756,6 +766,16 @@ See the difference? Be specific, reference their text, show exact improvements.
 
     // Track usage
     await incrementAIWords(user._id.toString(), wordCount);
+
+    // Track activation if this is first output
+    if (isFirstOutput) {
+      const { recordFirstOutputGenerated, extractAttributionFromRequest } = await import('@/lib/activation-tracking');
+      const attribution = extractAttributionFromRequest(request);
+      await recordFirstOutputGenerated(user._id.toString(), attribution).catch(err => {
+        console.error('Activation tracking failed:', err);
+        // Don't block output generation if activation tracking fails
+      });
+    }
 
     // Advanced integration detection
     const isActuallyIntegrated = insertionMode === 'integrate' && 

@@ -173,6 +173,16 @@ Write with the authority of a subject matter expert. Produce content that demons
     // Track usage
     await incrementAIWords(session.user.id, wordCount);
 
+    // Track activation if this is first output
+    if (isFirstOutput) {
+      const { recordFirstOutputGenerated, extractAttributionFromRequest } = await import('@/lib/activation-tracking');
+      const attribution = extractAttributionFromRequest(request);
+      await recordFirstOutputGenerated(session.user.id, attribution).catch(err => {
+        console.error('Activation tracking failed:', err);
+        // Don't block output generation if activation tracking fails
+      });
+    }
+
     // Return tracking metadata for first output
     const { createTrackingMetadata } = await import('@/lib/gtag-server');
     const tracking = createTrackingMetadata(

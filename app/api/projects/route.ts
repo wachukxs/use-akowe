@@ -806,6 +806,16 @@ export async function POST(request: NextRequest) {
       wordCount: 0,
     });
 
+    // Track activation if this is first project
+    if (isFirstProject) {
+      const { recordFirstProjectCreated, extractAttributionFromRequest } = await import('@/lib/activation-tracking');
+      const attribution = extractAttributionFromRequest(request);
+      await recordFirstProjectCreated(session.user.email, attribution).catch(err => {
+        console.error('Activation tracking failed:', err);
+        // Don't block project creation if activation tracking fails
+      });
+    }
+
     // Return tracking metadata for first project
     const { createTrackingMetadata } = await import('@/lib/gtag-server');
     const tracking = createTrackingMetadata(
