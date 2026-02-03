@@ -80,9 +80,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Return tracking metadata for checkout_start
+    const { createTrackingMetadata } = await import('@/lib/gtag-server');
+    const tracking = createTrackingMetadata(
+      true, // Always track checkout_start
+      'checkout_start',
+      {
+        user_id: user._id.toString(),
+        billing_cycle: billingCycle,
+        plan_type: 'pro',
+      }
+    );
+
     return NextResponse.json({
       sessionId: checkoutSession.id,
       url: checkoutSession.url,
+      tracking,
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);

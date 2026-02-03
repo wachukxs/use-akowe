@@ -207,8 +207,22 @@ Return the complete section content with the citation intelligently integrated. 
     } else {
       integrationType = 'NATURAL_INTEGRATION';
    }
+    // Check if this is first output (before incrementing)
+    const isFirstOutput = usageCheck.remaining === usageCheck.limit;
+
     // Track usage
     await incrementAIWords(user._id.toString(), wordCount);
+
+    // Return tracking metadata for first output
+    const { createTrackingMetadata } = await import('@/lib/gtag-server');
+    const tracking = createTrackingMetadata(
+      isFirstOutput,
+      'first_output_generated',
+      {
+        user_id: user._id.toString(),
+        output_type: 'integrate',
+      }
+    );
 
     return NextResponse.json({
       integratedContent,
@@ -217,7 +231,8 @@ Return the complete section content with the citation intelligently integrated. 
       remaining: usageCheck.remaining - wordCount,
       citationPlaced: true,
       integrationType,
-      isTemplateContent
+      isTemplateContent,
+      ...(tracking && { tracking }),
     });
 
   } catch (error) {

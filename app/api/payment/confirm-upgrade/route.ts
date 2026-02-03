@@ -58,12 +58,47 @@ export async function POST(request: NextRequest) {
       await user.save();
       console.log(`✅ Updated user ${user._id} to pro plan (${billingCycle}) via confirmation with subscription dates`);
       
+      // Get subscription price for tracking
+      let priceInDollars = 0;
+      if (checkoutSession.subscription) {
+        try {
+          const subscriptionId = typeof checkoutSession.subscription === 'string' 
+            ? checkoutSession.subscription 
+            : checkoutSession.subscription.id;
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const priceId = subscription.items.data[0]?.price?.id;
+          if (priceId) {
+            const price = await stripe.prices.retrieve(priceId);
+            priceInDollars = (price.unit_amount || 0) / 100;
+          }
+        } catch (error) {
+          console.error('Error fetching price for tracking:', error);
+          // Fallback: estimate based on billing cycle
+          priceInDollars = billingCycle === 'annual' ? 120 : 12;
+        }
+      }
+      
+      // Return tracking metadata for purchase event
+      const { createTrackingMetadata } = await import('@/lib/gtag-server');
+      const tracking = createTrackingMetadata(
+        true, // Always track purchase on successful upgrade
+        'purchase',
+        {
+          user_id: user._id.toString(),
+          billing_cycle: billingCycle,
+          plan_type: 'pro',
+          value: priceInDollars,
+          currency: 'USD',
+        }
+      );
+      
       // Trigger a session update by calling the internal NextAuth update
       // This is done by returning a flag that the client can use
       return NextResponse.json({ 
         success: true,
         plan: user.plan,
         needsSessionUpdate: true,
+        tracking,
       });
     }
 

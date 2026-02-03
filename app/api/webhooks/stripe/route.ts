@@ -65,6 +65,26 @@ export async function POST(request: NextRequest) {
               subscriptionEndDate: null, // Active subscription
             });
             console.log(`✅ Updated user ${userId} to pro plan (${billingCycle}) with subscription start date`);
+            
+            // Track purchase event (server-side tracking will be handled via client callback)
+            // Store tracking metadata in user document for client to pick up
+            const priceAmount = subscription.items.data[0]?.price?.unit_amount || 0;
+            const priceInDollars = priceAmount / 100;
+            await User.findByIdAndUpdate(userId, {
+              $set: {
+                lastPurchaseTracking: {
+                  eventName: 'purchase',
+                  params: {
+                    user_id: userId,
+                    billing_cycle: billingCycle,
+                    plan_type: 'pro',
+                    value: priceInDollars,
+                    currency: 'USD',
+                    timestamp: Date.now(),
+                  },
+                },
+              },
+            });
           } catch (error) {
             console.error('Error fetching subscription in webhook:', error);
             // Fallback: use current date as start and clear end date (user is re-subscribing)

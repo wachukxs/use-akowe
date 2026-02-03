@@ -786,6 +786,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Check if this is user's first project (before creating)
+    const currentProjectCount = await Project.countDocuments({ userId: session.user.email });
+    const isFirstProject = currentProjectCount === 0;
+
     // Create initial sections based on project type
     const initialSections = createInitialSections(type, name, topic, citationStyle, methodology, targetWordCount);
     
@@ -802,7 +806,21 @@ export async function POST(request: NextRequest) {
       wordCount: 0,
     });
 
-    return NextResponse.json({ project }, { status: 201 });
+    // Return tracking metadata for first project
+    const { createTrackingMetadata } = await import('@/lib/gtag-server');
+    const tracking = createTrackingMetadata(
+      isFirstProject,
+      'first_project_created',
+      {
+        user_id: (session.user as any)?.id || session.user.email,
+        project_type: type,
+      }
+    );
+
+    return NextResponse.json({ 
+      project,
+      ...(tracking && { tracking }),
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating project:', error);
     

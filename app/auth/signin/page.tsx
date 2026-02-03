@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { Eye, EyeOff } from 'lucide-react';
 import { getStoredReferralCode } from '@/components/ReferralCapture';
+import { setUserId } from '@/lib/gtag';
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -107,6 +108,26 @@ function SignInForm() {
           alert(`Sign in failed: ${result.error}`);
         }
       } else if (result?.ok) {
+        // Set GA user_id immediately after successful login
+        // Note: We need to wait for session to be available, so we'll use a small delay
+        // The GoogleAnalyticsUserId component will also set it, but this ensures immediate tracking
+        setTimeout(async () => {
+          try {
+            // Fetch session to get user ID
+            const sessionResponse = await fetch('/api/auth/session');
+            if (sessionResponse.ok) {
+              const sessionData = await sessionResponse.json();
+              const userId = sessionData?.user?.id;
+              if (userId) {
+                setUserId(userId);
+              }
+            }
+          } catch (error) {
+            // Silently fail - GoogleAnalyticsUserId component will handle it
+            console.error('Failed to set user_id immediately:', error);
+          }
+        }, 500);
+
         // Only redirect if there's no error AND ok is true
         router.push('/dashboard');
         // Note: router.refresh() removed - navigation will render the new page automatically

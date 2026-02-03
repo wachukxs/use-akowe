@@ -3,8 +3,46 @@
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
+    dataLayer?: any[];
   }
 }
+
+/**
+ * Sets the user_id for GA4 tracking
+ * This should be called after successful login to link GA sessions to internal user IDs
+ * @param userId - The internal user ID from the database
+ */
+export const setUserId = (userId: string) => {
+  if (typeof window !== 'undefined' && window.gtag && userId) {
+    try {
+      window.gtag('set', { user_id: userId });
+      // Also set in config for persistence across page loads
+      window.gtag('config', 'G-KRXGBZVQ8Y', {
+        user_id: userId,
+      });
+    } catch (error) {
+      // Silently fail - analytics shouldn't break user experience
+      console.error('Failed to set GA user_id:', error);
+    }
+  }
+};
+
+/**
+ * Clears the user_id from GA4 tracking
+ * Should be called on logout
+ */
+export const clearUserId = () => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    try {
+      window.gtag('set', { user_id: null });
+      window.gtag('config', 'G-KRXGBZVQ8Y', {
+        user_id: null,
+      });
+    } catch (error) {
+      console.error('Failed to clear GA user_id:', error);
+    }
+  }
+};
 
 export const trackEvent = (eventName: string, params: Record<string, any> = {}) => {
   if (typeof window !== 'undefined' && window.gtag) {
@@ -43,5 +81,89 @@ export const trackLeadMagnet = {
   
   signupClicked: (magnetType: 'plagiarism' | 'import' | 'topic') => {
     trackEvent('signup_clicked', { magnet_type: magnetType });
+  },
+};
+
+// Funnel tracking events
+export const trackFunnel = {
+  /**
+   * Track when user starts the signup process (form viewed/focused)
+   */
+  signupStart: (source?: string) => {
+    trackEvent('signup_start', {
+      source: source || 'direct',
+      timestamp: Date.now(),
+    });
+  },
+
+  /**
+   * Track when user completes signup
+   */
+  signupComplete: (userId: string, method: 'credentials' | 'google', source?: string) => {
+    trackEvent('signup_complete', {
+      user_id: userId,
+      method,
+      source: source || 'direct',
+      timestamp: Date.now(),
+    });
+  },
+
+  /**
+   * Track when user creates their first project
+   */
+  firstProjectCreated: (userId: string, projectType: string) => {
+    trackEvent('first_project_created', {
+      user_id: userId,
+      project_type: projectType,
+      timestamp: Date.now(),
+    });
+  },
+
+  /**
+   * Track when user generates their first AI output
+   */
+  firstOutputGenerated: (userId: string, outputType: 'write' | 'assistant' | 'integrate' | 'outline') => {
+    trackEvent('first_output_generated', {
+      user_id: userId,
+      output_type: outputType,
+      timestamp: Date.now(),
+    });
+  },
+
+  /**
+   * Track when paywall/upgrade prompt is shown
+   */
+  paywallView: (paywallType: 'project_limit' | 'word_limit' | 'check_limit' | 'feature_upgrade', context?: string) => {
+    trackEvent('paywall_view', {
+      paywall_type: paywallType,
+      context: context || 'unknown',
+      timestamp: Date.now(),
+    });
+  },
+
+  /**
+   * Track when user starts checkout process
+   */
+  checkoutStart: (userId: string, billingCycle: 'monthly' | 'annual', planType: string) => {
+    trackEvent('checkout_start', {
+      user_id: userId,
+      billing_cycle: billingCycle,
+      plan_type: planType,
+      timestamp: Date.now(),
+    });
+  },
+
+  /**
+   * Track successful purchase
+   */
+  purchase: (userId: string, billingCycle: 'monthly' | 'annual', planType: string, value: number, currency: string = 'USD') => {
+    trackEvent('purchase', {
+      user_id: userId,
+      billing_cycle: billingCycle,
+      plan_type: planType,
+      value,
+      currency,
+      timestamp: Date.now(),
+    });
   },
 };

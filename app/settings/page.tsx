@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { UsageLimits, PlanType } from '@/types';
 import { Check, Crown, Users, X, Info, Copy, Gift } from 'lucide-react';
+import { trackFunnel } from '@/lib/gtag';
 
 interface UsageData {
   aiWordsGenerated: number;
@@ -185,6 +186,12 @@ export default function SettingsPage() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Track checkout_start if server provided tracking metadata
+        if (data.tracking?.trackEvent) {
+          const { eventName, params } = data.tracking.trackEvent;
+          trackFunnel.checkoutStart(params.user_id, params.billing_cycle, params.plan_type);
+        }
         
         // Redirect to Stripe Checkout
         if (data.url) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Button from '@/components/ui/Button';
@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Card from '@/components/ui/Card';
 import { Eye, EyeOff } from 'lucide-react';
 import { getStoredReferralCode, clearStoredReferralCode } from '@/components/ReferralCapture';
+import { trackFunnel } from '@/lib/gtag';
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -38,6 +39,16 @@ function SignUpForm() {
   
   // Track the last processed URL params to detect navigation changes
   const [lastProcessedParams, setLastProcessedParams] = useState<string | null>(null);
+  const hasTrackedSignupStart = useRef(false);
+
+  // Track signup_start when form is first viewed
+  useEffect(() => {
+    if (!hasTrackedSignupStart.current) {
+      const source = searchParams.get('from') || 'direct';
+      trackFunnel.signupStart(source);
+      hasTrackedSignupStart.current = true;
+    }
+  }, [searchParams]);
 
   // Capture referral code, email, and lead magnet source from URL
   // Re-runs when searchParams change (e.g., user clicks different lead magnet)
@@ -83,11 +94,19 @@ function SignUpForm() {
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
     try {
+      // Track signup start for Google OAuth
+      const source = searchParams.get('from') || 'direct';
+      trackFunnel.signupStart(source);
+      
       // Store referral code in cookie before redirecting to Google
       // This will be read by the auth callback to apply the referral
       if (referralCode) {
         document.cookie = `pending_referral=${referralCode}; path=/; max-age=3600; samesite=lax`;
       }
+      
+      // Store source for tracking signup_complete after redirect
+      sessionStorage.setItem('signup_source', source);
+      sessionStorage.setItem('signup_method', 'google');
       
       // Determine callback URL based on lead magnet source
       const fromParam = searchParams.get('from');
@@ -169,6 +188,15 @@ function SignUpForm() {
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+        const userId = responseData.user?.id;
+        const source = searchParams.get('from') || 'direct';
+        
+        // Track signup completion
+        if (userId) {
+          trackFunnel.signupComplete(userId, 'credentials', source);
+        }
+        
         // Clear the stored referral code after successful signup
         clearStoredReferralCode();
         

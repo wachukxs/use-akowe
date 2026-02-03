@@ -12,6 +12,7 @@ import { ProjectType } from '@/types';
 import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TopicFinderModal from '@/components/TopicFinderModal';
+import { trackFunnel } from '@/lib/gtag';
 
 const projectTypes: { 
   type: ProjectType;
@@ -171,10 +172,19 @@ export default function NewProjectPage() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Track first project creation if server indicates it
+        if (data.tracking?.trackEvent) {
+          const { eventName, params } = data.tracking.trackEvent;
+          trackFunnel.firstProjectCreated(params.user_id, params.project_type);
+        }
+        
         router.push(`/project/${data.project._id}`);
       } else {
         const error = await response.json();
         if (error.error === 'Project limit reached') {
+          // Track paywall view
+          trackFunnel.paywallView('project_limit', 'new_project');
           setLimitError(error.message || 'You have reached the maximum number of projects for your plan.');
           setShowLimitModal(true);
         } else {

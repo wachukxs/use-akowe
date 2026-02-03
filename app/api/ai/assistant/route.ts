@@ -407,8 +407,22 @@ Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is importa
       chatResponse = validation.cleanedResponse || chatResponse;
       const wordCount = countWords(chatResponse);
 
+      // Check if this is first output (before incrementing)
+      const isFirstOutput = usageCheck.remaining === usageCheck.limit;
+
       // Track usage
       await incrementAIWords(user._id.toString(), wordCount);
+
+      // Return tracking metadata for first output
+      const { createTrackingMetadata } = await import('@/lib/gtag-server');
+      const tracking = createTrackingMetadata(
+        isFirstOutput,
+        'first_output_generated',
+        {
+          user_id: user._id.toString(),
+          output_type: 'assistant',
+        }
+      );
 
       return NextResponse.json({
         response: chatResponse,
@@ -421,7 +435,8 @@ Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is importa
           name: project.name,
           type: project.type,
           progress: Math.round(((project.wordCount || 0) / project.targetWordCount) * 100)
-        } : null
+        } : null,
+        ...(tracking && { tracking }),
       });
     }
 
@@ -736,6 +751,9 @@ See the difference? Be specific, reference their text, show exact improvements.
     
     const wordCount = countWords(response);
 
+    // Check if this is first output (before incrementing)
+    const isFirstOutput = usageCheck.remaining === usageCheck.limit;
+
     // Track usage
     await incrementAIWords(user._id.toString(), wordCount);
 
@@ -756,6 +774,17 @@ See the difference? Be specific, reference their text, show exact improvements.
                                 !response.toLowerCase().includes('detailed explanation') && // Not template text
                                 !response.toLowerCase().includes('present your'); // Not template text
 
+    // Return tracking metadata for first output
+    const { createTrackingMetadata } = await import('@/lib/gtag-server');
+    const tracking = createTrackingMetadata(
+      isFirstOutput,
+      'first_output_generated',
+      {
+        user_id: user._id.toString(),
+        output_type: 'assistant',
+      }
+    );
+
     return NextResponse.json({
       response,
       wordCount,
@@ -767,7 +796,8 @@ See the difference? Be specific, reference their text, show exact improvements.
         name: project.name,
         type: project.type,
         progress: Math.round(((project.wordCount || 0) / project.targetWordCount) * 100)
-      } : null
+      } : null,
+      ...(tracking && { tracking }),
     });
   } catch (error) {
     console.error('Error in AI Assistant:', error);

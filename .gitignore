@@ -55,6 +55,8 @@ Thumbs.db
 # Test files (not to be committed)
 test-plagiarism-race-condition.ts
 tools/video/
+__tests__/
+vitest.setup.ts
 
 # temporary files
 draft.md

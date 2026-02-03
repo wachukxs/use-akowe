@@ -5,6 +5,7 @@ import { X, Search, Sparkles, AlertCircle, CheckCircle2, Lightbulb, Lock, ArrowR
 import Button from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { trackFunnel } from '@/lib/gtag';
 
 interface ResearchGap {
   type: 'methodology' | 'geographic' | 'temporal' | 'demographic' | 'theoretical';
@@ -119,6 +120,9 @@ export default function TopicFinderModal({
           
           // Handle rate limit specifically
           if (response.status === 429) {
+            // Track paywall view for topic finder limit
+            trackFunnel.paywallView('feature_upgrade', 'topic_finder');
+            
             const limitMessage = errorData.limit 
               ? `You've used ${errorData.usageCount || 0} of ${errorData.limit} free searches today.`
               : '';
@@ -148,6 +152,8 @@ export default function TopicFinderModal({
       
       // Show upgrade prompt if free user and limited results
       if (!isPro && data.isLimited && data.suggestions.length === 1) {
+        // Track paywall view for feature upgrade
+        trackFunnel.paywallView('feature_upgrade', 'topic_finder');
         setShowUpgradePrompt(true);
       }
     } catch (err: any) {

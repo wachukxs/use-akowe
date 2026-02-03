@@ -30,6 +30,7 @@ import {
 import { insertCitationAtRange } from '@/lib/insert-citation-at-range';
 import { scheduleScrollEditorIntoView } from '@/lib/scroll-editor-into-view';
 import { cn } from '@/lib/utils';
+import { trackFunnel } from '@/lib/gtag';
 
 export default function ProjectEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -616,6 +617,14 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
       if (response.ok) {
         const data = await response.json();
         
+        // Track first output generated if server indicates it
+        if (data.tracking?.trackEvent) {
+          const { eventName, params } = data.tracking.trackEvent;
+          if (eventName === 'first_output_generated') {
+            trackFunnel.firstOutputGenerated(params.user_id, params.output_type);
+          }
+        }
+        
         // Debug logging
         console.log('AI Assistant Response:', {
           isIntegrated: data.isIntegrated,
@@ -635,6 +644,13 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
         setAiMessages(prev => [...prev, assistantMessage]);
         
         setAiInput('');
+      } else if (response.status === 429) {
+        // Track paywall view for word limit
+        trackFunnel.paywallView('word_limit', 'ai_assistant');
+        const errorData = await response.json();
+        console.error('AI Assistant error:', errorData);
+        setShowSuccessMessage(errorData.error || 'Daily word limit reached. Upgrade to Pro for unlimited AI assistance!');
+        setTimeout(() => setShowSuccessMessage(''), 6000);
       } else {
         const errorData = await response.json();
         console.error('AI Assistant error:', errorData);
@@ -1177,6 +1193,7 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
           }, 2000);
           return;
                   } else {
+                    // Track paywall view for word limit (already tracked above)
                     setMathExplanation('Daily AI word limit reached. Upgrade to Pro for unlimited AI assistance! 🚀');
                   }
       } else {
@@ -1422,6 +1439,15 @@ export default function ProjectEditorPage({ params }: { params: Promise<{ id: st
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Track first output generated if server indicates it
+        if (data.tracking?.trackEvent) {
+          const { eventName, params } = data.tracking.trackEvent;
+          if (eventName === 'first_output_generated') {
+            trackFunnel.firstOutputGenerated(params.user_id, params.output_type);
+          }
+        }
+        
         const integratedContent = data.integratedContent;
         const normalized = normalizeCitationForProject(citation);
         const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);

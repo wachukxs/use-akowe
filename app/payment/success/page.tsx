@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { CheckCircle } from 'lucide-react';
+import { trackFunnel } from '@/lib/gtag';
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -24,6 +25,22 @@ function PaymentSuccessContent() {
         if (response.ok) {
           const data = await response.json();
           console.log('✅ Plan updated successfully', data);
+          
+          // Track purchase if tracking metadata is provided
+          // Note: ServerTrackingHandler will also check for purchase tracking,
+          // but we track here immediately for better accuracy
+          if (data.tracking?.trackEvent) {
+            const { eventName, params } = data.tracking.trackEvent;
+            if (eventName === 'purchase') {
+              trackFunnel.purchase(
+                params.user_id,
+                params.billing_cycle,
+                params.plan_type,
+                params.value,
+                params.currency
+              );
+            }
+          }
           
           // Update the session to reflect the new plan
           if (updateSession) {

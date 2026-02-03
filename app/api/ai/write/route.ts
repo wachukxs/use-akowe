@@ -167,14 +167,29 @@ Write with the authority of a subject matter expert. Produce content that demons
     
     const wordCount = countWords(generatedText);
 
+    // Check if this is first output (before incrementing)
+    const isFirstOutput = usageCheck.remaining === usageCheck.limit;
+
     // Track usage
     await incrementAIWords(session.user.id, wordCount);
+
+    // Return tracking metadata for first output
+    const { createTrackingMetadata } = await import('@/lib/gtag-server');
+    const tracking = createTrackingMetadata(
+      isFirstOutput,
+      'first_output_generated',
+      {
+        user_id: session.user.id,
+        output_type: 'write',
+      }
+    );
 
     return NextResponse.json({
       text: generatedText,
       wordCount,
       model,
       remaining: usageCheck.remaining - wordCount,
+      ...(tracking && { tracking }),
     });
   } catch (error) {
     console.error('Error generating AI text:', error);
