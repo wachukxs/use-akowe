@@ -9,6 +9,7 @@ import Card from '@/components/ui/Card';
 import { UsageLimits, PlanType } from '@/types';
 import { Check, Crown, Users, X, Info, Copy, Gift } from 'lucide-react';
 import { trackFunnel } from '@/lib/gtag';
+import { buildReferralLink } from '@/lib/referral-links';
 
 interface UsageData {
   aiWordsGenerated: number;
@@ -696,11 +697,13 @@ export default function SettingsPage() {
                   Your Invite Message
                 </label>
                 <p className="text-sm text-gray-700 mb-3">
-                  Hey! I&apos;ve been using Akowe for my academic writing and it&apos;s been super helpful. You should try it out: <span className="font-semibold text-[hsl(var(--primary))]">https://useakowe.com/?ref={(session?.user as any)?.referralCode}</span>
+                  Hey! I&apos;ve been using Akowe for my academic writing and it&apos;s been super helpful. You should try it out: <span className="font-semibold text-[hsl(var(--primary))]">{(session?.user as any)?.referralCode ? buildReferralLink((session?.user as any)?.referralCode) : 'https://useakowe.com'}</span>
                 </p>
                 <button
                   onClick={() => {
-                    const message = `Hey! I've been using Akowe for my academic writing and it's been super helpful. You should try it out: https://useakowe.com/?ref=${(session?.user as any)?.referralCode}`;
+                    const referralCode = (session?.user as any)?.referralCode;
+                    const referralUrl = referralCode ? buildReferralLink(referralCode) : 'https://useakowe.com';
+                    const message = `Hey! I've been using Akowe for my academic writing and it's been super helpful. You should try it out: ${referralUrl}`;
                     navigator.clipboard.writeText(message);
                     setCopiedReferral(true);
                     setTimeout(() => setCopiedReferral(false), 2000);

@@ -114,6 +114,21 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // Normalize UTM parameters and referrers to fix "Unassigned" traffic
+  // If there's a ref parameter but no UTMs, add default UTMs to the response
+  const hasRef = searchParams.has('ref');
+  const hasUTM = searchParams.has('utm_source') || 
+                 searchParams.has('utm_medium') || 
+                 searchParams.has('utm_campaign');
+  
+  // Store UTM params in response headers for client-side tracking
+  // This avoids redirect loops while ensuring UTMs are tracked
+  if (hasRef && !hasUTM) {
+    response.headers.set('x-utm-source', 'referral');
+    response.headers.set('x-utm-medium', 'referral');
+    response.headers.set('x-utm-campaign', 'referral');
+  }
+
   // Strip stray callbackUrl on public routes to avoid unintended auth redirects
   const isAuthRoute = pathname.startsWith('/auth');
   const isProtected = ['/dashboard', '/project', '/settings', '/payment'].some((path) =>
@@ -138,7 +153,22 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// Run middleware on admin API routes and landing page
+// Run middleware on routes that need UTM normalization and protection
 export const config = {
-  matcher: ['/api/admin/:path*', '/', '/dashboard/:path*', '/project/:path*', '/settings/:path*', '/payment/:path*'],
+  matcher: [
+    '/api/admin/:path*',
+    '/',
+    '/auth/:path*',
+    '/dashboard/:path*',
+    '/project/:path*',
+    '/settings/:path*',
+    '/payment/:path*',
+    '/affiliate/:path*',
+    '/guides/:path*',
+    '/templates/:path*',
+    '/citation-styles/:path*',
+    '/faq/:path*',
+    '/compare/:path*',
+    '/keywords/:path*',
+  ],
 };

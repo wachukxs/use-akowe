@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { DollarSign, Link2, BarChart3, Mail, CheckCircle, ArrowRight, Copy, ExternalLink } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { buildReferralLink } from '@/lib/referral-links';
 
 export default function AffiliateProgramPage() {
   const router = useRouter();
@@ -11,7 +12,9 @@ export default function AffiliateProgramPage() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const referralCode = (session?.user as any)?.referralCode;
-  const referralLink = referralCode ? `https://useakowe.com/?ref=${referralCode}` : null;
+  const referralLink = useMemo(() => {
+    return referralCode ? buildReferralLink(referralCode) : null;
+  }, [referralCode]);
 
   const handleCopyLink = () => {
     if (referralLink) {

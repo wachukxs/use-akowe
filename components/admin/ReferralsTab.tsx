@@ -96,7 +96,8 @@ export default function ReferralsTab() {
   }, []);
 
   const copyToClipboard = async (code: string) => {
-    const url = `${baseUrl}/auth/signup?ref=${code}`;
+    const { buildSignupLink } = await import('@/lib/referral-links');
+    const url = buildSignupLink(code, baseUrl || window.location.origin);
     await navigator.clipboard.writeText(url);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
