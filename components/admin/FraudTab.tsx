@@ -328,7 +328,7 @@ export default function FraudTab() {
       {fraudData && fraudData.suspiciousReferralCodes && fraudData.suspiciousReferralCodes.length > 0 ? (
         <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
           <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-2 sm:gap-3">
-            <AlertTriangle className="text-yellow-500" size={18} className="sm:w-5 sm:h-5" />
+            <AlertTriangle className="text-yellow-500 sm:w-5 sm:h-5" size={18} />
             <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">
               Suspicious Referral Codes ({fraudData.suspiciousReferralCodes.length})
             </h3>

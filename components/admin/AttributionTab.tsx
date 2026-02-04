@@ -213,7 +213,7 @@ export default function AttributionTab() {
       {activationData?.breakdown && (
         <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
           <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-2 sm:gap-3">
-            <BarChart3 className="text-[hsl(var(--primary))]" size={18} className="sm:w-5 sm:h-5" />
+            <BarChart3 className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
             <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">
               Activation by {selectedDimension.charAt(0).toUpperCase() + selectedDimension.slice(1)}
             </h3>
@@ -260,7 +260,7 @@ export default function AttributionTab() {
       {landingPageData ? (
         <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
           <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-2 sm:gap-3">
-            <MousePointerClick className="text-[hsl(var(--primary))]" size={18} className="sm:w-5 sm:h-5" />
+            <MousePointerClick className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
             <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">Landing Page Performance</h3>
           </div>
           <div className="p-3 sm:p-4">
