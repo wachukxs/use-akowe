@@ -3,6 +3,13 @@ import connectDB from '@/lib/mongodb';
 import LeadCapture from '@/models/LeadCapture';
 import User from '@/models/User';
 
+type LeadsFilter = {
+  source?: string;
+  convertedAt?: { $exists: boolean };
+  capturedAt?: { $gte?: Date; $lte?: Date };
+  email?: RegExp;
+};
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -18,15 +25,15 @@ export async function GET(request: NextRequest) {
     const skip = parseInt(searchParams.get('skip') || '0');
 
     // Build filter
-    const filter: Record<string, unknown> = {};
+    const filter: LeadsFilter = {};
     if (source) filter.source = source;
     if (converted === 'true') filter.convertedAt = { $exists: true };
     if (converted === 'false') filter.convertedAt = { $exists: false };
-    
+
     // Date range filtering (on capturedAt)
     if (startDate || endDate) {
       filter.capturedAt = {};
-      
+
       if (startDate) {
         // Validate date format (YYYY-MM-DD)
         if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
@@ -140,11 +147,11 @@ export async function GET(request: NextRequest) {
     const total = await LeadCapture.countDocuments(filter);
 
     // Get conversion stats (apply same filter for consistency, but exclude search for stats)
-    const statsFilter: Record<string, unknown> = {};
+    const statsFilter: LeadsFilter = {};
     if (source) statsFilter.source = source;
     if (converted === 'true') statsFilter.convertedAt = { $exists: true };
     if (converted === 'false') statsFilter.convertedAt = { $exists: false };
-    
+
     // Include date range in stats filter (only if dates are valid)
     if (startDate || endDate) {
       statsFilter.capturedAt = {};
@@ -164,8 +171,9 @@ export async function GET(request: NextRequest) {
       }
     }
     // Note: We exclude search from stats filter to show overall stats for the date range
-    
-    const statsPipeline: Array<Record<string, unknown>> = [];
+
+    type PipelineStage = { $match?: object } | { $group: object };
+    const statsPipeline: PipelineStage[] = [];
     if (Object.keys(statsFilter).length > 0) {
       statsPipeline.push({ $match: statsFilter });
     }
@@ -179,7 +187,7 @@ export async function GET(request: NextRequest) {
       },
     });
     
-    const stats = await LeadCapture.aggregate(statsPipeline, { maxTimeMS: 30000 }); // 30 second timeout
+    const stats = await LeadCapture.aggregate(statsPipeline as Parameters<typeof LeadCapture.aggregate>[0], { maxTimeMS: 30000 }); // 30 second timeout
 
     return NextResponse.json({
       leads,

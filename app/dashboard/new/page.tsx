@@ -84,7 +84,6 @@ export default function NewProjectPage() {
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'team'>('free');
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [showGuidedModal, setShowGuidedModal] = useState(false);
-  const [hasSeenGuidance, setHasSeenGuidance] = useState(false);
 
   // Get current project type details
   const currentType = projectTypes.find(type => type.type === selectedType);
@@ -210,7 +209,7 @@ export default function NewProjectPage() {
         
         // Track first project creation if server indicates it
         if (data.tracking?.trackEvent) {
-          const { eventName, params } = data.tracking.trackEvent;
+          const { params } = data.tracking.trackEvent;
           trackFunnel.firstProjectCreated(params.user_id, params.project_type);
           
           // Mark guided flow as completed
@@ -647,7 +646,6 @@ export default function NewProjectPage() {
         }}
         onStart={() => {
           setShowGuidedModal(false);
-          setHasSeenGuidance(true);
           localStorage.setItem('akowe_guided_first_project_seen', 'true');
         }}
       />

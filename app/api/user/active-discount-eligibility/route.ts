@@ -12,7 +12,7 @@ import connectDB from '@/lib/mongodb';
  * - User must have activity in the last 7 days (based on DailyUsage)
  * - User must not have already dismissed the popup permanently
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
     

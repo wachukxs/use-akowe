@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import { X, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -21,8 +20,6 @@ export default function GuidedFirstProject({
   isOpen,
   onClose,
   onStart,
-  currentStep = 0,
-  totalSteps = 5,
 }: GuidedFirstProjectProps) {
   if (!isOpen) return null;
 

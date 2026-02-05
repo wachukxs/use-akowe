@@ -98,8 +98,8 @@ async function checkRateLimit(
  */
 async function checkDuplicateSignup(
   email: string,
-  ipAddress: string | null,
-  deviceFingerprint: string
+  _ipAddress: string | null,
+  _deviceFingerprint: string
 ): Promise<{ isDuplicate: boolean; existingUser?: any }> {
   await connectDB();
   

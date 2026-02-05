@@ -230,7 +230,7 @@ export default function SettingsPage() {
         
         // Track checkout_start if server provided tracking metadata
         if (data.tracking?.trackEvent) {
-          const { eventName, params } = data.tracking.trackEvent;
+          const { params } = data.tracking.trackEvent;
           trackFunnel.checkoutStart(params.user_id, params.billing_cycle, params.plan_type);
         }
         

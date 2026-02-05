@@ -126,19 +126,25 @@ export async function GET() {
       plan: user.plan,
       createdAt: user.createdAt,
       referredBy: user.referredBy
-        ? {
-            type: 'user' as const,
-            _id: (user.referredBy as PopulatedReferrer)._id.toString(),
-            name: (user.referredBy as PopulatedReferrer).name,
-            email: (user.referredBy as PopulatedReferrer).email,
-          }
+        ? (() => {
+            const ref = user.referredBy as unknown as PopulatedReferrer;
+            return {
+              type: 'user' as const,
+              _id: ref._id.toString(),
+              name: ref.name,
+              email: ref.email,
+            };
+          })()
         : user.referredByInfluencer
-        ? {
-            type: 'influencer' as const,
-            _id: (user.referredByInfluencer as PopulatedReferrer)._id.toString(),
-            name: (user.referredByInfluencer as PopulatedReferrer).name,
-            email: (user.referredByInfluencer as PopulatedReferrer).email,
-          }
+        ? (() => {
+            const ref = user.referredByInfluencer as unknown as PopulatedReferrer;
+            return {
+              type: 'influencer' as const,
+              _id: ref._id.toString(),
+              name: ref.name,
+              email: ref.email,
+            };
+          })()
         : null,
     }));
 

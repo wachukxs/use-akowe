@@ -26,7 +26,6 @@ import {
   Shield,
   RefreshCw,
   Link as LinkIcon,
-  Mail
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
 import MarketingTab from '@/components/admin/MarketingTab';

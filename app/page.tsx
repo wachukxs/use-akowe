@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -12,33 +12,31 @@ import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
 import HeroTopicFinder from '@/components/HeroTopicFinder';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { getProPlanDiscount, formatDiscountPercentage } from '@/lib/annual-discount';
-import { getLandingPageVariant, getLandingPageConfig, type LandingPageVariant } from '@/lib/channel-landing-pages';
+import { getLandingPageVariant, type LandingPageVariant } from '@/lib/channel-landing-pages';
 
 // Helper function to get A/B test variant from cookie
 function getABVariant(): 'control' | 'variant_a' | 'variant_b' {
   if (typeof window === 'undefined') return 'control';
-  
+
   const cookies = document.cookie.split(';');
   const variantCookie = cookies.find(cookie => cookie.trim().startsWith('akowe_ab_variant='));
-  
+
   if (variantCookie) {
     const value = variantCookie.split('=')[1]?.trim();
     if (value === 'variant_a' || value === 'variant_b') {
       return value;
     }
   }
-  
+
   return 'control';
 }
 
-export default function HomePage() {
-  const router = useRouter();
+function HomePageContent() {
   const searchParams = useSearchParams();
   useSession();
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly billing
   const [abVariant, setAbVariant] = useState<'control' | 'variant_a' | 'variant_b'>('control');
   const [channelVariant, setChannelVariant] = useState<LandingPageVariant>('default');
-  const [landingPageConfig, setLandingPageConfig] = useState(getLandingPageConfig('default'));
 
   /**
    * we don't need this, but Ola wants this here.
@@ -62,7 +60,6 @@ export default function HomePage() {
     
     const channelVariantValue = getLandingPageVariant(utmSource, utmMedium, utmCampaign, utmContent);
     setChannelVariant(channelVariantValue);
-    setLandingPageConfig(getLandingPageConfig(channelVariantValue));
 
     // Track A/B test view in GA4
     if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -1156,5 +1153,13 @@ export default function HomePage() {
         />
       )}
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[hsl(var(--background))] animate-pulse" />}>
+      <HomePageContent />
+    </Suspense>
   );
 }

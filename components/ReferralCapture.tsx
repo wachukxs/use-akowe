@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 const REFERRAL_STORAGE_KEY = 'akowe_referral_code';
 
 /**
- * Captures referral codes from URL and persists them in localStorage.
- * This ensures referral tracking works regardless of which page a user lands on.
- * Also tracks referral link clicks for affiliate stats.
+ * Inner component that uses useSearchParams. Wrapped in Suspense by ReferralCapture
+ * so static generation does not bail out (see Next.js missing-suspense-with-csr-bailout).
  */
-export default function ReferralCapture() {
+function ReferralCaptureInner() {
   const searchParams = useSearchParams();
   const hasTrackedClick = useRef<Set<string>>(new Set());
 
@@ -23,7 +22,7 @@ export default function ReferralCapture() {
       // Track the click (only once per page load to avoid duplicate tracking)
       if (!hasTrackedClick.current.has(ref)) {
         hasTrackedClick.current.add(ref);
-        
+
         // Fire-and-forget click tracking (don't block the user)
         fetch('/api/referral/track-click', {
           method: 'POST',
@@ -37,8 +36,20 @@ export default function ReferralCapture() {
     }
   }, [searchParams]);
 
-  // This component doesn't render anything
   return null;
+}
+
+/**
+ * Captures referral codes from URL and persists them in localStorage.
+ * This ensures referral tracking works regardless of which page a user lands on.
+ * Also tracks referral link clicks for affiliate stats.
+ */
+export default function ReferralCapture() {
+  return (
+    <Suspense fallback={null}>
+      <ReferralCaptureInner />
+    </Suspense>
+  );
 }
 
 /**

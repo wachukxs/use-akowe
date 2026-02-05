@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import {
-  TrendingUp,
   Users,
-  Globe,
   MousePointerClick,
   RefreshCw,
   AlertCircle,

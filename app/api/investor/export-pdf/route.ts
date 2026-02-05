@@ -63,7 +63,7 @@ export async function GET() {
 
     await browser.close();
 
-    return new NextResponse(pdfBuffer as Buffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="akowe-investor-pitch-deck.pdf"',

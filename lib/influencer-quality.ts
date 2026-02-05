@@ -54,11 +54,6 @@ export async function calculateInfluencerQuality(
 
   const userIds = referredUsers.map((u) => u._id.toString());
 
-  // Count activated users (users who created at least 1 project)
-  const activatedUsers = await Project.countDocuments({
-    userId: { $in: userIds },
-  });
-
   // Count paid users (users on pro or team plan)
   const paidUsers = referredUsers.filter(
     (u) => u.plan === 'pro' || u.plan === 'team'

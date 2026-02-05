@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import {
-  TrendingUp,
   Users,
-  DollarSign,
   RefreshCw,
   AlertCircle,
   BarChart3,

@@ -11,7 +11,6 @@ import Card from '@/components/ui/Card';
  * Appears on the project editor page for first-time users
  */
 export default function FirstProjectCompletion() {
-  const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
