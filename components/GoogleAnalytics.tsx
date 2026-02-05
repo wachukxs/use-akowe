@@ -3,11 +3,17 @@
 import Script from 'next/script';
 import { usePathname } from 'next/navigation';
 
+const isProduction =
+  process.env.NODE_ENV === 'production' &&
+  typeof window !== 'undefined' &&
+  !window.location.hostname.startsWith('localhost') &&
+  !window.location.hostname.startsWith('127.0.0.1');
+
 export default function GoogleAnalytics() {
   const pathname = usePathname();
-  
-  // Don't load GA on admin pages
-  if (pathname?.startsWith('/admin')) {
+
+  // Don't load GA on localhost or admin pages
+  if (!isProduction || pathname?.startsWith('/admin')) {
     return null;
   }
 
