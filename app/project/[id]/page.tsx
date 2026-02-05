@@ -2732,7 +2732,7 @@ export default function ProjectEditorPage({
                                   />
                                 ) : (
                                   <span
-                                    className="cursor-pointer px-2 py-1 rounded font-semibold block whitespace-nowrap overflow-hidden touch-manipulation"
+                                    className="cursor-pointer px-2 py-1 rounded font-semibold block truncate touch-manipulation"
                                     onDoubleClick={() => {
                                       setEditingSectionId(section.id);
                                       setEditingTitle(section.title);
@@ -2761,7 +2761,7 @@ export default function ProjectEditorPage({
                                   </span>
                                 )}
                               </button>
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 opacity-100 md:opacity-0 transition-opacity flex-shrink-0">
+                              <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 opacity-100 md:opacity-0 transition-opacity md:w-0 md:overflow-hidden md:group-hover:w-auto md:group-hover:overflow-visible md:transition-[width,opacity]">
                                 <button
                                   onTouchStart={(e) => {
                                     // Prevent triggering onClick when tapping edit button
