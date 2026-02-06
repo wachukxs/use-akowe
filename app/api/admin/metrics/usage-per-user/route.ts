@@ -81,22 +81,51 @@ export async function GET(request: Request) {
     const endStr = endDate.toISOString().split('T')[0];
 
     // Aggregate usage for all users in the period
-    const usageAggregation = await DailyUsage.aggregate([
-      {
-        $match: {
-          date: { $gte: startStr, $lte: endStr }
+    const [usageAggregation, citationAggregation] = await Promise.all([
+      DailyUsage.aggregate([
+        {
+          $match: {
+            date: { $gte: startStr, $lte: endStr }
+          }
+        },
+        {
+          $group: {
+            _id: '$userId',
+            totalAIWords: { $sum: '$aiWordsGenerated' },
+            totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
+            totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
+            activeDays: { $sum: 1 }
+          }
         }
+      ], { maxTimeMS: 30000 }),
+      // Aggregate citations per user from Projects
+      Project.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: startDate, $lte: endDate },
+            citations: { $exists: true, $ne: [] }
+          }
+        },
+        {
+          $group: {
+            _id: '$userId',
+            totalCitations: { $sum: { $size: '$citations' } },
+            projectsWithCitations: { $sum: 1 }
+          }
+        }
+      ], { maxTimeMS: 30000 }),
+    ]);
+
+    // Build a citation map keyed by userId (string)
+    const citationMap = new Map<string, { totalCitations: number; projectsWithCitations: number }>();
+    citationAggregation.forEach(
+      (entry: { _id: string; totalCitations: number; projectsWithCitations: number }) => {
+        citationMap.set(entry._id, {
+          totalCitations: entry.totalCitations,
+          projectsWithCitations: entry.projectsWithCitations,
+        });
       },
-      {
-        $group: {
-          _id: '$userId',
-          totalAIWords: { $sum: '$aiWordsGenerated' },
-          totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
-          totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
-          activeDays: { $sum: 1 }
-        }
-      }
-    ], { maxTimeMS: 30000 }); // 30 second timeout
+    );
 
     // Build a usage map keyed by userId (string)
     const usageMap = new Map<
@@ -153,6 +182,10 @@ export async function GET(request: Request) {
         totalTopicFinderSearches: 0,
         activeDays: 0,
       };
+      const citations = citationMap.get(userId) || {
+        totalCitations: 0,
+        projectsWithCitations: 0,
+      };
 
       return {
         userId,
@@ -162,6 +195,8 @@ export async function GET(request: Request) {
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
         totalTopicFinderSearches: usage.totalTopicFinderSearches,
+        totalCitations: citations.totalCitations,
+        projectsWithCitations: citations.projectsWithCitations,
         activeDays: usage.activeDays,
       };
     });

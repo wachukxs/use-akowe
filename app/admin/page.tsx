@@ -67,6 +67,8 @@ interface AdminMetricsResponse {
         totalAIWords: number;
         totalPlagiarismChecks: number;
         totalTopicFinderSearches: number;
+        totalCitations: number;
+        projectsWithCitations: number;
       }>;
     };
     revenue: {
@@ -141,6 +143,8 @@ interface AdminMetricsResponse {
       totalAIWords?: number;
       totalPlagiarismChecks?: number;
       totalTopicFinderSearches?: number;
+      totalCitations?: number;
+      projectsWithCitations?: number;
       activeDays?: number;
     }>;
     topUsersByUsage: Array<{
@@ -151,6 +155,8 @@ interface AdminMetricsResponse {
       totalAIWords: number;
       totalPlagiarismChecks: number;
       totalTopicFinderSearches: number;
+      totalCitations: number;
+      projectsWithCitations: number;
     }>;
     subscriptionDetails: Array<{
       id: string;
@@ -422,6 +428,8 @@ export default function AdminDashboard() {
       totalAIWords: number;
       totalPlagiarismChecks: number;
       totalTopicFinderSearches: number;
+      totalCitations: number;
+      projectsWithCitations: number;
       activeDays: number;
     }> | null
   >(null);
@@ -440,6 +448,8 @@ export default function AdminDashboard() {
       totalAIWords: number;
       totalPlagiarismChecks: number;
       totalTopicFinderSearches: number;
+      totalCitations: number;
+      projectsWithCitations: number;
       activeDays: number;
     }>
   >([]);
@@ -682,8 +692,8 @@ export default function AdminDashboard() {
     }
   };
 
-  const exportUsersToCSV = (users: Array<{ userId?: string; _id?: string; email?: string; name?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; activeDays?: number; createdAt?: string | Date; stripeSubscriptionId?: string }>) => {
-    const headers = ['Name', 'Email', 'Plan', 'AI Words', 'Plagiarism Checks', 'Topic Finder Searches', 'Created At', 'Has Subscription'];
+  const exportUsersToCSV = (users: Array<{ userId?: string; _id?: string; email?: string; name?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalCitations?: number; projectsWithCitations?: number; activeDays?: number; createdAt?: string | Date; stripeSubscriptionId?: string }>) => {
+    const headers = ['Name', 'Email', 'Plan', 'AI Words', 'Plagiarism Checks', 'Topic Finder Searches', 'Citations', 'Projects with Citations', 'Created At', 'Has Subscription'];
     const rows = users.map(user => [
       user.name || 'N/A',
       user.email || 'N/A',
@@ -691,6 +701,8 @@ export default function AdminDashboard() {
       user.totalAIWords?.toString() || '0',
       user.totalPlagiarismChecks?.toString() || '0',
       user.totalTopicFinderSearches?.toString() || '0',
+      user.totalCitations?.toString() || '0',
+      user.projectsWithCitations?.toString() || '0',
       user.createdAt ? (typeof user.createdAt === 'string' ? new Date(user.createdAt) : user.createdAt).toLocaleDateString() : 'N/A',
       user.stripeSubscriptionId ? 'Yes' : 'No'
     ]);
@@ -726,14 +738,16 @@ export default function AdminDashboard() {
       
       const data = await response.json();
       
-      const headers = ['Name', 'Email', 'Plan', 'AI Words Generated', 'Plagiarism Checks', 'Topic Finder Searches', 'Active Days', 'User ID'];
-      const rows = data.users.map((user: { name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; activeDays?: number; _id?: string; userId?: string }) => [
+      const headers = ['Name', 'Email', 'Plan', 'AI Words Generated', 'Plagiarism Checks', 'Topic Finder Searches', 'Citations', 'Projects with Citations', 'Active Days', 'User ID'];
+      const rows = data.users.map((user: { name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalCitations?: number; projectsWithCitations?: number; activeDays?: number; _id?: string; userId?: string }) => [
         user.name || 'N/A',
         user.email || 'N/A',
         user.plan || 'free',
         (user.totalAIWords || 0).toString(),
         (user.totalPlagiarismChecks || 0).toString(),
         (user.totalTopicFinderSearches || 0).toString(),
+        (user.totalCitations || 0).toString(),
+        (user.projectsWithCitations || 0).toString(),
         (user.activeDays || 0).toString(),
         user._id || user.userId || 'N/A'
       ]);
@@ -1449,7 +1463,7 @@ export default function AdminDashboard() {
                           exportUsersToCSV(
                             (topUsersUsage && topUsersUsage.length > 0
                               ? topUsersUsage
-                              : metrics.detailedLists.topUsersByUsage) as Array<{ name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; activeDays?: number; _id?: string }>,
+                              : metrics.detailedLists.topUsersByUsage) as Array<{ name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalCitations?: number; projectsWithCitations?: number; activeDays?: number; _id?: string }>,
                           )
                         }
                         className="px-4 py-2 text-xs border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded hover:bg-[hsl(var(--accent))] hover:-translate-y-0.5 transition-all flex items-center gap-2 cursor-pointer"
@@ -1478,12 +1492,13 @@ export default function AdminDashboard() {
                           <th className="text-right py-2 px-3 text-xs uppercase">AI Words</th>
                           <th className="text-right py-2 px-3 text-xs uppercase">Checks</th>
                           <th className="text-right py-2 px-3 text-xs uppercase">Topics</th>
+                          <th className="text-right py-2 px-3 text-xs uppercase">Citations</th>
                         </tr>
                       </thead>
                       <tbody>
                         {isSearching && filteredUsers.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                            <td colSpan={8} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
                               <div className="flex items-center justify-center gap-2">
                                 <RefreshCw size={14} className="animate-spin" />
                                 <span>Searching...</span>
@@ -1491,7 +1506,7 @@ export default function AdminDashboard() {
                             </td>
                           </tr>
                         ) : filteredUsers.length > 0 ? (
-                          filteredUsers.slice(0, 10).map((user: { userId?: string; _id?: string; name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; activeDays?: number }, idx: number) => (
+                          filteredUsers.slice(0, 10).map((user: { userId?: string; _id?: string; name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalCitations?: number; activeDays?: number }, idx: number) => (
                             <tr key={user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                               <td className="py-2 px-3 font-bold">#{idx + 1}</td>
                               <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
@@ -1508,11 +1523,12 @@ export default function AdminDashboard() {
                               <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords || 0)}</td>
                               <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks || 0)}</td>
                               <td className="py-2 px-3 text-right">{formatNumber(user.totalTopicFinderSearches || 0)}</td>
+                              <td className="py-2 px-3 text-right">{formatNumber(user.totalCitations || 0)}</td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={7} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                            <td colSpan={8} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
                               {debouncedSearch ? 'No users found matching your search' : 'No users found'}
                             </td>
                           </tr>
@@ -1543,6 +1559,8 @@ export default function AdminDashboard() {
                               stripeSubscriptionId: u.stripeSubscriptionId,
                               totalAIWords: u.totalAIWords || 0,
                               totalPlagiarismChecks: u.totalPlagiarismChecks || 0,
+                              totalCitations: u.totalCitations || 0,
+                              projectsWithCitations: u.projectsWithCitations || 0,
                             }))),
                       )
                     }
@@ -1562,6 +1580,7 @@ export default function AdminDashboard() {
                         <th className="text-right py-2 px-3 text-xs uppercase">AI Words</th>
                         <th className="text-right py-2 px-3 text-xs uppercase">Plagiarism Checks</th>
                         <th className="text-right py-2 px-3 text-xs uppercase">Topic Searches</th>
+                        <th className="text-right py-2 px-3 text-xs uppercase">Citations</th>
                         <th className="text-right py-2 px-3 text-xs uppercase">Active Days</th>
                         <th className="text-left py-2 px-3 text-xs uppercase">Subscription</th>
                         <th className="text-left py-2 px-3 text-xs uppercase">Joined</th>
@@ -1586,7 +1605,7 @@ export default function AdminDashboard() {
                           );
                         }
                         
-                        return filteredUsers.slice(0, 20).map((user: { _id?: string; userId?: string; name?: string; email?: string; plan?: string; createdAt?: string | Date; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; activeDays?: number; stripeSubscriptionId?: string }) => (
+                        return filteredUsers.slice(0, 20).map((user: { _id?: string; userId?: string; name?: string; email?: string; plan?: string; createdAt?: string | Date; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalCitations?: number; activeDays?: number; stripeSubscriptionId?: string }) => (
                           <tr key={user._id || user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
                           <td className="py-2 px-3">{user.email || 'N/A'}</td>
@@ -1602,6 +1621,7 @@ export default function AdminDashboard() {
                           <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords || 0)}</td>
                           <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks || 0)}</td>
                           <td className="py-2 px-3 text-right">{formatNumber(user.totalTopicFinderSearches || 0)}</td>
+                          <td className="py-2 px-3 text-right">{formatNumber(user.totalCitations || 0)}</td>
                           <td className="py-2 px-3 text-right">{formatNumber(user.activeDays || 0)}</td>
                           <td className="py-2 px-3">
                             {user.stripeSubscriptionId ? (

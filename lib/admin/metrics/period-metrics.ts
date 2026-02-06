@@ -155,20 +155,43 @@ export async function getPeriodUsageMetrics(range: DateRange) {
     .map((u: { _id: string }) => u._id)
     .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
     .map((id: string) => new mongoose.Types.ObjectId(id));
-  
+
   const usersMap = new Map<string, any>();
+  const citationsMap = new Map<string, { totalCitations: number; projectsWithCitations: number }>();
   if (userIds.length > 0) {
-    const users = await User.find({ _id: { $in: userIds } })
-      .select('email name plan _id')
-      .lean();
-    
+    const [users, citationAgg] = await Promise.all([
+      User.find({ _id: { $in: userIds } })
+        .select('email name plan _id')
+        .lean(),
+      Project.aggregate([
+        {
+          $match: {
+            userId: { $in: userIds.map((id: mongoose.Types.ObjectId) => id.toString()) },
+            createdAt: { $gte: range.start, $lte: range.end },
+            citations: { $exists: true, $ne: [] },
+          },
+        },
+        {
+          $group: {
+            _id: '$userId',
+            totalCitations: { $sum: { $size: '$citations' } },
+            projectsWithCitations: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+
     users.forEach(user => {
       usersMap.set(user._id.toString(), user);
+    });
+    citationAgg.forEach((entry: { _id: string; totalCitations: number; projectsWithCitations: number }) => {
+      citationsMap.set(entry._id, { totalCitations: entry.totalCitations, projectsWithCitations: entry.projectsWithCitations });
     });
   }
 
   const topUsersByUsage = topUsersAggregation.map((usage: { _id: string; totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number }) => {
     const user = usersMap.get(usage._id) || null;
+    const citations = citationsMap.get(usage._id) || { totalCitations: 0, projectsWithCitations: 0 };
     return {
       userId: usage._id,
       email: user?.email || 'Unknown',
@@ -177,6 +200,8 @@ export async function getPeriodUsageMetrics(range: DateRange) {
       totalAIWords: usage.totalAIWords,
       totalPlagiarismChecks: usage.totalPlagiarismChecks,
       totalTopicFinderSearches: usage.totalTopicFinderSearches,
+      totalCitations: citations.totalCitations,
+      projectsWithCitations: citations.projectsWithCitations,
     };
   });
 
