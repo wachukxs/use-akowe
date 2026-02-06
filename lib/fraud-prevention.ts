@@ -98,22 +98,28 @@ async function checkRateLimit(
  */
 async function checkDuplicateSignup(
   email: string,
-  _ipAddress: string | null,
+  ipAddress: string | null,
   _deviceFingerprint: string
-): Promise<{ isDuplicate: boolean; existingUser?: any }> {
+): Promise<{ isDuplicate: boolean; existingUser?: any; recentSignupsFromIp?: number }> {
   await connectDB();
-  
+
   // Check if email already exists
   const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
     return { isDuplicate: true, existingUser };
   }
-  
+
   // Check for recent signups from same IP (within last 24 hours)
-  // Note: We'd need to store IP in User model for this check
-  // For now, we'll rely on email uniqueness which is already enforced
-  
-  return { isDuplicate: false };
+  let recentSignupsFromIp = 0;
+  if (ipAddress) {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    recentSignupsFromIp = await User.countDocuments({
+      signupIp: ipAddress,
+      createdAt: { $gte: oneDayAgo },
+    });
+  }
+
+  return { isDuplicate: false, recentSignupsFromIp };
 }
 
 /**
@@ -207,6 +213,11 @@ export async function checkReferralFraud(
     if (duplicateCheck.isDuplicate) {
       riskScore += 100; // Maximum risk - duplicate signup
       reasons.push('Duplicate email signup detected');
+    }
+    // Flag multiple signups from same IP in 24 hours
+    if (duplicateCheck.recentSignupsFromIp && duplicateCheck.recentSignupsFromIp >= 3) {
+      riskScore += 40;
+      reasons.push(`Multiple signups from same IP (${duplicateCheck.recentSignupsFromIp} in last 24h)`);
     }
   }
   

@@ -5,7 +5,7 @@ import { createWithReferralCode, lookupReferralCode } from '@/lib/referral';
 import { sendWelcomeEmail } from '@/lib/email';
 import { markLeadAsConverted } from '@/lib/lead-conversion';
 import { markReferralClicksAsConverted } from '@/lib/referral-click-conversion';
-import { shouldBlockSignup } from '@/lib/fraud-prevention';
+import { shouldBlockSignup, getIpAddress } from '@/lib/fraud-prevention';
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,6 +68,9 @@ export async function POST(request: NextRequest) {
       // If referral code is invalid, we silently ignore it and continue signup
     }
 
+    // Extract IP address for fraud investigation audit trail
+    const signupIp = getIpAddress(request);
+
     // Create new user with referral tracking
     // Uses createWithReferralCode to handle duplicate key errors gracefully
     const user = await createWithReferralCode(async (newReferralCode) => {
@@ -79,6 +82,7 @@ export async function POST(request: NextRequest) {
         referralCode: newReferralCode,
         referredBy,
         referredByInfluencer,
+        ...(signupIp && { signupIp }),
       });
     });
 

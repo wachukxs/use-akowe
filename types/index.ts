@@ -11,6 +11,7 @@ export interface User {
   plan: PlanType;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
+  signupIp?: string;
   createdAt: Date;
   updatedAt: Date;
 }

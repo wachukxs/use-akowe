@@ -41,9 +41,29 @@ interface ReferralCodeAnalysis {
   riskLevel: 'high' | 'medium' | 'low';
 }
 
+interface IPAnalysis {
+  ipAddress: string;
+  metrics: {
+    totalClicks: number;
+    convertedClicks: number;
+    differentReferralCodes: number;
+    conversionRate: number;
+    signupsFromIP: number;
+  };
+  referralCodes: string[];
+  usersFromIP: Array<{
+    name: string;
+    email: string;
+    plan: string;
+    createdAt: string;
+  }>;
+  riskLevel: 'high' | 'medium' | 'low';
+}
+
 export default function FraudTab() {
   const [fraudData, setFraudData] = useState<FraudAnalysis | null>(null);
   const [referralCodeData, setReferralCodeData] = useState<ReferralCodeAnalysis | null>(null);
+  const [ipAnalysisData, setIpAnalysisData] = useState<IPAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchCode, setSearchCode] = useState('');
@@ -67,6 +87,7 @@ export default function FraudTab() {
   const fetchReferralCodeAnalysis = async (code: string) => {
     try {
       setError(null);
+      setIpAnalysisData(null);
       const response = await fetch(`/api/admin/fraud/referrals?referral_code=${encodeURIComponent(code)}`);
       if (!response.ok) throw new Error('Failed to fetch referral code analysis');
       const data = await response.json();
@@ -79,10 +100,11 @@ export default function FraudTab() {
   const fetchIPAnalysis = async (ip: string) => {
     try {
       setError(null);
+      setReferralCodeData(null);
       const response = await fetch(`/api/admin/fraud/referrals?ip_address=${encodeURIComponent(ip)}`);
       if (!response.ok) throw new Error('Failed to fetch IP analysis');
       const data = await response.json();
-      setReferralCodeData(data);
+      setIpAnalysisData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     }
@@ -321,6 +343,88 @@ export default function FraudTab() {
               </p>
             </div>
           ) : null}
+        </div>
+      ) : null}
+
+      {/* IP Analysis Results */}
+      {ipAnalysisData ? (
+        <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+          <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em] mb-3 sm:mb-4 flex items-center gap-2">
+            <Shield size={18} className="sm:w-5 sm:h-5 text-[hsl(var(--primary))]" />
+            IP Analysis: {ipAnalysisData.ipAddress}
+          </h3>
+
+          <div className="mb-3 sm:mb-4">
+            <div className={`inline-block px-3 py-1 rounded border-2 ${getRiskBg(ipAnalysisData.riskLevel)}`}>
+              <span className={`text-xs font-semibold uppercase tracking-[0.2em] ${getRiskColor(ipAnalysisData.riskLevel)}`}>
+                {ipAnalysisData.riskLevel.toUpperCase()} RISK
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                Total Clicks
+              </div>
+              <div className="text-lg sm:text-xl font-bold">{formatNumber(ipAnalysisData.metrics.totalClicks)}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                Converted
+              </div>
+              <div className="text-lg sm:text-xl font-bold">{formatNumber(ipAnalysisData.metrics.convertedClicks)}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                Conversion Rate
+              </div>
+              <div className="text-lg sm:text-xl font-bold text-[hsl(var(--primary))]">
+                {formatPercent(ipAnalysisData.metrics.conversionRate)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                Referral Codes Used
+              </div>
+              <div className="text-lg sm:text-xl font-bold">{formatNumber(ipAnalysisData.metrics.differentReferralCodes)}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                Signups from IP
+              </div>
+              <div className={`text-lg sm:text-xl font-bold ${ipAnalysisData.metrics.signupsFromIP > 3 ? 'text-red-500' : ''}`}>
+                {formatNumber(ipAnalysisData.metrics.signupsFromIP)}
+              </div>
+            </div>
+          </div>
+
+          {ipAnalysisData.usersFromIP && ipAnalysisData.usersFromIP.length > 0 && (
+            <div>
+              <h4 className="text-sm font-bold uppercase tracking-[0.16em] mb-2 flex items-center gap-2">
+                <AlertTriangle size={16} className="text-yellow-500" />
+                Users Signed Up from This IP ({ipAnalysisData.usersFromIP.length})
+              </h4>
+              <div className="space-y-2">
+                {ipAnalysisData.usersFromIP.map((user, idx) => (
+                  <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-2 bg-[hsl(var(--muted))] rounded gap-1">
+                    <div>
+                      <span className="text-xs sm:text-sm font-medium">{user.name}</span>
+                      <span className="text-xs text-[hsl(var(--muted-foreground))] ml-2">{user.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 rounded bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))]">
+                        {user.plan}
+                      </span>
+                      <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
 

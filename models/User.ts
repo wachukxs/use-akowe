@@ -8,6 +8,7 @@ interface IUser extends Omit<UserType, '_id'> {
   billingCycle?: 'monthly' | 'annual'; // Add billing cycle field
   subscriptionStartDate?: Date | null; // When subscription started (from Stripe)
   subscriptionEndDate?: Date | null; // When subscription ended (null if active)
+  signupIp?: string; // IP address at signup for fraud investigation
   // Referral system fields
   referralCode?: string; // Unique code for this user to share
   referredBy?: mongoose.Types.ObjectId; // User who referred this user
@@ -61,6 +62,9 @@ const UserSchema = new Schema<IUser>(
     subscriptionEndDate: {
       type: Date,
       default: null,
+    },
+    signupIp: {
+      type: String,
     },
     // Referral system fields
     referralCode: {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import ReferralClick from '@/models/ReferralClick';
+import User from '@/models/User';
 
 /**
  * GET /api/admin/fraud/referrals
@@ -62,14 +63,18 @@ export async function GET(request: NextRequest) {
     }
     
     if (ipAddress) {
-      // Analyze specific IP address
-      const clicksFromIP = await ReferralClick.countDocuments({ ipAddress });
-      const differentCodes = await ReferralClick.distinct('referralCode', { ipAddress });
-      const convertedClicks = await ReferralClick.countDocuments({
-        ipAddress,
-        converted: true,
-      });
-      
+      // Analyze specific IP address - referral clicks + user signups
+      const [clicksFromIP, differentCodes, convertedClicks, usersFromIP] = await Promise.all([
+        ReferralClick.countDocuments({ ipAddress }),
+        ReferralClick.distinct('referralCode', { ipAddress }),
+        ReferralClick.countDocuments({ ipAddress, converted: true }),
+        User.find({ signupIp: ipAddress })
+          .select('name email plan createdAt referralCode')
+          .sort({ createdAt: -1 })
+          .limit(50)
+          .lean(),
+      ]);
+
       return NextResponse.json({
         ipAddress,
         metrics: {
@@ -77,10 +82,17 @@ export async function GET(request: NextRequest) {
           convertedClicks,
           differentReferralCodes: differentCodes.length,
           conversionRate: clicksFromIP > 0 ? (convertedClicks / clicksFromIP) * 100 : 0,
+          signupsFromIP: usersFromIP.length,
         },
         referralCodes: differentCodes,
-        riskLevel: differentCodes.length > 5 || clicksFromIP > 20 ? 'high' : 
-                  differentCodes.length > 2 || clicksFromIP > 10 ? 'medium' : 'low',
+        usersFromIP: usersFromIP.map(u => ({
+          name: u.name,
+          email: u.email,
+          plan: u.plan,
+          createdAt: u.createdAt,
+        })),
+        riskLevel: differentCodes.length > 5 || clicksFromIP > 20 || usersFromIP.length > 3 ? 'high' :
+                  differentCodes.length > 2 || clicksFromIP > 10 || usersFromIP.length > 2 ? 'medium' : 'low',
       });
     }
     
