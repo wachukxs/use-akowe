@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import DailyUsage from '@/models/DailyUsage';
 import { searchOpenAlex } from '@/lib/citations';
+import { format } from 'date-fns';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -182,6 +184,19 @@ export async function POST(request: NextRequest) {
       gaps,
       isPro
     );
+
+    // Track usage in DailyUsage for authenticated users
+    if (isAuthenticated && session?.user?.email) {
+      const user = await User.findOne({ email: session.user.email }).select('_id').lean();
+      if (user) {
+        const today = format(new Date(), 'yyyy-MM-dd');
+        await DailyUsage.findOneAndUpdate(
+          { userId: user._id.toString(), date: today },
+          { $inc: { topicFinderSearches: 1 } },
+          { upsert: true }
+        );
+      }
+    }
 
     // Return results based on plan
     return NextResponse.json({

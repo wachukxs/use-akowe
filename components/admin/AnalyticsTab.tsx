@@ -7,6 +7,9 @@ import {
   AlertCircle,
   BarChart3,
   Zap,
+  FileText,
+  Activity,
+  TrendingUp,
 } from 'lucide-react';
 
 interface PaywallABData {
@@ -33,6 +36,13 @@ interface PaywallABData {
   note?: string;
 }
 
+interface ComparisonMetric {
+  free?: number;
+  paid?: number;
+  difference?: number;
+  differencePercent?: number;
+}
+
 interface PaidUserAnalysis {
   summary: {
     freeUsers: number;
@@ -44,18 +54,75 @@ interface PaidUserAnalysis {
     };
   };
   projectBehavior?: {
-    averageProjectsPerUser?: { free?: number; paid?: number };
-    completionRate?: { free?: number; paid?: number };
-    averageWordCount?: { free?: number; paid?: number };
+    averageProjectsPerUser?: ComparisonMetric;
+    completionRate?: ComparisonMetric;
+    averageWordCountPerProject?: ComparisonMetric;
+    projectTypes?: {
+      free?: Record<string, number>;
+      paid?: Record<string, number>;
+    };
   } | null;
   aiUsage?: {
-    averageAIWordsPerUser?: { free?: number; paid?: number };
-    averagePlagiarismChecks?: { free?: number; paid?: number };
-    dailyUsageFrequency?: { free?: number; paid?: number };
+    totalAIWords?: ComparisonMetric;
+    averageWordsPerUser?: ComparisonMetric;
+    averageWordsPerActiveDay?: ComparisonMetric;
+    averagePlagiarismChecksPerUser?: ComparisonMetric;
+    usageRate?: ComparisonMetric;
+    activeDays?: { free?: number; paid?: number };
   } | null;
-  featureAdoption?: unknown;
-  engagement?: unknown;
-  conversionPatterns?: unknown;
+  featureAdoption?: {
+    citations?: {
+      adoptionRate?: ComparisonMetric;
+      averagePerProject?: ComparisonMetric;
+    };
+    plagiarismChecks?: {
+      adoptionRate?: ComparisonMetric;
+    };
+    pdfUploads?: {
+      adoptionRate?: ComparisonMetric;
+    };
+  } | null;
+  engagement?: {
+    averageActiveDaysPerUser?: ComparisonMetric;
+    powerUsers?: { free?: number; paid?: number; freePercent?: number; paidPercent?: number };
+    consistentUsers?: { free?: number; paid?: number; freePercent?: number; paidPercent?: number };
+  } | null;
+  conversionPatterns?: {
+    totalConversions?: number;
+    averageTimeToConversion?: { days?: number; hours?: number } | null;
+    averageProjectsBeforeConversion?: number | null;
+    averageAIWordsBeforeConversion?: number | null;
+    conversionInsights?: {
+      usersWithProjectsBeforeConversion?: number;
+      usersWithAIUsageBeforeConversion?: number;
+      usersWithMultipleProjects?: number;
+      usersWithHighAIUsage?: number;
+    };
+    note?: string;
+  } | null;
+}
+
+function ComparisonRow({ label, free, paid, isPercent = false, formatFn }: {
+  label: string;
+  free?: number;
+  paid?: number;
+  isPercent?: boolean;
+  formatFn?: (n: number) => string;
+}) {
+  const format = formatFn || ((n: number) => isPercent ? `${Math.round(n * 100) / 100}%` : n.toLocaleString());
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+        {label}
+      </div>
+      <div className="text-sm sm:text-base font-bold">
+        Free: {format(free || 0)}
+      </div>
+      <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
+        Paid: {format(paid || 0)}
+      </div>
+    </div>
+  );
 }
 
 export default function AnalyticsTab() {
@@ -75,13 +142,13 @@ export default function AnalyticsTab() {
       if (!paywallResponse.ok) {
         const errorData = await paywallResponse.json().catch(() => ({}));
         const errorMessage = errorData.error || 'Failed to fetch paywall A/B test data';
-        
+
         // Handle unauthorized errors gracefully
         if (paywallResponse.status === 401) {
           setError('Please log in to the admin dashboard to view analytics data.');
           return; // Don't try to fetch other data if unauthorized
         }
-        
+
         throw new Error(errorMessage);
       }
       const paywall = await paywallResponse.json();
@@ -92,13 +159,13 @@ export default function AnalyticsTab() {
       if (!paidUserResponse.ok) {
         const errorData = await paidUserResponse.json().catch(() => ({}));
         const errorMessage = errorData.error || 'Failed to fetch paid user analysis';
-        
+
         // Handle unauthorized errors gracefully
         if (paidUserResponse.status === 401) {
           setError('Please log in to the admin dashboard to view analytics data.');
           return;
         }
-        
+
         throw new Error(errorMessage);
       }
       const paidUser = await paidUserResponse.json();
@@ -304,7 +371,7 @@ export default function AnalyticsTab() {
                 No Paywall A/B Test Data Yet
               </h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 leading-relaxed">
-                Paywall A/B test data will appear here once users start interacting with paywall variants. 
+                Paywall A/B test data will appear here once users start interacting with paywall variants.
                 This requires GA4 integration or database tracking of paywall events.
               </p>
               <div className="text-left bg-[hsl(var(--surface-muted))] p-4 rounded border border-[hsl(var(--border-strong))] space-y-2">
@@ -363,52 +430,29 @@ export default function AnalyticsTab() {
           </div>
 
           {/* Project Behavior */}
-          {paidUserData.projectBehavior && (
-            (paidUserData.projectBehavior.averageProjectsPerUser?.free !== undefined ||
-             paidUserData.projectBehavior.averageProjectsPerUser?.paid !== undefined ||
-             paidUserData.projectBehavior.completionRate?.free !== undefined ||
-             paidUserData.projectBehavior.completionRate?.paid !== undefined ||
-             paidUserData.projectBehavior.averageWordCount?.free !== undefined ||
-             paidUserData.projectBehavior.averageWordCount?.paid !== undefined) ? (
+          {paidUserData.projectBehavior ? (
             <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
               <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em] mb-3 sm:mb-4 flex items-center gap-2">
                 <BarChart3 size={18} className="sm:w-5 sm:h-5 text-[hsl(var(--primary))]" />
                 Project Behavior
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
-                    Avg Projects/User
-                  </div>
-                  <div className="text-sm sm:text-base font-bold">
-                    Free: {formatNumber(paidUserData.projectBehavior.averageProjectsPerUser?.free || 0)}
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
-                    Paid: {formatNumber(paidUserData.projectBehavior.averageProjectsPerUser?.paid || 0)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
-                    Completion Rate
-                  </div>
-                  <div className="text-sm sm:text-base font-bold">
-                    Free: {formatPercent(paidUserData.projectBehavior.completionRate?.free || 0)}
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
-                    Paid: {formatPercent(paidUserData.projectBehavior.completionRate?.paid || 0)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
-                    Avg Word Count
-                  </div>
-                  <div className="text-sm sm:text-base font-bold">
-                    Free: {formatNumber(paidUserData.projectBehavior.averageWordCount?.free || 0)}
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
-                    Paid: {formatNumber(paidUserData.projectBehavior.averageWordCount?.paid || 0)}
-                  </div>
-                </div>
+                <ComparisonRow
+                  label="Avg Projects/User"
+                  free={paidUserData.projectBehavior.averageProjectsPerUser?.free}
+                  paid={paidUserData.projectBehavior.averageProjectsPerUser?.paid}
+                />
+                <ComparisonRow
+                  label="Completion Rate"
+                  free={paidUserData.projectBehavior.completionRate?.free}
+                  paid={paidUserData.projectBehavior.completionRate?.paid}
+                  isPercent
+                />
+                <ComparisonRow
+                  label="Avg Word Count/Project"
+                  free={paidUserData.projectBehavior.averageWordCountPerProject?.free}
+                  paid={paidUserData.projectBehavior.averageWordCountPerProject?.paid}
+                />
               </div>
             </div>
           ) : (
@@ -427,56 +471,32 @@ export default function AnalyticsTab() {
                 </div>
               </div>
             </div>
-          )
           )}
 
           {/* AI Usage */}
-          {paidUserData.aiUsage && (
-            (paidUserData.aiUsage.averageAIWordsPerUser?.free !== undefined ||
-             paidUserData.aiUsage.averageAIWordsPerUser?.paid !== undefined ||
-             paidUserData.aiUsage.averagePlagiarismChecks?.free !== undefined ||
-             paidUserData.aiUsage.averagePlagiarismChecks?.paid !== undefined ||
-             paidUserData.aiUsage.dailyUsageFrequency?.free !== undefined ||
-             paidUserData.aiUsage.dailyUsageFrequency?.paid !== undefined) ? (
+          {paidUserData.aiUsage ? (
             <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
               <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em] mb-3 sm:mb-4 flex items-center gap-2">
                 <Zap size={18} className="sm:w-5 sm:h-5 text-[hsl(var(--primary))]" />
                 AI Usage Patterns
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
-                    Avg AI Words/User
-                  </div>
-                  <div className="text-sm sm:text-base font-bold">
-                    Free: {formatNumber(paidUserData.aiUsage.averageAIWordsPerUser?.free || 0)}
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
-                    Paid: {formatNumber(paidUserData.aiUsage.averageAIWordsPerUser?.paid || 0)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
-                    Avg Plagiarism Checks
-                  </div>
-                  <div className="text-sm sm:text-base font-bold">
-                    Free: {formatNumber(paidUserData.aiUsage.averagePlagiarismChecks?.free || 0)}
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
-                    Paid: {formatNumber(paidUserData.aiUsage.averagePlagiarismChecks?.paid || 0)}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
-                    Daily Usage Frequency
-                  </div>
-                  <div className="text-sm sm:text-base font-bold">
-                    Free: {formatPercent(paidUserData.aiUsage.dailyUsageFrequency?.free || 0)}
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
-                    Paid: {formatPercent(paidUserData.aiUsage.dailyUsageFrequency?.paid || 0)}
-                  </div>
-                </div>
+                <ComparisonRow
+                  label="Avg AI Words/User"
+                  free={paidUserData.aiUsage.averageWordsPerUser?.free}
+                  paid={paidUserData.aiUsage.averageWordsPerUser?.paid}
+                />
+                <ComparisonRow
+                  label="Avg Plagiarism Checks/User"
+                  free={paidUserData.aiUsage.averagePlagiarismChecksPerUser?.free}
+                  paid={paidUserData.aiUsage.averagePlagiarismChecksPerUser?.paid}
+                />
+                <ComparisonRow
+                  label="AI Usage Rate"
+                  free={paidUserData.aiUsage.usageRate?.free}
+                  paid={paidUserData.aiUsage.usageRate?.paid}
+                  isPercent
+                />
               </div>
             </div>
           ) : (
@@ -495,8 +515,159 @@ export default function AnalyticsTab() {
                 </div>
               </div>
             </div>
-          )
           )}
+
+          {/* Feature Adoption */}
+          {paidUserData.featureAdoption ? (
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+              <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em] mb-3 sm:mb-4 flex items-center gap-2">
+                <FileText size={18} className="sm:w-5 sm:h-5 text-[hsl(var(--primary))]" />
+                Feature Adoption
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <ComparisonRow
+                  label="Citation Adoption"
+                  free={paidUserData.featureAdoption.citations?.adoptionRate?.free}
+                  paid={paidUserData.featureAdoption.citations?.adoptionRate?.paid}
+                  isPercent
+                />
+                <ComparisonRow
+                  label="Plagiarism Check Adoption"
+                  free={paidUserData.featureAdoption.plagiarismChecks?.adoptionRate?.free}
+                  paid={paidUserData.featureAdoption.plagiarismChecks?.adoptionRate?.paid}
+                  isPercent
+                />
+                <ComparisonRow
+                  label="PDF Upload Adoption"
+                  free={paidUserData.featureAdoption.pdfUploads?.adoptionRate?.free}
+                  paid={paidUserData.featureAdoption.pdfUploads?.adoptionRate?.paid}
+                  isPercent
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {/* Engagement */}
+          {paidUserData.engagement ? (
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+              <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em] mb-3 sm:mb-4 flex items-center gap-2">
+                <Activity size={18} className="sm:w-5 sm:h-5 text-[hsl(var(--primary))]" />
+                Engagement Patterns
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <ComparisonRow
+                  label="Avg Active Days/User"
+                  free={paidUserData.engagement.averageActiveDaysPerUser?.free}
+                  paid={paidUserData.engagement.averageActiveDaysPerUser?.paid}
+                />
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Power Users (5+ days)
+                  </div>
+                  <div className="text-sm sm:text-base font-bold">
+                    Free: {formatNumber(paidUserData.engagement.powerUsers?.free || 0)} ({paidUserData.engagement.powerUsers?.freePercent || 0}%)
+                  </div>
+                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
+                    Paid: {formatNumber(paidUserData.engagement.powerUsers?.paid || 0)} ({paidUserData.engagement.powerUsers?.paidPercent || 0}%)
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Consistent Users (3+ days)
+                  </div>
+                  <div className="text-sm sm:text-base font-bold">
+                    Free: {formatNumber(paidUserData.engagement.consistentUsers?.free || 0)} ({paidUserData.engagement.consistentUsers?.freePercent || 0}%)
+                  </div>
+                  <div className="text-sm sm:text-base font-bold text-[hsl(var(--primary))]">
+                    Paid: {formatNumber(paidUserData.engagement.consistentUsers?.paid || 0)} ({paidUserData.engagement.consistentUsers?.paidPercent || 0}%)
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Conversion Patterns */}
+          {paidUserData.conversionPatterns && paidUserData.conversionPatterns.totalConversions ? (
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+              <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em] mb-3 sm:mb-4 flex items-center gap-2">
+                <TrendingUp size={18} className="sm:w-5 sm:h-5 text-[hsl(var(--primary))]" />
+                Conversion Patterns
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Total Conversions
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-[hsl(var(--primary))]">
+                    {formatNumber(paidUserData.conversionPatterns.totalConversions || 0)}
+                  </div>
+                </div>
+                {paidUserData.conversionPatterns.averageTimeToConversion && (
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                      Avg Time to Convert
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">
+                      {paidUserData.conversionPatterns.averageTimeToConversion.days?.toFixed(1)}d
+                    </div>
+                  </div>
+                )}
+                {paidUserData.conversionPatterns.averageProjectsBeforeConversion != null && (
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                      Avg Projects Before Converting
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">
+                      {paidUserData.conversionPatterns.averageProjectsBeforeConversion}
+                    </div>
+                  </div>
+                )}
+                {paidUserData.conversionPatterns.averageAIWordsBeforeConversion != null && (
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                      Avg AI Words Before Converting
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold">
+                      {formatNumber(paidUserData.conversionPatterns.averageAIWordsBeforeConversion)}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {paidUserData.conversionPatterns.conversionInsights && (
+                <div className="mt-4 pt-4 border-t border-[hsl(var(--border-strong))]">
+                  <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-2">
+                    Conversion Insights
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="text-xs">
+                      <span className="text-[hsl(var(--muted-foreground))]">Had projects: </span>
+                      <span className="font-semibold">{paidUserData.conversionPatterns.conversionInsights.usersWithProjectsBeforeConversion || 0}</span>
+                    </div>
+                    <div className="text-xs">
+                      <span className="text-[hsl(var(--muted-foreground))]">Used AI: </span>
+                      <span className="font-semibold">{paidUserData.conversionPatterns.conversionInsights.usersWithAIUsageBeforeConversion || 0}</span>
+                    </div>
+                    <div className="text-xs">
+                      <span className="text-[hsl(var(--muted-foreground))]">Multiple projects: </span>
+                      <span className="font-semibold">{paidUserData.conversionPatterns.conversionInsights.usersWithMultipleProjects || 0}</span>
+                    </div>
+                    <div className="text-xs">
+                      <span className="text-[hsl(var(--muted-foreground))]">High AI usage: </span>
+                      <span className="font-semibold">{paidUserData.conversionPatterns.conversionInsights.usersWithHighAIUsage || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : paidUserData.conversionPatterns?.note ? (
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+              <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em] mb-2 flex items-center gap-2">
+                <TrendingUp size={18} className="sm:w-5 sm:h-5 text-[hsl(var(--primary))]" />
+                Conversion Patterns
+              </h3>
+              <p className="text-xs text-[hsl(var(--muted-foreground))]">{paidUserData.conversionPatterns.note}</p>
+            </div>
+          ) : null}
         </div>
       ) : activeSection === 'paid-users' ? (
         <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 sm:p-12 rounded-lg">
@@ -509,7 +680,7 @@ export default function AnalyticsTab() {
                 No Paid User Analysis Data Yet
               </h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 leading-relaxed">
-                Paid user analysis will appear here once you have users with both free and paid plans. 
+                Paid user analysis will appear here once you have users with both free and paid plans.
                 The analysis compares behavior patterns between free and paid users.
               </p>
               <div className="text-left bg-[hsl(var(--surface-muted))] p-4 rounded border border-[hsl(var(--border-strong))] space-y-2">

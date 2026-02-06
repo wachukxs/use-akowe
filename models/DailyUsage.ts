@@ -24,6 +24,10 @@ const DailyUsageSchema = new Schema<IDailyUsage>(
       type: Number,
       default: 0,
     },
+    topicFinderSearches: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

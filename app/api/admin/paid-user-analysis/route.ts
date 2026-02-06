@@ -227,6 +227,12 @@ async function analyzeAIUsage(
   const freeAvgWordsPerDay = freeActiveDays > 0 ? freeTotalWords / freeActiveDays : 0;
   const paidAvgWordsPerDay = paidActiveDays > 0 ? paidTotalWords / paidActiveDays : 0;
 
+  // Plagiarism checks
+  const freeTotalPlagiarism = freeUsage.reduce((sum, u) => sum + (u.plagiarismChecks || 0), 0);
+  const paidTotalPlagiarism = paidUsage.reduce((sum, u) => sum + (u.plagiarismChecks || 0), 0);
+  const freeAvgPlagiarism = freeUserIds.length > 0 ? freeTotalPlagiarism / freeUserIds.length : 0;
+  const paidAvgPlagiarism = paidUserIds.length > 0 ? paidTotalPlagiarism / paidUserIds.length : 0;
+
   // Users with any AI usage
   const freeUsersWithUsage = new Set(freeUsage.map(u => u.userId)).size;
   const paidUsersWithUsage = new Set(paidUsage.map(u => u.userId)).size;
@@ -254,6 +260,14 @@ async function analyzeAIUsage(
       free: Math.round(freeAvgWordsPerDay),
       paid: Math.round(paidAvgWordsPerDay),
       difference: Math.round(paidAvgWordsPerDay - freeAvgWordsPerDay),
+    },
+    averagePlagiarismChecksPerUser: {
+      free: Math.round(freeAvgPlagiarism * 100) / 100,
+      paid: Math.round(paidAvgPlagiarism * 100) / 100,
+      difference: Math.round((paidAvgPlagiarism - freeAvgPlagiarism) * 100) / 100,
+      differencePercent: freeAvgPlagiarism > 0
+        ? Math.round(((paidAvgPlagiarism - freeAvgPlagiarism) / freeAvgPlagiarism) * 100)
+        : 0,
     },
     usageRate: {
       free: Math.round(freeUsageRate * 100) / 100,

@@ -111,6 +111,7 @@ export interface DailyUsage {
   date: string; // YYYY-MM-DD format
   aiWordsGenerated: number;
   plagiarismChecks: number;
+  topicFinderSearches: number;
   createdAt: Date;
   updatedAt: Date;
 }

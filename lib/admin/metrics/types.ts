@@ -38,6 +38,7 @@ export interface PeriodPerformance {
   usage: {
     aiWordsInPeriod: number;
     plagiarismChecksInPeriod: number;
+    topicFinderSearchesInPeriod: number;
     growth: Array<{ _id: string; count: number }>;
     topUsersByUsage: Array<{
       userId: string;
@@ -46,6 +47,7 @@ export interface PeriodPerformance {
       plan: string;
       totalAIWords: number;
       totalPlagiarismChecks: number;
+      totalTopicFinderSearches: number;
     }>;
   };
   revenue: {
@@ -129,6 +131,7 @@ export interface DetailedLists {
     stripeSubscriptionId?: string;
     totalAIWords?: number;
     totalPlagiarismChecks?: number;
+    totalTopicFinderSearches?: number;
     activeDays?: number;
   }>;
   topUsersByUsage: Array<{
@@ -138,6 +141,7 @@ export interface DetailedLists {
     plan: string;
     totalAIWords: number;
     totalPlagiarismChecks: number;
+    totalTopicFinderSearches: number;
   }>;
   subscriptionDetails: Array<{
     id: string;
@@ -156,6 +160,7 @@ export interface ComparisonMetrics {
     projectsCreated: number;
     aiWords: number;
     plagiarismChecks: number;
+    topicFinderSearches: number;
     revenue: number;
   };
   changes: {
@@ -163,6 +168,7 @@ export interface ComparisonMetrics {
     projectsCreated: number;
     aiWords: number;
     plagiarismChecks: number;
+    topicFinderSearches: number;
     revenue: number;
   };
 }

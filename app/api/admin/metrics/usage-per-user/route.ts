@@ -92,6 +92,7 @@ export async function GET(request: Request) {
           _id: '$userId',
           totalAIWords: { $sum: '$aiWordsGenerated' },
           totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
+          totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
           activeDays: { $sum: 1 }
         }
       }
@@ -100,18 +101,20 @@ export async function GET(request: Request) {
     // Build a usage map keyed by userId (string)
     const usageMap = new Map<
       string,
-      { totalAIWords: number; totalPlagiarismChecks: number; activeDays: number }
+      { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; activeDays: number }
     >();
     usageAggregation.forEach(
       (usage: {
         _id: string;
         totalAIWords: number;
         totalPlagiarismChecks: number;
+        totalTopicFinderSearches: number;
         activeDays: number;
       }) => {
         usageMap.set(usage._id, {
           totalAIWords: usage.totalAIWords,
           totalPlagiarismChecks: usage.totalPlagiarismChecks,
+          totalTopicFinderSearches: usage.totalTopicFinderSearches,
           activeDays: usage.activeDays,
         });
       },
@@ -147,6 +150,7 @@ export async function GET(request: Request) {
       const usage = usageMap.get(userId) || {
         totalAIWords: 0,
         totalPlagiarismChecks: 0,
+        totalTopicFinderSearches: 0,
         activeDays: 0,
       };
 
@@ -157,6 +161,7 @@ export async function GET(request: Request) {
         plan: user.plan || 'free',
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
+        totalTopicFinderSearches: usage.totalTopicFinderSearches,
         activeDays: usage.activeDays,
       };
     });

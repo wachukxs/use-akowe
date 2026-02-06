@@ -175,6 +175,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
         projectsCreated: periodProjectMetrics.createdInPeriod,
         aiWords: periodUsageMetrics.aiWordsInPeriod,
         plagiarismChecks: periodUsageMetrics.plagiarismChecksInPeriod,
+        topicFinderSearches: periodUsageMetrics.topicFinderSearchesInPeriod,
         revenue: periodRevenue.revenueInPeriod,
       }
     ),

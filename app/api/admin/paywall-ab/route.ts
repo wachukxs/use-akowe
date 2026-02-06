@@ -126,9 +126,22 @@ export async function GET(request: NextRequest) {
       ...dateFilter,
     }).lean();
 
+    // DailyUsage uses a 'date' string field (YYYY-MM-DD), not createdAt
+    const usageDateFilter: Record<string, unknown> = {};
+    if (startDate || endDate) {
+      const dateRange: { $gte?: string; $lte?: string } = {};
+      if (startDate) {
+        dateRange.$gte = new Date(startDate).toISOString().split('T')[0];
+      }
+      if (endDate) {
+        dateRange.$lte = new Date(endDate).toISOString().split('T')[0];
+      }
+      usageDateFilter.date = dateRange;
+    }
+
     const usageRecords = await DailyUsage.find({
       aiWordsGenerated: { $gte: 500 }, // Hit the free limit
-      ...dateFilter,
+      ...usageDateFilter,
     }).lean();
 
     const results = {

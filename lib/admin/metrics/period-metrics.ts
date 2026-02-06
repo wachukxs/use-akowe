@@ -90,6 +90,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
   const cached = metricsCache.get<{
     aiWordsInPeriod: number;
     plagiarismChecksInPeriod: number;
+    topicFinderSearchesInPeriod: number;
     topUsersByUsage: Array<any>;
   }>(cacheKey);
   if (cached) return cached;
@@ -108,7 +109,8 @@ export async function getPeriodUsageMetrics(range: DateRange) {
             $group: {
               _id: null,
               totalAIWords: { $sum: '$aiWordsGenerated' },
-              totalPlagiarismChecks: { $sum: '$plagiarismChecks' }
+              totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
+              totalTopicFinderSearches: { $sum: '$topicFinderSearches' }
             }
           }
         ],
@@ -129,7 +131,8 @@ export async function getPeriodUsageMetrics(range: DateRange) {
             $group: {
               _id: '$userId',
               totalAIWords: { $sum: '$aiWordsGenerated' },
-              totalPlagiarismChecks: { $sum: '$plagiarismChecks' }
+              totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
+              totalTopicFinderSearches: { $sum: '$topicFinderSearches' }
             }
           },
           {
@@ -143,7 +146,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
     }
   ], { maxTimeMS: 30000 }); // 30 second timeout
 
-  const usage = aggregationResult[0]?.totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0 };
+  const usage = aggregationResult[0]?.totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0, totalTopicFinderSearches: 0 };
   const dailyGrowth = aggregationResult[0]?.dailyGrowth || [];
   const topUsersAggregation = aggregationResult[0]?.topUsers || [];
 
@@ -164,7 +167,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
     });
   }
 
-  const topUsersByUsage = topUsersAggregation.map((usage: { _id: string; totalAIWords: number; totalPlagiarismChecks: number }) => {
+  const topUsersByUsage = topUsersAggregation.map((usage: { _id: string; totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number }) => {
     const user = usersMap.get(usage._id) || null;
     return {
       userId: usage._id,
@@ -173,12 +176,14 @@ export async function getPeriodUsageMetrics(range: DateRange) {
       plan: user?.plan || 'free',
       totalAIWords: usage.totalAIWords,
       totalPlagiarismChecks: usage.totalPlagiarismChecks,
+      totalTopicFinderSearches: usage.totalTopicFinderSearches,
     };
   });
 
   const result = {
     aiWordsInPeriod: usage.totalAIWords,
     plagiarismChecksInPeriod: usage.totalPlagiarismChecks,
+    topicFinderSearchesInPeriod: usage.totalTopicFinderSearches,
     growth: dailyGrowth.map((day: { _id: string; aiWords: number; plagiarismChecks: number }) => ({
       _id: day._id,
       count: day.aiWords,
