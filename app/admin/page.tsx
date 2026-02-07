@@ -680,6 +680,8 @@ export default function AdminDashboard() {
           totalAIWords: user.totalAIWords || 0,
           totalPlagiarismChecks: user.totalPlagiarismChecks || 0,
           totalTopicFinderSearches: user.totalTopicFinderSearches || 0,
+          totalCitations: user.totalCitations ?? 0,
+          projectsWithCitations: user.projectsWithCitations ?? 0,
           activeDays: user.activeDays || 0,
         }));
 
