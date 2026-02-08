@@ -3,12 +3,14 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { Check, ArrowRight, Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import HeroPlagiarismTool from "@/components/HeroPlagiarismTool";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import HeroTopicFinder from "@/components/HeroTopicFinder";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 import {
@@ -42,6 +44,8 @@ function getABVariant(): "control" | "variant_a" | "variant_b" {
 function HomePageContent() {
   const searchParams = useSearchParams();
   useSession();
+  const tCommon = useTranslations("common");
+  const tHome = useTranslations("home");
   const [isAnnual, setIsAnnual] = useState(false); // Default to monthly billing
   const [abVariant, setAbVariant] = useState<
     "control" | "variant_a" | "variant_b"
@@ -117,10 +121,10 @@ function HomePageContent() {
           <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-0 sm:h-20">
             <Link href="/" className="flex flex-col gap-0.5">
               <span className="text-[10px] sm:text-xs uppercase tracking-[0.28em] sm:tracking-[0.4em] text-[hsl(var(--muted-foreground))]">
-                Akọ̀wé
+                {tCommon("brandSubtitle")}
               </span>
               <span className="text-xl sm:text-2xl font-bold uppercase tracking-[0.12em] sm:tracking-[0.16em]">
-                Research Studio
+                {tCommon("brandTitle")}
               </span>
             </Link>
             <nav className="flex flex-wrap items-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] sm:tracking-[0.28em]">
@@ -128,20 +132,21 @@ function HomePageContent() {
                 href="/blog"
                 className="hover:text-[hsl(var(--secondary))] transition-colors"
               >
-                Blog
+                {tCommon("blog")}
               </Link>
               <Link
                 href="/auth/signin"
                 className="hover:text-[hsl(var(--secondary))] transition-colors"
               >
-                Sign In
+                {tCommon("signIn")}
               </Link>
               <Link
                 href="/auth/signin"
                 className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-5 sm:px-6 py-2.5 sm:py-3 font-semibold uppercase tracking-[0.18em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
               >
-                Get Started
+                {tCommon("getStarted")}
               </Link>
+              <LocaleSwitcher />
             </nav>
           </div>
         </div>
@@ -155,11 +160,10 @@ function HomePageContent() {
             {abVariant === "control" ? (
               <>
                 <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
-                  Academic writing without risk or chaos.
+                  {tHome("heroControl.title")}
                 </h1>
                 <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
-                  Write theses, papers, and research with real sources,
-                  plagiarism checks, and AI that respects university policies.
+                  {tHome("heroControl.subtitle")}
                 </p>
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -168,7 +172,7 @@ function HomePageContent() {
                       onClick={() => trackConversion("signup_click")}
                     >
                       <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
-                        Start free
+                        {tCommon("startFree")}
                         <ArrowRight size={18} />
                       </Button>
                     </Link>
@@ -181,26 +185,24 @@ function HomePageContent() {
                           ?.scrollIntoView({ behavior: "smooth" })
                       }
                     >
-                      See how it works
+                      {tCommon("seeHowItWorks")}
                     </Button>
                   </div>
                   <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center sm:text-left">
-                    Built for academic integrity. Not shortcuts.
+                    {tCommon("builtForIntegrity")}
                   </p>
                 </div>
               </>
             ) : abVariant === "variant_a" ? (
               <>
-                {/* Variant A: Deadline Pressure */}
                 <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
-                  Write your thesis faster with real citations.
+                  {tHome("heroVariantA.title")}
                 </h1>
                 <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
-                  Turn your topic into a cited academic draft without manual
-                  source hunting.
+                  {tHome("heroVariantA.subtitle")}
                 </p>
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  From topic to cited draft in minutes.
+                  {tHome("heroVariantA.tagline")}
                 </p>
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -209,7 +211,7 @@ function HomePageContent() {
                       onClick={() => trackConversion("signup_click")}
                     >
                       <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
-                        Start writing now
+                        {tCommon("startWritingNow")}
                         <ArrowRight size={18} />
                       </Button>
                     </Link>
@@ -218,13 +220,11 @@ function HomePageContent() {
               </>
             ) : (
               <>
-                {/* Variant B: Submission Safety */}
                 <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold uppercase tracking-[0.04em] sm:tracking-[0.1em] leading-tight">
-                  Write academic work you trust.
+                  {tHome("heroVariantB.title")}
                 </h1>
                 <p className="text-lg sm:text-xl md:text-2xl uppercase tracking-[0.1em] sm:tracking-[0.12em] text-[hsl(var(--foreground))] font-medium">
-                  Use real sources, accurate citations, and similarity review
-                  before submission.
+                  {tHome("heroVariantB.subtitle")}
                 </p>
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                   Built for university submission standards.

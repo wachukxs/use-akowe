@@ -11,6 +11,7 @@ import {
   Activity,
   TrendingUp,
 } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
 
 interface PaywallABData {
   summary: {
@@ -210,12 +211,12 @@ export default function AnalyticsTab() {
             <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-1">Error Loading Data</h3>
             <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">{error}</p>
             {error.includes('log in') ? (
-              <a
+              <Link
                 href="/admin/login"
                 className="inline-block text-xs px-4 py-2 border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-white rounded hover:opacity-90 transition-opacity uppercase tracking-[0.16em] font-semibold"
               >
                 Go to Admin Login
-              </a>
+              </Link>
             ) : (
               <button
                 onClick={fetchData}

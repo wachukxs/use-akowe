@@ -65,6 +65,7 @@ import { scheduleScrollEditorIntoView } from "@/lib/scroll-editor-into-view";
 import { cn } from "@/lib/utils";
 import { trackFunnel } from "@/lib/gtag";
 import FirstProjectCompletion from "@/components/FirstProjectCompletion";
+import { Link as NavLink } from "@/i18n/navigation";
 
 export default function ProjectEditorPage({
   params,
@@ -5499,12 +5500,12 @@ export default function ProjectEditorPage({
                           .replace(/\$+/g, "")}
                         {mathExplanation.includes("Upgrade to Pro") && (
                           <div className="mt-3 pt-3 border-t-[2px] border-[hsl(var(--border-strong))]">
-                            <a
+                            <NavLink
                               href="/settings"
                               className="inline-flex items-center text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] text-[10px] uppercase tracking-[0.2em]"
                             >
                               Upgrade to Pro →
-                            </a>
+                            </NavLink>
                           </div>
                         )}
                       </div>
