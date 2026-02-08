@@ -5,7 +5,8 @@ import { routing } from '@/i18n/routing';
 
 /** Path without locale prefix for route checks (e.g. /en/dashboard -> /dashboard, / -> /) */
 function pathWithoutLocale(pathname: string): string {
-  const without = pathname.replace(/^\/(en|ja)(?=\/|$)/, '') || '';
+  const localePattern = routing.locales.join('|');
+  const without = pathname.replace(new RegExp(`^/(${localePattern})(?=/|$)`), '') || '';
   return without || '/';
 }
 
