@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -23,6 +24,7 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 function SignInForm() {
+  const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +58,7 @@ function SignInForm() {
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error) {
       console.error('Google sign-in error:', error);
-      alert('Failed to sign in with Google. Please try again.');
+      alert(t('errors.googleSignInFailed'));
       setIsGoogleLoading(false);
     }
   };
@@ -66,23 +68,23 @@ function SignInForm() {
     
     // Validation
     if (!email.trim()) {
-      alert('Please enter your email');
+      alert(t('errors.enterEmail'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      alert('Please enter a valid email address');
+      alert(t('errors.validEmail'));
       return;
     }
 
     if (!password) {
-      alert('Please enter your password');
+      alert(t('errors.enterPassword'));
       return;
     }
 
     if (password.length < 6) {
-      alert('Password must be at least 6 characters');
+      alert(t('errors.passwordMinLength'));
       return;
     }
 
@@ -99,13 +101,13 @@ function SignInForm() {
       if (result?.error) {
         // Handle specific error cases with clean messages
         if (result.error === 'CredentialsSignin') {
-          alert('Invalid email or password. Please check your credentials and try again.');
+          alert(t('errors.invalidCredentials'));
         } else if (result.error.includes('No account found')) {
-          alert('No account found with this email. Please sign up first.');
+          alert(t('errors.noAccount'));
         } else if (result.error.includes('Invalid password')) {
-          alert('Invalid password. Please check your password and try again.');
+          alert(t('errors.invalidPassword'));
         } else {
-          alert(`Sign in failed: ${result.error}`);
+          alert(`${t('errors.signInFailed')}: ${result.error}`);
         }
       } else if (result?.ok) {
         // Set GA user_id immediately after successful login
@@ -133,26 +135,26 @@ function SignInForm() {
         // Note: router.refresh() removed - navigation will render the new page automatically
       } else {
         // Fallback for unexpected cases
-        alert('An unexpected error occurred. Please try again.');
+        alert(t('errors.unexpectedError'));
       }
     } catch (error) {
       // Handle all possible error types
       if (error instanceof Error) {
         if (error.message.includes('No account found')) {
-          alert('No account found with this email. Please sign up first.');
+          alert(t('errors.noAccount'));
         } else if (error.message.includes('Invalid password')) {
-          alert('Invalid password. Please check your password and try again.');
+          alert(t('errors.invalidPassword'));
         } else if (error.message.includes('Google')) {
-          alert('This account was created with Google. Please sign in with Google.');
+          alert(t('errors.accountCreatedWithGoogle'));
         } else if (error.message.includes('Email and password are required')) {
-          alert('Please enter both email and password.');
+          alert(t('errors.enterBothEmailPassword'));
         } else if (error.message.includes('CallbackRouteError')) {
-          alert('No account found with this email. Please sign up first.');
+          alert(t('errors.noAccount'));
         } else {
-          alert(`Sign in failed: ${error.message}`);
+          alert(`${t('errors.signInFailed')}: ${error.message}`);
         }
       } else {
-        alert('An error occurred. Please try again.');
+        alert(t('errors.errorOccurred'));
       }
     } finally {
       setIsLoading(false);
@@ -165,13 +167,13 @@ function SignInForm() {
         <Card className="p-10 space-y-8">
           <div className="text-center space-y-3">
             <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-              Akọ̀wé studio
+              {t('brand')}
             </span>
             <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
-              Sign in
+              {t('signin.title')}
             </h1>
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Write research that holds up.
+              {t('signin.tagline')}
             </p>
           </div>
 
@@ -184,7 +186,7 @@ function SignInForm() {
           >
             <GoogleIcon className="w-5 h-5" />
             <span className="text-sm font-medium text-gray-700">
-              {isGoogleLoading ? 'Signing in...' : 'Continue with Google'}
+              {isGoogleLoading ? t('signin.signingIn') : t('signin.continueWithGoogle')}
             </span>
           </button>
 
@@ -194,7 +196,7 @@ function SignInForm() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-[hsl(var(--card))] px-4 text-[hsl(var(--muted-foreground))] tracking-[0.2em]">
-                or
+                {t('signin.or')}
               </span>
             </div>
           </div>
@@ -202,8 +204,8 @@ function SignInForm() {
           <form onSubmit={handleSignIn} className="space-y-5">
             <Input
               type="email"
-              label="Email"
-              placeholder="Enter your email"
+              label={t('signin.email')}
+              placeholder={t('signin.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -212,8 +214,8 @@ function SignInForm() {
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
-                label="Password"
-                placeholder="Enter your password"
+                label={t('signin.password')}
+                placeholder={t('signin.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -222,7 +224,7 @@ function SignInForm() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-[2.4rem] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors cursor-pointer"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('signin.hidePassword') : t('signin.showPassword')}
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -234,7 +236,7 @@ function SignInForm() {
 
             <div className="flex justify-end text-xs uppercase tracking-[0.18em]">
               <Link href="/auth/forgot-password" className="underline underline-offset-4 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--secondary))]">
-                Forgot password?
+                {t('signin.forgotPassword')}
               </Link>
             </div>
 
@@ -243,26 +245,50 @@ function SignInForm() {
               className="w-full py-4 text-sm font-semibold tracking-[0.24em]"
               disabled={isLoading || isGoogleLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? t('signin.signingIn') : t('signin.submit')}
             </Button>
           </form>
 
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Don&apos;t have an account?{' '}
+              {t('signin.noAccount')}{' '}
               <Link href="/auth/signup" className="underline underline-offset-4 hover:text-[hsl(var(--secondary))]">
-                Sign up
+                {t('signin.signUpLink')}
               </Link>
             </p>
             <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              By signing in, you agree to our{' '}
+              {t('signin.agreeSignIn')}{' '}
               <Link href="/terms" className="underline underline-offset-2 hover:text-[hsl(var(--secondary))]">
-                Terms of Service
+                {t('signin.termsOfService')}
               </Link>{' '}
-              and{' '}
+              {t('signin.and')}{' '}
               <Link href="/privacy" className="underline underline-offset-2 hover:text-[hsl(var(--secondary))]">
-                Privacy Policy
-              </Link>.
+                {t('signin.privacyPolicy')}
+              </Link>
+              {t('signin.agreeEnd')}
+            </p>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function SignInFallback() {
+  const t = useTranslations('auth');
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="w-full max-w-md px-6">
+        <Card className="p-10 space-y-8">
+          <div className="text-center space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+              {t('brand')}
+            </span>
+            <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
+              {t('signin.title')}
+            </h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              {t('loading')}
             </p>
           </div>
         </Card>
@@ -273,25 +299,7 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-        <div className="w-full max-w-md px-6">
-          <Card className="p-10 space-y-8">
-            <div className="text-center space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                Akọ̀wé studio
-              </span>
-              <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
-                Sign in
-              </h1>
-              <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                Loading...
-              </p>
-            </div>
-          </Card>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<SignInFallback />}>
       <SignInForm />
     </Suspense>
   );

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Link from 'next/link';
@@ -23,6 +24,7 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 function SignUpForm() {
+  const t = useTranslations('auth');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -120,7 +122,7 @@ function SignUpForm() {
       await signIn('google', { callbackUrl });
     } catch (error) {
       console.error('Google sign-up error:', error);
-      alert('Failed to sign up with Google. Please try again.');
+      alert(t('errors.googleSignUpFailed'));
       setIsGoogleLoading(false);
     }
   };
@@ -137,38 +139,38 @@ function SignUpForm() {
     
     // Validation
     if (!formData.name.trim()) {
-      alert('Please enter your name');
+      alert(t('errors.enterName'));
       return;
     }
 
     if (formData.name.trim().length < 2) {
-      alert('Name must be at least 2 characters');
+      alert(t('errors.nameMinLength'));
       return;
     }
 
     if (!formData.email.trim()) {
-      alert('Please enter your email');
+      alert(t('errors.enterEmail'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address');
+      alert(t('errors.validEmail'));
       return;
     }
 
     if (!formData.password) {
-      alert('Please enter a password');
+      alert(t('errors.enterPasswordSignUp'));
       return;
     }
 
     if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters');
+      alert(t('errors.passwordMinLength'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      alert(t('errors.passwordsDoNotMatch'));
       return;
     }
 
@@ -213,7 +215,7 @@ function SignUpForm() {
           // Check for errors FIRST
           if (result?.error) {
             // Handle auto sign-in failure gracefully
-            alert('Account created successfully! However, automatic sign-in failed. Please sign in manually with your credentials.');
+            alert(t('errors.accountCreatedSignInFailed'));
             router.push('/auth/signin');
           } else if (result?.ok) {
             console.log('Auto sign-in successful, redirecting...');
@@ -234,12 +236,12 @@ function SignUpForm() {
           } else {
             // Fallback for unexpected cases
             console.error('Unexpected auto sign-in result:', result);
-            alert('Account created successfully! However, an unexpected error occurred during automatic sign-in. Please sign in manually.');
+            alert(t('errors.accountCreatedUnexpected'));
             router.push('/auth/signin');
           }
         } catch (error) {
           console.error('Auto sign-in error:', error);
-          alert('Account created successfully! However, automatic sign-in failed. Please sign in manually with your credentials.');
+          alert(t('errors.accountCreatedSignInFailed'));
           // Redirect to sign-in page instead of dashboard
           router.push('/auth/signin');
         }
@@ -247,35 +249,35 @@ function SignUpForm() {
         const error = await response.json();
         // Show specific error messages for all edge cases
         if (error.error?.includes('already exists')) {
-          alert('An account with this email already exists. Please sign in instead.');
+          alert(t('errors.emailAlreadyExists'));
         } else if (error.error?.includes('Invalid email')) {
-          alert('Please enter a valid email address.');
+          alert(t('errors.validEmailShort'));
         } else if (error.error?.includes('Password must be')) {
-          alert('Password must be at least 6 characters long.');
+          alert(t('errors.passwordMinLengthLong'));
         } else if (error.error?.includes('Name must be')) {
-          alert('Name must be at least 2 characters long.');
+          alert(t('errors.nameMinLengthLong'));
         } else if (error.error?.includes('All fields are required')) {
-          alert('Please fill in all required fields.');
+          alert(t('errors.fillRequiredFields'));
         } else if (error.error?.includes('Missing required fields')) {
-          alert('Please fill in all required fields.');
+          alert(t('errors.fillRequiredFields'));
         } else if (error.error?.includes('Failed to create user')) {
-          alert('Failed to create account. Please try again.');
+          alert(t('errors.failedToCreateAccount'));
         } else {
-          alert(`Sign up failed: ${error.error || 'Unknown error'}`);
+          alert(`${t('errors.signUpFailed')}: ${error.error || t('errors.unknownError')}`);
         }
       }
     } catch (error) {
       console.error('Sign up error:', error);
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          alert('Network error. Please check your connection and try again.');
+          alert(t('errors.networkError'));
         } else if (error.message.includes('already exists')) {
-          alert('An account with this email already exists. Please sign in instead.');
+          alert(t('errors.emailAlreadyExists'));
         } else {
-          alert(`Sign up failed: ${error.message}`);
+          alert(`${t('errors.signUpFailed')}: ${error.message}`);
         }
       } else {
-        alert('An error occurred. Please try again.');
+        alert(t('errors.errorOccurred'));
       }
     } finally {
       setIsLoading(false);
@@ -288,13 +290,13 @@ function SignUpForm() {
         <Card className="p-10 space-y-8">
           <div className="text-center space-y-3">
             <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-              Akọ̀wé studio
+              {t('brand')}
             </span>
             <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
-              Create account
+              {t('signup.title')}
             </h1>
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Join the research workspace built for scholars.
+              {t('signup.tagline')}
             </p>
           </div>
 
@@ -307,7 +309,7 @@ function SignUpForm() {
           >
             <GoogleIcon className="w-5 h-5" />
             <span className="text-sm font-medium text-gray-700">
-              {isGoogleLoading ? 'Signing up...' : 'Continue with Google'}
+              {isGoogleLoading ? t('signup.signingUp') : t('signup.continueWithGoogle')}
             </span>
           </button>
 
@@ -317,7 +319,7 @@ function SignUpForm() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-[hsl(var(--card))] px-4 text-[hsl(var(--muted-foreground))] tracking-[0.2em]">
-                or
+                {t('signup.or')}
               </span>
             </div>
           </div>
@@ -326,8 +328,8 @@ function SignUpForm() {
             <Input
               type="text"
               name="name"
-              label="Full Name"
-              placeholder="Enter your full name"
+              label={t('signup.fullName')}
+              placeholder={t('signup.fullNamePlaceholder')}
               value={formData.name}
               onChange={handleInputChange}
               required
@@ -336,8 +338,8 @@ function SignUpForm() {
             <Input
               type="email"
               name="email"
-              label="Email"
-              placeholder="Enter your email"
+              label={t('signup.email')}
+              placeholder={t('signup.emailPlaceholder')}
               value={formData.email}
               onChange={handleInputChange}
               required
@@ -347,8 +349,8 @@ function SignUpForm() {
               <Input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
-                label="Password"
-                placeholder="Create a password"
+                label={t('signup.password')}
+                placeholder={t('signup.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleInputChange}
                 required
@@ -357,7 +359,7 @@ function SignUpForm() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-[2.4rem] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors cursor-pointer"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('signup.hidePassword') : t('signup.showPassword')}
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -371,8 +373,8 @@ function SignUpForm() {
               <Input
                 type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
-                label="Confirm Password"
-                placeholder="Confirm your password"
+                label={t('signup.confirmPassword')}
+                placeholder={t('signup.confirmPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 required
@@ -381,7 +383,7 @@ function SignUpForm() {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-4 top-[2.4rem] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors cursor-pointer"
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                aria-label={showConfirmPassword ? t('signup.hidePassword') : t('signup.showPassword')}
               >
                 {showConfirmPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -396,26 +398,50 @@ function SignUpForm() {
               className="w-full py-4 text-sm font-semibold uppercase tracking-[0.24em]"
               disabled={isLoading || isGoogleLoading}
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? t('signup.creatingAccount') : t('signup.submit')}
             </Button>
           </form>
 
           <div className="text-center space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Already have an account?{' '}
+              {t('signup.hasAccount')}{' '}
               <Link href="/auth/signin" className="underline underline-offset-4 hover:text-[hsl(var(--secondary))]">
-                Sign in
+                {t('signup.signInLink')}
               </Link>
             </p>
             <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              By creating an account, you agree to our{' '}
+              {t('signup.agreeSignUp')}{' '}
               <Link href="/terms" className="underline underline-offset-2 hover:text-[hsl(var(--secondary))]">
-                Terms of Service
+                {t('signup.termsOfService')}
               </Link>{' '}
-              and{' '}
+              {t('signup.and')}{' '}
               <Link href="/privacy" className="underline underline-offset-2 hover:text-[hsl(var(--secondary))]">
-                Privacy Policy
-              </Link>.
+                {t('signup.privacyPolicy')}
+              </Link>
+              {t('signup.agreeEnd')}
+            </p>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function SignUpFallback() {
+  const t = useTranslations('auth');
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="w-full max-w-md px-6">
+        <Card className="p-10 space-y-8">
+          <div className="text-center space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+              {t('brand')}
+            </span>
+            <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
+              {t('signup.title')}
+            </h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              {t('loading')}
             </p>
           </div>
         </Card>
@@ -426,25 +452,7 @@ function SignUpForm() {
 
 export default function SignUpPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-        <div className="w-full max-w-md px-6">
-          <Card className="p-10 space-y-8">
-            <div className="text-center space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                Akọ̀wé studio
-              </span>
-              <h1 className="text-3xl font-bold uppercase tracking-[0.18em]">
-                Create account
-              </h1>
-              <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                Loading...
-              </p>
-            </div>
-          </Card>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<SignUpFallback />}>
       <SignUpForm />
     </Suspense>
   );
