@@ -22,5 +22,7 @@
   "notFoundTemplates": "テンプレート",
   "notFoundWhileHere": "ここまで来たなら…",
   "notFoundCheckPlagiarism": "盗用チェックを試す",
-  "notFoundGoToHome": "ホームへ"
+  "notFoundGoToHome": "ホームへ",
+  "settingsLanguage": "言語",
+  "settingsLanguageRemember": "次回の訪問時に言語を記憶します。"
 }

@@ -22,5 +22,7 @@
   "notFoundTemplates": "Templates",
   "notFoundWhileHere": "While you're here...",
   "notFoundCheckPlagiarism": "Check Your Work for Plagiarism",
-  "notFoundGoToHome": "Go to Home Page"
+  "notFoundGoToHome": "Go to Home Page",
+  "settingsLanguage": "Language",
+  "settingsLanguageRemember": "We remember your language choice for your next visit."
 }

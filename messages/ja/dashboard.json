@@ -1,0 +1,17 @@
+{
+  "loadingWorkspace": "ワークスペースを読み込み中",
+  "projectArchive": "プロジェクトアーカイブ",
+  "title": "研究カタログ",
+  "subtitle": "学術プロジェクトを管理・推敲・公開します。",
+  "activeCount": "アクティブ数",
+  "projectsInWorkspace": "ワークスペース内のプロジェクト",
+  "searchPlaceholder": "プロジェクトを検索",
+  "quickActions": "クイックアクション",
+  "createNewProject": "新規プロジェクトを作成",
+  "importDocument": "ドキュメントをインポート",
+  "reviewPlans": "プランを確認",
+  "noProjectsYet": "プロジェクトがまだありません",
+  "noProjectsFound": "プロジェクトが見つかりません",
+  "emptyAdjustFilters": "フィルターやキーワードを調整して続けてください。",
+  "emptyGetStarted": "Akọ̀wéで最初の研究プロジェクトを始めましょう。"
+}

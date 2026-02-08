@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/types';
@@ -12,6 +13,7 @@ import LeadMagnetContinuation from '@/components/LeadMagnetContinuation';
 import Active37DiscountPopup from '@/components/Active37DiscountPopup';
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard');
   const { data: session, status } = useSession();
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -128,7 +130,7 @@ export default function DashboardPage() {
           <div className="text-center space-y-4">
             <div className="w-16 h-16 border-[4px] border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-              Loading workspace
+              {t('loadingWorkspace')}
             </p>
           </div>
         </div>
@@ -157,25 +159,25 @@ export default function DashboardPage() {
           <div className="grid grid-cols-12 gap-4 md:gap-6 items-stretch">
             <div className="col-span-12 lg:col-span-8 space-y-3 md:space-y-4">
               <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                Project archive
+                {t('projectArchive')}
               </span>
               <h1 className="text-3xl md:text-5xl font-bold uppercase tracking-[0.12em] leading-tight">
-                Your Research Catalogue
+                {t('title')}
               </h1>
               <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-xl">
-                Manage, refine, and publish academic projects with precision.
+                {t('subtitle')}
               </p>
             </div>
             <div className="col-span-12 lg:col-span-4">
               <div className="h-full border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 md:p-6 flex flex-row lg:flex-col justify-between items-center lg:items-start gap-4">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))]">
-                  Active count
+                  {t('activeCount')}
                 </span>
                 <span className="text-4xl md:text-6xl font-black text-[hsl(var(--accent-foreground))] leading-none">
                   {projects.length.toString().padStart(2, '0')}
                 </span>
                 <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))] hidden sm:block">
-                  Projects in workspace
+                  {t('projectsInWorkspace')}
                 </span>
               </div>
             </div>
@@ -188,7 +190,7 @@ export default function DashboardPage() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))]" size={18} />
                   <input
                     type="text"
-                    placeholder="Search projects"
+                    placeholder={t('searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.24em] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
@@ -223,25 +225,25 @@ export default function DashboardPage() {
             <div className="col-span-12 lg:col-span-3 space-y-3">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-5 space-y-3">
                 <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                  Quick actions
+                  {t('quickActions')}
                 </span>
                 <button
                   onClick={() => router.push('/dashboard/new')}
                   className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
-                  Create New Project
+                  {t('createNewProject')}
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/import')}
                   className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
-                  Import Document
+                  {t('importDocument')}
                 </button>
                 <button
                   onClick={() => router.push('/settings')}
                   className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
-                  Review Plans
+                  {t('reviewPlans')}
                 </button>
               </div>
             </div>
@@ -253,17 +255,17 @@ export default function DashboardPage() {
                 <FileText className="text-[hsl(var(--secondary))]" size={32} />
               </div>
               <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em] text-center">
-                {searchQuery ? 'No projects found' : 'No projects yet'}
+                {searchQuery ? t('noProjectsFound') : t('noProjectsYet')}
               </h3>
               <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] max-w-md text-center">
-                {searchQuery ? 'Adjust your filters or keywords to continue exploring.' : 'Begin by launching your first research project with Akọ̀wé.'}
+                {searchQuery ? t('emptyAdjustFilters') : t('emptyGetStarted')}
               </p>
               {!searchQuery && (
                 <button
                   onClick={() => router.push('/dashboard/new')}
                   className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
-                  Create New Project
+                  {t('createNewProject')}
                 </button>
               )}
             </div>

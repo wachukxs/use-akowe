@@ -1,0 +1,17 @@
+{
+  "loadingWorkspace": "작업 공간 불러오는 중",
+  "projectArchive": "프로젝트 보관함",
+  "title": "연구 카탈로그",
+  "subtitle": "학술 프로젝트를 관리, 다듬고, 정확하게 게시하세요.",
+  "activeCount": "활성 개수",
+  "projectsInWorkspace": "작업 공간의 프로젝트",
+  "searchPlaceholder": "프로젝트 검색",
+  "quickActions": "빠른 작업",
+  "createNewProject": "새 프로젝트 만들기",
+  "importDocument": "문서 가져오기",
+  "reviewPlans": "플랜 보기",
+  "noProjectsYet": "아직 프로젝트가 없습니다",
+  "noProjectsFound": "프로젝트를 찾을 수 없습니다",
+  "emptyAdjustFilters": "필터나 키워드를 조정해 보세요.",
+  "emptyGetStarted": "Akọ̀wé로 첫 연구 프로젝트를 시작하세요."
+}

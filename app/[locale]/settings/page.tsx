@@ -3,9 +3,11 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { UsageLimits, PlanType } from '@/types';
 import { Check, Crown, Users, X, Info, Copy, Gift } from 'lucide-react';
 import { trackFunnel } from '@/lib/gtag';
@@ -20,6 +22,7 @@ interface UsageData {
 }
 
 export default function SettingsPage() {
+  const t = useTranslations('common');
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -385,6 +388,17 @@ export default function SettingsPage() {
               Manage your account and subscription
             </p>
           </div>
+
+          {/* Language preference (persisted for next visit) */}
+          <Card className="p-4 md:p-6 mb-6 md:mb-8">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+              {t('settingsLanguage')}
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {t('settingsLanguageRemember')}
+            </p>
+            <LocaleSwitcher />
+          </Card>
 
           {/* Checkout cancelled feedback (when user left Stripe without paying) */}
           {showCheckoutFeedback && (

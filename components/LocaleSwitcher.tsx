@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Link } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { ChevronDown } from 'lucide-react';
 import { routing } from '@/i18n/routing';
 
@@ -27,6 +27,7 @@ function localeDisplay(loc: string) {
 
 export function LocaleSwitcher() {
   const locale = useLocale();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +46,7 @@ export function LocaleSwitcher() {
   const current = localeDisplay(locale);
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative w-fit" ref={containerRef}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -63,12 +64,12 @@ export function LocaleSwitcher() {
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 top-full z-50 mt-2 min-w-[10rem] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-[4px_4px_0_rgba(29,41,57,0.12)] py-1"
+          className="absolute left-0 top-full z-50 mt-2 min-w-40 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-[4px_4px_0_rgba(29,41,57,0.12)] py-1"
         >
           {locales.map((loc) => (
             <li key={loc} role="option" aria-selected={loc === locale}>
               <Link
-                href="/"
+                href={pathname || '/'}
                 locale={loc}
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] transition-colors ${

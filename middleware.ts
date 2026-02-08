@@ -70,11 +70,40 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. next-intl: locale negotiation, redirects (e.g. / -> /en)
+  // 3. Prefer saved locale when visiting root (no path after domain)
+  if (pathname === '/') {
+    const preferred = request.cookies.get('NEXT_LOCALE')?.value;
+    if (preferred && (routing.locales as readonly string[]).includes(preferred)) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${preferred}`;
+      const localeCookieMaxAge = 365 * 24 * 60 * 60; // 1 year
+      const res = NextResponse.redirect(url);
+      res.cookies.set('NEXT_LOCALE', preferred, {
+        path: '/',
+        maxAge: localeCookieMaxAge,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      });
+      return res;
+    }
+  }
+
+  // 4. next-intl: locale negotiation, redirects (e.g. / -> /en)
   const handleI18nRouting = createMiddleware(routing);
   let response = handleI18nRouting(request);
 
-  // 4. Apply A/B and other cookies/headers on top of next-intl response
+  // 5. Persist current locale so next visit reuses it
+  const localeMatch = pathname.match(/^\/(en|ja|ko)(?:\/|$)/);
+  const localeToPersist = localeMatch ? localeMatch[1] : routing.defaultLocale;
+  const localeCookieMaxAge = 365 * 24 * 60 * 60;
+  response.cookies.set('NEXT_LOCALE', localeToPersist, {
+    path: '/',
+    maxAge: localeCookieMaxAge,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
+
+  // 6. Apply A/B and other cookies/headers on top of next-intl response
   const cookieOptions = {
     path: '/',
     maxAge: 30 * 24 * 60 * 60,

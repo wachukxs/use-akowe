@@ -22,5 +22,7 @@
   "notFoundTemplates": "템플릿",
   "notFoundWhileHere": "여기까지 오셨다면...",
   "notFoundCheckPlagiarism": "표절 검사해 보기",
-  "notFoundGoToHome": "홈으로"
+  "notFoundGoToHome": "홈으로",
+  "settingsLanguage": "언어",
+  "settingsLanguageRemember": "다음 방문 시 선택한 언어를 기억합니다."
 }
