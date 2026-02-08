@@ -9,5 +9,18 @@
   "startFree": "무료로 시작",
   "startWritingNow": "지금 작성하기",
   "builtForIntegrity": "학술적 정직함을 위한 도구. 빠른 대충 쓰기가 아닙니다.",
-  "notFound": "페이지를 찾을 수 없습니다."
+  "notFound": "페이지를 찾을 수 없습니다.",
+  "notFoundError404": "오류 404",
+  "notFoundPageTitle": "페이지를 찾을 수 없습니다",
+  "notFoundDescription": "찾으시는 페이지가 없거나 이동했을 수 있습니다.",
+  "notFoundGoHome": "홈으로",
+  "notFoundBrowseGuides": "가이드 둘러보기",
+  "notFoundPopularPages": "인기 페이지:",
+  "notFoundGuides": "가이드",
+  "notFoundFaq": "자주 묻는 질문",
+  "notFoundCitationStyles": "인용 스타일",
+  "notFoundTemplates": "템플릿",
+  "notFoundWhileHere": "여기까지 오셨다면...",
+  "notFoundCheckPlagiarism": "표절 검사해 보기",
+  "notFoundGoToHome": "홈으로"
 }

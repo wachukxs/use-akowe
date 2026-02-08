@@ -9,5 +9,18 @@
   "startFree": "無料で始める",
   "startWritingNow": "今すぐ書き始める",
   "builtForIntegrity": "学術的誠実さのため。手抜きではありません。",
-  "notFound": "ページが見つかりません。"
+  "notFound": "ページが見つかりません。",
+  "notFoundError404": "エラー 404",
+  "notFoundPageTitle": "ページが見つかりません",
+  "notFoundDescription": "お探しのページは存在しないか、移動した可能性があります。",
+  "notFoundGoHome": "ホームへ",
+  "notFoundBrowseGuides": "ガイドを閲覧",
+  "notFoundPopularPages": "人気ページ：",
+  "notFoundGuides": "ガイド",
+  "notFoundFaq": "よくある質問",
+  "notFoundCitationStyles": "引用スタイル",
+  "notFoundTemplates": "テンプレート",
+  "notFoundWhileHere": "ここまで来たなら…",
+  "notFoundCheckPlagiarism": "盗用チェックを試す",
+  "notFoundGoToHome": "ホームへ"
 }
