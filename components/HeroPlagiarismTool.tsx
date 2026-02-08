@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Upload, FileText, AlertTriangle, CheckCircle2, ArrowRight, Shield, Lock } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
@@ -32,6 +33,7 @@ interface PlagiarismResult {
 }
 
 export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps) {
+  const t = useTranslations('components');
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -70,12 +72,12 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
   // Run the scan immediately - no email required
   const handleAnalyze = async () => {
     if (!text.trim() && !file) {
-      setError('Please paste text or upload a file');
+      setError(t('plagiarismTool.errorPasteOrFile'));
       return;
     }
 
     if (text.trim() && text.trim().length < 50) {
-      setError('Please enter at least 50 characters');
+      setError(t('plagiarismTool.errorMinChars'));
       return;
     }
 
@@ -119,7 +121,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
         timestamp: Date.now()
       }));
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze. Please try again.');
+      setError(err.message || t('plagiarismTool.analysisFailed'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -171,9 +173,9 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
   };
 
   const getRiskLabel = (score: number) => {
-    if (score < 15) return 'Low Risk';
-    if (score < 35) return 'Medium Risk';
-    return 'High Risk';
+    if (score < 15) return t('plagiarismTool.riskLow');
+    if (score < 35) return t('plagiarismTool.riskMedium');
+    return t('plagiarismTool.riskHigh');
   };
 
   return (
@@ -181,7 +183,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
       <div className="flex items-center gap-2">
         <Shield size={16} className="text-[hsl(var(--primary))]" />
         <span className="text-[10px] uppercase tracking-[0.28em] font-semibold text-[hsl(var(--muted-foreground))]">
-          Free Plagiarism Check
+          {t('plagiarismTool.label')}
         </span>
       </div>
 
@@ -191,14 +193,14 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
             <textarea
               value={text}
               onChange={handleTextChange}
-              placeholder="Paste your text here to check for plagiarism..."
+              placeholder={t('plagiarismTool.placeholder')}
               className="w-full h-28 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
               disabled={!!file || isAnalyzing}
             />
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-[2px] bg-[hsl(var(--border-strong))]" />
-              <span className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">or</span>
+              <span className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">{t('plagiarismTool.or')}</span>
               <div className="flex-1 h-[2px] bg-[hsl(var(--border-strong))]" />
             </div>
 
@@ -236,7 +238,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
                 <div className="flex items-center justify-center gap-2">
                   <Upload size={16} className="text-[hsl(var(--muted-foreground))]" />
                   <span className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                    Upload .docx, .pdf, or .txt
+                    {t('plagiarismTool.uploadHint')}
                   </span>
                 </div>
               )}
@@ -253,7 +255,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
               className="w-full py-3"
               disabled={isAnalyzing || (!text.trim() && !file)}
             >
-              {isAnalyzing ? 'Analyzing...' : 'Check Now'}
+              {isAnalyzing ? t('plagiarismTool.analyzing') : t('plagiarismTool.checkNow')}
               {!isAnalyzing && <ArrowRight size={16} className="ml-2" />}
             </Button>
           </div>
@@ -273,7 +275,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
           {/* Checks Performed - Always show what we checked */}
           <div className="space-y-1.5">
             <p className="text-[9px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
-              Checks performed:
+              {t('plagiarismTool.checksPerformed')}
             </p>
             {result.checksPerformed?.map((check, index) => (
               <div key={index} className="flex items-center gap-2 text-[10px] uppercase tracking-[0.12em]">
@@ -281,21 +283,21 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
                   <>
                     <CheckCircle2 className="text-green-500 flex-shrink-0" size={12} />
                     <span className="text-green-700">{check.name}</span>
-                    <span className="text-green-600 font-semibold ml-auto">Clean</span>
+                    <span className="text-green-600 font-semibold ml-auto">{t('plagiarismTool.clean')}</span>
                   </>
                 )}
                 {check.status === 'issues' && (
                   <>
                     <AlertTriangle className="text-yellow-500 flex-shrink-0" size={12} />
                     <span className="text-yellow-700">{check.name}</span>
-                    <span className="text-yellow-600 font-semibold ml-auto">{check.count} found</span>
+                    <span className="text-yellow-600 font-semibold ml-auto">{t('plagiarismTool.found', { count: check.count ?? 0 })}</span>
                   </>
                 )}
                 {check.status === 'locked' && (
                   <>
                     <Lock className="text-[hsl(var(--muted-foreground))] flex-shrink-0" size={12} />
                     <span className="text-[hsl(var(--muted-foreground))]">{check.name}</span>
-                    <span className="text-[hsl(var(--primary))] font-semibold ml-auto">Sign up</span>
+                    <span className="text-[hsl(var(--primary))] font-semibold ml-auto">{t('plagiarismTool.signUp')}</span>
                   </>
                 )}
               </div>
@@ -306,7 +308,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
           {result.previewIssues.length > 0 && (
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
-                Example issue found:
+                {t('plagiarismTool.exampleIssueFound')}
               </p>
               <div className="border-[2px] border-[hsl(var(--border-strong))] rounded p-3 bg-[hsl(var(--surface-muted))]">
                 <div className="flex items-start gap-2">
@@ -324,7 +326,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
               </div>
               {result.totalIssues > 1 && (
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] text-center">
-                  +{result.totalIssues - 1} more issues to fix
+                  {t('plagiarismTool.moreIssuesToFix', { count: result.totalIssues - 1 })}
                 </p>
               )}
             </div>
@@ -333,11 +335,11 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
           {/* CTA */}
           <div className="space-y-2">
             <Button onClick={handleGetFullReport} className="w-full py-3">
-              Get Full Report & Fix Suggestions
+              {t('plagiarismTool.getFullReport')}
               <ArrowRight size={16} className="ml-2" />
             </Button>
             <p className="text-[8px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] text-center">
-              See all {result.totalIssues} issues with actionable fixes
+              {t('plagiarismTool.seeAllIssues', { count: result.totalIssues })}
             </p>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Search, ArrowRight, Sparkles, AlertCircle, CheckCircle2, Lightbulb } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
@@ -40,6 +41,7 @@ interface TopicResult {
 }
 
 export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
+  const t = useTranslations('components');
   const [topic, setTopic] = useState('');
   const [projectType, setProjectType] = useState<'essay' | 'thesis' | 'research' | 'journal'>('thesis');
   const [methodology, setMethodology] = useState<'qualitative' | 'quantitative' | 'mixed methods' | ''>('');
@@ -54,7 +56,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
 
   const handleAnalyze = async () => {
     if (!topic.trim()) {
-      setError('Please enter a research topic');
+      setError(t('topicFinder.errorEnterTopic'));
       return;
     }
 
@@ -94,7 +96,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
         expires: Date.now() + 3600 * 1000,
       }));
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze. Please try again.');
+      setError(err.message || t('topicFinder.analysisFailed'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -155,9 +157,9 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
   };
 
   const getUniquenessLabel = (score: number) => {
-    if (score >= 80) return 'Highly Unique';
-    if (score >= 60) return 'Moderately Unique';
-    return 'Needs Refinement';
+    if (score >= 80) return t('topicFinder.highlyUnique');
+    if (score >= 60) return t('topicFinder.moderatelyUnique');
+    return t('topicFinder.needsRefinement');
   };
 
   const getUniquenessBg = (score: number) => {
@@ -171,7 +173,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
       <div className="flex items-center gap-2">
         <Lightbulb size={16} className="text-[hsl(var(--primary))]" />
         <span className="text-[10px] uppercase tracking-[0.28em] font-semibold text-[hsl(var(--muted-foreground))]">
-          Find Your Unique Research Topic
+          {t('topicFinder.label')}
         </span>
       </div>
 
@@ -180,13 +182,13 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
           <div className="space-y-3">
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] block">
-                Research Topic or Field
+                {t('topicFinder.researchTopicLabel')}
               </label>
               <input
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                placeholder="e.g., climate change adaptation, machine learning in healthcare"
+                placeholder={t('topicFinder.placeholder')}
                 className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                 onKeyDown={(e) => e.key === 'Enter' && !isAnalyzing && handleAnalyze()}
               />
@@ -195,33 +197,33 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <label className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] block">
-                  Project Type
+                  {t('topicFinder.projectTypeLabel')}
                 </label>
                 <select
                   value={projectType}
                   onChange={(e) => setProjectType(e.target.value as any)}
                   className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                 >
-                  <option value="thesis">Thesis</option>
-                  <option value="essay">Essay</option>
-                  <option value="research">Research Paper</option>
-                  <option value="journal">Journal Article</option>
+                  <option value="thesis">{t('topicFinder.projectTypeThesis')}</option>
+                  <option value="essay">{t('topicFinder.projectTypeEssay')}</option>
+                  <option value="research">{t('topicFinder.projectTypeResearch')}</option>
+                  <option value="journal">{t('topicFinder.projectTypeJournal')}</option>
                 </select>
               </div>
 
               <div className="space-y-1">
                 <label className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] block">
-                  Methodology (Optional)
+                  {t('topicFinder.methodologyLabel')}
                 </label>
                 <select
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value as any)}
                   className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                 >
-                  <option value="">Any</option>
-                  <option value="qualitative">Qualitative</option>
-                  <option value="quantitative">Quantitative</option>
-                  <option value="mixed methods">Mixed Methods</option>
+                  <option value="">{t('topicFinder.methodologyAny')}</option>
+                  <option value="qualitative">{t('topicFinder.methodologyQualitative')}</option>
+                  <option value="quantitative">{t('topicFinder.methodologyQuantitative')}</option>
+                  <option value="mixed methods">{t('topicFinder.methodologyMixed')}</option>
                 </select>
               </div>
             </div>
@@ -237,7 +239,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
               className="w-full py-3"
               disabled={isAnalyzing || !topic.trim()}
             >
-              {isAnalyzing ? 'Finding Unique Topics...' : 'Find Unique Topics'}
+              {isAnalyzing ? t('topicFinder.findingTopics') : t('topicFinder.findTopics')}
               {!isAnalyzing && <Search size={16} className="ml-2" />}
             </Button>
           </div>
@@ -247,7 +249,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
           {/* Uniqueness Score - Primary Focus */}
           <div className="text-center space-y-2">
             <p className="text-[9px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              Topic Uniqueness Score
+              {t('topicFinder.uniquenessScoreLabel')}
             </p>
             <div className="relative inline-flex items-center justify-center">
               <div className={cn('text-4xl font-bold', getUniquenessColor(result.uniquenessScore))}>
@@ -270,11 +272,11 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
           <div className="grid grid-cols-2 gap-2 py-2 border-y-[2px] border-[hsl(var(--border-strong))]">
             <div className="text-center">
               <p className="text-sm font-bold">{result.totalSimilarPapers}</p>
-              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">Similar Papers</p>
+              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">{t('topicFinder.similarPapers')}</p>
             </div>
             <div className="text-center border-l-[2px] border-[hsl(var(--border-strong))]">
               <p className="text-sm font-bold">{result.suggestions.length}</p>
-              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">Unique Angles</p>
+              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">{t('topicFinder.uniqueAngles')}</p>
             </div>
           </div>
 
@@ -284,7 +286,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
               <div className="flex items-center gap-2">
                 <Sparkles className="text-[hsl(var(--primary))]" size={14} />
                 <p className="text-[9px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
-                  Top Unique Topic Suggestion
+                  {t('topicFinder.topSuggestion')}
                 </p>
               </div>
               <div className="border-[2px] border-[hsl(var(--border-strong))] rounded p-3 bg-[hsl(var(--surface-muted))]">
@@ -303,7 +305,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
               </div>
               {result.suggestions.length > 1 && (
                 <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))] text-center">
-                  +{result.suggestions.length - 1} more unique topic suggestions
+                  {t('topicFinder.moreSuggestions', { count: result.suggestions.length - 1 })}
                 </p>
               )}
             </div>
@@ -313,7 +315,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
           {result.gaps.length > 0 && (
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
-                Research Gaps Found
+                {t('topicFinder.researchGapsFound')}
               </p>
               {result.gaps.slice(0, 2).map((gap, index) => (
                 <div 
@@ -336,7 +338,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
               ))}
               {result.gaps.length > 2 && (
                 <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))] text-center">
-                  +{result.gaps.length - 2} more research gaps
+                  {t('topicFinder.moreGaps', { count: result.gaps.length - 2 })}
                 </p>
               )}
             </div>
@@ -347,7 +349,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
             onClick={handleGetFullResultsClick}
             className="w-full py-3"
           >
-            {result.uniquenessScore < 80 ? 'Get All Unique Topics & Gaps' : 'Create This Project in Akọ̀wé'}
+            {result.uniquenessScore < 80 ? t('topicFinder.getAllTopicsAndGaps') : t('topicFinder.createProjectInAkowe')}
             <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>

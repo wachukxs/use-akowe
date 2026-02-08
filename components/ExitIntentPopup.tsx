@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { X, Shield, Upload, ArrowRight, FileText, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
@@ -14,6 +15,7 @@ interface ExitIntentPopupProps {
 }
 
 export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps) {
+  const t = useTranslations('components');
   const [isVisible, setIsVisible] = useState(false);
   const [hasShown, setHasShown] = useState(false);
   const [text, setText] = useState('');
@@ -66,11 +68,11 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
 
   const handleAnalyze = async () => {
     if (tool === 'plagiarism' && !text.trim() && !file) {
-      setError('Please paste text or upload a file');
+      setError(t('exitIntent.errorPasteOrFile'));
       return;
     }
     if (tool === 'import' && !file) {
-      setError('Please upload a file');
+      setError(t('exitIntent.errorUploadFile'));
       return;
     }
 
@@ -123,7 +125,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
       setResult(data);
       trackLeadMagnet.resultViewed(tool, tool === 'plagiarism' ? data.riskScore : data.sectionCount);
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze. Please try again.');
+      setError(err.message || t('exitIntent.analysisFailed'));
     } finally {
       setIsAnalyzing(false);
       setShowEmailCapture(false);
@@ -160,7 +162,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                 <Upload size={20} className="text-[hsl(var(--primary))]" />
               )}
               <span className="text-sm font-bold uppercase tracking-[0.16em]">
-                {tool === 'plagiarism' ? 'Wait! Check Your Text First' : 'Wait! Import Your Thesis'}
+                {tool === 'plagiarism' ? t('exitIntent.plagiarismTitle') : t('exitIntent.importTitle')}
               </span>
             </div>
             <button
@@ -177,15 +179,15 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
               <div className="space-y-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center">
                   {tool === 'plagiarism' 
-                    ? 'Get a free plagiarism check before you go'
-                    : 'See what we can extract from your document'}
+                    ? t('exitIntent.plagiarismIntro')
+                    : t('exitIntent.importIntro')}
                 </p>
 
                 {tool === 'plagiarism' && (
                   <textarea
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    placeholder="Paste your text here..."
+                    placeholder={t('exitIntent.pastePlaceholder')}
                     className="w-full h-24 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
                     disabled={!!file || isAnalyzing}
                   />
@@ -215,7 +217,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                     <div className="flex items-center justify-center gap-2">
                       <Upload size={18} className="text-[hsl(var(--muted-foreground))]" />
                       <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                        {tool === 'plagiarism' ? 'Or upload a file' : 'Upload your document'}
+                        {tool === 'plagiarism' ? t('exitIntent.uploadFilePlagiarism') : t('exitIntent.uploadDocumentImport')}
                       </span>
                     </div>
                   )}
@@ -232,7 +234,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                   className="w-full py-3"
                   disabled={isAnalyzing || (tool === 'plagiarism' ? (!text.trim() && !file) : !file)}
                 >
-                  {isAnalyzing ? 'Analyzing...' : tool === 'plagiarism' ? 'Check Now' : 'Analyze'}
+                  {isAnalyzing ? t('exitIntent.analyzing') : tool === 'plagiarism' ? t('exitIntent.checkNow') : t('exitIntent.analyze')}
                   {!isAnalyzing && <ArrowRight size={16} className="ml-2" />}
                 </Button>
               </div>
@@ -248,7 +250,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                         {result.riskScore}%
                       </div>
                       <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1">
-                        {result.totalIssues} issues found
+                        {t('exitIntent.issuesFound', { count: result.totalIssues })}
                       </p>
                     </div>
                     {result.previewIssues?.[0] && (
@@ -270,7 +272,11 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                     <div className="text-center">
                       <h4 className="text-sm font-bold uppercase tracking-[0.12em]">{result.title}</h4>
                       <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                        {result.wordCount.toLocaleString()} words • {result.sectionCount} sections • {result.citationCount} citations
+                        {t('exitIntent.wordsSectionsCitations', {
+                          words: result.wordCount.toLocaleString(),
+                          sections: result.sectionCount,
+                          citations: result.citationCount,
+                        })}
                       </p>
                     </div>
                     {result.sections?.slice(0, 2).map((section: any, i: number) => (
@@ -287,7 +293,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                   onClick={handleSignupClick}
                 >
                   <Button className="w-full py-3">
-                    {tool === 'plagiarism' ? 'Get Full Report' : 'Continue in Akọ̀wé'}
+                    {tool === 'plagiarism' ? t('exitIntent.getFullReport') : t('exitIntent.continueInAkowe')}
                     <ArrowRight size={16} className="ml-2" />
                   </Button>
                 </Link>

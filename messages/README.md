@@ -7,11 +7,13 @@ Messages are split by **locale** and **namespace** so files stay small and easy 
 ```
 messages/
   en/
-    common.json    # Shared UI: nav, buttons, labels
-    home.json      # Home/landing page
-    metadata.json  # SEO: title, description
+    common.json     # Shared UI: nav, buttons, labels
+    components.json # Reusable components: HeroPlagiarismTool, HeroTopicFinder, ExitIntentPopup
+    home.json       # Home/landing page
+    metadata.json   # SEO: title, description
   ja/
     common.json
+    components.json
     home.json
     metadata.json
   ko/
@@ -20,7 +22,7 @@ messages/
 
 ## Adding a new locale
 
-1. Create `messages/{locale}/` with the same JSON files as `en/` (common, home, metadata).
+1. Create `messages/{locale}/` with the same JSON files as `en/` (common, components, home, metadata).
 2. Add the locale in `i18n/routing.ts` and in `components/LocaleSwitcher.tsx` (labels + flags).
 
 ## Adding a new namespace
