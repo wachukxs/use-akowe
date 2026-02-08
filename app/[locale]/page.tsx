@@ -227,7 +227,7 @@ function HomePageContent() {
                   {tHome("heroVariantB.subtitle")}
                 </p>
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Built for university submission standards.
+                  {tHome("heroVariantB.tagline")}
                 </p>
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -236,7 +236,7 @@ function HomePageContent() {
                       onClick={() => trackConversion("signup_click")}
                     >
                       <Button className="px-6 sm:px-8 py-3 sm:py-4 flex items-center gap-3 w-full sm:w-auto justify-center">
-                        Start your thesis now
+                        {tHome("heroVariantB.cta")}
                         <ArrowRight size={18} />
                       </Button>
                     </Link>
@@ -248,25 +248,25 @@ function HomePageContent() {
             {abVariant === "control" && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 sm:pt-6">
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
-                  <span className="text-3xl sm:text-4xl font-bold">Setup</span>
+                  <span className="text-3xl sm:text-4xl font-bold">{tHome("trustSignals.setup")}</span>
                   <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                    In 2 minutes
+                    {tHome("trustSignals.setupSub")}
                   </p>
                 </div>
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
                   <span className="text-3xl sm:text-4xl font-bold">
-                    Citations
+                    {tHome("trustSignals.citations")}
                   </span>
                   <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                    In seconds
+                    {tHome("trustSignals.citationsSub")}
                   </p>
                 </div>
                 <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 text-center sm:text-left">
                   <span className="text-3xl sm:text-4xl font-bold text-[hsl(var(--accent-foreground))]">
-                    10+ hrs
+                    {tHome("trustSignals.saved")}
                   </span>
                   <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--accent-foreground))]">
-                    Saved monthly
+                    {tHome("trustSignals.savedSub")}
                   </p>
                 </div>
               </div>
@@ -286,7 +286,7 @@ function HomePageContent() {
             {/* Social Proof - Compact (Desktop Only - Hidden on Mobile) */}
             <div className="space-y-3 pt-2 hidden lg:block">
               <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                Trusted by students & researchers
+                {tHome("socialProof.title")}
               </h3>
               <div className="grid gap-3">
                 <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3">
@@ -297,10 +297,10 @@ function HomePageContent() {
                     />
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                        &quot;Saved at least 10 hours every month.&quot;
+                        &quot;{tHome("socialProof.testimonial1Quote")}&quot;
                       </p>
                       <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                        — Fatima Adeoye, PhD Candidate, Europe
+                        {tHome("socialProof.testimonial1Author")}
                       </p>
                     </div>
                   </div>
@@ -313,10 +313,10 @@ function HomePageContent() {
                     />
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                        &quot;No last-minute Turnitin surprises.&quot;
+                        &quot;{tHome("socialProof.testimonial2Quote")}&quot;
                       </p>
                       <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                        — Anjali Patel, Masters Student, North America
+                        {tHome("socialProof.testimonial2Author")}
                       </p>
                     </div>
                   </div>
@@ -330,7 +330,7 @@ function HomePageContent() {
             {/* Social Proof - Mobile Only (shown after copy) */}
             <div className="space-y-3 pt-2">
               <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                Trusted by students & researchers
+                {tHome("socialProof.title")}
               </h3>
               <div className="grid gap-3">
                 <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3">
@@ -341,10 +341,10 @@ function HomePageContent() {
                     />
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                        &quot;Saved at least 10 hours every month.&quot;
+                        &quot;{tHome("socialProof.testimonial1Quote")}&quot;
                       </p>
                       <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                        — Fatima Adeoye, PhD Candidate, Europe
+                        {tHome("socialProof.testimonial1Author")}
                       </p>
                     </div>
                   </div>
@@ -357,10 +357,10 @@ function HomePageContent() {
                     />
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.14em] text-[hsl(var(--foreground))] italic">
-                        &quot;No last-minute Turnitin surprises.&quot;
+                        &quot;{tHome("socialProof.testimonial2Quote")}&quot;
                       </p>
                       <p className="text-[9px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                        — Anjali Patel, Masters Student, North America
+                        {tHome("socialProof.testimonial2Author")}
                       </p>
                     </div>
                   </div>
@@ -375,28 +375,28 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                Deadlines leave no room for mistakes.
+                {tHome("painA.heading")}
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Manual research eats time.
+                  {tHome("painA.manualResearch")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Missing citations cost marks.
+                  {tHome("painA.missingCitations")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Late fixes create panic.
+                  {tHome("painA.lateFixes")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] font-semibold">
-                  Most students rush the hardest part.
+                  {tHome("painA.mostRush")}
                 </p>
               </div>
             </div>
@@ -407,28 +407,28 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                Most AI tools put students at risk.
+                {tHome("painB.heading")}
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Fake citations fail review.
+                  {tHome("painB.fakeCitations")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Plagiarism flags appear late.
+                  {tHome("painB.plagiarismFlags")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Marks drop after submission.
+                  {tHome("painB.marksDrop")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] font-semibold">
-                  Students submit work they do not trust.
+                  {tHome("painB.submitNoTrust")}
                 </p>
               </div>
             </div>
@@ -440,28 +440,28 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                Akowe speeds up academic writing.
+                {tHome("solutionA.heading")}
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6 mb-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Finds academic sources instantly
+                  {tHome("solutionA.findsSources")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Inserts citations while you write
+                  {tHome("solutionA.insertsCitations")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Prepares drafts ready for review
+                  {tHome("solutionA.preparesDrafts")}
                 </p>
               </div>
             </div>
             <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] font-semibold text-center">
-              No backtracking. No rewriting.
+              {tHome("solutionA.noBacktracking")}
             </p>
           </section>
         )}
@@ -470,23 +470,23 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                Akowe protects academic integrity.
+                {tHome("solutionB.heading")}
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Akowe supports responsible academic writing.
+                  {tHome("solutionB.supportsResponsible")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  It focuses on real sources and citation accuracy.
+                  {tHome("solutionB.realSources")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  It helps students submit work with confidence.
+                  {tHome("solutionB.submitConfidence")}
                 </p>
               </div>
             </div>
@@ -498,17 +498,17 @@ function HomePageContent() {
           <div className="grid md:grid-cols-3 gap-6 text-center">
             <div className="space-y-2">
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em]">
-                AI that cites real academic sources
+                {tHome("valueStrip.realSources")}
               </h3>
             </div>
             <div className="space-y-2">
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em]">
-                Built-in similarity checks before Turnitin
+                {tHome("valueStrip.similarityChecks")}
               </h3>
             </div>
             <div className="space-y-2">
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em]">
-                Write, cite, and submit in one workspace
+                {tHome("valueStrip.workspace")}
               </h3>
             </div>
           </div>
@@ -519,34 +519,33 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                Designed for real academic workflows
+                {tHome("workflows.heading")}
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Start literature reviews with built-in source search
+                  {tHome("workflows.litReview")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Structure thesis chapters without leaving the editor
+                  {tHome("workflows.structureChapters")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Keep notes, drafts, and citations together
+                  {tHome("workflows.notesDrafts")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Export submission-ready DOCX or PDF
+                  {tHome("workflows.export")}
                 </p>
               </div>
             </div>
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center">
-              Akọ̀wé is the academic writing tool built for thesis writing,
-              dissertation work, and research papers.
+              {tHome("workflows.tagline")}
             </p>
           </section>
         )}
@@ -556,23 +555,23 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                Built for university submissions
+                {tHome("trustA.heading")}
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Designed for theses and research papers
+                  {tHome("trustA.thesesPapers")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Uses verifiable academic sources
+                  {tHome("trustA.verifiableSources")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Supports citation accuracy
+                  {tHome("trustA.citationAccuracy")}
                 </p>
               </div>
             </div>
@@ -584,23 +583,23 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                Designed for academic submission
+                {tHome("trustB.heading")}
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Thesis and dissertation focused
+                  {tHome("trustB.thesisFocused")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Citation accuracy first
+                  {tHome("trustB.citationFirst")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
-                  Submission-ready output
+                  {tHome("trustB.submissionReady")}
                 </p>
               </div>
             </div>
@@ -611,7 +610,7 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-12 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="space-y-6">
               <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                Designed for academic submission
+                {tHome("trustB.heading")}
               </h2>
               <ul className="space-y-3 text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
                 <li className="flex items-start gap-3">
@@ -619,21 +618,21 @@ function HomePageContent() {
                     className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
                     size={18}
                   />
-                  <span>Thesis and dissertation focused</span>
+                  <span>{tHome("trustB.thesisFocused")}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check
                     className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
                     size={18}
                   />
-                  <span>Citation accuracy first</span>
+                  <span>{tHome("trustB.citationFirst")}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check
                     className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
                     size={18}
                   />
-                  <span>Submission-ready output</span>
+                  <span>{tHome("trustB.submissionReady")}</span>
                 </li>
               </ul>
             </div>
@@ -645,19 +644,19 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-6">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                Save hours on your thesis
+                {tHome("ctaMid.variantAHeading")}
               </h2>
               <Link
                 href="/auth/signin"
                 onClick={() => trackConversion("mid_page_cta_click")}
               >
                 <Button className="px-8 py-4 flex items-center gap-3 mx-auto">
-                  Start writing now
+                  {tHome("ctaMid.variantAButton")}
                   <ArrowRight size={18} />
                 </Button>
               </Link>
               <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                No setup. No credit card.
+                {tHome("ctaMid.variantANoSetup")}
               </p>
             </div>
           </section>
@@ -668,19 +667,19 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-6">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                Submit work you stand behind
+                {tHome("ctaMid.variantBHeading")}
               </h2>
               <Link
                 href="/auth/signin"
                 onClick={() => trackConversion("mid_page_cta_click")}
               >
                 <Button className="px-8 py-4 flex items-center gap-3 mx-auto">
-                  Start your thesis now
+                  {tHome("ctaMid.variantBButton")}
                   <ArrowRight size={18} />
                 </Button>
               </Link>
               <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                No setup. No credit card.
+                {tHome("ctaMid.variantBNoSetup")}
               </p>
             </div>
           </section>
@@ -691,24 +690,24 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                FAQ
+                {tHome("faq.title")}
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
-                  Who uses Akowe
+                  {tHome("faq.whoUses")}
                 </h3>
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Students writing theses and research papers.
+                  {tHome("faq.whoUsesAnswer")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
-                  Are citations included
+                  {tHome("faq.citationsIncluded")}
                 </h3>
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Yes. Citations appear as you write.
+                  {tHome("faq.citationsIncludedAnswer")}
                 </p>
               </div>
             </div>
@@ -720,24 +719,24 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                FAQ
+                {tHome("faq.title")}
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
-                  Does Akowe invent sources
+                  {tHome("faq.doesInvent")}
                 </h3>
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  No. Sources remain verifiable.
+                  {tHome("faq.doesInventAnswer")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
-                  Is similarity checked before submission
+                  {tHome("faq.similarityChecked")}
                 </h3>
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                  Yes. Review happens before export.
+                  {tHome("faq.similarityCheckedAnswer")}
                 </p>
               </div>
             </div>
@@ -749,7 +748,7 @@ function HomePageContent() {
           <section className="max-w-7xl mx-auto py-16 border-t-[4px] border-[hsl(var(--border-strong))]">
             <div className="text-center space-y-4 mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-                Why researchers choose Akọ̀wé
+                {tHome("whyChoose.heading")}
               </h2>
             </div>
 
@@ -759,32 +758,32 @@ function HomePageContent() {
                 <div className="grid md:grid-cols-2">
                   <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-[hsl(var(--border-strong))]">
                     <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--muted-foreground))]">
-                      Most tools
+                      {tHome("whyChoose.mostTools")}
                     </h3>
                     <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                       <li className="flex items-start gap-3">
                         <span className="text-[hsl(var(--destructive))] mt-1">
                           ✗
                         </span>
-                        <span>Only do one thing</span>
+                        <span>{tHome("whyChoose.onlyOneThing")}</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="text-[hsl(var(--destructive))] mt-1">
                           ✗
                         </span>
-                        <span>Force you to copy and paste between apps</span>
+                        <span>{tHome("whyChoose.forceCopyPaste")}</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="text-[hsl(var(--destructive))] mt-1">
                           ✗
                         </span>
-                        <span>Leave you guessing about plagiarism risk</span>
+                        <span>{tHome("whyChoose.guessingPlagiarism")}</span>
                       </li>
                     </ul>
                   </div>
                   <div className="p-6 bg-[hsl(var(--primary))]/10">
                     <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--primary))]">
-                      Akọ̀wé
+                      {tHome("whyChoose.akowe")}
                     </h3>
                     <ul className="space-y-3 text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
                       <li className="flex items-start gap-3">
@@ -793,7 +792,7 @@ function HomePageContent() {
                           size={18}
                         />
                         <span>
-                          One workspace for writing, citations, and integrity
+                          {tHome("whyChoose.oneWorkspace")}
                         </span>
                       </li>
                       <li className="flex items-start gap-3">
@@ -801,14 +800,14 @@ function HomePageContent() {
                           className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
                           size={18}
                         />
-                        <span>Real academic sources</span>
+                        <span>{tHome("whyChoose.realSources")}</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <Check
                           className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
                           size={18}
                         />
-                        <span>Pre-submission similarity safety</span>
+                        <span>{tHome("whyChoose.preSubmissionSafety")}</span>
                       </li>
                     </ul>
                   </div>
@@ -825,37 +824,35 @@ function HomePageContent() {
         >
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-[0.12em]">
-              How it works
+              {tHome("howItWorks.heading")}
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold mb-3">1</div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">
-                Enter your topic
+                {tHome("howItWorks.step1Title")}
               </h3>
               <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
-                Start a new project with your thesis topic or research question
+                {tHome("howItWorks.step1Desc")}
               </p>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold mb-3">2</div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">
-                Write with real sources
+                {tHome("howItWorks.step2Title")}
               </h3>
               <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
-                AI assists your writing while pulling citations from academic
-                databases
+                {tHome("howItWorks.step2Desc")}
               </p>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold mb-3">3</div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">
-                Review & submit
+                {tHome("howItWorks.step3Title")}
               </h3>
               <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
-                Check plagiarism, verify citations, and export submission-ready
-                documents
+                {tHome("howItWorks.step3Desc")}
               </p>
             </div>
           </div>
@@ -865,10 +862,10 @@ function HomePageContent() {
         <section className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-              Everything you need for serious academic writing
+              {tHome("features.heading")}
             </h2>
             <p className="text-sm sm:text-base uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] max-w-3xl mx-auto">
-              Stop switching between tools. Write in one focused workspace.
+              {tHome("features.subheading")}
             </p>
           </div>
 
@@ -877,22 +874,20 @@ function HomePageContent() {
             <div className="space-y-6">
               <div className="space-y-3">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                  AI Writing Support
+                  {tHome("features.feature1Label")}
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                  Write faster. Sound scholarly. Stay original.
+                  {tHome("features.feature1Title")}
                 </h3>
               </div>
               <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
-                Outline, draft, and refine inside a structured editor. Get
-                clarity suggestions, academic tone guidance, and citations tied
-                to real sources.
+                {tHome("features.feature1Desc")}
               </p>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
                 src="/feature-ai-assistant.png"
-                alt="Akowe AI Writing Assistant interface"
+                alt={tHome("imageAlt.aiAssistant")}
                 width={800}
                 height={600}
                 className="w-full border-2 border-[hsl(var(--border-strong))] rounded"
@@ -914,20 +909,18 @@ function HomePageContent() {
             <div className="order-1 lg:order-2 space-y-6">
               <div className="space-y-3">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                  Real Citations
+                  {tHome("features.feature2Label")}
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                  Real sources. Real citations.
+                  {tHome("features.feature2Title")}
                 </h3>
               </div>
               <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
-                Search trusted academic databases like Crossref and OpenAlex.
-                Insert accurate references and manage citations without leaving
-                your document.
+                {tHome("features.feature2Desc")}
               </p>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-4 mt-4">
                 <p className="text-xs uppercase tracking-[0.2em]">
-                  No fabricated references. No blind AI output.
+                  {tHome("features.feature2Badge")}
                 </p>
               </div>
             </div>
@@ -938,22 +931,20 @@ function HomePageContent() {
             <div className="space-y-6">
               <div className="space-y-3">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                  Integrity & Plagiarism Safety
+                  {tHome("features.feature3Label")}
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
-                  Avoid submission shocks.
+                  {tHome("features.feature3Title")}
                 </h3>
               </div>
               <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
-                Check originality before you upload. See similarity insights
-                aligned with common university standards so you fix issues
-                early.
+                {tHome("features.feature3Desc")}
               </p>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
                 src="/feature-plagiarism-check.png"
-                alt="Akowe plagiarism check results interface"
+                alt={tHome("imageAlt.plagiarismCheck")}
                 width={800}
                 height={600}
                 className="w-full border-2 border-[hsl(var(--border-strong))] rounded"
@@ -964,18 +955,18 @@ function HomePageContent() {
           {/* Ethical AI Trust Badge */}
           <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-6 mt-16">
             <h4 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4">
-              AI guidance built for academic use
+              {tHome("features.ethicalBadgeTitle")}
             </h4>
             <div className="grid md:grid-cols-3 gap-4 text-sm uppercase tracking-[0.18em]">
               <div>
-                <p className="font-semibold mb-1">No fabricated references</p>
+                <p className="font-semibold mb-1">{tHome("features.ethicalNoFabricated")}</p>
               </div>
               <div>
-                <p className="font-semibold mb-1">Supports ethical writing</p>
+                <p className="font-semibold mb-1">{tHome("features.ethicalSupportsWriting")}</p>
               </div>
               <div>
                 <p className="font-semibold mb-1">
-                  Built for academic integrity
+                  {tHome("features.ethicalBuiltForIntegrity")}
                 </p>
               </div>
             </div>
@@ -986,24 +977,23 @@ function HomePageContent() {
         <div className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))] space-y-12">
           <div className="text-center space-y-4">
             <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-              Plans
+              {tHome("plans.label")}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-              Simple, transparent pricing
+              {tHome("plans.heading")}
             </h2>
             <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">
-              Start free, upgrade when your research demands more power.
+              {tHome("plans.subheading")}
             </p>
           </div>
 
           <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl space-y-2">
               <span className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                What are AI words?
+                {tHome("plans.aiWordsLabel")}
               </span>
               <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
-                AI words include assistant responses, AI-written content, and
-                outlines. Your own writing never counts toward the limit.
+                {tHome("plans.aiWordsDesc")}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -1016,7 +1006,7 @@ function HomePageContent() {
                     : "bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 )}
               >
-                Monthly
+                {tHome("plans.monthly")}
               </button>
               <button
                 onClick={() => setIsAnnual(true)}
@@ -1027,7 +1017,7 @@ function HomePageContent() {
                     : "bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 )}
               >
-                Annual
+                {tHome("plans.annual")}
               </button>
               <span
                 className={cn(
@@ -1036,7 +1026,7 @@ function HomePageContent() {
                 )}
                 aria-hidden={!isAnnual}
               >
-                Save{" "}
+                {tHome("plans.save")}{" "}
                 {formatDiscountPercentage(
                   getProPlanDiscount().discountPercentage
                 )}
@@ -1048,54 +1038,56 @@ function HomePageContent() {
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6">
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                  Free plan
+                  {tHome("plans.freePlanLabel")}
                 </span>
-                <span className="text-5xl font-bold">$0</span>
+                <span className="text-5xl font-bold">{tHome("plans.freePlanPrice")}</span>
                 <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                  Perfect for getting started.
+                  {tHome("plans.freePlanDesc")}
                 </p>
               </div>
               <ul className="space-y-3 text-xs uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  1,500 AI words per day
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check size={16} />3 plagiarism checks per day
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check size={16} />3 projects maximum
+                  {tHome("plans.freePlanAiWords")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Smart citation search
+                  {tHome("plans.freePlanPlagiarismChecks")}
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.freePlanProjects")}
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.freePlanCitationSearch")}
                 </li>
               </ul>
               <Link href="/auth/signin">
                 <Button variant="outline" className="w-full py-4">
-                  Get Started
+                  {tCommon("getStarted")}
                 </Button>
               </Link>
               <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] text-center">
-                No credit card required
+                {tHome("plans.freePlanNoCard")}
               </p>
             </div>
 
             <div className="relative border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-8 flex flex-col gap-6">
               <span className="absolute -top-4 left-4 px-3 py-1 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[10px] font-semibold uppercase tracking-[0.3em] text-[hsl(var(--foreground))]">
-                Popular
+                {tHome("plans.proPlanBadge")}
               </span>
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em]">
-                  Pro plan
+                  {tHome("plans.proPlanLabel")}
                 </span>
                 <span className="text-5xl font-bold">
-                  {isAnnual ? "$120" : "$12"}
+                  {isAnnual ? tHome("plans.proPlanPriceAnnual") : tHome("plans.proPlanPriceMonthly")}
                 </span>
                 <p className="text-[10px] uppercase tracking-[0.28em]">
                   {isAnnual
-                    ? "Billed once annually."
-                    : "Billed monthly on flexible billing."}
+                    ? tHome("plans.proPlanBilledAnnual")
+                    : tHome("plans.proPlanBilledMonthly")}
                 </p>
                 <p
                   className={cn(
@@ -1103,76 +1095,76 @@ function HomePageContent() {
                   )}
                 >
                   {isAnnual ? (
-                    "≈$10/mo equivalent"
+                    tHome("plans.proPlanEquivalent")
                   ) : (
-                    <span className="font-semibold">First month 15% off</span>
+                    <span className="font-semibold">{tHome("plans.proPlanFirstMonthOff")}</span>
                   )}
                 </p>
               </div>
               <ul className="space-y-3 text-xs uppercase tracking-[0.24em]">
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Unlimited AI words
+                  {tHome("plans.proPlanUnlimitedWords")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Unlimited plagiarism checks
+                  {tHome("plans.proPlanUnlimitedChecks")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Unlimited projects
+                  {tHome("plans.proPlanUnlimitedProjects")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Advanced citation search
+                  {tHome("plans.proPlanAdvancedSearch")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Advanced AI model access
+                  {tHome("plans.proPlanAdvancedAI")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Priority support
+                  {tHome("plans.proPlanPrioritySupport")}
                 </li>
               </ul>
               <Link href="/auth/signin">
-                <Button className="w-full py-4">Upgrade to Pro</Button>
+                <Button className="w-full py-4">{tHome("plans.proPlanCta")}</Button>
               </Link>
               <p className="text-[10px] uppercase tracking-[0.24em] text-center">
-                Built for academic integrity · You own your work
+                {tHome("plans.proPlanTagline")}
               </p>
             </div>
 
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6 opacity-80">
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                  Team plan
+                  {tHome("plans.teamPlanLabel")}
                 </span>
-                <span className="text-4xl font-bold">Coming Soon</span>
+                <span className="text-4xl font-bold">{tHome("plans.teamPlanComingSoon")}</span>
                 <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                  Collaboration and governance tools for research teams.
+                  {tHome("plans.teamPlanDesc")}
                 </p>
               </div>
               <ul className="space-y-3 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Everything in Pro
+                  {tHome("plans.teamPlanEverythingInPro")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Shared workspaces
+                  {tHome("plans.teamPlanSharedWorkspaces")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Admin controls
+                  {tHome("plans.teamPlanAdminControls")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />
-                  Central bibliography pool
+                  {tHome("plans.teamPlanCentralBibliography")}
                 </li>
               </ul>
               <Button variant="ghost" className="w-full py-4" disabled>
-                Coming Soon
+                {tHome("plans.teamPlanCta")}
               </Button>
             </div>
           </div>
@@ -1182,50 +1174,43 @@ function HomePageContent() {
           <div className="grid lg:grid-cols-12 gap-8">
             <div className="lg:col-span-5 space-y-4">
               <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                Academic alignment
+                {tHome("academicAlignment.label")}
               </span>
               <h3 className="text-3xl font-semibold uppercase tracking-[0.16em]">
-                Built for rigor, clarity, and academic integrity.
+                {tHome("academicAlignment.heading")}
               </h3>
               <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                Replace fragmented tooling with a single studio that respects
-                scholarly standards. Trusted by students and researchers across
-                universities.
+                {tHome("academicAlignment.desc")}
               </p>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 mt-6">
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
-                  <strong>Academic-First Design:</strong> Every feature built
-                  specifically for scholarly work, not retrofitted from generic
-                  tools.
+                  <strong>{tHome("academicAlignment.designTitle")}</strong> {tHome("academicAlignment.designDesc")}
                 </p>
               </div>
             </div>
             <div className="lg:col-span-7 grid gap-4">
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
-                  All-in-one workflow
+                  {tHome("academicAlignment.allInOneTitle")}
                 </h4>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                  Drafting, citations, plagiarism checks, and exports live
-                  together so work stays organized.
+                  {tHome("academicAlignment.allInOneDesc")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
                 <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
-                  Designed for academics
+                  {tHome("academicAlignment.designedTitle")}
                 </h4>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
-                  Structured sections, methodology prompts, and citation
-                  intelligence keep research on track.
+                  {tHome("academicAlignment.designedDesc")}
                 </p>
               </div>
               <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
-                  Predictable pricing
+                  {tHome("academicAlignment.pricingTitle")}
                 </h4>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                  Our Pro plan averages 50% less than stitching together
-                  single-purpose tools.
+                  {tHome("academicAlignment.pricingDesc")}
                 </p>
               </div>
             </div>
@@ -1234,27 +1219,26 @@ function HomePageContent() {
           <div className="mt-12 grid md:grid-cols-3 gap-6">
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
               <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">
-                50%+
+                {tHome("stats.savings")}
               </span>
               <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                Savings versus separate writing, citation, and plagiarism tools.
+                {tHome("stats.savingsDesc")}
               </p>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 text-center space-y-2 text-[hsl(var(--accent-foreground))]">
               <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">
-                All-in-one
+                {tHome("stats.allInOne")}
               </span>
               <p className="text-[10px] uppercase tracking-[0.28em]">
-                AI drafting, citations, PDF analysis, and export in a single
-                workspace.
+                {tHome("stats.allInOneDesc")}
               </p>
             </div>
             <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
               <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">
-                10 hrs
+                {tHome("stats.tenHours")}
               </span>
               <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                Average time saved every month for scholars using Akọ̀wé.
+                {tHome("stats.tenHoursDesc")}
               </p>
             </div>
           </div>
@@ -1266,7 +1250,7 @@ function HomePageContent() {
         <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-              Write better research with less stress.
+              {tHome("finalCta.controlHeading")}
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -1274,13 +1258,13 @@ function HomePageContent() {
                 onClick={() => trackConversion("final_cta_click")}
               >
                 <Button className="px-8 py-4 flex items-center gap-3">
-                  Start free
+                  {tCommon("startFree")}
                   <ArrowRight size={18} />
                 </Button>
               </Link>
             </div>
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              No setup stress. No risky output.
+              {tHome("finalCta.controlSub")}
             </p>
           </div>
         </section>
@@ -1290,7 +1274,7 @@ function HomePageContent() {
         <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-              Finish faster. Submit with confidence.
+              {tHome("finalCta.variantAHeading")}
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -1298,7 +1282,7 @@ function HomePageContent() {
                 onClick={() => trackConversion("final_cta_click")}
               >
                 <Button className="px-8 py-4 flex items-center gap-3">
-                  Start writing now
+                  {tCommon("startWritingNow")}
                   <ArrowRight size={18} />
                 </Button>
               </Link>
@@ -1311,7 +1295,7 @@ function HomePageContent() {
         <section className="px-6 sm:px-8 lg:px-12 border-t-[4px] border-[hsl(var(--border-strong))]">
           <div className="max-w-7xl mx-auto py-20 text-center space-y-8">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-              Protect your academic work.
+              {tHome("finalCta.variantBHeading")}
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -1319,7 +1303,7 @@ function HomePageContent() {
                 onClick={() => trackConversion("final_cta_click")}
               >
                 <Button className="px-8 py-4 flex items-center gap-3">
-                  Start your thesis now
+                  {tHome("heroVariantB.cta")}
                   <ArrowRight size={18} />
                 </Button>
               </Link>
@@ -1332,11 +1316,10 @@ function HomePageContent() {
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-xl font-semibold uppercase tracking-[0.16em]">
-              Akọ̀wé
+              {tHome("footer.brand")}
             </h4>
             <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
-              Academic writing tool • AI for thesis writing • citation
-              management software • plagiarism checker for research papers
+              {tHome("footer.tagline")}
             </p>
           </div>
           <nav className="flex gap-6 text-xs uppercase tracking-[0.28em]">
@@ -1344,23 +1327,23 @@ function HomePageContent() {
               href="/about"
               className="hover:text-[hsl(var(--secondary))] transition-colors"
             >
-              Learn our story
+              {tHome("footer.learnStory")}
             </Link>
             <Link
               href="/blog"
               className="hover:text-[hsl(var(--secondary))] transition-colors"
             >
-              Blog
+              {tCommon("blog")}
             </Link>
             <Link
               href="/privacy"
               className="hover:text-[hsl(var(--secondary))] transition-colors"
             >
-              Privacy
+              {tHome("footer.privacy")}
             </Link>
           </nav>
           <p className="text-[10px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
-            © 2025 Akọ̀wé. All rights reserved.
+            &copy; {new Date().getFullYear()} {tHome("footer.brand")}. {tHome("footer.copyright")}
           </p>
         </div>
       </footer>

@@ -1,0 +1,222 @@
+{
+  "heroControl": {
+    "title": "リスクや混乱のないアカデミックライティング。",
+    "subtitle": "本物の文献、盗用チェック、大学ポリシーを尊重するAIで、論文・レポート・研究を書く。"
+  },
+  "heroVariantA": {
+    "title": "本物の引用で、より速く論文を書く。",
+    "subtitle": "トピックから、手作業の文献探しなしで引用付きの学術下書きまで。",
+    "tagline": "トピックから引用付き下書きまで数分で。"
+  },
+  "heroVariantB": {
+    "title": "信頼できる学術作品を書く。",
+    "subtitle": "本物の文献、正確な引用、提出前の類似度検討を活用。",
+    "tagline": "大学提出基準に対応。",
+    "cta": "今すぐ論文を始める"
+  },
+  "trustSignals": {
+    "setup": "セットアップ",
+    "setupSub": "2分で",
+    "citations": "引用",
+    "citationsSub": "数秒で",
+    "saved": "10時間以上",
+    "savedSub": "毎月節約"
+  },
+  "socialProof": {
+    "title": "学生・研究者に信頼されています",
+    "testimonial1Quote": "毎月少なくとも10時間は節約できています。",
+    "testimonial1Author": "— Fatima Adeoye、博士課程、ヨーロッパ",
+    "testimonial2Quote": "Turnitinの直前のサプライズはもうありません。",
+    "testimonial2Author": "— Anjali Patel、修士課程、北米"
+  },
+  "painA": {
+    "heading": "締め切りに失敗の余地はない。",
+    "manualResearch": "手作業の調査は時間を奪う。",
+    "missingCitations": "引用漏れは減点の原因。",
+    "lateFixes": "直前の修正はパニックを招く。",
+    "mostRush": "多くの学生が最も難しい部分を急いでしまう。"
+  },
+  "painB": {
+    "heading": "多くのAIツールは学生を危険にさらす。",
+    "fakeCitations": "捏造引用は審査に通らない。",
+    "plagiarismFlags": "盗用フラグは後から出る。",
+    "marksDrop": "提出後に点数が下がる。",
+    "submitNoTrust": "学生は信頼できない作品を提出している。"
+  },
+  "solutionA": {
+    "heading": "Akoweでアカデミックライティングを加速。",
+    "findsSources": "学術文献を即座に検索",
+    "insertsCitations": "書きながら引用を挿入",
+    "preparesDrafts": "検討用の下書きを準備",
+    "noBacktracking": "やり直しなし。書き直しなし。"
+  },
+  "solutionB": {
+    "heading": "Akoweは学術的誠実さを守る。",
+    "supportsResponsible": "Akoweは責任ある学術ライティングを支援。",
+    "realSources": "本物の文献と引用の正確さに注力。",
+    "submitConfidence": "学生が自信を持って提出できるようサポート。"
+  },
+  "valueStrip": {
+    "realSources": "本物の学術文献を引用するAI",
+    "similarityChecks": "Turnitin前の組み込み類似度チェック",
+    "workspace": "一つのワークスペースで執筆・引用・提出"
+  },
+  "workflows": {
+    "heading": "実際の学術ワークフロー向けに設計",
+    "litReview": "組み込み文献検索で文献レビューを開始",
+    "structureChapters": "エディタを離れずに論文章を構成",
+    "notesDrafts": "メモ、下書き、引用を一元管理",
+    "export": "提出用DOCX・PDFをエクスポート",
+    "tagline": "Akọ̀wéは、論文・博士論文・研究論文のための学術ライティングツールです。"
+  },
+  "trustA": {
+    "heading": "大学提出向けに設計",
+    "thesesPapers": "論文・研究論文向け",
+    "verifiableSources": "検証可能な学術文献を使用",
+    "citationAccuracy": "引用の正確さをサポート"
+  },
+  "trustB": {
+    "heading": "学術提出向けに設計",
+    "thesisFocused": "論文・博士論文に特化",
+    "citationFirst": "引用の正確さを最優先",
+    "submissionReady": "提出可能な出力"
+  },
+  "ctaMid": {
+    "variantAHeading": "論文の時間を節約",
+    "variantAButton": "今すぐ書き始める",
+    "variantANoSetup": "セットアップ不要。クレジットカード不要。",
+    "variantBHeading": "自信を持って提出できる作品を",
+    "variantBButton": "今すぐ論文を始める",
+    "variantBNoSetup": "セットアップ不要。クレジットカード不要。"
+  },
+  "faq": {
+    "title": "よくある質問",
+    "whoUses": "Akoweを使うのは誰",
+    "whoUsesAnswer": "論文・研究論文を書く学生。",
+    "citationsIncluded": "引用は含まれますか",
+    "citationsIncludedAnswer": "はい。書きながら引用が表示されます。",
+    "doesInvent": "Akoweは文献を捏造しますか",
+    "doesInventAnswer": "いいえ。文献は検証可能なままです。",
+    "similarityChecked": "提出前に類似度はチェックされますか",
+    "similarityCheckedAnswer": "はい。エクスポート前に確認できます。"
+  },
+  "whyChoose": {
+    "heading": "研究者がAkọ̀wéを選ぶ理由",
+    "mostTools": "多くのツール",
+    "akowe": "Akọ̀wé",
+    "onlyOneThing": "一つのことしかできない",
+    "forceCopyPaste": "アプリ間のコピペを強要",
+    "guessingPlagiarism": "盗用リスクを推測させる",
+    "oneWorkspace": "執筆・引用・誠実さの一元ワークスペース",
+    "realSources": "本物の学術文献",
+    "preSubmissionSafety": "提出前の類似度チェック"
+  },
+  "howItWorks": {
+    "heading": "使い方",
+    "step1Title": "トピックを入力",
+    "step1Desc": "論文トピックや研究課題で新規プロジェクトを開始",
+    "step2Title": "本物の文献で執筆",
+    "step2Desc": "学術データベースから引用を引きながら、AIが執筆を支援",
+    "step3Title": "確認して提出",
+    "step3Desc": "盗用チェック、引用確認、提出用ドキュメントのエクスポート"
+  },
+  "features": {
+    "heading": "本格的な学術ライティングに必要なすべて",
+    "subheading": "ツールを切り替えるのをやめて。一つのワークスペースで執筆。",
+    "feature1Label": "AI執筆サポート",
+    "feature1Title": "より速く。学術的に。オリジナルで。",
+    "feature1Desc": "構造化エディタでアウトライン、下書き、推敲。明確さの提案、学術トーンのガイド、本物の文献に紐づく引用。",
+    "feature2Label": "本物の引用",
+    "feature2Title": "本物の文献。本物の引用。",
+    "feature2Desc": "CrossrefやOpenAlexなどの信頼できる学術DBを検索。正確な参照を挿入し、ドキュメントを離れずに引用を管理。",
+    "feature2Badge": "捏造参照なし。曖昧なAI出力なし。",
+    "feature3Label": "誠実さ・盗用対策",
+    "feature3Title": "提出時のショックを避ける。",
+    "feature3Desc": "アップロード前に独自性をチェック。一般的な大学基準に沿った類似度インサイトで早めに修正。",
+    "ethicalBadgeTitle": "学術利用向けAIガイダンス",
+    "ethicalNoFabricated": "捏造参照なし",
+    "ethicalSupportsWriting": "倫理的な執筆をサポート",
+    "ethicalBuiltForIntegrity": "学術的誠実さのため"
+  },
+  "plans": {
+    "label": "プラン",
+    "heading": "シンプルで透明な料金",
+    "subheading": "無料で始めて、研究のニーズに応じてアップグレード。",
+    "aiWordsLabel": "AIワードとは？",
+    "aiWordsDesc": "AIワードにはアシスタントの返答、AI執筆コンテンツ、アウトラインが含まれます。ご自身の執筆はカウントされません。",
+    "monthly": "月額",
+    "annual": "年額",
+    "save": "お得",
+    "freePlanLabel": "無料プラン",
+    "freePlanPrice": "$0",
+    "freePlanDesc": "始めるのに最適。",
+    "freePlanAiWords": "1日1,500 AIワード",
+    "freePlanPlagiarismChecks": "1日3回盗用チェック",
+    "freePlanProjects": "最大3プロジェクト",
+    "freePlanCitationSearch": "スマート引用検索",
+    "freePlanNoCard": "クレジットカード不要",
+    "proPlanBadge": "人気",
+    "proPlanLabel": "Proプラン",
+    "proPlanPriceMonthly": "$12",
+    "proPlanPriceAnnual": "$120",
+    "proPlanBilledMonthly": "柔軟な月額課金。",
+    "proPlanBilledAnnual": "年1回一括請求。",
+    "proPlanEquivalent": "約$10/月相当",
+    "proPlanFirstMonthOff": "初月15%オフ",
+    "proPlanUnlimitedWords": "無制限AIワード",
+    "proPlanUnlimitedChecks": "無制限盗用チェック",
+    "proPlanUnlimitedProjects": "無制限プロジェクト",
+    "proPlanAdvancedSearch": "高度な引用検索",
+    "proPlanAdvancedAI": "高度なAIモデル",
+    "proPlanPrioritySupport": "優先サポート",
+    "proPlanTagline": "学術的誠実さのため・あなたの作品はあなたのもの",
+    "proPlanCta": "Proにアップグレード",
+    "teamPlanLabel": "チームプラン",
+    "teamPlanComingSoon": "近日公開",
+    "teamPlanDesc": "研究チーム向けコラボ・ガバナンスツール。",
+    "teamPlanEverythingInPro": "Proのすべて",
+    "teamPlanSharedWorkspaces": "共有ワークスペース",
+    "teamPlanAdminControls": "管理者コントロール",
+    "teamPlanCentralBibliography": "共通参考文献プール",
+    "teamPlanCta": "近日公開"
+  },
+  "academicAlignment": {
+    "label": "学術連携",
+    "heading": "厳密さ、明確さ、学術的誠実さのため。",
+    "desc": "断片化したツールを、学術基準を尊重する一つのスタジオに。大学の学生・研究者に信頼されています。",
+    "designTitle": "学術ファースト設計：",
+    "designDesc": "すべての機能は学術研究のため専用に設計。汎用ツールの後付けではありません。",
+    "allInOneTitle": "オールインワンワークフロー",
+    "allInOneDesc": "下書き、引用、盗用チェック、エクスポートが一体で、作業が整理されたまま。",
+    "designedTitle": "研究者向け設計",
+    "designedDesc": "構造化セクション、方法論プロンプト、引用インテリジェンスで研究を軌道に。",
+    "pricingTitle": "予測可能な料金",
+    "pricingDesc": "Proプランは単機能ツールを組み合わせるより平均50%お得。"
+  },
+  "stats": {
+    "savings": "50%以上",
+    "savingsDesc": "執筆・引用・盗用の個別ツールより節約。",
+    "allInOne": "オールインワン",
+    "allInOneDesc": "AI下書き、引用、PDF分析、エクスポートが一つのワークスペースで。",
+    "tenHours": "10時間",
+    "tenHoursDesc": "Akọ̀wé利用研究者の月間平均節約時間。"
+  },
+  "finalCta": {
+    "controlHeading": "ストレスを減らして、より良い研究を。",
+    "controlSub": "セットアップのストレスなし。リスクの高い出力なし。",
+    "variantAHeading": "より早く仕上げて、自信を持って提出。",
+    "variantBHeading": "学術作品を守る。"
+  },
+  "imageAlt": {
+    "aiAssistant": "Akowe AI執筆アシスタントの画面",
+    "citations": "Akowe 引用検索・管理画面",
+    "plagiarismCheck": "Akowe 盗用チェック結果画面"
+  },
+  "footer": {
+    "brand": "Akọ̀wé",
+    "tagline": "学術ライティングツール・論文執筆AI・引用管理ソフト・研究論文向け盗用チェッカー",
+    "learnStory": "私たちのストーリー",
+    "privacy": "プライバシー",
+    "copyright": "All rights reserved."
+  }
+}

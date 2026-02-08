@@ -1,0 +1,222 @@
+{
+  "heroControl": {
+    "title": "Academic writing without risk or chaos.",
+    "subtitle": "Write theses, papers, and research with real sources, plagiarism checks, and AI that respects university policies."
+  },
+  "heroVariantA": {
+    "title": "Write your thesis faster with real citations.",
+    "subtitle": "Turn your topic into a cited academic draft without manual source hunting.",
+    "tagline": "From topic to cited draft in minutes."
+  },
+  "heroVariantB": {
+    "title": "Write academic work you trust.",
+    "subtitle": "Use real sources, accurate citations, and similarity review before submission.",
+    "tagline": "Built for university submission standards.",
+    "cta": "Start your thesis now"
+  },
+  "trustSignals": {
+    "setup": "Setup",
+    "setupSub": "In 2 minutes",
+    "citations": "Citations",
+    "citationsSub": "In seconds",
+    "saved": "10+ hrs",
+    "savedSub": "Saved monthly"
+  },
+  "socialProof": {
+    "title": "Trusted by students & researchers",
+    "testimonial1Quote": "Saved at least 10 hours every month.",
+    "testimonial1Author": "— Fatima Adeoye, PhD Candidate, Europe",
+    "testimonial2Quote": "No last-minute Turnitin surprises.",
+    "testimonial2Author": "— Anjali Patel, Masters Student, North America"
+  },
+  "painA": {
+    "heading": "Deadlines leave no room for mistakes.",
+    "manualResearch": "Manual research eats time.",
+    "missingCitations": "Missing citations cost marks.",
+    "lateFixes": "Late fixes create panic.",
+    "mostRush": "Most students rush the hardest part."
+  },
+  "painB": {
+    "heading": "Most AI tools put students at risk.",
+    "fakeCitations": "Fake citations fail review.",
+    "plagiarismFlags": "Plagiarism flags appear late.",
+    "marksDrop": "Marks drop after submission.",
+    "submitNoTrust": "Students submit work they do not trust."
+  },
+  "solutionA": {
+    "heading": "Akowe speeds up academic writing.",
+    "findsSources": "Finds academic sources instantly",
+    "insertsCitations": "Inserts citations while you write",
+    "preparesDrafts": "Prepares drafts ready for review",
+    "noBacktracking": "No backtracking. No rewriting."
+  },
+  "solutionB": {
+    "heading": "Akowe protects academic integrity.",
+    "supportsResponsible": "Akowe supports responsible academic writing.",
+    "realSources": "It focuses on real sources and citation accuracy.",
+    "submitConfidence": "It helps students submit work with confidence."
+  },
+  "valueStrip": {
+    "realSources": "AI that cites real academic sources",
+    "similarityChecks": "Built-in similarity checks before Turnitin",
+    "workspace": "Write, cite, and submit in one workspace"
+  },
+  "workflows": {
+    "heading": "Designed for real academic workflows",
+    "litReview": "Start literature reviews with built-in source search",
+    "structureChapters": "Structure thesis chapters without leaving the editor",
+    "notesDrafts": "Keep notes, drafts, and citations together",
+    "export": "Export submission-ready DOCX or PDF",
+    "tagline": "Akọ̀wé is the academic writing tool built for thesis writing, dissertation work, and research papers."
+  },
+  "trustA": {
+    "heading": "Built for university submissions",
+    "thesesPapers": "Designed for theses and research papers",
+    "verifiableSources": "Uses verifiable academic sources",
+    "citationAccuracy": "Supports citation accuracy"
+  },
+  "trustB": {
+    "heading": "Designed for academic submission",
+    "thesisFocused": "Thesis and dissertation focused",
+    "citationFirst": "Citation accuracy first",
+    "submissionReady": "Submission-ready output"
+  },
+  "ctaMid": {
+    "variantAHeading": "Save hours on your thesis",
+    "variantAButton": "Start writing now",
+    "variantANoSetup": "No setup. No credit card.",
+    "variantBHeading": "Submit work you stand behind",
+    "variantBButton": "Start your thesis now",
+    "variantBNoSetup": "No setup. No credit card."
+  },
+  "faq": {
+    "title": "FAQ",
+    "whoUses": "Who uses Akowe",
+    "whoUsesAnswer": "Students writing theses and research papers.",
+    "citationsIncluded": "Are citations included",
+    "citationsIncludedAnswer": "Yes. Citations appear as you write.",
+    "doesInvent": "Does Akowe invent sources",
+    "doesInventAnswer": "No. Sources remain verifiable.",
+    "similarityChecked": "Is similarity checked before submission",
+    "similarityCheckedAnswer": "Yes. Review happens before export."
+  },
+  "whyChoose": {
+    "heading": "Why researchers choose Akọ̀wé",
+    "mostTools": "Most tools",
+    "akowe": "Akọ̀wé",
+    "onlyOneThing": "Only do one thing",
+    "forceCopyPaste": "Force you to copy and paste between apps",
+    "guessingPlagiarism": "Leave you guessing about plagiarism risk",
+    "oneWorkspace": "One workspace for writing, citations, and integrity",
+    "realSources": "Real academic sources",
+    "preSubmissionSafety": "Pre-submission similarity safety"
+  },
+  "howItWorks": {
+    "heading": "How it works",
+    "step1Title": "Enter your topic",
+    "step1Desc": "Start a new project with your thesis topic or research question",
+    "step2Title": "Write with real sources",
+    "step2Desc": "AI assists your writing while pulling citations from academic databases",
+    "step3Title": "Review & submit",
+    "step3Desc": "Check plagiarism, verify citations, and export submission-ready documents"
+  },
+  "features": {
+    "heading": "Everything you need for serious academic writing",
+    "subheading": "Stop switching between tools. Write in one focused workspace.",
+    "feature1Label": "AI Writing Support",
+    "feature1Title": "Write faster. Sound scholarly. Stay original.",
+    "feature1Desc": "Outline, draft, and refine inside a structured editor. Get clarity suggestions, academic tone guidance, and citations tied to real sources.",
+    "feature2Label": "Real Citations",
+    "feature2Title": "Real sources. Real citations.",
+    "feature2Desc": "Search trusted academic databases like Crossref and OpenAlex. Insert accurate references and manage citations without leaving your document.",
+    "feature2Badge": "No fabricated references. No blind AI output.",
+    "feature3Label": "Integrity & Plagiarism Safety",
+    "feature3Title": "Avoid submission shocks.",
+    "feature3Desc": "Check originality before you upload. See similarity insights aligned with common university standards so you fix issues early.",
+    "ethicalBadgeTitle": "AI guidance built for academic use",
+    "ethicalNoFabricated": "No fabricated references",
+    "ethicalSupportsWriting": "Supports ethical writing",
+    "ethicalBuiltForIntegrity": "Built for academic integrity"
+  },
+  "plans": {
+    "label": "Plans",
+    "heading": "Simple, transparent pricing",
+    "subheading": "Start free, upgrade when your research demands more power.",
+    "aiWordsLabel": "What are AI words?",
+    "aiWordsDesc": "AI words include assistant responses, AI-written content, and outlines. Your own writing never counts toward the limit.",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "save": "Save",
+    "freePlanLabel": "Free plan",
+    "freePlanPrice": "$0",
+    "freePlanDesc": "Perfect for getting started.",
+    "freePlanAiWords": "1,500 AI words per day",
+    "freePlanPlagiarismChecks": "3 plagiarism checks per day",
+    "freePlanProjects": "3 projects maximum",
+    "freePlanCitationSearch": "Smart citation search",
+    "freePlanNoCard": "No credit card required",
+    "proPlanBadge": "Popular",
+    "proPlanLabel": "Pro plan",
+    "proPlanPriceMonthly": "$12",
+    "proPlanPriceAnnual": "$120",
+    "proPlanBilledMonthly": "Billed monthly on flexible billing.",
+    "proPlanBilledAnnual": "Billed once annually.",
+    "proPlanEquivalent": "≈$10/mo equivalent",
+    "proPlanFirstMonthOff": "First month 15% off",
+    "proPlanUnlimitedWords": "Unlimited AI words",
+    "proPlanUnlimitedChecks": "Unlimited plagiarism checks",
+    "proPlanUnlimitedProjects": "Unlimited projects",
+    "proPlanAdvancedSearch": "Advanced citation search",
+    "proPlanAdvancedAI": "Advanced AI model access",
+    "proPlanPrioritySupport": "Priority support",
+    "proPlanTagline": "Built for academic integrity · You own your work",
+    "proPlanCta": "Upgrade to Pro",
+    "teamPlanLabel": "Team plan",
+    "teamPlanComingSoon": "Coming Soon",
+    "teamPlanDesc": "Collaboration and governance tools for research teams.",
+    "teamPlanEverythingInPro": "Everything in Pro",
+    "teamPlanSharedWorkspaces": "Shared workspaces",
+    "teamPlanAdminControls": "Admin controls",
+    "teamPlanCentralBibliography": "Central bibliography pool",
+    "teamPlanCta": "Coming Soon"
+  },
+  "academicAlignment": {
+    "label": "Academic alignment",
+    "heading": "Built for rigor, clarity, and academic integrity.",
+    "desc": "Replace fragmented tooling with a single studio that respects scholarly standards. Trusted by students and researchers across universities.",
+    "designTitle": "Academic-First Design:",
+    "designDesc": "Every feature built specifically for scholarly work, not retrofitted from generic tools.",
+    "allInOneTitle": "All-in-one workflow",
+    "allInOneDesc": "Drafting, citations, plagiarism checks, and exports live together so work stays organized.",
+    "designedTitle": "Designed for academics",
+    "designedDesc": "Structured sections, methodology prompts, and citation intelligence keep research on track.",
+    "pricingTitle": "Predictable pricing",
+    "pricingDesc": "Our Pro plan averages 50% less than stitching together single-purpose tools."
+  },
+  "stats": {
+    "savings": "50%+",
+    "savingsDesc": "Savings versus separate writing, citation, and plagiarism tools.",
+    "allInOne": "All-in-one",
+    "allInOneDesc": "AI drafting, citations, PDF analysis, and export in a single workspace.",
+    "tenHours": "10 hrs",
+    "tenHoursDesc": "Average time saved every month for scholars using Akọ̀wé."
+  },
+  "finalCta": {
+    "controlHeading": "Write better research with less stress.",
+    "controlSub": "No setup stress. No risky output.",
+    "variantAHeading": "Finish faster. Submit with confidence.",
+    "variantBHeading": "Protect your academic work."
+  },
+  "imageAlt": {
+    "aiAssistant": "Akowe AI Writing Assistant interface",
+    "citations": "Akowe citation search and management interface",
+    "plagiarismCheck": "Akowe plagiarism check results interface"
+  },
+  "footer": {
+    "brand": "Akọ̀wé",
+    "tagline": "Academic writing tool • AI for thesis writing • citation management software • plagiarism checker for research papers",
+    "learnStory": "Learn our story",
+    "privacy": "Privacy",
+    "copyright": "All rights reserved."
+  }
+}

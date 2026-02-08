@@ -1,0 +1,222 @@
+{
+  "heroControl": {
+    "title": "위험과 혼란 없는 학술 글쓰기.",
+    "subtitle": "실제 문헌, 표절 검사, 대학 정책을 존중하는 AI로 논문·논문·연구를 작성하세요."
+  },
+  "heroVariantA": {
+    "title": "실제 인용으로 논문을 더 빠르게 작성하세요.",
+    "subtitle": "주제를 수동 문헌 탐색 없이 인용이 포함된 학술 초안으로 바꾸세요.",
+    "tagline": "주제에서 인용된 초안까지 몇 분 만에."
+  },
+  "heroVariantB": {
+    "title": "신뢰할 수 있는 학술 글을 작성하세요.",
+    "subtitle": "실제 문헌, 정확한 인용, 제출 전 유사도 검토를 활용하세요.",
+    "tagline": "대학 제출 기준에 맞춰 설계되었습니다.",
+    "cta": "지금 논문 시작하기"
+  },
+  "trustSignals": {
+    "setup": "설정",
+    "setupSub": "2분 안에",
+    "citations": "인용",
+    "citationsSub": "몇 초 만에",
+    "saved": "10시간+",
+    "savedSub": "매월 절약"
+  },
+  "socialProof": {
+    "title": "학생·연구자들이 신뢰합니다",
+    "testimonial1Quote": "매달 최소 10시간은 절약해요.",
+    "testimonial1Author": "— Fatima Adeoye, 박사과정, 유럽",
+    "testimonial2Quote": "Turnitin 직전 놀람은 이제 없어요.",
+    "testimonial2Author": "— Anjali Patel, 석사과정, 북미"
+  },
+  "painA": {
+    "heading": "마감에는 실수할 여지가 없습니다.",
+    "manualResearch": "수동 연구는 시간을 잡아먹습니다.",
+    "missingCitations": "인용 누락은 점수를 깎습니다.",
+    "lateFixes": "늦은 수정은 패닉을 만듭니다.",
+    "mostRush": "대부분의 학생이 가장 어려운 부분을 허둥대며 합니다."
+  },
+  "painB": {
+    "heading": "대부분의 AI 도구는 학생을 위험에 빠뜨립니다.",
+    "fakeCitations": "가짜 인용은 심사에서 탈락합니다.",
+    "plagiarismFlags": "표절 플래그는 나중에 나타납니다.",
+    "marksDrop": "제출 후 점수가 떨어집니다.",
+    "submitNoTrust": "학생들은 신뢰할 수 없는 글을 제출합니다."
+  },
+  "solutionA": {
+    "heading": "Akowe로 학술 글쓰기를 가속화하세요.",
+    "findsSources": "학술 문헌을 즉시 검색",
+    "insertsCitations": "쓰는 동안 인용 삽입",
+    "preparesDrafts": "검토용 초안 준비",
+    "noBacktracking": "되돌리기 없음. 다시 쓰기 없음."
+  },
+  "solutionB": {
+    "heading": "Akowe는 학술적 정직함을 지킵니다.",
+    "supportsResponsible": "Akowe는 책임 있는 학술 글쓰기를 지원합니다.",
+    "realSources": "실제 문헌과 인용 정확도에 집중합니다.",
+    "submitConfidence": "학생이 자신 있게 제출할 수 있도록 돕습니다."
+  },
+  "valueStrip": {
+    "realSources": "실제 학술 문헌을 인용하는 AI",
+    "similarityChecks": "Turnitin 전 내장 유사도 검사",
+    "workspace": "한 작업 공간에서 쓰기·인용·제출"
+  },
+  "workflows": {
+    "heading": "실제 학술 워크플로우를 위해 설계",
+    "litReview": "내장 문헌 검색으로 문헌 검토 시작",
+    "structureChapters": "에디터를 떠나지 않고 논문 챕터 구성",
+    "notesDrafts": "메모, 초안, 인용을 한곳에",
+    "export": "제출용 DOCX·PDF 내보내기",
+    "tagline": "Akọ̀wé는 논문, 학위논문, 연구 논문을 위한 학술 글쓰기 도구입니다."
+  },
+  "trustA": {
+    "heading": "대학 제출용으로 설계",
+    "thesesPapers": "논문·연구 논문용",
+    "verifiableSources": "검증 가능한 학술 문헌 사용",
+    "citationAccuracy": "인용 정확도 지원"
+  },
+  "trustB": {
+    "heading": "학술 제출용으로 설계",
+    "thesisFocused": "논문·학위논문 중심",
+    "citationFirst": "인용 정확도 우선",
+    "submissionReady": "제출 준비된 결과물"
+  },
+  "ctaMid": {
+    "variantAHeading": "논문에 쓰는 시간을 줄이세요",
+    "variantAButton": "지금 작성하기",
+    "variantANoSetup": "설정 없음. 신용카드 없음.",
+    "variantBHeading": "자신 있게 제출할 글을",
+    "variantBButton": "지금 논문 시작하기",
+    "variantBNoSetup": "설정 없음. 신용카드 없음."
+  },
+  "faq": {
+    "title": "자주 묻는 질문",
+    "whoUses": "Akowe를 누가 쓰나요",
+    "whoUsesAnswer": "논문·연구 논문을 쓰는 학생들.",
+    "citationsIncluded": "인용이 포함되나요",
+    "citationsIncludedAnswer": "네. 쓰는 동안 인용이 표시됩니다.",
+    "doesInvent": "Akowe가 문헌을 만들어 내나요",
+    "doesInventAnswer": "아니요. 문헌은 검증 가능하게 유지됩니다.",
+    "similarityChecked": "제출 전 유사도 검사를 하나요",
+    "similarityCheckedAnswer": "네. 내보내기 전에 검토합니다."
+  },
+  "whyChoose": {
+    "heading": "연구자들이 Akọ̀wé를 선택하는 이유",
+    "mostTools": "대부분의 도구",
+    "akowe": "Akọ̀wé",
+    "onlyOneThing": "한 가지만 함",
+    "forceCopyPaste": "앱 사이 복붙을 강요함",
+    "guessingPlagiarism": "표절 위험을 추측하게 함",
+    "oneWorkspace": "쓰기·인용·정직함을 위한 하나의 작업 공간",
+    "realSources": "실제 학술 문헌",
+    "preSubmissionSafety": "제출 전 유사도 안전장치"
+  },
+  "howItWorks": {
+    "heading": "사용 방법",
+    "step1Title": "주제 입력",
+    "step1Desc": "논문 주제나 연구 질문으로 새 프로젝트 시작",
+    "step2Title": "실제 문헌으로 쓰기",
+    "step2Desc": "학술 DB에서 인용을 가져오며 AI가 글쓰기를 돕습니다.",
+    "step3Title": "검토 후 제출",
+    "step3Desc": "표절 확인, 인용 검증, 제출용 문서 내보내기"
+  },
+  "features": {
+    "heading": "본격적인 학술 글쓰기에 필요한 모든 것",
+    "subheading": "도구를 바꿔 가며 쓰지 마세요. 하나의 작업 공간에서 쓰세요.",
+    "feature1Label": "AI 글쓰기 지원",
+    "feature1Title": "더 빠르게. 학술적으로. 독창적으로.",
+    "feature1Desc": "구조화된 에디터에서 개요·초안·다듬기. 명확성 제안, 학술 톤 가이드, 실제 문헌에 연결된 인용.",
+    "feature2Label": "실제 인용",
+    "feature2Title": "실제 문헌. 실제 인용.",
+    "feature2Desc": "Crossref, OpenAlex 등 신뢰할 수 있는 학술 DB 검색. 정확한 참고문헌 삽입, 문서를 떠나지 않고 인용 관리.",
+    "feature2Badge": "꾸며 낸 참고문헌 없음. 맹목적 AI 출력 없음.",
+    "feature3Label": "정직함·표절 안전",
+    "feature3Title": "제출 시 충격을 피하세요.",
+    "feature3Desc": "업로드 전 독창성 확인. 일반적인 대학 기준에 맞춘 유사도 인사이트로 조기 수정.",
+    "ethicalBadgeTitle": "학술 용도를 위한 AI 가이드",
+    "ethicalNoFabricated": "꾸며 낸 참고문헌 없음",
+    "ethicalSupportsWriting": "윤리적 글쓰기 지원",
+    "ethicalBuiltForIntegrity": "학술적 정직함을 위해"
+  },
+  "plans": {
+    "label": "요금제",
+    "heading": "간단하고 투명한 요금",
+    "subheading": "무료로 시작하고, 연구가 더 많은 기능을 요구할 때 업그레이드하세요.",
+    "aiWordsLabel": "AI 단어란?",
+    "aiWordsDesc": "AI 단어에는 어시스턴트 응답, AI 작성 콘텐츠, 개요가 포함됩니다. 본인 글로 작성한 부분은 한도에 포함되지 않습니다.",
+    "monthly": "월간",
+    "annual": "연간",
+    "save": "절약",
+    "freePlanLabel": "무료 플랜",
+    "freePlanPrice": "$0",
+    "freePlanDesc": "시작하기에 딱 좋습니다.",
+    "freePlanAiWords": "1일 1,500 AI 단어",
+    "freePlanPlagiarismChecks": "1일 3회 표절 검사",
+    "freePlanProjects": "최대 3개 프로젝트",
+    "freePlanCitationSearch": "스마트 인용 검색",
+    "freePlanNoCard": "신용카드 불필요",
+    "proPlanBadge": "인기",
+    "proPlanLabel": "Pro 플랜",
+    "proPlanPriceMonthly": "$12",
+    "proPlanPriceAnnual": "$120",
+    "proPlanBilledMonthly": "유연한 월간 결제.",
+    "proPlanBilledAnnual": "연 1회 일괄 결제.",
+    "proPlanEquivalent": "약 $10/월 상당",
+    "proPlanFirstMonthOff": "첫 달 15% 할인",
+    "proPlanUnlimitedWords": "무제한 AI 단어",
+    "proPlanUnlimitedChecks": "무제한 표절 검사",
+    "proPlanUnlimitedProjects": "무제한 프로젝트",
+    "proPlanAdvancedSearch": "고급 인용 검색",
+    "proPlanAdvancedAI": "고급 AI 모델",
+    "proPlanPrioritySupport": "우선 지원",
+    "proPlanTagline": "학술적 정직함을 위해 · 당신의 글은 당신 것입니다",
+    "proPlanCta": "Pro로 업그레이드",
+    "teamPlanLabel": "팀 플랜",
+    "teamPlanComingSoon": "출시 예정",
+    "teamPlanDesc": "연구팀을 위한 협업·거버넌스 도구.",
+    "teamPlanEverythingInPro": "Pro 전체 기능",
+    "teamPlanSharedWorkspaces": "공유 작업 공간",
+    "teamPlanAdminControls": "관리자 제어",
+    "teamPlanCentralBibliography": "중앙 참고문헌 풀",
+    "teamPlanCta": "출시 예정"
+  },
+  "academicAlignment": {
+    "label": "학술 정렬",
+    "heading": "엄밀함, 명확함, 학술적 정직함을 위해.",
+    "desc": "분산된 도구를 학술 기준을 존중하는 하나의 스튜디오로. 대학의 학생·연구자들이 신뢰합니다.",
+    "designTitle": "학술 우선 설계:",
+    "designDesc": "모든 기능은 학술 연구를 위해 전용 설계. 범용 도구의 뒤붙임이 아닙니다.",
+    "allInOneTitle": "올인원 워크플로",
+    "allInOneDesc": "초안, 인용, 표절 검사, 내보내기가 한곳에 있어 작업이 정리된 상태로 유지됩니다.",
+    "designedTitle": "학술인을 위한 설계",
+    "designedDesc": "구조화된 섹션, 방법론 프롬프트, 인용 인텔리전스로 연구를 궤도에.",
+    "pricingTitle": "예측 가능한 요금",
+    "pricingDesc": "Pro 플랜은 단일 목적 도구를 엮는 것보다 평균 50% 더 저렴합니다."
+  },
+  "stats": {
+    "savings": "50%+",
+    "savingsDesc": "글쓰기·인용·표절 개별 도구 대비 절약.",
+    "allInOne": "올인원",
+    "allInOneDesc": "AI 초안, 인용, PDF 분석, 내보내기가 하나의 작업 공간에서.",
+    "tenHours": "10시간",
+    "tenHoursDesc": "Akọ̀wé를 쓰는 연구자의 월평균 절약 시간."
+  },
+  "finalCta": {
+    "controlHeading": "스트레스 줄이고 더 나은 연구를.",
+    "controlSub": "설정 스트레스 없음. 위험한 출력 없음.",
+    "variantAHeading": "더 빨리 마치고 자신 있게 제출하세요.",
+    "variantBHeading": "학술 작업을 지키세요."
+  },
+  "imageAlt": {
+    "aiAssistant": "Akowe AI 글쓰기 어시스턴트 화면",
+    "citations": "Akowe 인용 검색·관리 화면",
+    "plagiarismCheck": "Akowe 표절 검사 결과 화면"
+  },
+  "footer": {
+    "brand": "Akọ̀wé",
+    "tagline": "학술 글쓰기 도구·논문 작성 AI·인용 관리 소프트웨어·연구 논문 표절 검사기",
+    "learnStory": "스토리 알아보기",
+    "privacy": "개인정보처리방침",
+    "copyright": "All rights reserved."
+  }
+}
