@@ -1,0 +1,123 @@
+{
+  "title": "設定",
+  "subtitle": "アカウントとサブスクリプションの管理",
+  "loading": "読み込み中...",
+  "checkoutFeedback": {
+    "title": "お支払いが完了していないようです",
+    "prompt": "理由をお聞かせいただけますか？（任意）ご意見は今後の改善に役立てます。",
+    "thanks": "ご意見ありがとうございます。",
+    "label": "ご意見",
+    "placeholder": "例：価格が高い、気が変わった、技術的な問題...",
+    "sending": "送信中...",
+    "send": "送信",
+    "skip": "スキップ"
+  },
+  "usage": {
+    "title": "現在の使用状況",
+    "aiWordsToday": "本日のAI文字数",
+    "plagiarismChecksToday": "本日の盗用チェック数",
+    "maxProjects": "プロジェクト上限",
+    "unlimited": "無制限"
+  },
+  "plans": {
+    "choosePlan": "プランを選択",
+    "monthly": "月払い",
+    "annual": "年払い",
+    "savePercent": "{percent}お得",
+    "currentBillingCycle": "現在の請求サイクル：",
+    "renews": "更新日：{date}",
+    "aiWordsExplainerTitle": "AI文字数には何が含まれますか？",
+    "aiWordsExplainerBody": "AI文字数には、Akoweが生成するすべてのコンテンツが含まれます：AIアシスタントの返答、「書いて」機能のコンテンツ、AI生成アウトライン。ご自身の執筆はカウントされません。",
+    "mostPopular": "最も人気",
+    "billedAnnually": "年1回請求（月額約$10相当）。",
+    "firstMonthOff": "初月15%オフ",
+    "currentPlan": "現在のプラン",
+    "comingSoon": "近日公開",
+    "upgrade": "アップグレード",
+    "processing": "処理中...",
+    "free": {
+      "name": "無料",
+      "price": "$0",
+      "period": "無期限",
+      "features": [
+        "1日1,500 AI文字",
+        "1日3回の盗用チェック",
+        "プロジェクト最大3件",
+        "スマート引用検索",
+        "基本的な引用サポート"
+      ]
+    },
+    "pro": {
+      "name": "Pro",
+      "monthlyPrice": "$12",
+      "monthlyPeriod": "月額",
+      "annualPrice": "$120",
+      "annualPeriod": "年額",
+      "annualSavings": "年間$24お得",
+      "billedAnnually": "年1回請求（月額約$10相当）。",
+      "firstMonthOff": "初月15%オフ",
+      "features": [
+        "AI文字無制限",
+        "盗用チェック無制限",
+        "プロジェクト無制限",
+        "高度な引用検索",
+        "GPT-4利用",
+        "優先サポート"
+      ]
+    },
+    "team": {
+      "name": "Team",
+      "price": "近日公開",
+      "period": "",
+      "features": [
+        "Proの全機能",
+        "10名までチームメンバー",
+        "共有ワークスペース",
+        "管理機能",
+        "共有引用ライブラリ",
+        "チーム分析"
+      ]
+    }
+  },
+  "subscription": {
+    "title": "サブスクリプション管理",
+    "active": "有効なサブスクリプション",
+    "subscribedTo": "Proプランに{cycle}請求でご利用中です。",
+    "nextRenewal": "次回更新日：",
+    "managePrompt": "解約をご希望ですか？Stripeからサブスクリプションと請求を管理できます。",
+    "manageButton": "サブスクリプションを管理 →"
+  },
+  "referral": {
+    "title": "友達・同僚を招待",
+    "subtitle": "Akoweをシェアする",
+    "prompt": "AIで学術執筆をしたい方へ。あなた専用の招待リンクをシェアしましょう！",
+    "inviteMessageLabel": "招待メッセージ",
+    "inviteMessageBody": "Akoweで学術執筆しててとても便利だったよ。試してみて：",
+    "copyMessage": "招待メッセージをコピー",
+    "copied": "コピーしました！"
+  },
+  "account": {
+    "title": "アカウント設定",
+    "email": "メールアドレス",
+    "name": "名前",
+    "deleteAccount": "アカウントを削除"
+  },
+  "deleteModal": {
+    "title": "アカウントを削除しますか？",
+    "body": "アカウントを削除してもよろしいですか？この操作は取り消せません。プロジェクト、引用、データはすべて完全に削除されます。",
+    "cancel": "キャンセル",
+    "deleting": "削除中...",
+    "confirm": "アカウントを削除"
+  },
+  "alerts": {
+    "failedToSend": "送信に失敗しました。もう一度お試しください。",
+    "failedBillingPortal": "請求ポータルを開けませんでした。もう一度お試しください。",
+    "errorOccurred": "エラーが発生しました。もう一度お試しください。",
+    "failedCheckoutSession": "チェックアウトの作成に失敗しました。もう一度お試しください。",
+    "failedStartCheckout": "チェックアウトの開始に失敗しました：{error}",
+    "errorStartCheckout": "チェックアウト開始中にエラーが発生しました。もう一度お試しください。",
+    "accountDeleted": "アカウントを削除しました。サインインページに移動します。",
+    "failedDeleteAccount": "アカウントの削除に失敗しました：{error}",
+    "errorDeletingAccount": "アカウント削除中にエラーが発生しました。もう一度お試しください。"
+  }
+}

@@ -22,7 +22,8 @@ interface UsageData {
 }
 
 export default function SettingsPage() {
-  const t = useTranslations('common');
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -75,7 +76,7 @@ export default function SettingsPage() {
       setCheckoutFeedbackSubmitted(true);
       window.history.replaceState({}, '', '/settings');
     } catch (err) {
-      setCheckoutFeedbackError(err instanceof Error ? err.message : 'Failed to send. Please try again.');
+      setCheckoutFeedbackError(err instanceof Error ? err.message : t('alerts.failedToSend'));
     } finally {
       setCheckoutFeedbackSubmitting(false);
     }
@@ -203,12 +204,12 @@ export default function SettingsPage() {
         }
       } else {
         const data = await response.json().catch(() => ({}));
-        const message = typeof data?.error === 'string' ? data.error : 'Failed to open billing portal. Please try again.';
+        const message = typeof data?.error === 'string' ? data.error : t('alerts.failedBillingPortal');
         alert(message);
       }
     } catch (error) {
       console.error('Error opening billing portal:', error);
-      alert('An error occurred. Please try again.');
+      alert(t('alerts.errorOccurred'));
     }
   };
 
@@ -241,17 +242,17 @@ export default function SettingsPage() {
         if (data.url) {
           window.location.href = data.url;
         } else {
-          alert('Failed to create checkout session. Please try again.');
-          setIsUpgrading(false);
+alert(t('alerts.failedCheckoutSession'));
+        setIsUpgrading(false);
         }
       } else {
         const error = await response.json();
-        alert(`Failed to start checkout: ${error.error || 'Unknown error'}`);
+        alert(t('alerts.failedStartCheckout', { error: error.error || 'Unknown error' }));
         setIsUpgrading(false);
       }
     } catch (error) {
       console.error('Error starting checkout:', error);
-      alert('An error occurred while starting checkout. Please try again.');
+      alert(t('alerts.errorStartCheckout'));
       setIsUpgrading(false);
     }
   };
@@ -267,78 +268,26 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
-        alert('Account deleted successfully. You will be redirected to the sign-in page.');
+        alert(t('alerts.accountDeleted'));
         router.push('/auth/signin');
       } else {
         const data = await response.json();
-        alert(`Failed to delete account: ${data.error || 'Unknown error'}`);
+        alert(t('alerts.failedDeleteAccount', { error: data.error || 'Unknown error' }));
       }
     } catch (error) {
       console.error('Error deleting account:', error);
-      alert('An error occurred while deleting your account. Please try again.');
+      alert(t('alerts.errorDeletingAccount'));
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
     }
   };
 
+  const planFeatureCounts: Record<PlanType, number> = { free: 5, pro: 6, team: 6 };
   const plans = [
-    {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      type: 'free' as PlanType,
-      icon: Check,
-      color: 'from-gray-400 to-gray-600',
-          features: [
-            '1,500 AI words per day',
-            // '100 AI auto-complete (one-time)', // Coming soon
-            '3 plagiarism checks per day',
-            '3 projects maximum',
-            'Smart citation search',
-            'Basic citation support',
-          ],
-    },
-    {
-      name: 'Pro',
-      monthlyPrice: '$12',
-      monthlyPeriod: 'per month',
-      annualPrice: '$120',
-      annualPeriod: 'per year',
-      annualSavings: 'Save $24 per year',
-      type: 'pro' as PlanType,
-      icon: Crown,
-      // Use standard Tailwind colors to ensure the gradient class resolves
-      color: 'from-indigo-500 to-purple-500',
-          features: [
-            'Unlimited AI words',
-            // 'Unlimited AI auto-complete (faster model)', // Coming soon
-            'Unlimited plagiarism checks',
-            'Unlimited projects',
-            'Advanced citation search',
-            'GPT-4 access',
-            'Priority support',
-          ],
-      popular: true,
-    },
-    {
-      name: 'Team',
-      price: 'Coming Soon',
-      period: '',
-      type: 'team' as PlanType,
-      icon: Users,
-      // Use standard Tailwind colors to ensure the gradient class resolves
-      color: 'from-teal-500 to-blue-500',
-          features: [
-            'Everything in Pro',
-            '10 team members',
-            'Shared workspaces',
-            'Admin controls',
-            'Shared citation library',
-            'Team analytics',
-          ],
-      comingSoon: true,
-    },
+    { type: 'free' as PlanType, icon: Check, color: 'from-gray-400 to-gray-600', popular: false, comingSoon: false },
+    { type: 'pro' as PlanType, icon: Crown, color: 'from-indigo-500 to-purple-500', popular: true, comingSoon: false },
+    { type: 'team' as PlanType, icon: Users, color: 'from-teal-500 to-blue-500', popular: false, comingSoon: true },
   ];
 
   if (isLoading) {
@@ -354,7 +303,7 @@ export default function SettingsPage() {
         <div className="flex-1 md:ml-64 flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-gray-600">{t('loading')}</p>
           </div>
         </div>
       </div>
@@ -382,20 +331,20 @@ export default function SettingsPage() {
           {/* Header */}
           <div className="mb-6 md:mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              Settings
+              {t('title')}
             </h1>
             <p className="text-gray-600 text-sm md:text-base">
-              Manage your account and subscription
+              {t('subtitle')}
             </p>
           </div>
 
           {/* Language preference (persisted for next visit) */}
           <Card className="p-4 md:p-6 mb-6 md:mb-8">
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-              {t('settingsLanguage')}
+              {tCommon('settingsLanguage')}
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              {t('settingsLanguageRemember')}
+              {tCommon('settingsLanguageRemember')}
             </p>
             <LocaleSwitcher />
           </Card>
@@ -406,24 +355,24 @@ export default function SettingsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-semibold text-gray-900 mb-1">
-                    We noticed you didn&apos;t complete your payment
+                    {t('checkoutFeedback.title')}
                   </h2>
                   <p className="text-sm text-gray-600 mb-4">
-                    Would you tell us why? (optional) Your feedback helps us improve.
+                    {t('checkoutFeedback.prompt')}
                   </p>
                   {checkoutFeedbackSubmitted ? (
                     <div className="flex items-center gap-2 text-green-700">
                       <Check size={20} />
-                      <span className="text-sm font-medium">Thanks for your feedback.</span>
+                      <span className="text-sm font-medium">{t('checkoutFeedback.thanks')}</span>
                     </div>
                   ) : (
                     <form onSubmit={handleCheckoutFeedbackSubmit} className="space-y-3">
                       <div className="space-y-1.5">
                         <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                          Your feedback
+                          {t('checkoutFeedback.label')}
                         </label>
                         <textarea
-                          placeholder="e.g. Too expensive, changed mind, technical issues..."
+                          placeholder={t('checkoutFeedback.placeholder')}
                           value={checkoutFeedbackMessage}
                           onChange={(e) => setCheckoutFeedbackMessage(e.target.value)}
                           rows={3}
@@ -440,14 +389,14 @@ export default function SettingsPage() {
                           type="submit"
                           disabled={checkoutFeedbackSubmitting || !checkoutFeedbackMessage.trim()}
                         >
-                          {checkoutFeedbackSubmitting ? 'Sending...' : 'Send feedback'}
+                          {checkoutFeedbackSubmitting ? t('checkoutFeedback.sending') : t('checkoutFeedback.send')}
                         </Button>
                         <button
                           type="button"
                           onClick={dismissCheckoutFeedback}
                           className="text-sm text-gray-500 hover:text-gray-700 underline"
                         >
-                          Skip
+                          {t('checkoutFeedback.skip')}
                         </button>
                       </div>
                     </form>
@@ -471,11 +420,11 @@ export default function SettingsPage() {
           {usage && (
             <Card className="p-4 md:p-6 mb-6 md:mb-8">
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-                Current Usage
+                {t('usage.title')}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">AI Words Today</p>
+                  <p className="text-sm text-gray-600 mb-1">{t('usage.aiWordsToday')}</p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-2xl md:text-3xl font-bold text-gray-900">
                       {usage.aiWordsGenerated}
@@ -499,7 +448,7 @@ export default function SettingsPage() {
                 </div>
 
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Plagiarism Checks Today</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('usage.plagiarismChecksToday')}</p>
                       <div className="flex items-baseline gap-2">
                         <p className="text-2xl md:text-3xl font-bold text-gray-900">
                           {usage.plagiarismChecks}
@@ -513,11 +462,11 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Max Projects</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('usage.maxProjects')}</p>
                       <p className="text-2xl md:text-3xl font-bold text-gray-900">
                         {usage.limits.maxProjects === Infinity 
                           ? '∞' 
-                          : usage.limits.maxProjects || 'Unlimited'}
+                          : usage.limits.maxProjects ?? t('usage.unlimited')}
                       </p>
                     </div>
               </div>
@@ -527,14 +476,14 @@ export default function SettingsPage() {
           {/* Pricing Plans */}
           <div className="mb-6 md:mb-8">
             <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4 md:mb-6">
-              Choose Your Plan
+              {t('plans.choosePlan')}
             </h2>
             
             {/* Billing Toggle */}
             {(session?.user as any)?.plan !== 'pro' ? (
               <div className="mb-4 md:mb-6 flex flex-wrap items-center justify-center gap-3 md:gap-4">
                 <span className={`text-sm font-medium ${!isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
-                  Monthly
+                  {t('plans.monthly')}
                 </span>
                 <div className="relative">
                   <button
@@ -548,7 +497,7 @@ export default function SettingsPage() {
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer z-10 ${
                       isAnnual ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
-                    aria-label={`Switch to ${isAnnual ? 'monthly' : 'annual'} billing`}
+                    aria-label={t('plans.choosePlan')}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full transition-transform ${
@@ -558,7 +507,7 @@ export default function SettingsPage() {
                   </button>
                 </div>
                 <span className={`text-sm font-medium ${isAnnual ? 'text-gray-900' : 'text-gray-500'}`}>
-                  Annual
+                  {t('plans.annual')}
                 </span>
                 <span
                   className={`text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium transition-opacity duration-200 ${
@@ -566,13 +515,13 @@ export default function SettingsPage() {
                   }`}
                   aria-hidden={!isAnnual}
                 >
-                  Save {formatDiscountPercentage(getProPlanDiscount().discountPercentage)}
+                  {t('plans.savePercent', { percent: formatDiscountPercentage(getProPlanDiscount().discountPercentage) })}
                 </span>
               </div>
             ) : subscriptionStatus && (
               <div className="mb-4 md:mb-6 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-sm text-gray-700 text-center">
-                  <span className="font-medium">Current billing cycle: </span>
+                  <span className="font-medium">{t('plans.currentBillingCycle')} </span>
                   <span className="font-semibold text-gray-900 capitalize">
                     {subscriptionStatus.billingCycle || 'monthly'}
                   </span>
@@ -580,7 +529,7 @@ export default function SettingsPage() {
                     <>
                       {' '}•{' '}
                       <span className="text-gray-600">
-                        Renews {new Date(subscriptionStatus.subscriptionEnd * 1000).toLocaleDateString()}
+                        {t('plans.renews', { date: new Date(subscriptionStatus.subscriptionEnd * 1000).toLocaleDateString() })}
                       </span>
                     </>
                   )}
@@ -593,9 +542,9 @@ export default function SettingsPage() {
               <div className="flex items-start gap-3">
                 <Info size={18} className="text-gray-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900 mb-1">What counts as AI words?</p>
+                  <p className="text-sm font-medium text-gray-900 mb-1">{t('plans.aiWordsExplainerTitle')}</p>
                   <p className="text-xs text-gray-600">
-                    AI words include all content generated by Akowe: <strong className="text-gray-700">AI Assistant responses</strong>, <strong className="text-gray-700">&quot;Write for me&quot;</strong> content, and <strong className="text-gray-700">AI-generated outlines</strong>. Your own writing doesn&apos;t count toward the limit.
+                    {t('plans.aiWordsExplainerBody')}
                   </p>
                 </div>
               </div>
@@ -612,7 +561,7 @@ export default function SettingsPage() {
                     {plan.popular && (
                       <div className="mb-4">
                         <span className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-semibold rounded-full">
-                          MOST POPULAR
+                          {t('plans.mostPopular')}
                         </span>
                       </div>
                     )}
@@ -622,23 +571,22 @@ export default function SettingsPage() {
                     </div>
 
                     <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-                      {plan.name}
+                      {t(`plans.${plan.type}.name`)}
                     </h3>
                     
                     <div className="mb-4 md:mb-6">
-                      {plan.monthlyPrice ? (
+                      {plan.type === 'pro' ? (
                         <div>
                           <div className="flex items-baseline gap-2 mb-1">
                             <span className="text-3xl md:text-4xl font-bold text-gray-900">
-                              {isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                              {isAnnual ? t('plans.pro.annualPrice') : t('plans.pro.monthlyPrice')}
                             </span>
-                            {/* Debug info */}
                             <span className="text-xs text-gray-400 ml-2">
-                              ({isAnnual ? 'annual' : 'monthly'})
+                              ({isAnnual ? t('plans.annual') : t('plans.monthly')})
                             </span>
                           </div>
                           <div className="text-sm text-gray-600">
-                            {isAnnual ? plan.annualPeriod : plan.monthlyPeriod}
+                            {isAnnual ? t('plans.pro.annualPeriod') : t('plans.pro.monthlyPeriod')}
                           </div>
                           <div
                             className={`text-xs text-gray-600 mt-1 min-h-[16px] transition-opacity duration-200 ${
@@ -646,44 +594,42 @@ export default function SettingsPage() {
                             }`}
                             aria-hidden={!isAnnual}
                           >
-                            Billed once annually (≈$10/mo equivalent).
+                            {t('plans.pro.billedAnnually')}
                           </div>
                           <div
                             className={`text-xs text-blue-600 mt-1 font-medium min-h-[16px] transition-opacity duration-200 ${
-                              !isAnnual && plan.type === 'pro' ? 'opacity-100' : 'opacity-0'
+                              !isAnnual ? 'opacity-100' : 'opacity-0'
                             }`}
-                            aria-hidden={isAnnual || plan.type !== 'pro'}
+                            aria-hidden={isAnnual}
                           >
-                            First month 15% off
+                            {t('plans.pro.firstMonthOff')}
                           </div>
-                          {plan.annualSavings && (
-                            <div
-                              className={`text-sm text-green-600 mt-1 font-medium min-h-[20px] transition-opacity duration-200 ${
-                                isAnnual ? 'opacity-100' : 'opacity-0'
-                              }`}
-                              aria-hidden={!isAnnual}
-                            >
-                              {plan.annualSavings}
-                            </div>
-                          )}
+                          <div
+                            className={`text-sm text-green-600 mt-1 font-medium min-h-[20px] transition-opacity duration-200 ${
+                              isAnnual ? 'opacity-100' : 'opacity-0'
+                            }`}
+                            aria-hidden={!isAnnual}
+                          >
+                            {t('plans.pro.annualSavings')}
+                          </div>
                         </div>
                       ) : (
                         <div>
                           <span className="text-3xl md:text-4xl font-bold text-gray-900">
-                            {plan.price}
+                            {t(`plans.${plan.type}.price`)}
                           </span>
                           <span className="text-gray-600 ml-2">
-                            {plan.period}
+                            {t(`plans.${plan.type}.period`)}
                           </span>
                         </div>
                       )}
                     </div>
 
                     <ul className="space-y-2 md:space-y-3 mb-4 md:mb-6">
-                      {plan.features.map((feature, index) => (
+                      {Array.from({ length: planFeatureCounts[plan.type] }, (_, index) => (
                         <li key={index} className="flex items-start gap-2">
                           <Check className="text-success mt-0.5 flex-shrink-0" size={16} />
-                          <span className="text-gray-700 text-sm">{feature}</span>
+                          <span className="text-gray-700 text-sm">{t(`plans.${plan.type}.features.${index}`)}</span>
                         </li>
                       ))}
                     </ul>
@@ -697,9 +643,9 @@ export default function SettingsPage() {
                       {isUpgrading ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2"></div>
-                          Processing...
+                          {t('plans.processing')}
                         </>
-                      ) : (session?.user as any)?.plan === plan.type ? 'Current Plan' : plan.comingSoon ? 'Coming Soon' : 'Upgrade'}
+                      ) : (session?.user as any)?.plan === plan.type ? t('plans.currentPlan') : plan.comingSoon ? t('plans.comingSoon') : t('plans.upgrade')}
                     </Button>
                   </Card>
                 );
@@ -711,32 +657,32 @@ export default function SettingsPage() {
           {(session?.user as any)?.plan === 'pro' && subscriptionStatus && (
             <Card className="p-4 md:p-6 mb-6 md:mb-8">
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-                Subscription Management
+                {t('subscription.title')}
               </h2>
               <div className="space-y-4">
                 <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium text-gray-900">Active Subscription</span>
+                    <span className="font-medium text-gray-900">{t('subscription.active')}</span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    You&apos;re subscribed to the <strong>Pro plan</strong> with <strong className="capitalize">{subscriptionStatus.billingCycle || 'monthly'}</strong> billing.
+                    {t('subscription.subscribedTo', { cycle: subscriptionStatus.billingCycle === 'annual' ? t('plans.annual') : t('plans.monthly') })}
                   </p>
                   {subscriptionStatus.subscriptionEnd && (
                     <p className="text-sm text-gray-600 mt-2">
-                      Next renewal: <strong>{new Date(subscriptionStatus.subscriptionEnd * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>
+                      {t('subscription.nextRenewal')} <strong>{new Date(subscriptionStatus.subscriptionEnd * 1000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</strong>
                     </p>
                   )}
                 </div>
                 <div className="pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-600 mb-3">
-                    Need to cancel your subscription? You can manage your subscription and billing through Stripe.
+                    {t('subscription.managePrompt')}
                   </p>
                   <button
                     onClick={handleManageSubscription}
                     className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
                   >
-                    Manage Subscription →
+                    {t('subscription.manageButton')}
                   </button>
                 </div>
               </div>
@@ -752,28 +698,28 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-                    Invite Friends & Colleagues
+                    {t('referral.title')}
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Share Akowe with your network
+                    {t('referral.subtitle')}
                   </p>
                 </div>
               </div>
               <p className="text-sm text-gray-600 mb-4">
-                Know someone who could benefit from AI-powered academic writing? Share your personal invite link with them!
+                {t('referral.prompt')}
               </p>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4">
                 <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                  Your Invite Message
+                  {t('referral.inviteMessageLabel')}
                 </label>
                 <p className="text-sm text-gray-700 mb-3">
-                  Hey! I&apos;ve been using Akowe for my academic writing and it&apos;s been super helpful. You should try it out: <span className="font-semibold text-[hsl(var(--primary))]">{(session?.user as any)?.referralCode ? buildReferralLink((session?.user as any)?.referralCode) : 'https://useakowe.com'}</span>
+                  {t('referral.inviteMessageBody')} <span className="font-semibold text-[hsl(var(--primary))]">{(session?.user as any)?.referralCode ? buildReferralLink((session?.user as any)?.referralCode) : 'https://useakowe.com'}</span>
                 </p>
                 <button
                   onClick={() => {
                     const referralCode = (session?.user as any)?.referralCode;
                     const referralUrl = referralCode ? buildReferralLink(referralCode) : 'https://useakowe.com';
-                    const message = `Hey! I've been using Akowe for my academic writing and it's been super helpful. You should try it out: ${referralUrl}`;
+                    const message = `${t('referral.inviteMessageBody')} ${referralUrl}`;
                     navigator.clipboard.writeText(message);
                     setCopiedReferral(true);
                     setTimeout(() => setCopiedReferral(false), 2000);
@@ -783,12 +729,12 @@ export default function SettingsPage() {
                   {copiedReferral ? (
                     <>
                       <Check size={16} className="text-green-600" />
-                      <span className="text-green-600">Copied!</span>
+                      <span className="text-green-600">{t('referral.copied')}</span>
                     </>
                   ) : (
                     <>
                       <Copy size={16} />
-                      <span>Copy Invite Message</span>
+                      <span>{t('referral.copyMessage')}</span>
                     </>
                   )}
                 </button>
@@ -799,18 +745,18 @@ export default function SettingsPage() {
           {/* Account Settings */}
           <Card className="p-4 md:p-6">
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
-              Account Settings
+              {t('account.title')}
             </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
+                  {t('account.email')}
                 </label>
                 <p className="text-gray-900 break-all">{session?.user?.email}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name
+                  {t('account.name')}
                 </label>
                 <p className="text-gray-900">{session?.user?.name}</p>
               </div>
@@ -820,7 +766,7 @@ export default function SettingsPage() {
                   size="sm"
                   onClick={() => setShowDeleteConfirm(true)}
                 >
-                  Delete Account
+                  {t('account.deleteAccount')}
                 </Button>
               </div>
             </div>
@@ -840,11 +786,10 @@ export default function SettingsPage() {
               <X size={20} />
             </button>
             <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
-              Delete Account?
+              {t('deleteModal.title')}
             </h3>
             <p className="text-gray-700 text-sm md:text-base mb-6">
-              Are you sure you want to delete your account? This action cannot be undone. 
-              All your projects, citations, and data will be permanently deleted.
+              {t('deleteModal.body')}
             </p>
             <div className="flex gap-3">
               <Button
@@ -853,7 +798,7 @@ export default function SettingsPage() {
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
               >
-                Cancel
+                {t('deleteModal.cancel')}
               </Button>
               <Button
                 variant="danger"
@@ -861,7 +806,7 @@ export default function SettingsPage() {
                 onClick={handleDeleteAccount}
                 disabled={isDeleting}
               >
-                {isDeleting ? 'Deleting...' : 'Delete Account'}
+                {isDeleting ? t('deleteModal.deleting') : t('deleteModal.confirm')}
               </Button>
             </div>
           </Card>
