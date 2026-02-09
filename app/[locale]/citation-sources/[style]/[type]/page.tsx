@@ -9,21 +9,7 @@ import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
 
-// Allow on-demand rendering for new pages not in generateStaticParams
-export const dynamicParams = true;
-
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
-
-// Only pre-build a subset at build time to avoid timeouts.
-// The remaining ~10k pages render on-demand (dynamicParams = true).
-export async function generateStaticParams() {
-  const combinations = getAllCitationSourceCombinationsScaled();
-  // Limit to 12,000 to stay within build time limits
-  return combinations.slice(0, 12000).map(({ sourceType, citationStyle }) => ({
-    style: citationStyle,
-    type: sourceType,
-  }));
-}
 
 export async function generateMetadata({
   params,
