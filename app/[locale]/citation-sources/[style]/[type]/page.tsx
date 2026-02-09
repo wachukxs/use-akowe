@@ -9,15 +9,11 @@ import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
 
-const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
+// Render on-demand instead of at build time to avoid build timeouts with ~22k+ pages
+export const dynamicParams = true;
+export const revalidate = 86400; // Revalidate once per day
 
-export async function generateStaticParams() {
-  const combinations = getAllCitationSourceCombinationsScaled();
-  return combinations.map(({ sourceType, citationStyle }) => ({
-    style: citationStyle,
-    type: sourceType,
-  }));
-}
+const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
 export async function generateMetadata({
   params,
