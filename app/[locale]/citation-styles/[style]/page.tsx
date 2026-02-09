@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
-import { getCitationStyleBySlug, getAllCitationStyleSlugs } from '@/lib/seo/citation-styles';
+import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
@@ -12,11 +12,7 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export async function generateStaticParams() {
-  return getAllCitationStyleSlugs().map((style) => ({
-    style,
-  }));
-}
+export const revalidate = 86400;
 
 export async function generateMetadata({ params }: { params: Promise<{ style: string }> }): Promise<Metadata> {
   const { style } = await params;

@@ -9,11 +9,10 @@ import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
 
-// Render on-demand instead of at build time to avoid build timeouts with ~22k+ pages
-export const dynamicParams = true;
-export const revalidate = 86400; // Revalidate once per day
-
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
+
+// All pSEO pages generated on-demand; cache for 24h (ISR)
+export const revalidate = 86400;
 
 export async function generateMetadata({
   params,

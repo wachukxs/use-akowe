@@ -1,16 +1,16 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { FileText, Settings, LogOut, PlusCircle, Menu, X, Bot } from 'lucide-react';
 import Button from './ui/Button';
 import { useState, useEffect, createContext, useContext } from 'react';
 
 const navigation = [
-  { name: 'Projects', href: '/dashboard', icon: FileText },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { key: 'projects', href: '/dashboard', icon: FileText },
+  { key: 'settings', href: '/settings', icon: Settings },
 ];
 
 // Create context for sidebar state
@@ -77,15 +77,16 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function MobileMenuButton() {
+  const t = useTranslations('components.sidebar');
   const { setIsOpen, isMobile } = useSidebar();
-  
+
   if (!isMobile) return null;
-  
+
   return (
     <button
       onClick={() => setIsOpen(true)}
       className="fixed top-4 left-4 z-40 p-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden cursor-pointer"
-      aria-label="Open menu"
+      aria-label={t('openMenu')}
     >
       <Menu size={24} />
     </button>
@@ -251,6 +252,7 @@ export function MobileToolsDrawer({ children }: { children: React.ReactNode }) {
 }
 
 export default function Sidebar() {
+  const t = useTranslations('components.sidebar');
   const pathname = usePathname();
   const { data: session } = useSession();
   const { isOpen, setIsOpen, isMobile } = useSidebar();
@@ -267,13 +269,13 @@ export default function Sidebar() {
       <div className="p-6 border-b-[4px] border-[hsl(var(--border-strong))]">
         <Link href="/dashboard" className="block" onClick={() => isMobile && setIsOpen(false)}>
           <span className="text-xs font-semibold uppercase tracking-[0.4em] text-[hsl(var(--muted-foreground))]">
-            Akọ̀wé
+            {t('brand')}
           </span>
           <h1 className="mt-3 text-3xl font-bold text-[hsl(var(--foreground))]">
-            Research Studio
+            {t('researchStudio')}
           </h1>
           <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-            Write research that holds up
+            {t('tagline')}
           </p>
         </Link>
       </div>
@@ -286,7 +288,7 @@ export default function Sidebar() {
           >
             <span className="flex items-center gap-3 text-sm tracking-[0.12em]">
               <PlusCircle size={18} />
-              New Project
+              {t('newProject')}
             </span>
             <span className="text-[10px] tracking-[0.4em] hidden sm:inline">⌘N</span>
           </Button>
@@ -297,10 +299,10 @@ export default function Sidebar() {
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
-          
+
           return (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               onClick={() => isMobile && setIsOpen(false)}
               className={cn(
@@ -312,7 +314,7 @@ export default function Sidebar() {
             >
               <span className="flex items-center gap-3">
                 <Icon size={18} />
-                {item.name}
+                {t(item.key)}
               </span>
               <span>→</span>
             </Link>
@@ -327,7 +329,7 @@ export default function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-[hsl(var(--foreground))] truncate">
-              {session?.user?.name || 'User'}
+              {session?.user?.name || t('user')}
             </p>
             <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] truncate">
               {session?.user?.email}
@@ -347,7 +349,7 @@ export default function Sidebar() {
         >
           <span className="flex items-center gap-3">
             <LogOut size={16} />
-            Sign Out
+            {t('signOut')}
           </span>
           <span>↗</span>
         </button>

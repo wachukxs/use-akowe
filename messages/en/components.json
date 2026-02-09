@@ -70,5 +70,16 @@
     "continueInAkowe": "Continue in Akọ̀wé",
     "wordsSectionsCitations": "{words} words • {sections} sections • {citations} citations",
     "analysisFailed": "Failed to analyze. Please try again."
+  },
+  "sidebar": {
+    "brand": "Akọ̀wé",
+    "researchStudio": "Research Studio",
+    "tagline": "Write research that holds up",
+    "newProject": "New Project",
+    "projects": "Projects",
+    "settings": "Settings",
+    "signOut": "Sign Out",
+    "openMenu": "Open menu",
+    "user": "User"
   }
 }
