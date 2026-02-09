@@ -1287,28 +1287,37 @@ function generateCitationSource(
   
   if (!sourceTemplate) {
     // Create default templates for styles without explicit templates
-    if (['turabian', 'cse', 'oscola', 'mhra', 'bluebook', 'nlm', 'apsa', 'asa', 'aaa', 'aglc'].includes(citationStyle)) {
-      // Use a generic format that can be adapted
-      if (citationStyle === 'turabian' || citationStyle === 'mhra') {
-        defaultFormat = `Author, First Name. "${sourceTypeName} Title." Source Name. Year.`;
-        defaultExample = `Smith, John A. "${sourceTypeName} Example." Academic Source. 2023.`;
-      } else if (citationStyle === 'cse' || citationStyle === 'nlm') {
-        defaultFormat = `Author AA. Year. ${sourceTypeName} title. Source Name.`;
-        defaultExample = `Smith JA. 2023. ${sourceTypeName} example. Academic Source.`;
-      } else if (citationStyle === 'oscola' || citationStyle === 'aglc') {
-        defaultFormat = `Author, "${sourceTypeName} Title" (Source Name, Year) Page.`;
-        defaultExample = `Smith, "${sourceTypeName} Example" (Academic Source, 2023) 45.`;
-      } else if (citationStyle === 'bluebook') {
-        defaultFormat = `AUTHOR, ${sourceTypeName.toUpperCase()} TITLE Page (Publisher Year).`;
-        defaultExample = `SMITH, ${sourceTypeName.toUpperCase()} EXAMPLE 45 (Academic Press 2023).`;
-      } else {
-        // APSA, ASA, AAA use author-date
-        defaultFormat = `Author, First Name. Year. "${sourceTypeName} Title." Source Name.`;
-        defaultExample = `Smith, John A. 2023. "${sourceTypeName} Example." Academic Source.`;
-      }
+    if (citationStyle === 'turabian' || citationStyle === 'mhra') {
+      defaultFormat = `Author, First Name. "${sourceTypeName} Title." Source Name. Year.`;
+      defaultExample = `Smith, John A. "${sourceTypeName} Example." Academic Source. 2023.`;
+    } else if (citationStyle === 'cse' || citationStyle === 'nlm') {
+      defaultFormat = `Author AA. Year. ${sourceTypeName} title. Source Name.`;
+      defaultExample = `Smith JA. 2023. ${sourceTypeName} example. Academic Source.`;
+    } else if (citationStyle === 'oscola' || citationStyle === 'aglc') {
+      defaultFormat = `Author, "${sourceTypeName} Title" (Source Name, Year) Page.`;
+      defaultExample = `Smith, "${sourceTypeName} Example" (Academic Source, 2023) 45.`;
+    } else if (citationStyle === 'bluebook') {
+      defaultFormat = `AUTHOR, ${sourceTypeName.toUpperCase()} TITLE Page (Publisher Year).`;
+      defaultExample = `SMITH, ${sourceTypeName.toUpperCase()} EXAMPLE 45 (Academic Press 2023).`;
+    } else if (citationStyle === 'apa' || citationStyle === 'harvard') {
+      defaultFormat = `Author, A. A. (Year). ${sourceTypeName} title. Source Name.`;
+      defaultExample = `Smith, J. A. (2023). ${sourceTypeName} example. Academic Source.`;
+    } else if (citationStyle === 'mla') {
+      defaultFormat = `Author Last, First. "${sourceTypeName} Title." Source Name, Year.`;
+      defaultExample = `Smith, John. "${sourceTypeName} Example." Academic Source, 2023.`;
+    } else if (citationStyle === 'chicago') {
+      defaultFormat = `Author Last, First. "${sourceTypeName} Title." Source Name (Year).`;
+      defaultExample = `Smith, John. "${sourceTypeName} Example." Academic Source (2023).`;
+    } else if (citationStyle === 'ieee') {
+      defaultFormat = `[1] A. A. Author, "${sourceTypeName} title," Source Name, Year.`;
+      defaultExample = `[1] J. A. Smith, "${sourceTypeName} example," Academic Source, 2023.`;
+    } else if (citationStyle === 'vancouver' || citationStyle === 'ama' || citationStyle === 'acs') {
+      defaultFormat = `Author AA. ${sourceTypeName} title. Source Name. Year.`;
+      defaultExample = `Smith JA. ${sourceTypeName} example. Academic Source. 2023.`;
     } else {
-      // For styles with existing templates but missing source types, return null
-      return null;
+      // Fallback author-date format
+      defaultFormat = `Author, First Name. Year. "${sourceTypeName} Title." Source Name.`;
+      defaultExample = `Smith, John A. 2023. "${sourceTypeName} Example." Academic Source.`;
     }
   }
 

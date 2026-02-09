@@ -250,6 +250,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...templateKeywordRoutes,
     ...faqKeywordRoutes,
     ...comparisonKeywordRoutes,
+    ...combinationRoutes,
   ];
 }
 
