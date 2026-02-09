@@ -5,14 +5,11 @@ import { ArrowLeft, BookOpen } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
-import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
+import { getKeywordPageBySlug } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export async function generateStaticParams() {
-  const topicSlugs = await getAllKeywordSlugs('topic');
-  return topicSlugs.map((slug) => ({ slug }));
-}
+export const revalidate = 86400;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
