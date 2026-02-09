@@ -70,5 +70,16 @@
     "continueInAkowe": "Akọ̀wé에서 계속하기",
     "wordsSectionsCitations": "{words}단어 • {sections}섹션 • {citations}인용",
     "analysisFailed": "분석에 실패했습니다. 다시 시도해 주세요."
+  },
+  "sidebar": {
+    "brand": "Akọ̀wé",
+    "researchStudio": "리서치 스튜디오",
+    "tagline": "검증받는 연구를 쓰다",
+    "newProject": "새 프로젝트",
+    "projects": "프로젝트",
+    "settings": "설정",
+    "signOut": "로그아웃",
+    "openMenu": "메뉴 열기",
+    "user": "사용자"
   }
 }

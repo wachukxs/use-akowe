@@ -70,5 +70,16 @@
     "continueInAkowe": "Akọ̀wéで続ける",
     "wordsSectionsCitations": "{words}語 • {sections}セクション • {citations}引用",
     "analysisFailed": "分析に失敗しました。もう一度お試しください。"
+  },
+  "sidebar": {
+    "brand": "Akọ̀wé",
+    "researchStudio": "リサーチスタジオ",
+    "tagline": "信頼される研究を書く",
+    "newProject": "新規プロジェクト",
+    "projects": "プロジェクト",
+    "settings": "設定",
+    "signOut": "サインアウト",
+    "openMenu": "メニューを開く",
+    "user": "ユーザー"
   }
 }
