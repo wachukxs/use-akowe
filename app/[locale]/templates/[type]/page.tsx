@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
-import { getTemplateBySlug, getAllTemplateSlugs } from '@/lib/seo/templates';
+import { getAllTemplateSlugs, getTemplateBySlug } from '@/lib/seo/templates';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
@@ -10,11 +10,7 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export async function generateStaticParams() {
-  return getAllTemplateSlugs().map((type) => ({
-    type,
-  }));
-}
+export const revalidate = 86400;
 
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
   const { type } = await params;
