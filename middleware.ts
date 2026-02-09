@@ -23,7 +23,12 @@ export async function middleware(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const path = pathWithoutLocale(pathname);
 
-  // 1. Admin API routes: no locale, return immediately
+  // 1. Admin UI routes: no locale, exclude from translations
+  if (pathname.startsWith('/admin')) {
+    return NextResponse.next();
+  }
+
+  // 2. Admin API routes: no locale, return immediately
   if (pathname.startsWith('/api/admin')) {
     const publicAdminRoutes = ['/api/admin/login', '/api/admin/logout', '/api/admin/verify'];
     if (publicAdminRoutes.includes(pathname)) {
@@ -51,7 +56,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2. Strip callbackUrl on public routes before i18n (avoid auth redirect loops)
+  // 3. Strip callbackUrl on public routes before i18n (avoid auth redirect loops)
   const isAuthRoute = pathname.startsWith('/auth') || path.startsWith('/auth');
   const isProtected = ['/dashboard', '/project', '/settings', '/payment'].some((p) => path.startsWith(p));
   if (!isProtected && !isAuthRoute) {
@@ -70,7 +75,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Prefer saved locale: root (/) and any path without a locale prefix (e.g. /dashboard, /project/123).
+  // 4. Prefer saved locale: root (/) and any path without a locale prefix (e.g. /dashboard, /project/123).
   // Links using next/link with href="/dashboard" or router.push("/project/123") hit the server without
   // a locale; without this, next-intl would redirect to default (en) and the chosen language would revert.
   const hasLocalePrefix = /^\/(en|ja|ko)(?:\/|$)/.test(pathname);
@@ -91,11 +96,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 4. next-intl: locale negotiation, redirects (e.g. / -> /en)
+  // 5. next-intl: locale negotiation, redirects (e.g. / -> /en)
   const handleI18nRouting = createMiddleware(routing);
   let response = handleI18nRouting(request);
 
-  // 5. Persist current locale so next visit reuses it
+  // 6. Persist current locale so next visit reuses it
   const localeMatch = pathname.match(/^\/(en|ja|ko)(?:\/|$)/);
   const localeToPersist = localeMatch ? localeMatch[1] : routing.defaultLocale;
   const localeCookieMaxAge = 365 * 24 * 60 * 60;
@@ -106,7 +111,7 @@ export async function middleware(request: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
   });
 
-  // 6. Apply A/B and other cookies/headers on top of next-intl response
+  // 7. Apply A/B and other cookies/headers on top of next-intl response
   const cookieOptions = {
     path: '/',
     maxAge: 30 * 24 * 60 * 60,
