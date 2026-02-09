@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useRouter, Link } from '@/i18n/navigation';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';

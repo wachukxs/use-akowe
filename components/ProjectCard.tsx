@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Project, ProjectType } from '@/types';
 import { cn, formatDate } from '@/lib/utils';
 import { FileText, BookOpen, GraduationCap, FlaskConical } from 'lucide-react';
