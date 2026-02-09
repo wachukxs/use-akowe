@@ -1,10 +1,6 @@
 [build]
   command = "npm run build"
-  # Publish directory is managed by @netlify/plugin-nextjs; do not set publish = ".next"
-  # or the CDN may serve build artifacts with wrong Content-Type (e.g. document.txt download).
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+  # Publish directory is managed automatically by Netlify's Next.js adapter.
 
 [build.environment]
   NODE_VERSION = "20"
