@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
-import { getAllGuideSlugs, getGuideBySlug } from '@/lib/seo/guides';
+import { getGuideBySlug, getAllGuideSlugs } from '@/lib/seo/guides';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import InlinePlagiarismTool from '@/components/InlinePlagiarismTool';
@@ -11,7 +11,11 @@ import { generateWebPageSchema, generateHowToSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const revalidate = 86400;
+export async function generateStaticParams() {
+  return getAllGuideSlugs().map((slug) => ({
+    slug,
+  }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

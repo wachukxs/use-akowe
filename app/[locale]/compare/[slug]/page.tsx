@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { GitCompare, Check, X } from 'lucide-react';
-import { getAllComparisonSlugs, getComparisonBySlug } from '@/lib/seo/comparisons';
+import { getComparisonBySlug, getAllComparisonSlugs } from '@/lib/seo/comparisons';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
@@ -9,7 +9,10 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const revalidate = 86400;
+export async function generateStaticParams() {
+  const slugs = getAllComparisonSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

@@ -6,11 +6,9 @@ import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import { RelatedContent } from '@/components/seo/RelatedContent';
-import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
+import { getCitationStyleBySlug, getAllCitationStyleSlugs } from '@/lib/seo/citation-styles';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
-
-export const revalidate = 86400;
 
 // Valid purposes for combination pages
 const validPurposes = [
@@ -49,6 +47,20 @@ const validPurposes = [
   'discourse-analysis',
   'textual-analysis',
 ];
+
+// Generate all static params for combination pages
+export async function generateStaticParams() {
+  const styles = getAllCitationStyleSlugs();
+  const params: Array<{ style: string; purpose: string }> = [];
+  
+  for (const style of styles) {
+    for (const purpose of validPurposes) {
+      params.push({ style, purpose });
+    }
+  }
+  
+  return params;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ style: string; purpose: string }> }): Promise<Metadata> {
   const { style, purpose } = await params;

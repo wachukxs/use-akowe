@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { HelpCircle } from 'lucide-react';
-import { getFAQBySlug } from '@/lib/seo/faqs';
+import { getFAQBySlug, getAllFAQSlugs } from '@/lib/seo/faqs';
 import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
 import InlineImportTool from '@/components/InlineImportTool';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
@@ -9,7 +9,10 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const revalidate = 86400;
+export async function generateStaticParams() {
+  const slugs = getAllFAQSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
