@@ -205,7 +205,7 @@ export default function TermsOfServicePage() {
               If you have any questions about these Terms, please contact us at:
             </p>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              <strong>Email:</strong> legal@akowe.io
+              <strong>Email:</strong> support@placeholderllc.name.ng
             </p>
           </section>
         </div>

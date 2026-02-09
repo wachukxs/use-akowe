@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage() {
               If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
             </p>
             <p className="text-[hsl(var(--muted-foreground))] mt-4">
-              <strong>Email:</strong> privacy@akowe.io
+              <strong>Email:</strong> support@placeholderllc.name.ng
             </p>
           </section>
         </div>
