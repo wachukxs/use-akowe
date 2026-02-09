@@ -491,7 +491,6 @@ alert(t('alerts.failedCheckoutSession'));
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      console.log('Toggle clicked, current isAnnual:', isAnnual);
                       setIsAnnual(!isAnnual);
                     }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 cursor-pointer z-10 ${
