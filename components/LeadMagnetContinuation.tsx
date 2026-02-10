@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { X, Shield, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
@@ -26,6 +27,7 @@ interface StoredContent {
 
 export default function LeadMagnetContinuation() {
   const router = useRouter();
+  const t = useTranslations('components.leadMagnetContinuation');
   const [storedContent, setStoredContent] = useState<StoredContent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -92,7 +94,7 @@ export default function LeadMagnetContinuation() {
       }
     } catch (error) {
       console.error('Error creating project:', error);
-      alert('Failed to create project. Please try again.');
+      alert(t('createProjectFailed'));
     } finally {
       setIsCreating(false);
     }
@@ -116,7 +118,7 @@ export default function LeadMagnetContinuation() {
               <FileText className="text-[hsl(var(--primary))]" size={20} />
             )}
             <h2 className="text-lg font-bold uppercase tracking-[0.12em]">
-              Continue Where You Left Off
+              {t('title')}
             </h2>
           </div>
           <button
@@ -130,7 +132,7 @@ export default function LeadMagnetContinuation() {
         {storedContent.type === 'plagiarism' && (storedContent.text || storedContent.result) && (
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              {storedContent.text ? 'Your text is ready for a full plagiarism check' : 'Your file analysis is ready for a full plagiarism check'}
+              {storedContent.text ? t('textReady') : t('fileReady')}
             </p>
             {storedContent.text ? (
               <div className="border-[2px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3 rounded">
@@ -138,7 +140,7 @@ export default function LeadMagnetContinuation() {
                   {storedContent.text.substring(0, 200)}...
                 </p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                  {storedContent.text.split(/\s+/).length} words
+                  {storedContent.text.split(/\s+/).length} {t('words')}
                 </p>
               </div>
             ) : storedContent.fileName ? (
@@ -148,7 +150,7 @@ export default function LeadMagnetContinuation() {
                 </p>
                 {storedContent.result?.riskScore !== undefined && (
                   <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                    Risk Score: {storedContent.result.riskScore}%
+                    {t('riskScore', { score: storedContent.result.riskScore })}
                   </p>
                 )}
               </div>
@@ -158,7 +160,7 @@ export default function LeadMagnetContinuation() {
               className="w-full"
               disabled={isCreating}
             >
-              {isCreating ? 'Creating Project...' : 'Run Full Plagiarism Check'}
+              {isCreating ? t('creating') : t('runPlagiarism')}
               <ArrowRight size={16} className="ml-2" />
             </Button>
           </div>
@@ -167,7 +169,7 @@ export default function LeadMagnetContinuation() {
         {storedContent.type === 'import' && storedContent.result && (
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Re-upload your document to continue where you left off
+              {t('reuploadPrompt')}
             </p>
             <div className="border-[2px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3 rounded space-y-2">
               <p className="text-sm font-semibold uppercase tracking-[0.14em]">
@@ -176,17 +178,17 @@ export default function LeadMagnetContinuation() {
               <div className="flex gap-4 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                 <span className="flex items-center gap-1">
                   <CheckCircle2 size={12} className="text-green-500" />
-                  {storedContent.result.sectionCount} sections
+                  {storedContent.result.sectionCount} {t('sections')}
                 </span>
-                <span>{storedContent.result.wordCount} words</span>
-                <span>{storedContent.result.citationCount} citations</span>
+                <span>{storedContent.result.wordCount} {t('words')}</span>
+                <span>{storedContent.result.citationCount} {t('citations')}</span>
               </div>
             </div>
             <Button
               onClick={handleContinueImport}
               className="w-full"
             >
-              Continue Import
+              {t('continueImport')}
               <ArrowRight size={16} className="ml-2" />
             </Button>
           </div>
@@ -195,21 +197,23 @@ export default function LeadMagnetContinuation() {
         {storedContent.type === 'topic' && storedContent.result && (
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Create a project with your unique research topic
+              {t('topicPrompt')}
             </p>
             <div className="border-[2px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-3 rounded space-y-2">
               <p className="text-sm font-semibold uppercase tracking-[0.14em]">
-                {storedContent.result.topic || 'Research Topic'}
+                {storedContent.result.topic || t('researchTopicFallback')}
               </p>
               {storedContent.result.uniquenessScore !== undefined && (
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
                   <CheckCircle2 size={12} className="text-green-500" />
-                  <span>Uniqueness Score: {storedContent.result.uniquenessScore}%</span>
+                  <span>{t('uniquenessScore', { score: storedContent.result.uniquenessScore })}</span>
                 </div>
               )}
               {storedContent.result.suggestions && storedContent.result.suggestions.length > 0 && (
                 <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">
-                  {storedContent.result.suggestions.length} unique topic suggestion{storedContent.result.suggestions.length !== 1 ? 's' : ''} available
+                  {storedContent.result.suggestions.length === 1
+                    ? t('suggestionsAvailable', { count: storedContent.result.suggestions.length })
+                    : t('suggestionsAvailablePlural', { count: storedContent.result.suggestions.length })}
                 </p>
               )}
             </div>
@@ -220,14 +224,14 @@ export default function LeadMagnetContinuation() {
               }}
               className="w-full"
             >
-              Create Project with This Topic
+              {t('createWithTopic')}
               <ArrowRight size={16} className="ml-2" />
             </Button>
           </div>
         )}
 
         <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] text-center">
-          Use AI assistance, plagiarism checks, and citation tools on your content
+          {t('footerNote')}
         </p>
       </div>
     </div>

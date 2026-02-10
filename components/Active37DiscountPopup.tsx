@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { X, Gift, ArrowRight, Sparkles } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -23,6 +24,7 @@ export default function Active37DiscountPopup({
   activeDays = 0,
 }: Active37DiscountPopupProps) {
   const router = useRouter();
+  const t = useTranslations('components.active37Popup');
 
   if (!isOpen) return null;
 
@@ -38,7 +40,7 @@ export default function Active37DiscountPopup({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors"
-          aria-label="Close"
+          aria-label={t('close')}
         >
           <X size={20} />
         </button>
@@ -52,10 +54,13 @@ export default function Active37DiscountPopup({
 
           <div>
             <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-[0.12em] mb-2">
-              Special Offer for Active Users! 🎉
+              {t('title')}
             </h2>
             <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-              You&apos;ve been active {activeDays} {activeDays === 1 ? 'day' : 'days'} this week
+              {t('activeMessage', {
+                days: activeDays,
+                daysLabel: activeDays === 1 ? t('day') : t('days'),
+              })}
             </p>
           </div>
 
@@ -63,33 +68,33 @@ export default function Active37DiscountPopup({
             <div className="flex items-center justify-center gap-2 mb-2">
               <Sparkles className="text-[hsl(var(--primary))]" size={20} />
               <span className="text-3xl font-black text-[hsl(var(--primary))]">
-                37% OFF
+                {t('offLabel')}
               </span>
             </div>
             <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--foreground))] font-semibold mb-1">
-              Use Code: <span className="font-black text-[hsl(var(--primary))]">ACTIVE37</span>
+              {t('useCode')} <span className="font-black text-[hsl(var(--primary))]">{t('code')}</span>
             </p>
             <p className="text-[10px] uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))]">
-              Valid on Pro plan subscriptions
+              {t('validOn')}
             </p>
           </div>
 
           <div className="space-y-2 text-left bg-[hsl(var(--surface-muted))] p-4 rounded-[var(--radius)]">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] mb-2">
-              What you&apos;ll get:
+              {t('whatYouGet')}
             </p>
             <ul className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))] space-y-1">
               <li className="flex items-start gap-2">
                 <span className="text-[hsl(var(--primary))] mt-0.5">✓</span>
-                <span>Unlimited AI words & plagiarism checks</span>
+                <span>{t('benefit1')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[hsl(var(--primary))] mt-0.5">✓</span>
-                <span>Advanced citation management</span>
+                <span>{t('benefit2')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[hsl(var(--primary))] mt-0.5">✓</span>
-                <span>Priority support & early features</span>
+                <span>{t('benefit3')}</span>
               </li>
             </ul>
           </div>
@@ -99,7 +104,7 @@ export default function Active37DiscountPopup({
               onClick={handleUpgrade}
               className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
             >
-              Upgrade Now with ACTIVE37
+              {t('upgradeNow')}
               <ArrowRight size={16} className="ml-2" />
             </Button>
             <Button
@@ -107,12 +112,12 @@ export default function Active37DiscountPopup({
               onClick={onClose}
               className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
             >
-              Maybe Later
+              {t('maybeLater')}
             </Button>
           </div>
 
           <p className="text-[10px] uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))]">
-            This offer is exclusive to active users like you. Don&apos;t miss out!
+            {t('exclusiveNote')}
           </p>
         </div>
       </Card>

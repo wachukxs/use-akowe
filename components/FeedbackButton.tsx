@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { X, Check } from 'lucide-react';
 
 export default function FeedbackButton() {
+  const t = useTranslations('components.feedbackButton');
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +46,7 @@ export default function FeedbackButton() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send feedback');
+        throw new Error(t('errorSend'));
       }
 
       setSubmitted(true);
@@ -74,9 +76,9 @@ export default function FeedbackButton() {
         onClick={() => setIsOpen(true)}
         className="hidden md:block fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-3 py-4 rounded-l-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-x-1 border-2 border-r-0 border-[hsl(var(--primary))]"
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-        aria-label="Send Feedback"
+        aria-label={t('sendFeedbackAria')}
       >
-        <span className="text-xs font-semibold uppercase tracking-widest">Feedback</span>
+        <span className="text-xs font-semibold uppercase tracking-widest">{t('feedback')}</span>
       </button>
 
       {/* Backdrop */}
@@ -94,7 +96,7 @@ export default function FeedbackButton() {
           <button
             onClick={() => setIsOpen(false)}
             className="absolute top-3 right-3 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors cursor-pointer"
-            aria-label="Close"
+            aria-label={t('close')}
           >
             <X size={20} />
           </button>
@@ -105,25 +107,25 @@ export default function FeedbackButton() {
                 <Check size={24} className="text-[hsl(142,76%,36%)]" />
               </div>
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">
-                Thank you!
+                {t('thankYou')}
               </h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-                Your feedback has been sent.
+                {t('sent')}
               </p>
             </div>
           ) : (
             <>
               <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-1">
-                Send Feedback
+                {t('heading')}
               </h2>
               <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4">
-                We&apos;d love to hear from you!
+                {t('intro')}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <Input
-                  label="Name"
-                  placeholder="Your name"
+                  label={t('nameLabel')}
+                  placeholder={t('namePlaceholder')}
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -133,25 +135,25 @@ export default function FeedbackButton() {
 
                 <div className="space-y-1">
                   <Input
-                    label="Email (optional)"
+                    label={t('emailLabel')}
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t('emailPlaceholder')}
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
                   />
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    We&apos;d love to reach out if we have questions or updates.
+                    {t('emailHint')}
                   </p>
                 </div>
 
                 <div className="w-full space-y-1.5">
                   <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
-                    Message
+                    {t('messageLabel')}
                   </label>
                   <textarea
-                    placeholder="Tell us what you think..."
+                    placeholder={t('messagePlaceholder')}
                     value={formData.message}
                     onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
@@ -173,7 +175,7 @@ export default function FeedbackButton() {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Sending...' : 'Send Feedback'}
+                  {isSubmitting ? t('sending') : t('sendButton')}
                 </Button>
               </form>
             </>

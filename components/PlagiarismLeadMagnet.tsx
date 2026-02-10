@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Upload, FileText, AlertTriangle, ArrowRight, Shield } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 import { trackLeadMagnet } from '@/lib/gtag';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface PlagiarismLeadMagnetProps {
   variant: 'control' | 'variant_a' | 'variant_b';
@@ -20,6 +21,7 @@ interface PlagiarismResult {
 }
 
 export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetProps) {
+  const t = useTranslations('components.plagiarismLeadMagnet');
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -58,12 +60,12 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
 
   const handleAnalyze = async () => {
     if (!text.trim() && !file) {
-      setError('Please paste text or upload a file');
+      setError(t('errorPasteOrFile'));
       return;
     }
 
     if (text.trim() && text.trim().length < 50) {
-      setError('Please enter at least 50 characters');
+      setError(t('errorMinChars'));
       return;
     }
 
@@ -119,7 +121,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
       setResult(data);
       trackLeadMagnet.resultViewed('plagiarism', data.riskScore);
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze. Please try again.');
+      setError(err.message || t('analysisFailed'));
     } finally {
       setIsAnalyzing(false);
       setShowEmailCapture(false);
@@ -137,9 +139,9 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
   };
 
   const getRiskLabel = (score: number) => {
-    if (score < 15) return 'Low Risk';
-    if (score < 35) return 'Medium Risk';
-    return 'High Risk';
+    if (score < 15) return t('riskLow');
+    if (score < 35) return t('riskMedium');
+    return t('riskHigh');
   };
 
   return (
@@ -147,13 +149,13 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
       <div className="text-center space-y-4 mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]">
           <Shield size={16} />
-          <span className="text-[10px] uppercase tracking-[0.28em] font-semibold">Free Tool</span>
+          <span className="text-[10px] uppercase tracking-[0.28em] font-semibold">{t('freeTool')}</span>
         </div>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-          Check Your Text for Plagiarism
+          {t('title')}
         </h2>
         <p className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">
-          Paste your text or upload a document. Get instant feedback on potential issues.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -165,7 +167,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
               <textarea
                 value={text}
                 onChange={handleTextChange}
-                placeholder="Paste your text here (minimum 50 characters)..."
+                placeholder={t('placeholder')}
                 className="w-full h-40 sm:h-48 px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
                 disabled={!!file || isAnalyzing}
               />
@@ -173,7 +175,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
               {/* Divider */}
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-[3px] bg-[hsl(var(--border-strong))]" />
-                <span className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">or</span>
+                <span className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">{t('or')}</span>
                 <div className="flex-1 h-[3px] bg-[hsl(var(--border-strong))]" />
               </div>
 
@@ -210,14 +212,14 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
                       }}
                       className="ml-4 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
                     >
-                      Remove
+                      {t('remove')}
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Upload className="mx-auto text-[hsl(var(--muted-foreground))]" size={32} />
                     <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                      Upload .docx, .pdf, or .txt (max 10MB)
+                      {t('uploadHint')}
                     </p>
                   </div>
                 )}
@@ -234,7 +236,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
                 className="w-full py-4"
                 disabled={isAnalyzing || (!text.trim() && !file)}
               >
-                {isAnalyzing ? 'Analyzing...' : 'Check for Plagiarism'}
+                {isAnalyzing ? t('analyzing') : t('checkButton')}
                 {!isAnalyzing && <ArrowRight size={18} className="ml-2" />}
               </Button>
             </div>
@@ -253,7 +255,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
                 {getRiskLabel(result.riskScore)}
               </p>
               <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                {result.wordCount} words analyzed • {result.totalIssues} issues found
+                {t('wordsAnalyzed', { words: result.wordCount, issues: result.totalIssues })}
               </p>
             </div>
 
@@ -261,7 +263,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
             {result.previewIssues.length > 0 && (
               <div className="space-y-4 mb-6">
                 <h4 className="text-sm font-semibold uppercase tracking-[0.2em]">
-                  Sample Issues Detected
+                  {t('sampleIssues')}
                 </h4>
                 {result.previewIssues.map((issue, index) => (
                   <div
@@ -291,10 +293,10 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
             {result.totalIssues > 2 && (
               <div className="border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center bg-[hsl(var(--surface-muted))] mb-6">
                 <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                  +{result.totalIssues - 2} more issues detected
+                  {t('moreIssues', { count: result.totalIssues - 2 })}
                 </p>
                 <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-2">
-                  Sign up to see all issues and get fix suggestions
+                  {t('signUpForAll')}
                 </p>
               </div>
             )}
@@ -306,12 +308,12 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
                 onClick={handleSignupClick}
               >
                 <Button className="px-8 py-4">
-                  Get Full Report Free
+                  {t('getFullReport')}
                   <ArrowRight size={18} className="ml-2" />
                 </Button>
               </Link>
               <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                No credit card required • Free plan includes 3 full checks per day
+                {t('noCardNote')}
               </p>
             </div>
           </div>

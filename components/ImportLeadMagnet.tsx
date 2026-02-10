@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Upload, FileText, CheckCircle2, ArrowRight, BookOpen } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 import { trackLeadMagnet } from '@/lib/gtag';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface ImportLeadMagnetProps {
   variant: 'control' | 'variant_a' | 'variant_b';
@@ -21,6 +22,7 @@ interface ImportResult {
 }
 
 export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
+  const t = useTranslations('components.importLeadMagnet');
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
@@ -48,7 +50,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
     if (droppedFile) {
       const extension = droppedFile.name.split('.').pop()?.toLowerCase();
       if (!['docx', 'pdf', 'txt'].includes(extension || '')) {
-        setError('Please upload a .docx, .pdf, or .txt file');
+        setError(t('errorFileType'));
         return;
       }
       setFile(droppedFile);
@@ -59,7 +61,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
 
   const handleAnalyze = async () => {
     if (!file) {
-      setError('Please upload a file');
+      setError(t('errorUploadFile'));
       return;
     }
 
@@ -124,13 +126,13 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
       <div className="text-center space-y-4 mb-8">
         <div className="inline-flex items-center gap-2 px-4 py-2 border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]">
           <BookOpen size={16} />
-          <span className="text-[10px] uppercase tracking-[0.28em] font-semibold">Free Tool</span>
+          <span className="text-[10px] uppercase tracking-[0.28em] font-semibold">{t('freeTool')}</span>
         </div>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.12em]">
-          Import Your Existing Thesis
+          {t('title')}
         </h2>
         <p className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.24em] text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">
-          Upload your document. We&apos;ll extract sections, citations, and structure—ready to continue in Akọ̀wé.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -172,7 +174,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
                       }}
                       className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
                     >
-                      Remove file
+                      {t('removeFile')}
                     </button>
                   </div>
                 ) : (
@@ -180,14 +182,14 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
                     <Upload className="mx-auto text-[hsl(var(--muted-foreground))]" size={48} />
                     <div>
                       <p className="text-sm font-semibold uppercase tracking-[0.16em]">
-                        Drag and drop your thesis
+                        {t('dragDrop')}
                       </p>
                       <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-2">
-                        or click to browse
+                        {t('orClick')}
                       </p>
                     </div>
                     <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                      Supports .docx, .pdf, .txt (max 10MB)
+                      {t('supports')}
                     </p>
                   </div>
                 )}
@@ -204,7 +206,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
                 className="w-full py-4"
                 disabled={isAnalyzing || !file}
               >
-                {isAnalyzing ? 'Analyzing...' : 'Analyze Document'}
+                {isAnalyzing ? t('analyzing') : t('analyzeButton')}
                 {!isAnalyzing && <ArrowRight size={18} className="ml-2" />}
               </Button>
             </div>
@@ -222,17 +224,17 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
               <div className="flex items-center justify-center gap-6 mt-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold">{result.wordCount.toLocaleString()}</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">Words</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">{t('words')}</p>
                 </div>
                 <div className="w-[3px] h-8 bg-[hsl(var(--border-strong))]" />
                 <div className="text-center">
                   <p className="text-2xl font-bold">{result.sectionCount}</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">Sections</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">{t('sections')}</p>
                 </div>
                 <div className="w-[3px] h-8 bg-[hsl(var(--border-strong))]" />
                 <div className="text-center">
                   <p className="text-2xl font-bold">{result.citationCount}</p>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">Citations</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">{t('citations')}</p>
                 </div>
               </div>
             </div>
@@ -240,7 +242,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
             {/* Sections preview */}
             <div className="space-y-3 mb-6">
               <h4 className="text-sm font-semibold uppercase tracking-[0.2em]">
-                Detected Sections
+                {t('detectedSections')}
               </h4>
               {result.sections.slice(0, 3).map((section, index) => (
                 <div
@@ -266,10 +268,10 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
             {result.sectionCount > 3 && (
               <div className="border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center bg-[hsl(var(--surface-muted))] mb-6">
                 <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                  +{result.sectionCount - 3} more sections detected
+                  {t('moreSections', { count: result.sectionCount - 3 })}
                 </p>
                 <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-2">
-                  Sign up to import all sections and start editing
+                  {t('signUpToImport')}
                 </p>
               </div>
             )}
@@ -281,12 +283,12 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
                 onClick={handleSignupClick}
               >
                 <Button className="px-8 py-4">
-                  Continue in Akọ̀wé
+                  {t('continueInAkowe')}
                   <ArrowRight size={18} className="ml-2" />
                 </Button>
               </Link>
               <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                No credit card required • Your document will be ready to edit
+                {t('noCardNote')}
               </p>
             </div>
           </div>
