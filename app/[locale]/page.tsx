@@ -132,13 +132,13 @@ function HomePageContent() {
                 href="https://blog.useakowe.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[hsl(var(--secondary))] transition-colors"
+                className="hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
               >
                 {tCommon("blog")}
               </a>
               <Link
                 href="/auth/signin"
-                className="hover:text-[hsl(var(--secondary))] transition-colors"
+                className="hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
               >
                 {tCommon("signIn")}
               </Link>
