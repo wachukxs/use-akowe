@@ -17,7 +17,8 @@
     "aiWordsToday": "오늘 AI 글자 수",
     "plagiarismChecksToday": "오늘 표절 검사 횟수",
     "maxProjects": "최대 프로젝트 수",
-    "unlimited": "무제한"
+    "unlimited": "무제한",
+    "paraphraseUsesToday": "오늘 다시 쓰기 횟수"
   },
   "plans": {
     "choosePlan": "플랜 선택",

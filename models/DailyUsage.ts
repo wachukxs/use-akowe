@@ -28,6 +28,10 @@ const DailyUsageSchema = new Schema<IDailyUsage>(
       type: Number,
       default: 0,
     },
+    paraphraseUses: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

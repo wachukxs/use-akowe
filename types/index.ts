@@ -113,6 +113,7 @@ export interface DailyUsage {
   aiWordsGenerated: number;
   plagiarismChecks: number;
   topicFinderSearches: number;
+  paraphraseUses: number;
   createdAt: Date;
   updatedAt: Date;
 }

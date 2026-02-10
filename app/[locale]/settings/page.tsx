@@ -18,6 +18,7 @@ import { getProPlanDiscount, formatDiscountPercentage } from '@/lib/annual-disco
 interface UsageData {
   aiWordsGenerated: number;
   plagiarismChecks: number;
+  paraphraseUses: number;
   limits: UsageLimits;
 }
 
@@ -422,7 +423,7 @@ alert(t('alerts.failedCheckoutSession'));
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
                 {t('usage.title')}
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">{t('usage.aiWordsToday')}</p>
                   <div className="flex items-baseline gap-2">
@@ -459,6 +460,13 @@ alert(t('alerts.failedCheckoutSession'));
                           </p>
                         )}
                       </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">{t('usage.paraphraseUsesToday')}</p>
+                      <p className="text-2xl md:text-3xl font-bold text-gray-900">
+                        {usage.paraphraseUses ?? 0}
+                      </p>
                     </div>
 
                     <div>

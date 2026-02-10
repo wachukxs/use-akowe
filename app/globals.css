@@ -104,6 +104,22 @@ body {
   transition: background 0.4s ease-out;
 }
 
+/* Rewrite just-applied highlight overlay (temporary green) */
+.rewrite-just-applied {
+  background-color: hsl(142 76% 90% / 0.5);
+  border-radius: 2px;
+}
+
+/* Rewrite loading pulse highlight */
+.rewrite-loading-highlight {
+  background-color: hsl(210 100% 95%);
+  animation: rewrite-pulse 1.5s ease-in-out infinite;
+}
+@keyframes rewrite-pulse {
+  0%, 100% { background-color: hsl(210 100% 95%); }
+  50% { background-color: hsl(210 100% 88%); }
+}
+
 /* ContentEditable Rich Text Editor Overrides */
 /* Override prose styles for lists and headers in contentEditable elements */
 [contenteditable] ul {

@@ -38,6 +38,8 @@ import {
   GripVertical,
   AlertCircle,
   RefreshCw,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -53,6 +55,7 @@ import {
 import {
   getRangeAtPoint,
   viewportSafePillPosition,
+  viewportSafeRewritePanelPosition,
 } from "@/lib/editor-context-menu-helpers";
 import {
   CITATION_HIGHLIGHT_ATTR,
@@ -547,6 +550,28 @@ export default function ProjectEditorPage({
     y: number;
   } | null>(null);
   const [contextMenuPillVisible, setContextMenuPillVisible] = useState(false);
+  const [contextMenuHasSelection, setContextMenuHasSelection] = useState(false);
+
+  // Rewrite tool state
+  const [hasTextSelection, setHasTextSelection] = useState(false);
+  const [selectionBarPosition, setSelectionBarPosition] = useState<{x: number; y: number} | null>(null);
+  const [selectionBarVisible, setSelectionBarVisible] = useState(false);
+  const selectionBarRef = useRef<HTMLDivElement | null>(null);
+  const [rewriteTooltipVisible, setRewriteTooltipVisible] = useState(false);
+  const rewriteTooltipShownRef = useRef(false);
+  const rewriteOriginalRangeRef = useRef<Range | null>(null);
+  const [rewriteOriginalText, setRewriteOriginalText] = useState('');
+  const [rewritePanelVisible, setRewritePanelVisible] = useState(false);
+  const [rewritePanelPosition, setRewritePanelPosition] = useState<{x: number; y: number} | null>(null);
+  const [rewriteStatus, setRewriteStatus] = useState<'mode_select' | 'loading' | 'preview' | 'error'>('mode_select');
+  const [rewriteResult, setRewriteResult] = useState('');
+  const [rewriteError, setRewriteError] = useState('');
+  const [rewriteMode, setRewriteMode] = useState<string>('');
+  const [rewriteOriginalWordCount, setRewriteOriginalWordCount] = useState(0);
+  const [rewriteNewWordCount, setRewriteNewWordCount] = useState(0);
+  const rewritePanelRef = useRef<HTMLDivElement | null>(null);
+  const [rewriteHighlightRects, setRewriteHighlightRects] = useState<Array<{top: number; left: number; width: number; height: number}>>([]);
+  const [rewriteHighlightType, setRewriteHighlightType] = useState<'loading' | 'success' | null>(null);
 
   const handleSectionChange = useCallback(
     async (sectionId: string, content: string) => {
@@ -711,6 +736,38 @@ export default function ProjectEditorPage({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [contextMenuPillVisible]);
+
+  // Outside-click dismiss for rewrite panel
+  useEffect(() => {
+    if (!rewritePanelVisible) return;
+    const isInsidePanel = (target: EventTarget | null) => {
+      const node = target as Node;
+      const panel = rewritePanelRef.current;
+      return panel?.contains(node) ?? false;
+    };
+    const handleMouseDown = (e: MouseEvent) => {
+      if (isInsidePanel(e.target as Node)) return;
+      closeRewritePanel();
+    };
+    const handleTouchStart = (e: TouchEvent) => {
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      if (el && isInsidePanel(el)) return;
+      closeRewritePanel();
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRewritePanel();
+    };
+    document.addEventListener("mousedown", handleMouseDown, true);
+    document.addEventListener("touchstart", handleTouchStart, true);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown, true);
+      document.removeEventListener("touchstart", handleTouchStart, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [rewritePanelVisible]);
 
   // AI Assistant functions
   const handleAIWrite = async (sectionId: string) => {
@@ -932,6 +989,174 @@ export default function ProjectEditorPage({
     discoverCitations(0, false, citationSearchQuery);
   };
 
+  // ── Rewrite tool functions ──
+
+  const getOverlayRectsFromRange = (range: Range): Array<{top: number; left: number; width: number; height: number}> => {
+    const clientRects = range.getClientRects();
+    const rects: Array<{top: number; left: number; width: number; height: number}> = [];
+    for (let i = 0; i < clientRects.length; i++) {
+      const r = clientRects[i];
+      if (r.width === 0 && r.height === 0) continue;
+      rects.push({
+        top: r.top,
+        left: r.left,
+        width: r.width,
+        height: r.height,
+      });
+    }
+    return rects;
+  };
+
+  const openRewritePanel = (fromContextMenu: boolean) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const selText = selection.toString().trim();
+    if (!selText) return;
+
+    const wordCount = selText.split(/\s+/).filter((w) => w.length > 0).length;
+    if (wordCount < 3) {
+      setRewriteError(t("rewriteSelectMore"));
+      return;
+    }
+    if (selText.length > 4000) {
+      setRewriteError(t("rewriteTooLong"));
+      return;
+    }
+
+    const range = selection.getRangeAt(0).cloneRange();
+    rewriteOriginalRangeRef.current = range;
+    setRewriteOriginalText(selText);
+    setRewriteOriginalWordCount(wordCount);
+
+    const rect = range.getBoundingClientRect();
+    setRewritePanelPosition(
+      viewportSafeRewritePanelPosition(rect.left, rect.bottom)
+    );
+    setRewriteStatus('mode_select');
+    setRewriteResult('');
+    setRewriteError('');
+    setRewriteMode('');
+    setRewritePanelVisible(true);
+    setSelectionBarVisible(false);
+    setRewriteTooltipVisible(false);
+
+    if (fromContextMenu) {
+      setContextMenuPillVisible(false);
+    }
+  };
+
+  const handleRewriteModeSelect = async (mode: string) => {
+    setRewriteStatus('loading');
+    setRewriteMode(mode);
+    setRewriteError('');
+
+    // Show loading overlay highlight (outside editor DOM - never persisted)
+    const range = rewriteOriginalRangeRef.current;
+    if (range) {
+      setRewriteHighlightRects(getOverlayRectsFromRange(range));
+      setRewriteHighlightType('loading');
+    }
+
+    try {
+      const res = await fetch('/api/ai/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: rewriteOriginalText,
+          mode,
+          projectId: project?._id,
+        }),
+      });
+
+      // Clear loading highlight
+      setRewriteHighlightRects([]);
+      setRewriteHighlightType(null);
+
+      if (res.status === 429) {
+        const data = await res.json();
+        setRewriteError(data.error || t("rewriteLimitReached"));
+        setRewriteStatus('error');
+        return;
+      }
+
+      if (!res.ok) {
+        setRewriteError(t("rewriteError"));
+        setRewriteStatus('error');
+        return;
+      }
+
+      const data = await res.json();
+      setRewriteResult(data.rewrittenText);
+      setRewriteNewWordCount(data.wordCount);
+      setRewriteOriginalWordCount(data.originalWordCount);
+      setRewriteStatus('preview');
+    } catch {
+      setRewriteHighlightRects([]);
+      setRewriteHighlightType(null);
+      setRewriteError(t("rewriteError"));
+      setRewriteStatus('error');
+    }
+  };
+
+  const acceptRewrite = () => {
+    if (!rewritePanelVisible) return;
+    setRewritePanelVisible(false);
+
+    const range = rewriteOriginalRangeRef.current;
+    const editor = document.querySelector('[contenteditable="true"]');
+    if (!range || !editor || !editor.contains(range.startContainer)) {
+      closeRewritePanel();
+      return;
+    }
+
+    try {
+      // Insert plain text only - no wrapper spans in editor DOM
+      range.deleteContents();
+      const textNode = document.createTextNode(rewriteResult);
+      range.insertNode(textNode);
+
+      // Dispatch input to save clean content
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Show success overlay highlight (outside editor DOM - never persisted)
+      // Create a temporary range around the inserted text to get its rects
+      const tempRange = document.createRange();
+      tempRange.selectNode(textNode);
+      const rects = getOverlayRectsFromRange(tempRange);
+      setRewriteHighlightRects(rects);
+      setRewriteHighlightType('success');
+
+      // Fade out and clear after 3s
+      setTimeout(() => {
+        setRewriteHighlightType(null);
+        setRewriteHighlightRects([]);
+      }, 3000);
+    } catch (err) {
+      console.warn('Rewrite accept failed:', err);
+    }
+
+    // Reset state
+    rewriteOriginalRangeRef.current = null;
+    setRewriteOriginalText('');
+    setRewriteResult('');
+    setRewriteError('');
+    setRewriteMode('');
+    setRewriteStatus('mode_select');
+  };
+
+  const closeRewritePanel = () => {
+    setRewriteHighlightRects([]);
+    setRewriteHighlightType(null);
+    setRewritePanelVisible(false);
+    rewriteOriginalRangeRef.current = null;
+    setRewriteOriginalText('');
+    setRewriteResult('');
+    setRewriteError('');
+    setRewriteMode('');
+    setRewriteStatus('mode_select');
+  };
+
   // Function to check current formatting state using document.queryCommandState
   const checkFormattingState = () => {
     try {
@@ -943,6 +1168,43 @@ export default function ProjectEditorPage({
 
         // Only check formatting if selection is within our editor
         if (editor && editor.contains(range.commonAncestorContainer)) {
+          // Track whether user has text selected (for rewrite button + floating bar)
+          const selText = selection.toString();
+          const hasSelection = selText.trim().length > 0;
+          setHasTextSelection(hasSelection);
+
+          // Position the floating selection bar when text is selected
+          if (hasSelection && !rewritePanelVisible) {
+            const rect = range.getBoundingClientRect();
+            if (rect.width > 0) {
+              const barX = rect.left + rect.width / 2 - 60;
+              const barY = rect.top - 48;
+              const safeX = Math.max(8, Math.min(barX, window.innerWidth - 130));
+              const safeY = barY < 8 ? rect.bottom + 8 : barY;
+              setSelectionBarPosition({ x: safeX, y: safeY });
+              setSelectionBarVisible(true);
+
+              // First-use tooltip: show once ever
+              if (!rewriteTooltipShownRef.current) {
+                try {
+                  const dismissed = localStorage.getItem('akowe-rewrite-tooltip-dismissed');
+                  if (!dismissed) {
+                    setRewriteTooltipVisible(true);
+                    rewriteTooltipShownRef.current = true;
+                    localStorage.setItem('akowe-rewrite-tooltip-dismissed', '1');
+                    setTimeout(() => setRewriteTooltipVisible(false), 5000);
+                  } else {
+                    rewriteTooltipShownRef.current = true;
+                  }
+                } catch {
+                  rewriteTooltipShownRef.current = true;
+                }
+              }
+            }
+          } else {
+            setSelectionBarVisible(false);
+          }
+
           // Use document.queryCommandState for more accurate state detection
           const isBold = document.queryCommandState("bold");
           const isItalic = document.queryCommandState("italic");
@@ -1015,6 +1277,8 @@ export default function ProjectEditorPage({
         }
       } else {
         // No selection, reset formatting state
+        setHasTextSelection(false);
+        setSelectionBarVisible(false);
         setFormattingState({
           bold: false,
           italic: false,
@@ -3398,6 +3662,20 @@ title={t("deleteSection")}
                             >
                               <BarChart3 className="h-4 w-4" />
                             </button>
+                            <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+                            <button
+                              onClick={() => openRewritePanel(false)}
+                              disabled={!hasTextSelection}
+                              className={cn(
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                hasTextSelection
+                                  ? "hover:border-[hsl(var(--border-strong))] text-[hsl(var(--primary))]"
+                                  : "opacity-40 cursor-not-allowed"
+                              )}
+                              title={t("rewriteWithAI")}
+                            >
+                              <Sparkles className="h-4 w-4" />
+                            </button>
                           </div>
 
                           <div className="flex-1"></div>
@@ -3430,6 +3708,8 @@ title={t("deleteSection")}
                                 .getRangeAt(0)
                                 .cloneRange();
                               storedInsertRangeRef.current = range;
+                              const hasSelection = selection.toString().trim().length > 0;
+                              setContextMenuHasSelection(hasSelection);
                               setContextMenuPillPosition(
                                 viewportSafePillPosition(e.clientX, e.clientY)
                               );
@@ -4394,6 +4674,171 @@ title={t("deleteSection")}
             >
               {CONTEXT_MENU_FIND_CITATION_LABEL}
             </button>
+            {contextMenuHasSelection && (
+              <>
+                <div className="w-px h-6 bg-[hsl(var(--border-strong))]" />
+                <button
+                  type="button"
+                  onClick={() => openRewritePanel(true)}
+                  className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation flex items-center"
+                >
+                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                  {t("rewrite")}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Rewrite highlight overlay (outside editor DOM - never persisted in content) */}
+        {rewriteHighlightRects.length > 0 && rewriteHighlightType && (
+          <>
+            {rewriteHighlightRects.map((rect, i) => (
+              <div
+                key={i}
+                className={`fixed pointer-events-none z-[55] rounded-sm ${
+                  rewriteHighlightType === 'loading'
+                    ? 'rewrite-loading-highlight'
+                    : 'rewrite-just-applied'
+                }`}
+                style={{
+                  top: rect.top,
+                  left: rect.left,
+                  width: rect.width,
+                  height: rect.height,
+                }}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Floating selection bar - appears when text is selected */}
+        {selectionBarVisible && selectionBarPosition && !rewritePanelVisible && !contextMenuPillVisible && (
+          <div
+            ref={selectionBarRef}
+            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[40px] flex items-center animate-in fade-in duration-150"
+            style={{
+              left: selectionBarPosition.x,
+              top: selectionBarPosition.y,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => openRewritePanel(false)}
+              className="min-h-[36px] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation flex items-center gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+              {t("rewrite")}
+            </button>
+            {rewriteTooltipVisible && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 rounded-(--radius) bg-[hsl(var(--foreground))] text-[hsl(var(--background))] text-xs font-medium whitespace-nowrap shadow-lg animate-in fade-in slide-in-from-top-1 duration-200"
+                onClick={() => setRewriteTooltipVisible(false)}
+              >
+                {t("rewriteTooltipNew")}
+                <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-[hsl(var(--foreground))] rotate-45" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Rewrite Panel */}
+        {rewritePanelVisible && rewritePanelPosition && (
+          <div
+            ref={rewritePanelRef}
+            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-3 w-[320px]"
+            style={{
+              left: rewritePanelPosition.x,
+              top: rewritePanelPosition.y,
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1.5 text-sm font-semibold">
+                <Sparkles className="h-4 w-4 text-[hsl(var(--primary))]" />
+                {t("rewriteWithAI")}
+              </div>
+              <button
+                type="button"
+                onClick={closeRewritePanel}
+                className="p-1 rounded-(--radius) hover:bg-[hsl(var(--surface-muted))] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Mode Selection */}
+            {rewriteStatus === 'mode_select' && (
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { mode: 'academic', label: t("rewriteModeAcademic"), desc: t("rewriteModeAcademicDesc") },
+                  { mode: 'concise', label: t("rewriteModeConcise"), desc: t("rewriteModeConciseDesc") },
+                  { mode: 'expanded', label: t("rewriteModeExpanded"), desc: t("rewriteModeExpandedDesc") },
+                  { mode: 'simplified', label: t("rewriteModeSimplified"), desc: t("rewriteModeSimplifiedDesc") },
+                ].map((item) => (
+                  <button
+                    key={item.mode}
+                    type="button"
+                    onClick={() => handleRewriteModeSelect(item.mode)}
+                    className="p-3 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
+                  >
+                    <div className="text-sm font-semibold">{item.label}</div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">{item.desc}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Loading */}
+            {rewriteStatus === 'loading' && (
+              <div className="flex items-center justify-center gap-2 py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--primary))]" />
+                <span className="text-sm text-[hsl(var(--muted-foreground))]">{t("rewriteLoading")}</span>
+              </div>
+            )}
+
+            {/* Preview */}
+            {rewriteStatus === 'preview' && (
+              <div>
+                <p className="text-xs font-semibold text-[hsl(var(--muted-foreground))] mb-1.5">{t("rewritePreviewTitle")}</p>
+                <div className="max-h-[200px] overflow-y-auto rounded-(--radius) border-2 border-[hsl(var(--border-strong))] p-2 text-sm mb-3">
+                  {rewriteResult}
+                </div>
+                <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
+                  {rewriteOriginalWordCount} &rarr; {rewriteNewWordCount} {t("words")}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={acceptRewrite}
+                    className="flex-1 px-3 py-2 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    {t("rewriteAccept")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRewriteStatus('mode_select')}
+                    className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                  >
+                    {t("rewriteTryAgain")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Error */}
+            {rewriteStatus === 'error' && (
+              <div>
+                <p className="text-sm text-red-600 mb-3">{rewriteError || t("rewriteError")}</p>
+                <button
+                  type="button"
+                  onClick={() => setRewriteStatus('mode_select')}
+                  className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors w-full"
+                >
+                  {t("rewriteTryAgain")}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

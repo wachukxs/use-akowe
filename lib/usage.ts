@@ -75,6 +75,18 @@ export async function checkAIWordLimit(userId: string, wordsToGenerate: number):
   };
 }
 
+export async function incrementParaphraseUses(userId: string, words: number) {
+  await connectDB();
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  await DailyUsage.findOneAndUpdate(
+    { userId, date: today },
+    { $inc: { paraphraseUses: 1, aiWordsGenerated: words } },
+    { upsert: true, new: true }
+  );
+}
+
 export async function incrementAIWords(userId: string, words: number) {
   await connectDB();
   

@@ -64,6 +64,7 @@ export async function GET(request: Request) {
             totalAIWords: { $sum: '$aiWordsGenerated' },
             totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
             totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
+            totalParaphraseUses: { $sum: '$paraphraseUses' },
             activeDays: { $sum: 1 },
           },
         },
@@ -97,7 +98,7 @@ export async function GET(request: Request) {
 
     const usageMap = new Map<
       string,
-      { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; activeDays: number }
+      { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number; activeDays: number }
     >();
     usageAggregation.forEach(
       (usage: {
@@ -105,12 +106,14 @@ export async function GET(request: Request) {
         totalAIWords: number;
         totalPlagiarismChecks: number;
         totalTopicFinderSearches: number;
+        totalParaphraseUses: number;
         activeDays: number;
       }) => {
         usageMap.set(usage._id, {
           totalAIWords: usage.totalAIWords,
           totalPlagiarismChecks: usage.totalPlagiarismChecks,
           totalTopicFinderSearches: usage.totalTopicFinderSearches,
+          totalParaphraseUses: usage.totalParaphraseUses,
           activeDays: usage.activeDays,
         });
       },
@@ -130,6 +133,7 @@ export async function GET(request: Request) {
         totalAIWords: 0,
         totalPlagiarismChecks: 0,
         totalTopicFinderSearches: 0,
+        totalParaphraseUses: 0,
         activeDays: 0,
       };
       const citations = citationMap.get(userId) || {
@@ -147,6 +151,7 @@ export async function GET(request: Request) {
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
         totalTopicFinderSearches: usage.totalTopicFinderSearches,
+        totalParaphraseUses: usage.totalParaphraseUses,
         totalCitations: citations.totalCitations,
         projectsWithCitations: citations.projectsWithCitations,
         activeDays: usage.activeDays,
