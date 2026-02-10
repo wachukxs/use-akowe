@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { FileText, Upload, AlertTriangle, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { trackLeadMagnet } from '@/lib/gtag';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 
@@ -20,6 +21,7 @@ interface ImportResult {
 }
 
 export default function InlineImportTool() {
+  const t = useTranslations('components.inlineImportTool');
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -101,7 +103,7 @@ export default function InlineImportTool() {
       <div className="flex items-center gap-2 mb-4">
         <FileText size={20} className="text-[hsl(var(--primary))]" />
         <h3 className="text-lg font-bold uppercase tracking-[0.1em]">
-          Try It: Import Your Document
+          {t('title')}
         </h3>
       </div>
       
@@ -123,14 +125,14 @@ export default function InlineImportTool() {
             {isAnalyzing ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 size={32} className="animate-spin text-[hsl(var(--primary))]" />
-                <span className="text-sm uppercase tracking-[0.14em]">Analyzing {fileName}...</span>
+                <span className="text-sm uppercase tracking-[0.14em]">{t('analyzingFile', { fileName })}</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
                 <Upload size={32} className="text-[hsl(var(--muted-foreground))]" />
-                <span className="text-sm uppercase tracking-[0.14em]">Upload DOCX, PDF, or TXT</span>
+                <span className="text-sm uppercase tracking-[0.14em]">{t('uploadCta')}</span>
                 <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                  See your thesis readiness score instantly
+                  {t('uploadSubtext')}
                 </span>
               </div>
             )}
@@ -142,7 +144,7 @@ export default function InlineImportTool() {
           <div className="flex items-center justify-between p-4 bg-[hsl(var(--background))] border-[2px] border-[hsl(var(--border-strong))] rounded">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                Thesis Readiness
+                {t('thesisReadiness')}
               </p>
               <p className={`text-3xl font-bold ${getScoreColor(result.readinessScore)}`}>
                 {result.readinessScore}%
@@ -159,15 +161,15 @@ export default function InlineImportTool() {
           <div className="grid grid-cols-3 gap-2 text-center text-xs">
             <div className="p-2 bg-[hsl(var(--background))] rounded">
               <p className="font-bold">{result.sectionCount}</p>
-              <p className="text-[hsl(var(--muted-foreground))]">Sections</p>
+              <p className="text-[hsl(var(--muted-foreground))]">{t('sections')}</p>
             </div>
             <div className="p-2 bg-[hsl(var(--background))] rounded">
               <p className="font-bold">{result.wordCount.toLocaleString()}</p>
-              <p className="text-[hsl(var(--muted-foreground))]">Words</p>
+              <p className="text-[hsl(var(--muted-foreground))]">{t('words')}</p>
             </div>
             <div className="p-2 bg-[hsl(var(--background))] rounded">
               <p className="font-bold">{result.citationCount}</p>
-              <p className="text-[hsl(var(--muted-foreground))]">Citations</p>
+              <p className="text-[hsl(var(--muted-foreground))]">{t('citations')}</p>
             </div>
           </div>
 
@@ -185,7 +187,7 @@ export default function InlineImportTool() {
             onClick={() => setShowEmailCapture(true)}
             className="w-full inline-flex items-center justify-center gap-2 border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-5 py-3 font-semibold uppercase tracking-[0.12em] text-sm"
           >
-            Fix Issues in Akọ̀wé
+            {t('fixInAkowe')}
             <ArrowRight size={16} />
           </button>
         </div>

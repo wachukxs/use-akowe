@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { LogOut } from 'lucide-react';
 
 interface AdminAuthGuardProps {
@@ -9,6 +10,7 @@ interface AdminAuthGuardProps {
 }
 
 export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
+  const t = useTranslations('components.adminAuthGuard');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
@@ -69,7 +71,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-[hsl(var(--primary))] border-t-transparent mx-auto"></div>
           <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-            Verifying access...
+            {t('verifying')}
           </p>
         </div>
       </div>
@@ -93,7 +95,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
             className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[hsl(var(--destructive))] hover:text-[hsl(var(--destructive-foreground))] hover:border-[hsl(var(--destructive))] transition-colors shadow-[4px_4px_0_rgba(29,41,57,0.12)]"
           >
             <LogOut size={14} />
-            {isLoggingOut ? 'Logging out...' : 'Logout'}
+            {isLoggingOut ? t('loggingOut') : t('logout')}
           </button>
         </div>
         {children}

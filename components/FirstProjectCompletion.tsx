@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { CheckCircle2, Sparkles, ArrowRight, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -11,6 +12,7 @@ import Card from '@/components/ui/Card';
  * Appears on the project editor page for first-time users
  */
 export default function FirstProjectCompletion() {
+  const t = useTranslations('components.firstProjectCompletion');
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -53,10 +55,10 @@ export default function FirstProjectCompletion() {
           
           <div>
             <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-[0.12em] mb-2">
-              Project Created Successfully! 🎉
+              {t('title')}
             </h2>
             <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-              Your project is ready. Let&apos;s start writing!
+              {t('subtitle')}
             </p>
           </div>
 
@@ -84,7 +86,7 @@ export default function FirstProjectCompletion() {
             }}
             className="w-full py-3 text-xs uppercase tracking-[0.2em]"
           >
-            Start Writing
+            {t('startWriting')}
             <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>

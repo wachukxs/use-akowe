@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 
 interface LeadMagnetEmailCaptureProps {
@@ -19,6 +20,7 @@ export default function LeadMagnetEmailCapture({
   source,
   isLoading = false,
 }: LeadMagnetEmailCaptureProps) {
+  const t = useTranslations('components.leadMagnetEmailCapture');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
@@ -30,24 +32,24 @@ export default function LeadMagnetEmailCapture({
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+      setError(t('errorInvalidEmail'));
       return;
     }
 
     onSubmit(email);
   };
 
-  const title = source === 'plagiarism' 
-    ? 'Get Your Plagiarism Report' 
+  const title = source === 'plagiarism'
+    ? t('titlePlagiarism')
     : source === 'topic'
-    ? 'Get All Unique Topics & Research Gaps'
-    : 'See Your Document Analysis';
-  
+    ? t('titleTopic')
+    : t('titleImport');
+
   const subtitle = source === 'plagiarism'
-    ? 'Enter your email to view your plagiarism risk score and detected issues.'
+    ? t('subtitlePlagiarism')
     : source === 'topic'
-    ? 'Enter your email to see all unique topic suggestions, detailed research gap analysis, and create your project.'
-    : 'Enter your email to see your extracted sections and citations.';
+    ? t('subtitleTopic')
+    : t('subtitleImport');
 
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
@@ -73,13 +75,13 @@ export default function LeadMagnetEmailCapture({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-2 block">
-                Email Address
+                {t('emailLabel')}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@university.edu"
+                placeholder={t('emailPlaceholder')}
                 className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                 disabled={isLoading}
               />
@@ -95,11 +97,11 @@ export default function LeadMagnetEmailCapture({
               className="w-full py-3"
               disabled={isLoading}
             >
-              {isLoading ? 'Processing...' : 'Show My Results'}
+              {isLoading ? t('processing') : t('showResults')}
             </Button>
 
             <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center">
-              No spam. We&apos;ll only send you helpful writing tips.
+              {t('noSpam')}
             </p>
           </form>
         </div>

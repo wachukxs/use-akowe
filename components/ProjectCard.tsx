@@ -1,7 +1,10 @@
+'use client';
+
 import { Link } from '@/i18n/navigation';
 import { Project, ProjectType } from '@/types';
 import { cn, formatDate } from '@/lib/utils';
 import { FileText, BookOpen, GraduationCap, FlaskConical } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Card from './ui/Card';
 
 const projectIcons: Record<ProjectType, React.ElementType> = {
@@ -23,8 +26,11 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project }: ProjectCardProps) {
+  const t = useTranslations('components.projectCard');
   const Icon = projectIcons[project.type];
   const accentClass = projectAccents[project.type];
+  const statusKey = project.status === 'draft' ? 'statusDraft' : project.status === 'in_progress' ? 'statusInProgress' : project.status === 'completed' ? 'statusCompleted' : 'statusArchived';
+  const typeKey = project.type === 'essay' ? 'typeEssay' : project.type === 'thesis' ? 'typeThesis' : project.type === 'journal' ? 'typeJournal' : 'typeResearch';
 
   return (
     <Link href={`/project/${project._id}`}>
@@ -41,16 +47,16 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </h3>
         
           <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-            <span>{project.type}</span>
+            <span>{t(typeKey)}</span>
             <span>•</span>
-            <span>{project.wordCount} words</span>
+            <span>{project.wordCount} {t('words')}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="space-y-1">
             <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Sections
+              {t('sections')}
             </span>
             <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
               {project.sections.length}
@@ -58,7 +64,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           </div>
           <div className="space-y-1">
             <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              Citations
+              {t('citations')}
             </span>
             <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
               {project.citations.length}
@@ -73,7 +79,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]': project.status === 'completed',
             'bg-[hsl(var(--surface-muted))] text-[hsl(var(--foreground))]': project.status === 'archived',
           })}>
-            {project.status.replace('_', ' ')}
+            {t(statusKey)}
           </span>
           <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             {formatDate(new Date(project.lastEditedAt))}

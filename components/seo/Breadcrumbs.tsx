@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface BreadcrumbItem {
   label: string;
@@ -11,13 +14,14 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
+  const t = useTranslations('components.breadcrumbs');
   const allItems = [
-    { label: 'Home', href: '/' },
+    { label: t('home'), href: '/' },
     ...items,
   ];
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
+    <nav aria-label={t('ariaLabel')} className="mb-6">
       <ol className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] flex-wrap">
         {allItems.map((item, index) => {
           const isLast = index === allItems.length - 1;
