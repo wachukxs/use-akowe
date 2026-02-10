@@ -189,14 +189,14 @@ function ImportProjectPageInner() {
           <div className="flex items-center gap-4 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-3 py-2 rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+              className="flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-3 py-2 rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
             >
               ← Back
             </button>
             <span className="hidden sm:inline">Import existing project</span>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
             <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Import Existing Project</h1>
             <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Upload your document to import sections, content, and citations into Akọ̀wé.
@@ -204,7 +204,7 @@ function ImportProjectPageInner() {
           </div>
 
           {continuationMessage && (
-            <div className="border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-4 flex items-center gap-3">
+            <div className="border-4 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-4 flex items-center gap-3">
               <CheckCircle2 className="text-[hsl(var(--primary))] flex-shrink-0" size={20} />
               <p className="text-xs uppercase tracking-[0.18em]">{continuationMessage}</p>
               <button 
@@ -246,7 +246,7 @@ function ImportProjectPageInner() {
                     onDrop={handleFileDrop}
                     onDragOver={(e) => e.preventDefault()}
                     className={cn(
-                      'border-4 border-dashed rounded-[var(--radius)] p-12 text-center transition-colors',
+                      'border-4 border-dashed rounded-(--radius) p-12 text-center transition-colors',
                       file
                         ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
                         : 'border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))]'
@@ -342,7 +342,7 @@ function ImportProjectPageInner() {
                           type="text"
                           value={projectName}
                           onChange={(e) => setProjectName(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
+                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
                         />
                       </div>
 
@@ -353,7 +353,7 @@ function ImportProjectPageInner() {
                         <select
                           value={projectType}
                           onChange={(e) => setProjectType(e.target.value as any)}
-                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
+                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
                         >
                           <option value="essay">Essay</option>
                           <option value="thesis">Thesis</option>
@@ -370,7 +370,7 @@ function ImportProjectPageInner() {
                           type="text"
                           value={topic}
                           onChange={(e) => setTopic(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
+                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
                         />
                       </div>
                     </div>
@@ -384,7 +384,7 @@ function ImportProjectPageInner() {
                           type="number"
                           value={targetWordCount}
                           onChange={(e) => setTargetWordCount(parseInt(e.target.value) || 0)}
-                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
+                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
                         />
                       </div>
 
@@ -395,7 +395,7 @@ function ImportProjectPageInner() {
                         <select
                           value={citationStyle}
                           onChange={(e) => setCitationStyle(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
+                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
                         >
                           <option value="APA">APA</option>
                           <option value="MLA">MLA</option>
@@ -412,7 +412,7 @@ function ImportProjectPageInner() {
                         <select
                           value={methodology}
                           onChange={(e) => setMethodology(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
+                          className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em]"
                         >
                           <option value="">Select methodology...</option>
                           <option value="qualitative">Qualitative Research</option>
@@ -485,7 +485,7 @@ export default function ImportProjectPage() {
           <MobileMenuButton />
           <div className="flex-1 md:ml-64 overflow-auto">
             <div className="max-w-6xl mx-auto p-4 pt-16 md:pt-10 md:p-10 space-y-6 md:space-y-10">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
                 <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Import Existing Project</h1>
                 <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                   Loading...

@@ -198,7 +198,7 @@ export default function AttributionTab() {
         <select
           value={selectedDimension}
           onChange={(e) => setSelectedDimension(e.target.value as any)}
-          className="px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
+          className="px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
         >
           <option value="channel">Channel</option>
           <option value="source">Source (UTM)</option>

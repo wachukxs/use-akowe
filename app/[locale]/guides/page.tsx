@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { getAllGuideSlugs, getGuideBySlug } from '@/lib/seo/guides';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -31,7 +32,7 @@ export default function GuidesIndexPage() {
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
@@ -56,9 +57,10 @@ export default function GuidesIndexPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [{ label: 'Guides', href: '/guides' }],
-            })),
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [{ label: 'Guides', href: '/guides' }],
+              baseUrl
+            )),
           }}
         />
         <div className="mb-12">
@@ -77,7 +79,7 @@ export default function GuidesIndexPage() {
             <Link
               key={guide.slug}
               href={`/guides/${guide.slug}`}
-              className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
+              className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
             >
               <h2 className="text-xl font-bold mb-2">{guide.title}</h2>
               <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 line-clamp-2">

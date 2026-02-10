@@ -118,7 +118,7 @@ export default function AmbassadorPage() {
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
           <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-0 sm:h-20">
             <Link href="/" className="flex flex-col gap-0.5">
@@ -130,9 +130,14 @@ export default function AmbassadorPage() {
               </span>
             </Link>
             <nav className="flex flex-wrap items-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] sm:tracking-[0.28em]">
-              <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              <a
+                href="https://blog.useakowe.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[hsl(var(--secondary))] transition-colors"
+              >
                 Blog
-              </Link>
+              </a>
               <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
               </Link>
@@ -190,7 +195,7 @@ export default function AmbassadorPage() {
               return (
                 <div
                   key={index}
-                  className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg"
+                  className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg"
                 >
                   <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center mb-4', benefit.bgColor)}>
                     <Icon className={cn('w-6 h-6', benefit.iconColor)} />
@@ -207,7 +212,7 @@ export default function AmbassadorPage() {
 
         {/* Who We're Looking For Section */}
         <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-20">
-          <div className="bg-[hsl(var(--primary))] border-[4px] border-[hsl(var(--border-strong))] rounded-lg p-8 sm:p-12 text-[hsl(var(--primary-foreground))]">
+          <div className="bg-[hsl(var(--primary))] border-4 border-[hsl(var(--border-strong))] rounded-lg p-8 sm:p-12 text-[hsl(var(--primary-foreground))]">
             <h2 className="text-3xl sm:text-4xl font-bold mb-8 text-center">
               Who We&apos;re Looking For
             </h2>
@@ -270,7 +275,7 @@ export default function AmbassadorPage() {
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden"
+                className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden"
               >
                 <button
                   onClick={() => toggleFAQ(index)}
@@ -297,7 +302,7 @@ export default function AmbassadorPage() {
 
         {/* Final CTA Section */}
         <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 sm:py-20">
-          <div className="bg-[hsl(var(--primary))] border-[4px] border-[hsl(var(--border-strong))] rounded-lg p-8 sm:p-12 text-[hsl(var(--primary-foreground))] text-center">
+          <div className="bg-[hsl(var(--primary))] border-4 border-[hsl(var(--border-strong))] rounded-lg p-8 sm:p-12 text-[hsl(var(--primary-foreground))] text-center">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Ready to Join?
             </h2>

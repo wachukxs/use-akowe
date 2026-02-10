@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { HelpCircle } from 'lucide-react';
 import { getFAQBySlug } from '@/lib/seo/faqs';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import InlineImportTool from '@/components/InlineImportTool';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
@@ -48,7 +49,7 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
@@ -93,12 +94,13 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [
                 { label: 'FAQ', href: '/faq' },
                 { label: faq.question, href: `/faq/${slug}` },
               ],
-            })),
+              baseUrl
+            )),
           }}
         />
         <script
@@ -121,7 +123,7 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
         </div>
 
         <div className="prose prose-lg max-w-none">
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <p className="text-lg leading-relaxed whitespace-pre-line">{faq.answer}</p>
           </div>
         </div>

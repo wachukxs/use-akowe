@@ -8,11 +8,11 @@ import Card from '@/components/ui/Card';
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <ArrowLeft size={18} />
               </span>
               <div className="flex flex-col gap-0.5">
@@ -25,9 +25,14 @@ export default function AboutPage() {
               </div>
             </Link>
             <nav className="flex items-center gap-6 text-xs font-semibold uppercase tracking-[0.28em]">
-              <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              <a
+                href="https://blog.useakowe.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[hsl(var(--secondary))] transition-colors"
+              >
                 Blog
-              </Link>
+              </a>
               <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
               </Link>
@@ -57,11 +62,15 @@ export default function AboutPage() {
                     Start Writing
                   </Button>
                 </Link>
-                <Link href="/blog">
+                <a
+                  href="https://blog.useakowe.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Button variant="outline" className="px-8 py-4">
                     Explore Blog
                   </Button>
-                </Link>
+                </a>
               </div>
             </div>
             <Card className="lg:col-span-5 p-8 space-y-4 bg-[hsl(var(--surface))]">
@@ -102,7 +111,7 @@ export default function AboutPage() {
                 They were rigorous, meticulous, and deeply trusted. Not because they loved paperwork, but
                 because preserving truth kept the community intact.
               </p>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
                 <p className="text-xs sm:text-sm uppercase tracking-[0.18em] sm:tracking-[0.22em] leading-relaxed">
                   &ldquo;Choosing Akọ̀wé anchors our work in a legacy of integrity. The studio isn&apos;t
                   just software—it is a continuation of that covenant with accuracy and care.&rdquo;
@@ -134,7 +143,7 @@ export default function AboutPage() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               <Card hover className="p-6 space-y-4 bg-[hsl(var(--surface))]">
-                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--foreground))]">
+                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--foreground))]">
                   <Lightbulb size={22} />
                 </div>
                 <h3 className="text-lg font-semibold uppercase tracking-[0.18em]">
@@ -145,7 +154,7 @@ export default function AboutPage() {
                 </p>
               </Card>
               <Card hover className="p-6 space-y-4 bg-[hsl(var(--surface))]">
-                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--foreground))]">
+                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--foreground))]">
                   <BookOpen size={22} />
                 </div>
                 <h3 className="text-lg font-semibold uppercase tracking-[0.18em]">
@@ -156,7 +165,7 @@ export default function AboutPage() {
                 </p>
               </Card>
               <Card hover className="p-6 space-y-4 bg-[hsl(var(--surface))]">
-                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--foreground))]">
+                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--foreground))]">
                   <Users size={22} />
                 </div>
                 <h3 className="text-lg font-semibold uppercase tracking-[0.18em]">
@@ -236,7 +245,7 @@ export default function AboutPage() {
                   body: 'Design choices echo the archival rigor and artistic lineage that inspired Akọ̀wé.'
                 }
               ].map((value, index) => (
-                <Card key={value.title} className="p-6 bg-[hsl(var(--surface))] space-y-3 border-[4px] border-[hsl(var(--border-strong))]">
+                <Card key={value.title} className="p-6 bg-[hsl(var(--surface))] space-y-3 border-4 border-[hsl(var(--border-strong))]">
                   <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                     {String(index + 1).padStart(2, '0')}
                   </span>
@@ -252,7 +261,7 @@ export default function AboutPage() {
 
         {/* CTA */}
         <section className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
-          <Card className="p-10 bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[4px] border-[hsl(var(--border-strong))] space-y-6 text-center">
+          <Card className="p-10 bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-4 border-[hsl(var(--border-strong))] space-y-6 text-center">
             <span className="text-xs uppercase tracking-[0.32em]">Join the studio</span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.1em] lg:tracking-[0.12em] leading-tight">
               Ready to publish work that withstands scrutiny?
@@ -291,9 +300,14 @@ export default function AboutPage() {
             <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Our Story
             </Link>
-            <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+            <a
+              href="https://blog.useakowe.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
               Blog
-            </Link>
+            </a>
             <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Sign In
             </Link>

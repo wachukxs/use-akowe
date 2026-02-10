@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { useRouter, Link } from '@/i18n/navigation';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
@@ -14,59 +15,19 @@ import TopicFinderModal from '@/components/TopicFinderModal';
 import GuidedFirstProject from '@/components/GuidedFirstProject';
 import { trackFunnel } from '@/lib/gtag';
 
-const projectTypes: { 
+const projectTypeConfig: {
   type: ProjectType;
-  label: string;
-  description: string;
   icon: React.ElementType;
   typicalWordCount: { min: number; max: number };
-  commonMethodologies: string[];
-  citationStyles: string[];
-  insights: string[];
 }[] = [
-  {
-    type: 'essay',
-    label: 'Essay',
-    description: 'Short academic papers and assignments',
-    icon: FileText,
-    typicalWordCount: { min: 1000, max: 5000 },
-    commonMethodologies: ['Literature review', 'Argumentative analysis', 'Comparative study'],
-    citationStyles: ['APA', 'MLA', 'Chicago'],
-    insights: ['Focus on clear argumentation', 'Strong thesis statement required', 'Usually 3-5 main points']
-  },
-  {
-    type: 'thesis',
-    label: 'Thesis',
-    description: 'Graduate research and thesis projects',
-    icon: GraduationCap,
-    typicalWordCount: { min: 15000, max: 50000 },
-    commonMethodologies: ['Qualitative research', 'Quantitative research', 'Mixed methods', 'Case study'],
-    citationStyles: ['APA', 'Chicago', 'Harvard'],
-    insights: ['Requires original research contribution', 'Extensive literature review needed', 'Methodology section is crucial']
-  },
-  {
-    type: 'journal',
-    label: 'Journal Article',
-    description: 'Research papers for publication',
-    icon: BookOpen,
-    typicalWordCount: { min: 3000, max: 8000 },
-    commonMethodologies: ['Experimental design', 'Survey research', 'Meta-analysis', 'Systematic review'],
-    citationStyles: ['APA', 'IEEE', 'Chicago'],
-    insights: ['Must follow journal guidelines', 'Abstract and keywords important', 'Peer review process expected']
-  },
-  {
-    type: 'research',
-    label: 'Research Paper',
-    description: 'Comprehensive research documents',
-    icon: FlaskConical,
-    typicalWordCount: { min: 5000, max: 15000 },
-    commonMethodologies: ['Empirical research', 'Theoretical analysis', 'Comparative study', 'Longitudinal study'],
-    citationStyles: ['APA', 'MLA', 'Chicago', 'Harvard'],
-    insights: ['Rigorous methodology required', 'Data analysis section important', 'Clear research questions needed']
-  },
+  { type: 'essay', icon: FileText, typicalWordCount: { min: 1000, max: 5000 } },
+  { type: 'thesis', icon: GraduationCap, typicalWordCount: { min: 15000, max: 50000 } },
+  { type: 'journal', icon: BookOpen, typicalWordCount: { min: 3000, max: 8000 } },
+  { type: 'research', icon: FlaskConical, typicalWordCount: { min: 5000, max: 15000 } },
 ];
 
 export default function NewProjectPage() {
+  const t = useTranslations('dashboardNew');
   const router = useRouter();
   const { data: session } = useSession();
   const [projectName, setProjectName] = useState('');
@@ -83,6 +44,17 @@ export default function NewProjectPage() {
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'team'>('free');
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [showGuidedModal, setShowGuidedModal] = useState(false);
+
+  const projectTypes = useMemo(() => {
+    return projectTypeConfig.map((config) => ({
+      ...config,
+      label: t(`projectTypes.${config.type}.label`),
+      description: t(`projectTypes.${config.type}.description`),
+      commonMethodologies: t.raw(`projectTypes.${config.type}.commonMethodologies`) as string[],
+      citationStyles: t.raw(`projectTypes.${config.type}.citationStyles`) as string[],
+      insights: t.raw(`projectTypes.${config.type}.insights`) as string[],
+    }));
+  }, [t]);
 
   // Get current project type details
   const currentType = projectTypes.find(type => type.type === selectedType);
@@ -172,11 +144,11 @@ export default function NewProjectPage() {
   const validateForm = () => {
     const errors: string[] = [];
     
-    if (!projectName.trim()) errors.push('Project name is required');
-    if (!topic.trim()) errors.push('Research topic is required');
-    if (!methodology.trim()) errors.push('Research methodology is required');
-    if (targetWordCount < 100) errors.push('Target word count should be at least 100');
-    if (targetWordCount > 100000) errors.push('Target word count seems too high (max 100,000)');
+    if (!projectName.trim()) errors.push(t('validationProjectNameRequired'));
+    if (!topic.trim()) errors.push(t('validationTopicRequired'));
+    if (!methodology.trim()) errors.push(t('validationMethodologyRequired'));
+    if (targetWordCount < 100) errors.push(t('validationWordCountMin'));
+    if (targetWordCount > 100000) errors.push(t('validationWordCountMax'));
     
     setValidationErrors(errors);
     return errors.length === 0;
@@ -224,7 +196,7 @@ export default function NewProjectPage() {
         if (error.error === 'Project limit reached') {
           // Track paywall view
           trackFunnel.paywallView('project_limit', 'new_project');
-          setLimitError(error.message || 'You have reached the maximum number of projects for your plan.');
+          setLimitError(error.message || t('limitReachedDefault'));
           setShowLimitModal(true);
         } else {
           alert(`Error creating project: ${error.error || 'Unknown error'}`);
@@ -232,7 +204,7 @@ export default function NewProjectPage() {
       }
     } catch (error) {
       console.error('Error creating project:', error);
-      alert('An error occurred while creating the project');
+      alert(t('errorCreatingProject'));
     } finally {
       setIsCreating(false);
     }
@@ -248,23 +220,23 @@ export default function NewProjectPage() {
           <div className="flex items-center gap-4 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-3 py-2 rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+              className="flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-3 py-2 rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
             >
-              ← Back
+              {t('back')}
             </button>
-            <span className="hidden sm:inline">New project workspace</span>
+            <span className="hidden sm:inline">{t('newProjectWorkspace')}</span>
           </div>
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-4">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Create New Project</h1>
+                <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">{t('title')}</h1>
                 <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mt-2">
-                  Start a new academic writing project with AI-powered guidance.
+                  {t('subtitle')}
                 </p>
               </div>
               <Link href="/dashboard/import">
                 <Button variant="outline" className="w-full sm:w-auto">
-                  Import Existing Document
+                  {t('importExistingDocument')}
                 </Button>
               </Link>
             </div>
@@ -272,19 +244,19 @@ export default function NewProjectPage() {
 
           {/* New User Guide - Enhanced for first-time users */}
           {isFirstTimeUser && (
-            <Card className="p-4 md:p-6 border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10">
+            <Card className="p-4 md:p-6 border-4 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10">
               <div className="flex items-start gap-3">
                 <Sparkles className="text-[hsl(var(--primary))] flex-shrink-0 mt-1" size={24} />
                 <div className="flex-1">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">Welcome! Let&apos;s Create Your First Project</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">{t('welcomeFirstTitle')}</h3>
                   <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
-                    We&apos;ll guide you through each step. Fill in the details below and we&apos;ll create structured sections with AI-powered guidance to help you write.
+                    {t('welcomeFirstDescription')}
                   </p>
                   <div className="text-xs uppercase tracking-[0.16em] space-y-1">
-                    <p>• <strong>Project Type:</strong> Choose Essay, Thesis, Journal, or Research Paper</p>
-                    <p>• <strong>Research Topic:</strong> Be specific - use the Topic Finder if you need ideas</p>
-                    <p>• <strong>Methodology:</strong> Select Qualitative, Quantitative, or Mixed Methods</p>
-                    <p>• <strong>Citation Style:</strong> APA is recommended for most academic work</p>
+                    <p>{t('welcomeFirstBullet1')}</p>
+                    <p>{t('welcomeFirstBullet2')}</p>
+                    <p>{t('welcomeFirstBullet3')}</p>
+                    <p>{t('welcomeFirstBullet4')}</p>
                   </div>
                 </div>
               </div>
@@ -296,14 +268,14 @@ export default function NewProjectPage() {
               <div className="flex items-start gap-3">
                 <Info className="text-[hsl(var(--accent))] flex-shrink-0 mt-1" size={20} />
                 <div className="flex-1">
-                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">Create New Project</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] mb-2">{t('createNewInfoTitle')}</h3>
                   <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-3">
-                    Fill in your project details below. We&apos;ll create structured sections with AI-powered guidance to help you write your academic work.
+                    {t('createNewInfoDescription')}
                   </p>
                   <div className="text-xs uppercase tracking-[0.16em] space-y-1">
-                    <p>• Choose your project type to get tailored sections</p>
-                    <p>• Specify your research topic for contextual AI assistance</p>
-                    <p>• Select citation style (APA, MLA, etc.) for proper formatting</p>
+                    <p>{t('createNewInfoBullet1')}</p>
+                    <p>{t('createNewInfoBullet2')}</p>
+                    <p>{t('createNewInfoBullet3')}</p>
                   </div>
                 </div>
               </div>
@@ -316,7 +288,7 @@ export default function NewProjectPage() {
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h3 className="font-medium text-red-800 mb-2">Please fix the following issues:</h3>
+                  <h3 className="font-medium text-red-800 mb-2">{t('validationTitle')}</h3>
                   <ul className="text-sm text-red-700 space-y-1">
                     {validationErrors.map((error, index) => (
                       <li key={index}>• {error}</li>
@@ -334,18 +306,18 @@ export default function NewProjectPage() {
               <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
-                    Project Name *
+                    {t('projectNameLabel')}
                   </label>
-                  <button type="button" className="relative group" aria-label="What is project name?">
+                  <button type="button" className="relative group" aria-label={t('projectNameAria')}>
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                     <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
-                      A clear title that reflects your research focus.
+                      {t('projectNameHint')}
                     </span>
                   </button>
                 </div>
                 <Input
                   type="text"
-                  placeholder="e.g., Climate Change Impact Study"
+                  placeholder={t('projectNamePlaceholder')}
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   className={cn(
@@ -354,7 +326,7 @@ export default function NewProjectPage() {
                   )}
                 />
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
-                  Choose a clear, descriptive name that reflects your research focus
+                  {t('projectNameHelp')}
                 </p>
               </Card>
 
@@ -362,19 +334,19 @@ export default function NewProjectPage() {
               <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
-                    Research Topic *
+                    {t('researchTopicLabel')}
                   </label>
-                  <button type="button" className="relative group" aria-label="What is research topic?">
+                  <button type="button" className="relative group" aria-label={t('researchTopicAria')}>
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                     <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
-                      Be specific so Akowe can tailor suggestions.
+                      {t('researchTopicHint')}
                     </span>
                   </button>
                 </div>
                 <div className="flex gap-2">
                   <Input
                     type="text"
-                    placeholder="e.g., Impact of rising sea levels on coastal communities"
+                    placeholder={t('researchTopicPlaceholder')}
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
                     className={cn(
@@ -385,16 +357,16 @@ export default function NewProjectPage() {
                   <button
                     type="button"
                     onClick={() => setShowTopicFinder(true)}
-                    className="px-4 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] hover:bg-[hsl(var(--surface-muted))] transition-colors flex items-center gap-2 text-xs uppercase tracking-[0.14em] font-semibold"
-                    title="Find unique research topics"
+                    className="px-4 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] hover:bg-[hsl(var(--surface-muted))] transition-colors flex items-center gap-2 text-xs uppercase tracking-[0.14em] font-semibold"
+                    title={t('findTopicTitle')}
                   >
                     <Sparkles className="w-4 h-4 text-[hsl(var(--primary))]" />
-                    <span className="hidden sm:inline">Find Unique Topic</span>
-                    <span className="sm:hidden">Find</span>
+                    <span className="hidden sm:inline">{t('findTopicButton')}</span>
+                    <span className="sm:hidden">{t('findTopicButtonShort')}</span>
                   </button>
                 </div>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
-                  Be specific about what you&apos;re researching. This helps Akowe provide better suggestions.
+                  {t('researchTopicHelp')}
                 </p>
               </Card>
 
@@ -402,12 +374,12 @@ export default function NewProjectPage() {
               <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
-                    Target Word Count
+                    {t('targetWordCountLabel')}
                   </label>
-                  <button type="button" className="relative group" aria-label="What is target word count?">
+                  <button type="button" className="relative group" aria-label={t('targetWordCountAria')}>
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                     <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
-                      Choose a target within the typical range for your type.
+                      {t('targetWordCountHint')}
                     </span>
                   </button>
                 </div>
@@ -419,7 +391,11 @@ export default function NewProjectPage() {
                   className="text-base md:text-lg"
                 />
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
-                  Typical range for {selectedType}: {currentType?.typicalWordCount.min.toLocaleString()} - {currentType?.typicalWordCount.max.toLocaleString()} words
+                  {currentType && t('typicalRange', {
+                    type: selectedType,
+                    min: currentType.typicalWordCount.min.toLocaleString(),
+                    max: currentType.typicalWordCount.max.toLocaleString(),
+                  })}
                 </p>
               </Card>
 
@@ -427,26 +403,26 @@ export default function NewProjectPage() {
               <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
-                    Citation Style
+                    {t('citationStyleLabel')}
                   </label>
-                  <button type="button" className="relative group" aria-label="What is citation style?">
+                  <button type="button" className="relative group" aria-label={t('citationStyleAria')}>
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                     <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
-                      Pick the style your department or journal requires.
+                      {t('citationStyleHint')}
                     </span>
                   </button>
                 </div>
                 <select
                   value={citationStyle}
                   onChange={(e) => setCitationStyle(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                 >
                   {currentType?.citationStyles.map(style => (
                     <option key={style} value={style}>{style}</option>
                   ))}
                 </select>
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
-                  Common for {selectedType}: {currentType?.citationStyles.join(', ')}
+                  {currentType && t('commonForTypeStyles', { type: selectedType, styles: currentType.citationStyles.join(', ') })}
                 </p>
               </Card>
 
@@ -454,12 +430,12 @@ export default function NewProjectPage() {
               <Card className="p-4 md:p-6">
                 <div className="flex items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   <label className="font-semibold text-[hsl(var(--foreground))]">
-                    Research Methodology *
+                    {t('methodologyLabel')}
                   </label>
-                  <button type="button" className="relative group" aria-label="What is research methodology?">
+                  <button type="button" className="relative group" aria-label={t('methodologyAria')}>
                     <Info className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
                     <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-6 whitespace-nowrap rounded bg-[hsl(var(--foreground))] px-2 py-1 text-[10px] text-[hsl(var(--surface))] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-10">
-                      Select your research approach
+                      {t('methodologyHint')}
                     </span>
                   </button>
                 </div>
@@ -467,29 +443,29 @@ export default function NewProjectPage() {
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value)}
                   className={cn(
-                    "w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-base md:text-lg uppercase tracking-[0.08em]",
+                    "w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-base md:text-lg uppercase tracking-[0.08em]",
                     isFirstTimeUser && !methodology && "ring-2 ring-[hsl(var(--primary))] ring-offset-2"
                   )}
                 >
-                  <option value="">Select methodology...</option>
+                  <option value="">{t('selectMethodology')}</option>
                   {isFirstTimeUser && (
                     <option value="" disabled className="text-xs">
-                      💡 Tip: Choose based on your research approach
+                      {t('methodologyTipOption')}
                     </option>
                   )}
-                  <option value="qualitative">Qualitative Research</option>
-                  <option value="quantitative">Quantitative Research</option>
-                  <option value="mixed methods">Mixed Methods</option>
-                  <option value="literature review">Literature Review</option>
-                  <option value="case study">Case Study</option>
+                  <option value="qualitative">{t('methodologyQualitative')}</option>
+                  <option value="quantitative">{t('methodologyQuantitative')}</option>
+                  <option value="mixed methods">{t('methodologyMixedMethods')}</option>
+                  <option value="literature review">{t('methodologyLiteratureReview')}</option>
+                  <option value="case study">{t('methodologyCaseStudy')}</option>
                 </select>
                 {isFirstTimeUser && !methodology && (
                   <p className="text-xs uppercase tracking-[0.16em] text-[hsl(var(--primary))] mt-2 font-semibold">
-                    💡 This field is required. Choose the research approach that best fits your project.
+                    {t('methodologyRequiredHint')}
                   </p>
                 )}
                 <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-3">
-                  Common for {currentType?.label.toLowerCase()}: {currentType?.commonMethodologies.join(', ')}
+                  {currentType && t('commonForTypeMethodologies', { type: currentType.label.toLowerCase(), methodologies: currentType.commonMethodologies.join(', ') })}
                 </p>
               </Card>
             </div>
@@ -499,7 +475,7 @@ export default function NewProjectPage() {
               {/* Project Type Selection */}
               <Card className="p-4 md:p-6 space-y-4">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
-                  Select Project Type
+                  {t('selectProjectType')}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
                   {projectTypes.map((type) => {
@@ -511,14 +487,14 @@ export default function NewProjectPage() {
                         key={type.type}
                         onClick={() => setSelectedType(type.type)}
                         className={cn(
-                          'text-left p-3 md:p-4 border-2 rounded-[var(--radius)] transition-transform duration-150',
+                          'text-left p-3 md:p-4 border-2 rounded-(--radius) transition-transform duration-150',
                           isSelected
                             ? 'border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.14)]'
                             : 'border-[hsl(var(--border))] bg-[hsl(var(--surface))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 md:w-12 md:h-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 md:w-12 md:h-12 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] flex items-center justify-center flex-shrink-0">
                             <Icon size={18} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -543,7 +519,7 @@ export default function NewProjectPage() {
                   <div className="flex items-center gap-2">
                     <Lightbulb className="w-5 h-5 text-[hsl(var(--accent))]" />
                     <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
-                      Key Insights for {currentType.label}
+                      {t('keyInsightsFor', { label: currentType.label })}
                     </h3>
                   </div>
                   <ul className="space-y-2">
@@ -567,7 +543,7 @@ export default function NewProjectPage() {
               onClick={() => router.back()}
               className="px-6 order-2 sm:order-1"
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               onClick={handleCreate}
@@ -577,12 +553,12 @@ export default function NewProjectPage() {
               {isCreating ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating Project...
+                  {t('creatingProject')}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
-                  Create Project
+                  {t('createProject')}
                 </div>
               )}
             </Button>
@@ -601,13 +577,13 @@ export default function NewProjectPage() {
           }}
         >
           <div className="w-full max-w-md">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-6 md:p-8 space-y-6 text-center">
-              <div className="mx-auto w-14 h-14 md:w-16 md:h-16 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--destructive))]">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-6 md:p-8 space-y-6 text-center">
+              <div className="mx-auto w-14 h-14 md:w-16 md:h-16 border-4 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--destructive))]">
                 <X className="w-6 h-6 md:w-8 md:h-8" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em]">
-                  Project Limit Reached
+                  {t('projectLimitReached')}
                 </h3>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   {limitError}
@@ -619,7 +595,7 @@ export default function NewProjectPage() {
                   onClick={() => setShowLimitModal(false)}
                   className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button
                   onClick={() => {
@@ -628,7 +604,7 @@ export default function NewProjectPage() {
                   }}
                   className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
                 >
-                  Upgrade Plan
+                  {t('upgradePlan')}
                 </Button>
               </div>
             </div>

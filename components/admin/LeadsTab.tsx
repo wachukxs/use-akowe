@@ -213,7 +213,7 @@ export default function LeadsTab() {
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <Mail className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
@@ -223,7 +223,7 @@ export default function LeadsTab() {
           <p className="text-2xl sm:text-3xl font-bold">{totalLeads}</p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <CheckCircle className="text-green-500 sm:w-5 sm:h-5" size={18} />
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
@@ -236,7 +236,7 @@ export default function LeadsTab() {
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Plagiarism Tool
@@ -248,7 +248,7 @@ export default function LeadsTab() {
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Import Tool
@@ -260,7 +260,7 @@ export default function LeadsTab() {
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Topic Finder
@@ -282,7 +282,7 @@ export default function LeadsTab() {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
+              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
             >
               <option value="all">All Sources</option>
               <option value="plagiarism">Plagiarism Tool</option>
@@ -294,7 +294,7 @@ export default function LeadsTab() {
           <select
             value={convertedFilter}
             onChange={(e) => setConvertedFilter(e.target.value as any)}
-            className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
+            className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] touch-manipulation"
           >
             <option value="all">All Status</option>
             <option value="converted">Converted</option>
@@ -309,7 +309,7 @@ export default function LeadsTab() {
               placeholder="Search by email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 pl-9 pr-8 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
+              className="flex-1 pl-9 pr-8 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
             />
             {searchQuery && (
               <button
@@ -324,7 +324,7 @@ export default function LeadsTab() {
 
           <button
             onClick={fetchLeads}
-            className="flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] touch-manipulation"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] touch-manipulation"
           >
             <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
             <span className="hidden sm:inline">Refresh</span>
@@ -332,7 +332,7 @@ export default function LeadsTab() {
           <button
             onClick={exportEmailsToCSV}
             disabled={isLoading || leads.length === 0}
-            className="flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           >
             <span className="text-[10px] uppercase tracking-[0.24em]">Export CSV</span>
           </button>
@@ -358,7 +358,7 @@ export default function LeadsTab() {
                 }
               }}
               max={endDate || new Date().toISOString().split('T')[0]}
-              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
+              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
             />
             <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center sm:text-left">
               to
@@ -375,12 +375,12 @@ export default function LeadsTab() {
               }}
               min={startDate || ''}
               max={new Date().toISOString().split('T')[0]}
-              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
+              className="flex-1 sm:flex-none px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))] touch-manipulation"
             />
             {(startDate || endDate) && (
               <button
                 onClick={clearDateFilter}
-                className="flex items-center justify-center gap-1 px-2 py-1.5 min-h-[44px] border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] touch-manipulation"
+                className="flex items-center justify-center gap-1 px-2 py-1.5 min-h-[44px] border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-[10px] uppercase tracking-[0.2em] hover:bg-[hsl(var(--surface-muted))] touch-manipulation"
                 aria-label="Clear date filter"
               >
                 <X size={12} />

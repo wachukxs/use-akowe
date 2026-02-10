@@ -3,6 +3,7 @@
 import { useEffect, useState, use, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import Sidebar, {
   MobileMenuButton,
   MobileProjectToolsButton,
@@ -72,6 +73,7 @@ export default function ProjectEditorPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = useTranslations("project");
   const resolvedParams = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -813,7 +815,7 @@ export default function ProjectEditorPage({
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
-      setShowSuccessMessage("AI Assistant error. Please try again.");
+      setShowSuccessMessage(t("errors.aiAssistant"));
       setTimeout(() => setShowSuccessMessage(""), 3000);
     } finally {
       setAiIsLoading(false);
@@ -888,7 +890,7 @@ export default function ProjectEditorPage({
             data.error ||
             (response.status === 503
               ? "Citation search is temporarily unavailable. Please try again in a moment."
-              : "Failed to discover citations. Please try again.");
+              : t("errors.discoverFailed"));
           setCitationDiscoveryError(message);
           setShowCitationDiscovery(true);
         }
@@ -896,7 +898,7 @@ export default function ProjectEditorPage({
           data.error ||
             (response.status === 503
               ? "Citation search is temporarily unavailable. Please try again in a moment."
-              : "Failed to discover citations. Please try again.")
+              : t("errors.discoverFailed"))
         );
         setTimeout(() => setShowSuccessMessage(""), 5000);
       }
@@ -907,10 +909,10 @@ export default function ProjectEditorPage({
         setCitationTotalResults(null);
         setCitationHasMore(true);
         setLastDiscoverySearchTerm(null);
-        setCitationDiscoveryError("Citation search failed. Please try again.");
+        setCitationDiscoveryError(t("errors.citationSearchFailed"));
         setShowCitationDiscovery(true);
       }
-      setShowSuccessMessage("Citation search failed. Please try again.");
+      setShowSuccessMessage(t("errors.citationSearchFailed"));
       setTimeout(() => setShowSuccessMessage(""), 5000);
     } finally {
       setIsDiscoveringCitations(false);
@@ -1378,7 +1380,7 @@ export default function ProjectEditorPage({
     } catch (error) {
       console.error("❌ Error generating math explanation:", error);
       console.error("❌ Error stack:", (error as Error).stack);
-      setMathExplanation("Unable to generate explanation at this time.");
+      setMathExplanation(t("errors.mathExplanation"));
     } finally {
       console.log("🧠 DEBUG: Setting isGeneratingExplanation to false");
       setIsGeneratingExplanation(false);
@@ -1718,7 +1720,7 @@ export default function ProjectEditorPage({
         setTimeout(() => setShowSuccessMessage(""), 6000);
       } else if (response.status === 429) {
         // AI word limit – do not add citation; show clear error for 6 seconds
-        let errorMessage = "Word limit reached.";
+        let errorMessage = t("errors.wordLimitReached");
         try {
           const data = await response.json();
           if (typeof data?.error === "string" && data.error.trim()) {
@@ -2168,14 +2170,14 @@ export default function ProjectEditorPage({
 
   // Smart encouragement logic based on progress
   const getEncouragementMessage = (progress: number) => {
-    if (progress === 0) return "Ready to start writing? Let's begin!";
-    if (progress < 10) return "Great start! Every word counts";
-    if (progress < 25) return "You're building momentum! Keep going";
-    if (progress < 50) return "You're making solid progress!";
-    if (progress < 75) return "You're over halfway there!";
-    if (progress < 90) return "Almost there! Push through!";
-    if (progress < 100) return "Excellent work! You're nearly done!";
-    return "Congratulations! You've reached your goal!";
+    if (progress === 0) return t("encouragement.readyToStart");
+    if (progress < 10) return t("encouragement.greatStart");
+    if (progress < 25) return t("encouragement.buildingMomentum");
+    if (progress < 50) return t("encouragement.solidProgress");
+    if (progress < 75) return t("encouragement.overHalfway");
+    if (progress < 90) return t("encouragement.almostThere");
+    if (progress < 100) return t("encouragement.nearlyDone");
+    return t("encouragement.congratulations");
   };
 
   // Auto-detect export settings from project data
@@ -2286,7 +2288,7 @@ export default function ProjectEditorPage({
       setTimeout(() => setShowSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Export error:", error);
-      setShowSuccessMessage("Export failed. Please try again.");
+      setShowSuccessMessage(t("errors.exportFailed"));
       setTimeout(() => setShowSuccessMessage(""), 3000);
     } finally {
       setIsExporting(false);
@@ -2363,7 +2365,7 @@ export default function ProjectEditorPage({
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-              Loading workspace
+              {t("loadingWorkspace")}
             </p>
           </div>
         </div>
@@ -2569,13 +2571,13 @@ export default function ProjectEditorPage({
               </div>
               <p className="text-[10px] md:text-[11px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                 {project.type} • {localWordCount} / {project.targetWordCount}{" "}
-                words • {project.citationStyle}
+                {t("words")} • {project.citationStyle}
               </p>
             </div>
 
             {/* Desktop Experience Note - Top of Page (Mobile Only) */}
             {isMobile && showDesktopNoteTop && (
-              <div className="md:hidden mb-4 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <div className="md:hidden mb-4 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-[10px] uppercase tracking-[0.18em] leading-relaxed flex-1">
                     💡 For the best experience, use Akọ̀wé on desktop
@@ -2588,8 +2590,8 @@ export default function ProjectEditorPage({
                         "true"
                       );
                     }}
-                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
-                    aria-label="Dismiss"
+                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
+                    aria-label={t("dismiss")}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -2605,17 +2607,17 @@ export default function ProjectEditorPage({
                 )}
               >
                 {/* Sections Panel */}
-                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                   <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
-                        Paper Sections
+                        {t("paperSections")}
                       </h3>
                     </div>
                     <button
                       onClick={addNewSection}
                       className="border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
-                      title="Add new section"
+                      title={t("addNewSection")}
                     >
                       <Plus className="h-3 w-3" />
                     </button>
@@ -2657,7 +2659,7 @@ export default function ProjectEditorPage({
                             setDragOverSectionId(null);
                           }}
                           className={cn(
-                            "w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 group border-2 border-[hsl(var(--border))]",
+                            "w-full px-3 py-2 rounded-(--radius) text-xs uppercase tracking-[0.18em] transition-all duration-150 group border-2 border-[hsl(var(--border))]",
                             activeSection === section.id
                               ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[4px_4px_0_rgba(29,41,57,0.12)]"
                               : "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]",
@@ -2675,7 +2677,7 @@ export default function ProjectEditorPage({
                                 // Prevent drag when touching grip icon
                                 e.stopPropagation();
                               }}
-                              title="Drag to reorder"
+                              title={t("dragToReorder")}
                             >
                               <GripVertical className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                             </div>
@@ -2756,7 +2758,7 @@ export default function ProjectEditorPage({
                                       }
                                       (e.currentTarget as any).lastTap = now;
                                     }}
-                                    title={`${section.title} - Double tap to edit`}
+                                    title={t("sectionDoubleTapEdit", { title: section.title })}
                                   >
                                     {section.title}
                                   </span>
@@ -2774,7 +2776,7 @@ export default function ProjectEditorPage({
                                     setEditingTitle(section.title);
                                   }}
                                   className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] rounded transition-colors touch-manipulation"
-                                  title="Edit section name (double tap to edit)"
+                                  title={t("editSectionName")}
                                 >
                                   <Edit3 className="h-3 w-3" />
                                 </button>
@@ -2787,7 +2789,7 @@ export default function ProjectEditorPage({
                                     setSectionToDelete(section.id);
                                   }}
                                   className="p-1.5 border border-transparent hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] hover:text-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors touch-manipulation"
-                                  title="Delete section"
+                                  title={t("deleteSection")}
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
@@ -2801,20 +2803,20 @@ export default function ProjectEditorPage({
                 </div>
 
                 {/* Research & Quality Tools */}
-                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                   <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))]">
                     <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
-                      Tools
+                      {t("tools")}
                     </h3>
                     <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mt-1">
-                      Research & quality
+                      {t("researchAndQuality")}
                     </p>
                   </div>
                   <div className="p-4 space-y-2">
                     <div
                       onClick={() => discoverCitations()}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer transition-transform duration-150 text-xs uppercase tracking-[0.18em]",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer transition-transform duration-150 text-xs uppercase tracking-[0.18em]",
                         isDiscoveringCitations
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2822,7 +2824,7 @@ export default function ProjectEditorPage({
                     >
                       <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4" />
-                        <span className="font-semibold">Find Citations</span>
+                        <span className="font-semibold">{t("findCitations")}</span>
                       </div>
                       {isDiscoveringCitations && (
                         <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
@@ -2831,18 +2833,18 @@ export default function ProjectEditorPage({
 
                     <div
                       onClick={() => setShowManualCitationModal(true)}
-                      className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                      className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                     >
                       <div className="flex items-center gap-2">
                         <Plus className="h-4 w-4" />
-                        <span className="font-semibold">Add Citation</span>
+                        <span className="font-semibold">{t("addCitation")}</span>
                       </div>
                     </div>
 
                     <div
                       onClick={detectCitations}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
                         isDetectingCitations || !hasContentToScan
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2850,7 +2852,7 @@ export default function ProjectEditorPage({
                     >
                       <div className="flex items-center gap-2">
                         <BookMarked className="h-4 w-4" />
-                        <span className="font-semibold">Scan Content</span>
+                        <span className="font-semibold">{t("scanContent")}</span>
                       </div>
                       {isDetectingCitations && (
                         <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
@@ -2862,7 +2864,7 @@ export default function ProjectEditorPage({
                     <div
                       onClick={checkPlagiarism}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
                         isCheckingPlagiarism
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2882,7 +2884,7 @@ export default function ProjectEditorPage({
                     <div
                       onClick={() => setShowExportModal(true)}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
                         isExporting
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2890,7 +2892,7 @@ export default function ProjectEditorPage({
                     >
                       <div className="flex items-center gap-2">
                         <Download className="h-4 w-4" />
-                        <span className="font-semibold">Export Project</span>
+                        <span className="font-semibold">{t("exportProject")}</span>
                       </div>
                       {isExporting && (
                         <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
@@ -2905,7 +2907,7 @@ export default function ProjectEditorPage({
                 <div className="space-y-6">
                   {/* Desktop Experience Note - Tools Drawer */}
                   {showDesktopNoteTools && (
-                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                       <div className="flex items-start justify-between gap-3">
                         <p className="text-[10px] uppercase tracking-[0.18em] leading-relaxed flex-1">
                           💡 For the best experience, use Akọ̀wé on desktop
@@ -2918,8 +2920,8 @@ export default function ProjectEditorPage({
                               "true"
                             );
                           }}
-                          className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
-                          aria-label="Dismiss"
+                          className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
+                          aria-label={t("dismiss")}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -2928,15 +2930,15 @@ export default function ProjectEditorPage({
                   )}
 
                   {/* Mobile Sections Panel */}
-                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
+                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius)">
                     <div className="p-4 border-b-2 border-[hsl(var(--border-strong))] flex items-center justify-between">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
-                        Paper Sections
+                        {t("paperSections")}
                       </h3>
                       <button
                         onClick={addNewSection}
                         className="border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
-                        title="Add new section"
+                        title={t("addNewSection")}
                       >
                         <Plus className="h-3 w-3" />
                       </button>
@@ -2978,7 +2980,7 @@ export default function ProjectEditorPage({
                               setDragOverSectionId(null);
                             }}
                             className={cn(
-                              "w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 border-2 border-[hsl(var(--border))]",
+                              "w-full px-3 py-2 rounded-(--radius) text-xs uppercase tracking-[0.18em] transition-all duration-150 border-2 border-[hsl(var(--border))]",
                               activeSection === section.id
                                 ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))]"
                                 : "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]",
@@ -2991,7 +2993,7 @@ export default function ProjectEditorPage({
                               <div
                                 className="cursor-grab active:cursor-grabbing touch-manipulation flex-shrink-0"
                                 draggable={false}
-                                title="Drag to reorder"
+                                title={t("dragToReorder")}
                               >
                                 <GripVertical className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                               </div>
@@ -3081,7 +3083,7 @@ export default function ProjectEditorPage({
                                       setEditingTitle(section.title);
                                     }}
                                     className="p-1.5 border border-transparent active:bg-[hsl(var(--accent))] active:text-[hsl(var(--accent-foreground))] rounded transition-colors touch-manipulation"
-                                    title="Edit section name"
+                                    title={t("editSectionNameShort")}
                                   >
                                     <Edit3 className="h-3 w-3" />
                                   </button>
@@ -3094,8 +3096,8 @@ export default function ProjectEditorPage({
                                       setSectionToDelete(section.id);
                                     }}
                                     className="p-1.5 border border-transparent active:bg-[hsl(var(--accent))] active:text-[hsl(var(--destructive))] rounded text-[hsl(var(--destructive))] transition-colors touch-manipulation"
-                                    title="Delete section"
-                                  >
+title={t("deleteSection")}
+                                    >
                                     <Trash2 className="h-3 w-3" />
                                   </button>
                                 </div>
@@ -3108,7 +3110,7 @@ export default function ProjectEditorPage({
                   </div>
 
                   {/* Mobile Tools Panel */}
-                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
+                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius)">
                     <div className="p-4 border-b-2 border-[hsl(var(--border-strong))]">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
                         Tools
@@ -3120,7 +3122,7 @@ export default function ProjectEditorPage({
                     <div className="p-4 space-y-2">
                       <button
                         onClick={() => setIsAIDrawerOpen(true)}
-                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
                       >
                         <div className="flex items-center gap-2">
                           <Bot className="h-4 w-4" />
@@ -3133,30 +3135,30 @@ export default function ProjectEditorPage({
                       <button
                         onClick={() => discoverCitations()}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isDiscoveringCitations ? "opacity-60" : ""
                         )}
                       >
                         <div className="flex items-center gap-2">
                           <BookOpen className="h-4 w-4" />
-                          <span className="font-semibold">Find Citations</span>
+                          <span className="font-semibold">{t("findCitations")}</span>
                         </div>
                       </button>
 
                       <button
                         onClick={() => setShowManualCitationModal(true)}
-                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
                       >
                         <div className="flex items-center gap-2">
                           <Plus className="h-4 w-4" />
-                          <span className="font-semibold">Add Citation</span>
+                          <span className="font-semibold">{t("addCitation")}</span>
                         </div>
                       </button>
 
                       <button
                         onClick={detectCitations}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isDetectingCitations || !hasContentToScan
                             ? "opacity-60"
                             : ""
@@ -3164,7 +3166,7 @@ export default function ProjectEditorPage({
                       >
                         <div className="flex items-center gap-2">
                           <BookMarked className="h-4 w-4" />
-                          <span className="font-semibold">Scan Content</span>
+                          <span className="font-semibold">{t("scanContent")}</span>
                         </div>
                       </button>
 
@@ -3173,7 +3175,7 @@ export default function ProjectEditorPage({
                       <button
                         onClick={checkPlagiarism}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isCheckingPlagiarism ? "opacity-60" : ""
                         )}
                       >
@@ -3190,13 +3192,13 @@ export default function ProjectEditorPage({
                       <button
                         onClick={() => setShowExportModal(true)}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isExporting ? "opacity-60" : ""
                         )}
                       >
                         <div className="flex items-center gap-2">
                           <Download className="h-4 w-4" />
-                          <span className="font-semibold">Export Project</span>
+                          <span className="font-semibold">{t("exportProject")}</span>
                         </div>
                       </button>
                     </div>
@@ -3214,7 +3216,7 @@ export default function ProjectEditorPage({
                 {activeS ? (
                   <div
                     ref={editorSectionRef}
-                    className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
+                    className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
                   >
                     <div className="p-4 md:p-6 space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -3226,25 +3228,25 @@ export default function ProjectEditorPage({
                           className="hidden sm:inline-flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                         >
                           <Bot className="h-4 w-4" />
-                          Ask Akọ̀wé
+                          {t("askAkowe")}
                         </button>
                       </div>
-                      <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] overflow-hidden bg-[hsl(var(--surface))]">
+                      <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) overflow-hidden bg-[hsl(var(--surface))]">
                         {/* Rich Text Toolbar */}
                         <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-2 md:p-3 flex items-center gap-1 md:gap-2 bg-[hsl(var(--surface-muted))] overflow-x-auto toolbar-container">
                           {/* Undo/Redo */}
                           <div className="flex items-center gap-1">
                             <button
                               onClick={undo}
-                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title="Undo (Ctrl+Z)"
+                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              title={t("undo")}
                             >
                               <Undo className="h-4 w-4" />
                             </button>
                             <button
                               onClick={redo}
-                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title="Redo (Ctrl+Shift+Z)"
+                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              title={t("redo")}
                             >
                               <Redo className="h-4 w-4" />
                             </button>
@@ -3257,19 +3259,19 @@ export default function ProjectEditorPage({
                             <button
                               onClick={applyBold}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.bold
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Bold (Ctrl+B)"
+                              title={t("bold")}
                             >
                               <Bold className="h-4 w-4" />
                             </button>
                             <button
                               onClick={applyItalic}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.italic
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3281,12 +3283,12 @@ export default function ProjectEditorPage({
                             <button
                               onClick={applyUnderline}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.underline
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Underline (Ctrl+U)"
+                              title={t("underline")}
                             >
                               <Underline className="h-4 w-4" />
                             </button>
@@ -3299,24 +3301,24 @@ export default function ProjectEditorPage({
                             <button
                               onClick={applyUnorderedList}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.unorderedList
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Bullet List"
+                              title={t("bulletList")}
                             >
                               <List className="h-4 w-4" />
                             </button>
                             <button
                               onClick={applyOrderedList}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.orderedList
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Numbered List"
+                              title={t("numberedList")}
                             >
                               <Hash className="h-4 w-4" />
                             </button>
@@ -3329,51 +3331,51 @@ export default function ProjectEditorPage({
                             <button
                               onClick={() => applyHeader(1)}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.h1
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Header 1"
+                              title={t("header1")}
                             >
                               <span className="text-sm font-bold">H1</span>
                             </button>
                             <button
                               onClick={() => applyHeader(2)}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.h2
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Header 2"
+                              title={t("header2")}
                             >
                               <span className="text-sm font-bold">H2</span>
                             </button>
                             <button
                               onClick={() => applyHeader(3)}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.h3
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Header 3"
+                              title={t("header3")}
                             >
                               <span className="text-sm font-bold">H3</span>
                             </button>
                             <button
                               onClick={applyNormal}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.normal
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
                               )}
-                              title="Normal Text"
+                              title={t("normalText")}
                             >
                               <span className="text-sm font-medium">
-                                Normal
+                                {t("normal")}
                               </span>
                             </button>
                           </div>
@@ -3384,15 +3386,15 @@ export default function ProjectEditorPage({
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => setShowMathModal(true)}
-                              className="cursor-pointer p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title="Insert Math Equation"
+                              className="cursor-pointer p-2 rounded-(--radius) border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              title={t("insertMathEquation")}
                             >
                               <Calculator className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => setShowChartModal(true)}
-                              className="cursor-pointer p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title="Insert Chart"
+                              className="cursor-pointer p-2 rounded-(--radius) border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              title={t("insertChart")}
                             >
                               <BarChart3 className="h-4 w-4" />
                             </button>
@@ -3400,7 +3402,7 @@ export default function ProjectEditorPage({
 
                           <div className="flex-1"></div>
                           <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
-                            {realTimeWordCount} words
+                            {realTimeWordCount} {t("words")}
                           </span>
                         </div>
 
@@ -3811,11 +3813,11 @@ export default function ProjectEditorPage({
                   </div>
                 ) : (
                   // Empty state - no section selected or no sections exist
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] p-6 md:p-8 lg:p-10">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)] p-6 md:p-8 lg:p-10">
                     {project?.sections && project.sections.length > 0 ? (
                       // Has sections but none selected
                       <div className="text-center space-y-4">
-                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center bg-[hsl(var(--surface-muted))]">
+                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center bg-[hsl(var(--surface-muted))]">
                           <FileText className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
                         </div>
                         <div className="space-y-2">
@@ -3830,7 +3832,7 @@ export default function ProjectEditorPage({
                     ) : (
                       // No sections exist - show guidance
                       <div className="text-center space-y-6">
-                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center bg-[hsl(var(--surface-muted))]">
+                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center bg-[hsl(var(--surface-muted))]">
                           <FileText className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
                         </div>
                         <div className="space-y-3">
@@ -3843,9 +3845,9 @@ export default function ProjectEditorPage({
                           </p>
                         </div>
                         {/* Mobile-specific guidance */}
-                        <div className="md:hidden border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] p-4 space-y-3">
+                        <div className="md:hidden border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] rounded-(--radius) p-4 space-y-3">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
+                            <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
                               <Bot className="h-4 w-4" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -3915,10 +3917,10 @@ export default function ProjectEditorPage({
                     {/* Progress Stats */}
                     <div className="flex justify-between text-sm text-gray-600 mb-3">
                       <span className="font-medium">
-                        {localWordCount.toLocaleString()} words
+                        {localWordCount.toLocaleString()} {t("words")}
                       </span>
                       <span className="text-gray-500">
-                        {project.targetWordCount?.toLocaleString() || 0} target
+                        {project.targetWordCount?.toLocaleString() || 0} {t("target")}
                       </span>
                     </div>
 
@@ -3933,7 +3935,7 @@ export default function ProjectEditorPage({
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-gray-600">
-                          Next milestone
+                          {t("nextMilestone")}
                         </div>
                         <div className="text-sm font-medium text-blue-600">
                           {Math.ceil(
@@ -3948,7 +3950,7 @@ export default function ProjectEditorPage({
                   </div>
 
                   {/* Smart Encouragement Message */}
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-4 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) p-4 text-center">
                     <p className="text-xs uppercase tracking-[0.2em] font-semibold">
                       {getEncouragementMessage(
                         Math.round(
@@ -3962,20 +3964,20 @@ export default function ProjectEditorPage({
 
                 {/* Summary Statistics */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 sm:p-6 text-center">
                     <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">
                       {project.sections?.length || 0}
                     </h4>
                     <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                      Sections
+                      {t("sections")}
                     </p>
                   </div>
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 sm:p-6 text-center">
                     <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">
                       {project.citations?.length || 0}
                     </h4>
                     <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                      Total citations
+                      {t("totalCitations")}
                     </p>
                     <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                       {lastDetectionResult
@@ -3983,7 +3985,7 @@ export default function ProjectEditorPage({
                         : "0 auto-detected"}
                     </p>
                   </div>
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 sm:p-6 text-center">
                     <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">
                       {Math.round(
                         (localWordCount / (project.targetWordCount || 1)) * 100
@@ -4010,7 +4012,7 @@ export default function ProjectEditorPage({
             <div className="border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] flex items-center justify-center">
+                  <div className="w-10 h-10 border-2 border-[hsl(var(--secondary-foreground))] rounded-(--radius) flex items-center justify-center">
                     <Bot className="h-5 w-5" />
                   </div>
                   <div>
@@ -4025,13 +4027,13 @@ export default function ProjectEditorPage({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setAiMessages([])}
-                    className="text-[10px] uppercase tracking-[0.24em] px-3 py-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="text-[10px] uppercase tracking-[0.24em] px-3 py-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     Clear
                   </button>
                   <button
                     onClick={() => setIsAIDrawerOpen(false)}
-                    className="p-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -4054,7 +4056,7 @@ export default function ProjectEditorPage({
                         "true"
                       );
                     }}
-                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
+                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
                     aria-label="Dismiss"
                   >
                     <X className="h-3 w-3" />
@@ -4068,9 +4070,9 @@ export default function ProjectEditorPage({
               {/* Welcome Message */}
               {aiMessages.length === 0 && (
                 <div className="space-y-4">
-                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0">
                         <Bot className="h-4 w-4" />
                       </div>
                       <div className="flex-1">
@@ -4100,7 +4102,7 @@ export default function ProjectEditorPage({
                             "Help me improve the structure of this section"
                           )
                         }
-                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
+                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                       >
                         <span className="font-semibold text-[hsl(var(--foreground))]">
                           📝
@@ -4113,7 +4115,7 @@ export default function ProjectEditorPage({
                             "Suggest better wording for this paragraph"
                           )
                         }
-                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
+                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                       >
                         <span className="font-semibold text-[hsl(var(--foreground))]">
                           ✨
@@ -4124,7 +4126,7 @@ export default function ProjectEditorPage({
                         onClick={() =>
                           setAiInput("Generate a conclusion for this section")
                         }
-                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
+                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                       >
                         <span className="font-semibold text-[hsl(var(--foreground))]">
                           🎯
@@ -4157,7 +4159,7 @@ export default function ProjectEditorPage({
                       >
                         {message.type === "assistant" && (
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center">
+                            <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center">
                               <Bot className="h-3 w-3" />
                             </div>
                             <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold">
@@ -4167,7 +4169,7 @@ export default function ProjectEditorPage({
                         )}
                         <div
                           className={cn(
-                            "p-3 rounded-[var(--radius)] border-2",
+                            "p-3 rounded-(--radius) border-2",
                             message.type === "user"
                               ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))]"
                               : "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] border-[hsl(var(--border-strong))] shadow-[4px_4px_0_rgba(29,41,57,0.12)] rounded-bl-[1.75rem]"
@@ -4299,14 +4301,14 @@ export default function ProjectEditorPage({
                 <div className="flex justify-start">
                   <div className="max-w-[85%]">
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center">
                         <Bot className="h-3 w-3" />
                       </div>
                       <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold">
                         Akọ̀wé
                       </span>
                     </div>
-                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] rounded-bl-[1.75rem] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) rounded-bl-[1.75rem] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                       <div className="flex items-center space-x-2">
                         <div className="flex space-x-1">
                           <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-bounce"></div>
@@ -4331,13 +4333,13 @@ export default function ProjectEditorPage({
 
             <div className="border-t-[3px] border-[hsl(var(--border-strong))] p-4 space-y-3 bg-[hsl(var(--surface))]">
               {(session?.user as any)?.plan === "free" && (
-                <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
-                  <span>Free plan: 1,500 words/day</span>
+                <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
+                  <span>{t("freePlanLimit")}</span>
                   <button
                     onClick={() => router.push("/settings")}
                     className="underline underline-offset-4"
                   >
-                    Upgrade
+                    {t("upgrade")}
                   </button>
                 </div>
               )}
@@ -4353,15 +4355,13 @@ export default function ProjectEditorPage({
                       !e.shiftKey &&
                       handleAIWrite(activeS?.id || "")
                     }
-                    placeholder={`Ask about "${
-                      activeS?.title || "Introduction"
-                    }"...`}
-                    className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
+                    placeholder={t("askAboutSection", { title: activeS?.title || "Introduction" })}
+                    className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
                   />
                   <button
                     onClick={() => handleAIWrite(activeS?.id || "")}
                     disabled={aiIsLoading || !aiInput.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
                   >
                     <Send className="h-4 w-4" />
                   </button>
@@ -4378,7 +4378,7 @@ export default function ProjectEditorPage({
         {contextMenuPillVisible && contextMenuPillPosition && (
           <div
             ref={contextMenuPillRef}
-            className="fixed z-[60] rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[44px] flex items-center"
+            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[44px] flex items-center"
             style={{
               left: contextMenuPillPosition.x,
               top: contextMenuPillPosition.y,
@@ -4390,7 +4390,7 @@ export default function ProjectEditorPage({
                 setContextMenuPillVisible(false);
                 discoverCitations(0, false);
               }}
-              className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors touch-manipulation"
+              className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation"
             >
               {CONTEXT_MENU_FIND_CITATION_LABEL}
             </button>
@@ -4411,7 +4411,7 @@ export default function ProjectEditorPage({
               aria-modal="true"
               aria-labelledby="citation-dialog-title"
               aria-describedby="citation-dialog-description"
-              className="w-full max-w-6xl h-[95dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden border-0 sm:border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-t-2xl sm:rounded-[var(--radius)] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col"
+              className="w-full max-w-6xl h-[95dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden border-0 sm:border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-t-2xl sm:rounded-(--radius) shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col"
             >
               {/* Header */}
               <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-4 sm:p-6 bg-[hsl(var(--surface))] shrink-0">
@@ -4421,20 +4421,23 @@ export default function ProjectEditorPage({
                       id="citation-dialog-title"
                       className="text-lg sm:text-xl font-semibold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[hsl(var(--foreground))]"
                     >
-                      Research Citations
+                      {t("researchCitations")}
                     </h3>
                     <p
                       id="citation-dialog-description"
                       className="text-xs sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-[hsl(var(--muted-foreground))] mt-1.5 sm:mt-2 break-words"
                     >
                       {citationTotalResults != null
-                        ? `Showing ${
-                            discoveredCitations.length
-                          } of ${citationTotalResults.toLocaleString()} results`
-                        : `Found ${discoveredCitations.length} relevant citations for your research`}
+                        ? t("showingResults", {
+                            count: discoveredCitations.length,
+                            total: citationTotalResults.toLocaleString(),
+                          })
+                        : t("foundCitations", {
+                            count: discoveredCitations.length,
+                          })}
                       {lastDiscoverySearchTerm && (
                         <span className="block mt-1">
-                          for &quot;{lastDiscoverySearchTerm}&quot;
+                          {t("forTerm", { term: lastDiscoverySearchTerm })}
                         </span>
                       )}
                     </p>
@@ -4442,8 +4445,8 @@ export default function ProjectEditorPage({
                   <button
                     type="button"
                     onClick={closeCitationDiscoveryModal}
-                    aria-label="Close citation discovery"
-                    className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer touch-manipulation"
+                    aria-label={t("closeCitationDiscovery")}
+                    className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer touch-manipulation"
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -4467,9 +4470,9 @@ export default function ProjectEditorPage({
                             searchForNewCitations();
                           }
                         }}
-                        placeholder="Filter or type a query and search..."
-                        className="w-full min-h-[44px] pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
-                        aria-label="Filter citations or search for new citations (press Enter)"
+                        placeholder={t("filterOrSearch")}
+                        className="w-full min-h-[44px] pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
+                        aria-label={t("filterAriaLabel")}
                       />
                     </div>
                     <div
@@ -4502,7 +4505,7 @@ export default function ProjectEditorPage({
                             ? "search-new-citation-tooltip"
                             : undefined
                         }
-                        className="w-full min-w-[44px] shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
+                        className="w-full min-w-[44px] shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
                       >
                         {isDiscoveringCitations
                           ? "Searching…"
@@ -4512,7 +4515,7 @@ export default function ProjectEditorPage({
                         id="search-new-citation-tooltip"
                         ref={searchNewCitationTooltipRef}
                         role="tooltip"
-                        className="absolute z-50 bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-56 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs text-left shadow-lg pointer-events-none"
+                        className="absolute z-50 bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-56 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs text-left shadow-lg pointer-events-none"
                         style={{ display: "none" }}
                         aria-hidden="true"
                       >
@@ -4526,21 +4529,21 @@ export default function ProjectEditorPage({
                     <select
                       value={citationFilter}
                       onChange={(e) => setCitationFilter(e.target.value as any)}
-                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
+                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                     >
-                      <option value="all">All citations</option>
-                      <option value="recent">Recent (Last 5 years)</option>
-                      <option value="highly_cited">Highly cited</option>
+                      <option value="all">{t("allCitations")}</option>
+                      <option value="recent">{t("recent")}</option>
+                      <option value="highly_cited">{t("highlyCited")}</option>
                     </select>
 
                     <select
                       value={citationSortBy}
                       onChange={(e) => setCitationSortBy(e.target.value as any)}
-                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
+                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                     >
-                      <option value="relevance">Sort by relevance</option>
-                      <option value="year">Sort by year</option>
-                      <option value="title">Sort by title</option>
+                      <option value="relevance">{t("sortByRelevance")}</option>
+                      <option value="year">{t("sortByYear")}</option>
+                      <option value="title">{t("sortByTitle")}</option>
                     </select>
                   </div>
                 </div>
@@ -4586,7 +4589,7 @@ export default function ProjectEditorPage({
                 citationDiscoveryError &&
                 !isDiscoveringCitations ? (
                   <div className="text-center py-8 sm:py-12">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--destructive))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4 bg-[hsl(var(--destructive))]/10">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--destructive))] rounded-(--radius) flex items-center justify-center mx-auto mb-4 bg-[hsl(var(--destructive))]/10">
                       <AlertCircle className="h-7 w-7 sm:h-8 sm:w-8 text-[hsl(var(--destructive))]" />
                     </div>
                     <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">
@@ -4599,7 +4602,7 @@ export default function ProjectEditorPage({
                       type="button"
                       onClick={retryCitationDiscovery}
                       disabled={isDiscoveringCitations}
-                      className="min-h-[44px] px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center justify-center gap-2 mx-auto cursor-pointer touch-manipulation"
+                      className="min-h-[44px] px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center justify-center gap-2 mx-auto cursor-pointer touch-manipulation"
                     >
                       {isDiscoveringCitations ? (
                         <>
@@ -4630,7 +4633,7 @@ export default function ProjectEditorPage({
                     {getFilteredAndSortedCitations().map((citation, index) => (
                       <div
                         key={index}
-                        className="border-2 sm:border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 sm:p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[4px_4px_0_rgba(29,41,57,0.1)] sm:shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
+                        className="border-2 sm:border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 sm:p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[4px_4px_0_rgba(29,41,57,0.1)] sm:shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
                       >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3 sm:mb-4">
                           <div className="min-w-0 flex-1">
@@ -4656,7 +4659,7 @@ export default function ProjectEditorPage({
                                   Year:
                                 </span>
                                 <span
-                                  className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]"
+                                  className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius)"
                                   title={
                                     citation.year == null
                                       ? "Publication date not in metadata"
@@ -4671,7 +4674,7 @@ export default function ProjectEditorPage({
                                   <span className="font-semibold text-[hsl(var(--foreground))]">
                                     Citations:
                                   </span>
-                                  <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]">
+                                  <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius)">
                                     {citation.citationCount}
                                   </span>
                                 </div>
@@ -4684,8 +4687,8 @@ export default function ProjectEditorPage({
                                 href={citation.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] touch-manipulation"
-                                title="View Source"
+                                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] touch-manipulation"
+                                title={t("viewSource")}
                               >
                                 <Link className="h-4 w-4" />
                               </a>
@@ -4693,7 +4696,7 @@ export default function ProjectEditorPage({
                             <button
                               onClick={() => addCitationToEditor(citation)}
                               disabled={isAddingCitation}
-                              className={`min-h-[44px] px-4 py-2 rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center justify-center gap-2 touch-manipulation ${
+                              className={`min-h-[44px] px-4 py-2 rounded-(--radius) text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center justify-center gap-2 touch-manipulation ${
                                 isAddingCitation
                                   ? "bg-[hsl(var(--muted))] cursor-not-allowed text-[hsl(var(--muted-foreground))]"
                                   : "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] cursor-pointer"
@@ -4736,7 +4739,7 @@ export default function ProjectEditorPage({
                             <span className="font-semibold text-[hsl(var(--foreground))] shrink-0 whitespace-nowrap">
                               DOI:
                             </span>
-                            <code className="border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-2 py-1 break-all min-w-0">
+                            <code className="border-2 border-[hsl(var(--border-strong))] rounded-(--radius) px-2 py-1 break-all min-w-0">
                               {citation.doi}
                             </code>
                           </div>
@@ -4758,7 +4761,7 @@ export default function ProjectEditorPage({
                             <button
                               onClick={loadMoreCitations}
                               disabled={isLoadingMoreCitations}
-                              className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 cursor-pointer"
+                              className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 cursor-pointer"
                             >
                               {isLoadingMoreCitations ? (
                                 <>
@@ -4782,7 +4785,7 @@ export default function ProjectEditorPage({
                   </div>
                 ) : (
                   <div className="text-center py-8 sm:py-12">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center mx-auto mb-4">
                       <Search className="h-7 w-7 sm:h-8 sm:w-8 text-[hsl(var(--muted-foreground))]" />
                     </div>
                     <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">
@@ -4799,7 +4802,7 @@ export default function ProjectEditorPage({
                         onClick={() => setCitationSearchQuery("")}
                         className="min-h-[44px] px-4 py-2 text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] font-semibold text-xs uppercase tracking-[0.18em] cursor-pointer touch-manipulation"
                       >
-                        Clear filter to see all citations
+                        {t("clearFilter")}
                       </button>
                     )}
                   </div>
@@ -4813,14 +4816,14 @@ export default function ProjectEditorPage({
         {showExportModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
-                    Export Project
+                    {t("exportProject")}
                   </h3>
                   <button
                     onClick={() => setShowExportModal(false)}
-                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -4830,10 +4833,10 @@ export default function ProjectEditorPage({
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-                        Citation Style
+                        {t("citationStyle")}
                         {isAutoDetected.citationStyle && (
-                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
-                            Auto
+                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
+                            {t("auto")}
                           </span>
                         )}
                       </label>
@@ -4846,7 +4849,7 @@ export default function ProjectEditorPage({
                             citationStyle: false,
                           }));
                         }}
-                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                         disabled={isExporting}
                       >
                         <option value="apa">APA</option>
@@ -4858,10 +4861,10 @@ export default function ProjectEditorPage({
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] flex items-center gap-2">
-                        Academic Template
+                        {t("academicTemplate")}
                         {isAutoDetected.template && (
-                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
-                            Auto
+                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
+                            {t("auto")}
                           </span>
                         )}
                       </label>
@@ -4874,14 +4877,14 @@ export default function ProjectEditorPage({
                             template: false,
                           }));
                         }}
-                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                         disabled={isExporting}
                       >
-                        <option value="research-paper">Research paper</option>
-                        <option value="thesis">Thesis</option>
-                        <option value="report">Research report</option>
+                        <option value="research-paper">{t("researchPaper")}</option>
+                        <option value="thesis">{t("thesis")}</option>
+                        <option value="report">{t("researchReport")}</option>
                         <option value="conference-paper">
-                          Conference paper
+                          {t("conferencePaper")}
                         </option>
                       </select>
                     </div>
@@ -4889,30 +4892,30 @@ export default function ProjectEditorPage({
 
                   <div className="grid gap-3 md:grid-cols-2">
                     {(
-                      [
-                        {
+[
+                      {
                           key: "pdf",
-                          label: "PDF Document",
-                          description: "Portable document format",
-                          spinner: "Generating PDF...",
+                          label: t("pdfDocument"),
+                          description: t("pdfDescription"),
+                          spinner: t("generatingPdf"),
                         },
                         {
                           key: "docx",
-                          label: "Word Document",
-                          description: "Microsoft Word format",
-                          spinner: "Generating DOCX...",
+                          label: t("wordDocument"),
+                          description: t("docxDescription"),
+                          spinner: t("generatingDocx"),
                         },
                         {
                           key: "txt",
-                          label: "Plain Text",
-                          description: "Simple text format",
-                          spinner: "Generating TXT...",
+                          label: t("plainText"),
+                          description: t("txtDescription"),
+                          spinner: t("generatingTxt"),
                         },
                         {
                           key: "latex",
-                          label: "LaTeX Document",
-                          description: "Academic LaTeX export",
-                          spinner: "Generating LaTeX...",
+                          label: t("latexDocument"),
+                          description: t("latexDescription"),
+                          spinner: t("generatingLatex"),
                         },
                       ] as const
                     ).map((option) => {
@@ -4929,7 +4932,7 @@ export default function ProjectEditorPage({
                           }}
                           disabled={isProcessing}
                           className={cn(
-                            "w-full border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-4 py-4 text-left flex items-start gap-4 transition-transform duration-150 bg-[hsl(var(--surface))]",
+                            "w-full border-2 border-[hsl(var(--border-strong))] rounded-(--radius) px-4 py-4 text-left flex items-start gap-4 transition-transform duration-150 bg-[hsl(var(--surface))]",
                             isProcessing
                               ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-not-allowed"
                               : isActive
@@ -4937,7 +4940,7 @@ export default function ProjectEditorPage({
                               : "hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                           )}
                         >
-                          <div className="w-10 h-10 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--surface))]">
+                          <div className="w-10 h-10 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0 bg-[hsl(var(--surface))]">
                             <FileText className="h-5 w-5" />
                           </div>
                           <div className="flex-1">
@@ -4966,14 +4969,14 @@ export default function ProjectEditorPage({
                     disabled={isExporting}
                     className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
                   >
-                    Cancel
+                    {t("cancel")}
                   </Button>
                   <Button
                     onClick={() => handleExport(selectedExportFormat)}
                     disabled={isExporting}
                     className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
                   >
-                    {isExporting ? "Exporting…" : "Export"}
+                    {isExporting ? t("exporting") : t("export")}
                   </Button>
                 </div>
               </div>
@@ -4986,14 +4989,14 @@ export default function ProjectEditorPage({
         {showManualCitationModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
-                    Add Manual Citation
+                    {t("addManualCitation")}
                   </h3>
                   <button
                     onClick={() => setShowManualCitationModal(false)}
-                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -5001,7 +5004,7 @@ export default function ProjectEditorPage({
                 <div className="p-6 space-y-6">
                   <div className="grid gap-4 md:grid-cols-2">
                     <Input
-                      label="Title *"
+                      label={t("titleRequired")}
                       value={manualCitation.title}
                       onChange={(e) =>
                         setManualCitation((prev) => ({
@@ -5009,11 +5012,11 @@ export default function ProjectEditorPage({
                           title: e.target.value,
                         }))
                       }
-                      placeholder="Research paper title"
+                      placeholder={t("placeholderTitle")}
                       required
                     />
                     <Input
-                      label="Authors *"
+                      label={t("authorsRequired")}
                       value={manualCitation.authors}
                       onChange={(e) =>
                         setManualCitation((prev) => ({
@@ -5021,11 +5024,11 @@ export default function ProjectEditorPage({
                           authors: e.target.value,
                         }))
                       }
-                      placeholder="Smith, J.; Johnson, A."
+                      placeholder={t("placeholderAuthors")}
                       required
                     />
                     <Input
-                      label="Year"
+                      label={t("year")}
                       type="number"
                       value={manualCitation.year}
                       onChange={(e) =>
@@ -5034,10 +5037,10 @@ export default function ProjectEditorPage({
                           year: e.target.value,
                         }))
                       }
-                      placeholder="2023"
+                      placeholder={t("placeholderYear")}
                     />
                     <Input
-                      label="Journal"
+                      label={t("journal")}
                       value={manualCitation.journal}
                       onChange={(e) =>
                         setManualCitation((prev) => ({
@@ -5045,10 +5048,10 @@ export default function ProjectEditorPage({
                           journal: e.target.value,
                         }))
                       }
-                      placeholder="Journal name"
+                      placeholder={t("placeholderJournal")}
                     />
                     <Input
-                      label="DOI"
+                      label={t("doi")}
                       value={manualCitation.doi}
                       onChange={(e) =>
                         setManualCitation((prev) => ({
@@ -5056,10 +5059,10 @@ export default function ProjectEditorPage({
                           doi: e.target.value,
                         }))
                       }
-                      placeholder="10.1000/xyz123"
+                      placeholder={t("placeholderDoi")}
                     />
                     <Input
-                      label="URL"
+                      label={t("url")}
                       type="url"
                       value={manualCitation.url}
                       onChange={(e) =>
@@ -5068,12 +5071,12 @@ export default function ProjectEditorPage({
                           url: e.target.value,
                         }))
                       }
-                      placeholder="https://example.com"
+                      placeholder={t("placeholderUrl")}
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                      Abstract
+                      {t("abstract")}
                     </label>
                     <textarea
                       value={manualCitation.abstract}
@@ -5083,9 +5086,9 @@ export default function ProjectEditorPage({
                           abstract: e.target.value,
                         }))
                       }
-                      placeholder="Optional summary or key insights"
+                      placeholder={t("placeholderNotes")}
                       rows={4}
-                      className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.12em] text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 resize-y"
+                      className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.12em] text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 resize-y"
                     />
                   </div>
                 </div>
@@ -5095,7 +5098,7 @@ export default function ProjectEditorPage({
                     onClick={() => setShowManualCitationModal(false)}
                     className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
                   >
-                    Cancel
+                    {t("cancel")}
                   </Button>
                   <Button
                     onClick={addManualCitation}
@@ -5105,7 +5108,7 @@ export default function ProjectEditorPage({
                     }
                     className="px-6 py-3 text-xs uppercase tracking-[0.18em]"
                   >
-                    Add Citation
+                    {t("addCitation")}
                   </Button>
                 </div>
               </div>
@@ -5117,14 +5120,14 @@ export default function ProjectEditorPage({
         {showPlagiarismModal && plagiarismResult && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-4xl">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col max-h-[90vh]">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col max-h-[90vh]">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
-                    Plagiarism Check Results
+                    {t("plagiarismCheckResults")}
                   </h3>
                   <button
                     onClick={() => setShowPlagiarismModal(false)}
-                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -5134,7 +5137,7 @@ export default function ProjectEditorPage({
                   <div className="grid gap-4 md:grid-cols-3">
                     <div
                       className={cn(
-                        "border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center space-y-2",
+                        "border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center space-y-2",
                         plagiarismResult.matchPercentage < 10
                           ? "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]"
                           : plagiarismResult.matchPercentage < 25
@@ -5143,29 +5146,29 @@ export default function ProjectEditorPage({
                       )}
                     >
                       <span className="text-xs uppercase tracking-[0.24em] font-semibold block">
-                        Similarity Match
+                        {t("similarityMatch")}
                       </span>
                       <span className="text-4xl font-black uppercase tracking-[0.1em]">
                         {plagiarismResult.matchPercentage}%
                       </span>
                       <span className="text-[10px] uppercase tracking-[0.2em] block">
-                        Content overlap detected
+                        {t("contentOverlapDetected")}
                       </span>
                     </div>
 
-                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center space-y-2 bg-[hsl(var(--surface-muted))]">
+                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center space-y-2 bg-[hsl(var(--surface-muted))]">
                       <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold block">
-                        Checks Remaining
+                        {t("checksRemaining")}
                       </span>
                       <span className="text-4xl font-black uppercase tracking-[0.1em]">
                         {plagiarismResult.remaining}
                       </span>
                       <span className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] block">
-                        Plan allowance
+                        {t("planAllowance")}
                       </span>
                     </div>
 
-                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 space-y-3">
+                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-6 space-y-3">
                       <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold block">
                         Sources Checked
                       </span>
@@ -5198,7 +5201,7 @@ export default function ProjectEditorPage({
                             (section, index) => (
                               <div
                                 key={index}
-                                className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface-muted))]"
+                                className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 bg-[hsl(var(--surface-muted))]"
                               >
                                 <div className="flex items-center justify-between mb-3">
                                   <h5 className="text-xs font-semibold uppercase tracking-[0.18em]">
@@ -5207,7 +5210,7 @@ export default function ProjectEditorPage({
                                   <div className="flex items-center gap-2">
                                     <span
                                       className={cn(
-                                        "px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em]",
+                                        "px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em]",
                                         section.matchPercentage < 10
                                           ? "bg-green-500/20"
                                           : section.matchPercentage < 25
@@ -5260,14 +5263,14 @@ export default function ProjectEditorPage({
                         {plagiarismResult.matches.map((match, index) => (
                           <div
                             key={index}
-                            className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                            className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                           >
                             <div className="flex items-start justify-between gap-3 mb-2">
                               <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] flex-1 leading-relaxed">
                                 &quot;{match.text}&quot;
                               </p>
                               {typeof match.similarity === "number" && (
-                                <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] whitespace-nowrap">
+                                <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em] whitespace-nowrap">
                                   {match.similarity}% similar
                                 </span>
                               )}
@@ -5302,7 +5305,7 @@ export default function ProjectEditorPage({
                       </div>
                     </div>
                   ) : (
-                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-10 text-center bg-[hsl(var(--surface-muted))] space-y-3">
+                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-10 text-center bg-[hsl(var(--surface-muted))] space-y-3">
                       <CheckCircle2 className="h-10 w-10 mx-auto text-[hsl(var(--secondary))]" />
                       <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
                         No plagiarism detected. Your content is original.
@@ -5329,16 +5332,15 @@ export default function ProjectEditorPage({
         {sectionToDelete && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))]">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--destructive))]">
-                    Delete Section
+                    {t("deleteSectionTitle")}
                   </h3>
                 </div>
                 <div className="p-6 space-y-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                    Are you sure you want to remove this section? This action
-                    cannot be undone.
+                    {t("deleteSectionConfirm")}
                   </p>
                   <div className="flex gap-3">
                     <Button
@@ -5346,13 +5348,13 @@ export default function ProjectEditorPage({
                       onClick={() => setSectionToDelete(null)}
                       className="flex-1 px-4 py-3 text-xs uppercase tracking-[0.18em]"
                     >
-                      Cancel
+                      {t("cancel")}
                     </Button>
                     <Button
                       onClick={() => deleteSection(sectionToDelete)}
                       className="flex-1 px-4 py-3 text-xs uppercase tracking-[0.18em]"
                     >
-                      Delete
+                      {t("delete")}
                     </Button>
                   </div>
                 </div>
@@ -5364,7 +5366,7 @@ export default function ProjectEditorPage({
         {showSuccessMessage && (
           <div className="fixed top-4 right-4 left-4 sm:left-auto z-50 max-w-md">
             <div
-              className={`flex items-start gap-3 px-4 py-3 sm:px-6 sm:py-4 border-2 rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] bg-[hsl(var(--surface))] ${
+              className={`flex items-start gap-3 px-4 py-3 sm:px-6 sm:py-4 border-2 rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)] bg-[hsl(var(--surface))] ${
                 showSuccessMessage.includes("❌")
                   ? "border-[hsl(var(--destructive))]"
                   : showSuccessMessage.includes("✅")
@@ -5374,17 +5376,17 @@ export default function ProjectEditorPage({
             >
               <div className="flex-shrink-0 mt-0.5">
                 {showSuccessMessage.includes("❌") ? (
-                  <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-(--radius) border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 flex items-center justify-center">
                     <span className="text-[hsl(var(--destructive))] text-xs font-bold">
                       !
                     </span>
                   </div>
                 ) : showSuccessMessage.includes("✅") ? (
-                  <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))]/10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-(--radius) border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))]/10 flex items-center justify-center">
                     <CheckCircle2 className="h-4 w-4 text-[hsl(var(--secondary-foreground))]" />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
                     <AlertCircle className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                   </div>
                 )}
@@ -5397,8 +5399,8 @@ export default function ProjectEditorPage({
               <button
                 type="button"
                 onClick={() => setShowSuccessMessage("")}
-                aria-label="Dismiss"
-                className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--foreground))]/30 transition-colors cursor-pointer touch-manipulation"
+                aria-label={t("dismiss")}
+                className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--foreground))]/30 transition-colors cursor-pointer touch-manipulation"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -5409,10 +5411,10 @@ export default function ProjectEditorPage({
         {/* Simple Math Modal */}
         {showMathModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-3xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8">
+            <div className="w-full max-w-3xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
-                  Insert Math Equation
+                  {t("insertMathEquation")}
                 </h3>
                 <button
                   onClick={() => {
@@ -5420,7 +5422,7 @@ export default function ProjectEditorPage({
                     setMathPreview("");
                     setMathExplanation("");
                   }}
-                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -5430,20 +5432,18 @@ export default function ProjectEditorPage({
                 {/* LaTeX Input */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-2">
-                    LaTeX Equation
+                    {t("latexEquation")}
                   </label>
                   <input
                     type="text"
                     value={mathPreview}
                     onChange={(e) => setMathPreview(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm font-mono text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
-                    placeholder="e.g., \\frac{a}{b}, x^2 + y^2 = z^2, E = mc^2"
+                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm font-mono text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                    placeholder={t("latexPlaceholder")}
                   />
                   <div className="flex items-center justify-between mt-1">
                     <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                      Use LaTeX syntax. Examples:
-                      \frac&#123;a&#125;&#123;b&#125;, x^2,
-                      \sum_&#123;i=1&#125;^n, \int_0^\infty
+                      {t("latexHint")}
                     </p>
                     <a
                       href="/latex-guide"
@@ -5451,7 +5451,7 @@ export default function ProjectEditorPage({
                       rel="noopener noreferrer"
                       className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] underline"
                     >
-                      Full Guide
+                      {t("fullGuide")}
                     </a>
                   </div>
                 </div>
@@ -5459,9 +5459,9 @@ export default function ProjectEditorPage({
                 {/* Live Preview */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-2">
-                    Preview
+                    {t("preview")}
                   </label>
-                  <div className="p-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface-muted))] min-h-[80px] flex items-center justify-center">
+                  <div className="p-6 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface-muted))] min-h-[80px] flex items-center justify-center">
                     {mathPreview ? (
                       <div
                         id="math-preview"
@@ -5471,7 +5471,7 @@ export default function ProjectEditorPage({
                       </div>
                     ) : (
                       <div className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                        Your equation will appear here…
+                        {t("equationPreviewPlaceholder")}
                       </div>
                     )}
                   </div>
@@ -5481,18 +5481,18 @@ export default function ProjectEditorPage({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                      AI Explanation
+                      {t("aiExplanation")}
                     </label>
                     <button
                       type="button"
                       onClick={() => generateMathExplanation(mathPreview)}
                       disabled={!mathPreview.trim() || isGeneratingExplanation}
-                      className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
+                      className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[10px] uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
                     >
-                      {isGeneratingExplanation ? "Generating…" : "Generate"}
+                      {isGeneratingExplanation ? t("generating") : t("generate")}
                     </button>
                   </div>
-                  <div className="p-4 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface-muted))] max-h-[140px] overflow-y-auto">
+                  <div className="p-4 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface-muted))] max-h-[140px] overflow-y-auto">
                     {mathExplanation ? (
                       <div className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed">
                         {mathExplanation
@@ -5504,15 +5504,14 @@ export default function ProjectEditorPage({
                               href="/settings"
                               className="inline-flex items-center text-[hsl(var(--secondary))] hover:text-[hsl(var(--foreground))] text-[10px] uppercase tracking-[0.2em]"
                             >
-                              Upgrade to Pro →
+                              {t("upgradeToPro")}
                             </NavLink>
                           </div>
                         )}
                       </div>
                     ) : (
                       <div className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-                        Generate a short explanation for this equation using
-                        Akọ̀wé.
+                        {t("generateExplanationHint")}
                       </div>
                     )}
                   </div>
@@ -5521,21 +5520,21 @@ export default function ProjectEditorPage({
                 {/* Quick Examples */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-2">
-                    Quick Examples
+                    {t("quickExamples")}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { label: "Fraction", value: "\\frac{a}{b}" },
-                      { label: "Power", value: "x^2 + y^2" },
-                      { label: "Square Root", value: "\\sqrt{x^2 + y^2}" },
-                      { label: "Sum", value: "\\sum_{i=1}^n x_i" },
-                      { label: "Integral", value: "\\int_0^\\infty f(x) dx" },
-                      { label: "Greek", value: "\\alpha + \\beta = \\gamma" },
+                      { label: t("fraction"), value: "\\frac{a}{b}" },
+                      { label: t("power"), value: "x^2 + y^2" },
+                      { label: t("squareRoot"), value: "\\sqrt{x^2 + y^2}" },
+                      { label: t("sum"), value: "\\sum_{i=1}^n x_i" },
+                      { label: t("integral"), value: "\\int_0^\\infty f(x) dx" },
+                      { label: t("greek"), value: "\\alpha + \\beta = \\gamma" },
                     ].map((example) => (
                       <button
                         key={example.label}
                         onClick={() => setMathPreview(example.value)}
-                        className="p-3 text-left border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 bg-[hsl(var(--surface))]"
+                        className="p-3 text-left border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 bg-[hsl(var(--surface))]"
                       >
                         <div className="font-semibold text-xs uppercase tracking-[0.18em]">
                           {example.label}
@@ -5560,7 +5559,7 @@ export default function ProjectEditorPage({
                   }}
                   className="flex-1 py-3 text-xs uppercase tracking-[0.18em]"
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   onClick={async () => {
@@ -5581,7 +5580,7 @@ export default function ProjectEditorPage({
                   disabled={!mathPreview.trim()}
                   className="flex-1 py-3 text-xs uppercase tracking-[0.18em]"
                 >
-                  Insert Equation
+                  {t("insertEquation")}
                 </Button>
               </div>
             </div>
@@ -5591,29 +5590,28 @@ export default function ProjectEditorPage({
         {/* Chart Modal */}
         {showChartModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-2xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8 text-center">
+            <div className="w-full max-w-2xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8 text-center">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
-                  Insert Chart
+                  {t("insertChart")}
                 </h3>
                 <button
                   onClick={() => setShowChartModal(false)}
-                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               <div className="space-y-4 py-6">
-                <div className="w-20 h-20 border-4 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto text-[hsl(var(--muted-foreground))]">
+                <div className="w-20 h-20 border-4 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center mx-auto text-[hsl(var(--muted-foreground))]">
                   <BarChart3 className="h-8 w-8" />
                 </div>
                 <h4 className="text-lg font-semibold uppercase tracking-[0.18em]">
-                  Chart Feature Coming Soon
+                  {t("chartFeatureComingSoon")}
                 </h4>
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] max-w-md mx-auto">
-                  We&apos;re building an intuitive chart builder. For now, add
-                  visualizations by inserting an image or figure reference.
+                  {t("chartComingSoonDescription")}
                 </p>
               </div>
 
@@ -5621,7 +5619,7 @@ export default function ProjectEditorPage({
                 onClick={() => setShowChartModal(false)}
                 className="w-full py-3 text-xs uppercase tracking-[0.18em]"
               >
-                Got it
+                {t("gotIt")}
               </Button>
             </div>
           </div>

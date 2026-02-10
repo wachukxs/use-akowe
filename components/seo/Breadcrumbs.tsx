@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface BreadcrumbItem {
   label: string;
@@ -11,13 +14,14 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
+  const t = useTranslations('components.breadcrumbs');
   const allItems = [
-    { label: 'Home', href: '/' },
+    { label: t('home'), href: '/' },
     ...items,
   ];
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-6">
+    <nav aria-label={t('ariaLabel')} className="mb-6">
       <ol className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] flex-wrap">
         {allItems.map((item, index) => {
           const isLast = index === allItems.length - 1;
@@ -46,23 +50,4 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
   );
 }
 
-export function BreadcrumbStructuredData({ items }: BreadcrumbsProps) {
-  const allItems = [
-    { label: 'Home', href: '/' },
-    ...items,
-  ];
-
-  const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
-
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: allItems.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.label,
-      item: `${baseUrl}${item.href}`,
-    })),
-  };
-}
 

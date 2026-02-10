@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { HelpCircle, ArrowRight } from 'lucide-react';
 import { getAllFAQSlugs, getFAQBySlug } from '@/lib/seo/faqs';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -29,13 +30,14 @@ export default function FAQIndexPage() {
     .map((slug) => getFAQBySlug(slug))
     .filter((faq): faq is NonNullable<typeof faq> => faq !== undefined);
 
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [{ label: 'FAQ', href: '/faq' }],
-  });
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [{ label: 'FAQ', href: '/faq' }],
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
@@ -77,7 +79,7 @@ export default function FAQIndexPage() {
             <Link
               key={faq.slug}
               href={`/faq/${faq.slug}`}
-              className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
+              className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
             >
               <h2 className="text-xl font-bold mb-2">{faq.question}</h2>
               <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 line-clamp-2">

@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getCitationSourceByTypeAndStyle, getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
 import { getCitationStyleBySlug, getAllCitationStyleSlugs } from '@/lib/seo/citation-styles';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
@@ -84,21 +85,22 @@ export default async function CitationSourcePage({
     })
     .filter((item: any): item is NonNullable<typeof item> => item !== null);
 
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Citation Styles', href: '/citation-styles' },
       { label: citationStyle.name, href: `/citation-styles/${style}` },
       { label: sourceTypeName, href: `/citation-sources/${style}/${type}` },
     ],
-  });
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <ArrowLeft size={18} />
               </span>
               <div className="flex flex-col gap-0.5">
@@ -154,7 +156,7 @@ export default async function CitationSourcePage({
             <p className="text-xl text-[hsl(var(--muted-foreground))]">{citationSource.description}</p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Citation Format</h2>
             <div className="bg-[hsl(var(--background))] p-4 rounded border-2 border-[hsl(var(--border-strong))] mb-4">
               <code className="text-sm">{citationSource.format}</code>
@@ -165,7 +167,7 @@ export default async function CitationSourcePage({
             </div>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Important Notes</h2>
             <ul className="list-disc list-inside space-y-3">
               {citationSource.notes.map((note, index) => (
@@ -177,7 +179,7 @@ export default async function CitationSourcePage({
             </ul>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Automate Your Citations</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Don&apos;t memorize citation formats. Use Akowe to automatically cite {type}s in {citationStyle.name} style. 

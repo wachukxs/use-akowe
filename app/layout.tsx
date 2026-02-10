@@ -3,7 +3,6 @@ import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
-import FeedbackButton from "@/components/FeedbackButton";
 import ReferralCapture from "@/components/ReferralCapture";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 
@@ -216,7 +215,6 @@ export default function RootLayout({
             <ReferralCapture />
           </Suspense>
           {children}
-          <FeedbackButton />
         </Providers>
       </body>
     </html>

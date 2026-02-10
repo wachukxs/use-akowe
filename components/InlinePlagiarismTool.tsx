@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { trackLeadMagnet } from '@/lib/gtag';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 
@@ -23,6 +24,7 @@ interface PlagiarismResult {
 }
 
 export default function InlinePlagiarismTool() {
+  const t = useTranslations('components.inlinePlagiarismTool');
   const router = useRouter();
   const [text, setText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -94,7 +96,7 @@ export default function InlinePlagiarismTool() {
   };
 
   return (
-    <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg my-8">
+    <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg my-8">
       <div className="flex items-center gap-2 mb-4">
         <Shield size={20} className="text-[hsl(var(--primary))]" />
         <h3 className="text-lg font-bold uppercase tracking-[0.1em]">
@@ -107,12 +109,12 @@ export default function InlinePlagiarismTool() {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Paste a paragraph from your paper to check for plagiarism issues..."
+            placeholder={t('placeholder')}
             className="w-full h-32 p-4 border-[3px] border-[hsl(var(--border-strong))] rounded bg-[hsl(var(--background))] text-sm resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-[hsl(var(--muted-foreground))]">
-              {text.length < 50 ? `${50 - text.length} more characters needed` : 'Ready to check'}
+              {text.length < 50 ? t('moreCharsNeeded', { count: 50 - text.length }) : t('readyToCheck')}
             </span>
             <button
               onClick={handleAnalyze}
@@ -139,7 +141,7 @@ export default function InlinePlagiarismTool() {
           <div className="flex items-center justify-between p-4 bg-[hsl(var(--background))] border-[2px] border-[hsl(var(--border-strong))] rounded">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                Risk Score
+                {t('riskScore')}
               </p>
               <p className={`text-3xl font-bold ${getRiskColor(result.riskScore)}`}>
                 {result.riskScore}%
@@ -163,7 +165,7 @@ export default function InlinePlagiarismTool() {
 
           {/* Summary */}
           <div className="text-xs text-[hsl(var(--muted-foreground))]">
-            Found {result.totalIssues} total issues • 
+            Found {result.totalIssues} total issues •
             {result.summary.citationIssues > 0 && ` ${result.summary.citationIssues} citation`}
             {result.summary.aiPatterns > 0 && ` ${result.summary.aiPatterns} AI pattern`}
           </div>
@@ -173,7 +175,7 @@ export default function InlinePlagiarismTool() {
             onClick={() => setShowEmailCapture(true)}
             className="w-full inline-flex items-center justify-center gap-2 border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-5 py-3 font-semibold uppercase tracking-[0.12em] text-sm"
           >
-            Get Full Report & Fix Suggestions
+            {t('getFullReport')}
             <ArrowRight size={16} />
           </button>
         </div>

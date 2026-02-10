@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -31,7 +32,7 @@ export default function CitationStylesIndexPage() {
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
@@ -56,9 +57,10 @@ export default function CitationStylesIndexPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [{ label: 'Citation Styles', href: '/citation-styles' }],
-            })),
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [{ label: 'Citation Styles', href: '/citation-styles' }],
+              baseUrl
+            )),
           }}
         />
         <div className="mb-12">
@@ -77,7 +79,7 @@ export default function CitationStylesIndexPage() {
             <Link
               key={style.slug}
               href={`/citation-styles/${style.slug}`}
-              className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
+              className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
             >
               <h2 className="text-xl font-bold mb-2">{style.name}</h2>
               <p className="text-xs text-[hsl(var(--muted-foreground))] mb-2">{style.fullName}</p>

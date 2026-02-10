@@ -189,7 +189,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder={t('topicFinder.placeholder')}
-                className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                 onKeyDown={(e) => e.key === 'Enter' && !isAnalyzing && handleAnalyze()}
               />
             </div>
@@ -202,7 +202,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
                 <select
                   value={projectType}
                   onChange={(e) => setProjectType(e.target.value as any)}
-                  className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                  className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                 >
                   <option value="thesis">{t('topicFinder.projectTypeThesis')}</option>
                   <option value="essay">{t('topicFinder.projectTypeEssay')}</option>
@@ -218,7 +218,7 @@ export default function HeroTopicFinder({ variant }: HeroTopicFinderProps) {
                 <select
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value as any)}
-                  className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                  className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                 >
                   <option value="">{t('topicFinder.methodologyAny')}</option>
                   <option value="qualitative">{t('topicFinder.methodologyQualitative')}</option>

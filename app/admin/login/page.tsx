@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
           </div>
 
           {error && (
-            <div className="flex items-center gap-3 p-4 border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 rounded-[var(--radius)]">
+            <div className="flex items-center gap-3 p-4 border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 rounded-(--radius)">
               <AlertCircle className="w-5 h-5 text-[hsl(var(--destructive))] flex-shrink-0" />
               <p className="text-sm text-[hsl(var(--destructive))]">{error}</p>
             </div>

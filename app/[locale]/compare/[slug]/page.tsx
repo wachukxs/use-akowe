@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { GitCompare, Check, X } from 'lucide-react';
 import { getAllComparisonSlugs, getComparisonBySlug } from '@/lib/seo/comparisons';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
@@ -48,7 +49,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
@@ -76,12 +77,13 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [
                 { label: 'Comparisons', href: '/compare' },
                 { label: comparison.title, href: `/compare/${slug}` },
               ],
-            })),
+              baseUrl
+            )),
           }}
         />
         <script
@@ -105,7 +107,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
         </div>
 
         <div className="space-y-8">
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Why Choose Akowe?</h2>
             <ul className="space-y-3">
               {comparison.akoweAdvantages.map((advantage, index) => (
@@ -117,7 +119,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             </ul>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">{comparison.competitor} Limitations</h2>
             <ul className="space-y-3">
               {comparison.competitorLimitations.map((limitation, index) => (
@@ -129,7 +131,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             </ul>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Which Should You Choose?</h2>
             <p className="text-lg leading-relaxed">{comparison.useCase}</p>
           </div>

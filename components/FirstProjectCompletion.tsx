@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { CheckCircle2, Sparkles, ArrowRight, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -11,6 +12,7 @@ import Card from '@/components/ui/Card';
  * Appears on the project editor page for first-time users
  */
 export default function FirstProjectCompletion() {
+  const t = useTranslations('components.firstProjectCompletion');
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -32,13 +34,13 @@ export default function FirstProjectCompletion() {
 
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/80 z-50 flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative">
+      <Card className="max-w-2xl w-full border-4 border-[hsl(var(--primary))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative">
         <button
           onClick={() => {
             setIsVisible(false);
             localStorage.setItem('akowe_first_project_completion_seen', 'true');
           }}
-          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors"
+          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"
           aria-label="Close"
         >
           <X size={20} />
@@ -46,21 +48,21 @@ export default function FirstProjectCompletion() {
 
         <div className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="w-16 h-16 border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-full flex items-center justify-center">
               <CheckCircle2 className="text-[hsl(var(--primary))]" size={32} />
             </div>
           </div>
           
           <div>
             <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-[0.12em] mb-2">
-              Project Created Successfully! 🎉
+              {t('title')}
             </h2>
             <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-              Your project is ready. Let&apos;s start writing!
+              {t('subtitle')}
             </p>
           </div>
 
-          <div className="space-y-3 text-left bg-[hsl(var(--surface-muted))] p-4 rounded-[var(--radius)]">
+          <div className="space-y-3 text-left bg-[hsl(var(--surface-muted))] p-4 rounded-(--radius)">
             <div className="flex items-start gap-3">
               <Sparkles className="text-[hsl(var(--primary))] flex-shrink-0 mt-0.5" size={18} />
               <div>
@@ -84,7 +86,7 @@ export default function FirstProjectCompletion() {
             }}
             className="w-full py-3 text-xs uppercase tracking-[0.2em]"
           >
-            Start Writing
+            {t('startWriting')}
             <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>

@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getAllTemplateSlugs, getTemplateBySlug } from '@/lib/seo/templates';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
@@ -50,20 +51,21 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
     description: t!.description,
   }));
 
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Templates', href: '/templates' },
       { label: template.title, href: `/templates/${type}` },
     ],
-  });
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <ArrowLeft size={18} />
               </span>
               <div className="flex flex-col gap-0.5">
@@ -116,14 +118,14 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
             <p className="text-xl text-[hsl(var(--muted-foreground))]">{template.description}</p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Template Type</h2>
             <p className="text-lg mb-4">{template.type}</p>
             <h2 className="text-2xl font-bold mb-4">Best For</h2>
             <p className="text-lg">{template.useCase}</p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Structure</h2>
             <ol className="list-decimal list-inside space-y-3">
               {template.structure.map((section, index) => (
@@ -135,7 +137,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
             </ol>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Use This Template in Akowe</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Create a new project in Akowe and use this structure to organize your {template.type.toLowerCase()}. 

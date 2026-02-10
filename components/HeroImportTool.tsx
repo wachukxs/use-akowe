@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Upload, FileText, ArrowRight, BookOpen, AlertTriangle, XCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 import { trackLeadMagnet } from '@/lib/gtag';
@@ -28,6 +29,7 @@ interface ImportResult {
 }
 
 export default function HeroImportTool({ variant }: HeroImportToolProps) {
+  const t = useTranslations('components.heroImportTool');
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
@@ -54,7 +56,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
     if (droppedFile) {
       const extension = droppedFile.name.split('.').pop()?.toLowerCase();
       if (!['docx', 'pdf', 'txt'].includes(extension || '')) {
-        setError('Please upload a .docx, .pdf, or .txt file');
+        setError(t('errorFileType'));
         return;
       }
       setFile(droppedFile);
@@ -66,7 +68,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
   // Run analysis immediately - no email required first
   const handleAnalyze = async () => {
     if (!file) {
-      setError('Please upload a file');
+      setError(t('errorUploadFile'));
       return;
     }
 
@@ -86,7 +88,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
+        throw new Error(errorData.error || t('analysisFailed'));
       }
 
       const data = await response.json();
@@ -102,7 +104,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
         expires: Date.now() + 3600 * 1000,
       }));
     } catch (err: any) {
-      setError(err.message || 'Failed to analyze. Please try again.');
+      setError(err.message || t('analysisFailed'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -144,9 +146,9 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'Good';
-    if (score >= 60) return 'Needs Work';
-    return 'At Risk';
+    if (score >= 80) return t('scoreGood');
+    if (score >= 60) return t('scoreNeedsWork');
+    return t('scoreAtRisk');
   };
 
   const getScoreBg = (score: number) => {
@@ -160,7 +162,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
       <div className="flex items-center gap-2">
         <BookOpen size={16} className="text-[hsl(var(--primary))]" />
         <span className="text-[10px] uppercase tracking-[0.28em] font-semibold text-[hsl(var(--muted-foreground))]">
-          Import Your Thesis
+          {t('label')}
         </span>
       </div>
 
@@ -172,7 +174,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleFileDrop}
               className={cn(
-                'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center cursor-pointer transition-colors',
+                'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center cursor-pointer transition-colors',
                 'hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))]',
                 file && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
               )}
@@ -195,17 +197,17 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
                     }}
                     className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
                   >
-                    Remove
+                    {t('remove')}
                   </button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <Upload className="mx-auto text-[hsl(var(--muted-foreground))]" size={32} />
                   <p className="text-xs font-semibold uppercase tracking-[0.16em]">
-                    Drop your thesis here
+                    {t('dropThesis')}
                   </p>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                    .docx, .pdf, or .txt
+                    {t('fileFormats')}
                   </p>
                 </div>
               )}
@@ -222,7 +224,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
               className="w-full py-3"
               disabled={isAnalyzing || !file}
             >
-              {isAnalyzing ? 'Analyzing...' : 'Analyze Document'}
+              {isAnalyzing ? t('analyzing') : t('analyzeDocument')}
               {!isAnalyzing && <ArrowRight size={16} className="ml-2" />}
             </Button>
           </div>
@@ -232,7 +234,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
           {/* Readiness Score - Primary Focus */}
           <div className="text-center space-y-2">
             <p className="text-[9px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-              Thesis Readiness Score
+              {t('thesisReadinessScore')}
             </p>
             <div className="relative inline-flex items-center justify-center">
               <div className={cn('text-4xl font-bold', getScoreColor(result.readinessScore))}>
@@ -255,15 +257,15 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
           <div className="grid grid-cols-3 gap-2 py-2 border-y-[2px] border-[hsl(var(--border-strong))]">
             <div className="text-center">
               <p className="text-sm font-bold">{result.wordCount.toLocaleString()}</p>
-              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">Words</p>
+              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">{t('words')}</p>
             </div>
             <div className="text-center border-x-[2px] border-[hsl(var(--border-strong))]">
               <p className="text-sm font-bold">{result.sectionCount}</p>
-              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">Sections</p>
+              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">{t('sections')}</p>
             </div>
             <div className="text-center">
               <p className="text-sm font-bold">{result.citationCount}</p>
-              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">Citations</p>
+              <p className="text-[8px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))]">{t('citations')}</p>
             </div>
           </div>
 
@@ -271,7 +273,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
           {result.gaps.length > 0 && (
             <div className="space-y-2">
               <p className="text-[9px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
-                Issues Found
+                {t('issuesFound')}
               </p>
               {result.gaps.slice(0, 2).map((gap, index) => (
                 <div 
@@ -297,7 +299,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
               ))}
               {result.gaps.length > 2 && (
                 <p className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))] text-center">
-                  +{result.gaps.length - 2} more issues to fix
+                  {t('moreIssuesToFix', { count: result.gaps.length - 2 })}
                 </p>
               )}
             </div>
@@ -308,7 +310,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
             onClick={handleGetFullReportClick}
             className="w-full py-3"
           >
-            {result.gaps.length > 0 ? 'Fix Issues in Akọ̀wé' : 'Continue in Akọ̀wé'}
+            {result.gaps.length > 0 ? t('fixInAkowe') : t('continueInAkowe')}
             <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>

@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { getKeywordPageBySlug } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
@@ -46,20 +47,21 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
   
   const title = keywordPage.title;
   
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Topics', href: '/topics' },
       { label: title, href: `/topics/${slug}` },
     ],
-  });
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <ArrowLeft size={18} />
               </span>
               <div className="flex flex-col gap-0.5">
@@ -117,7 +119,7 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
 
           {/* Introduction */}
           {keywordPage.content?.introduction && (
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
               <p className="text-lg leading-relaxed">{keywordPage.content.introduction}</p>
             </div>
           )}
@@ -126,7 +128,7 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
           {keywordPage.content?.sections && keywordPage.content.sections.length > 0 && (
             <div className="space-y-8">
               {keywordPage.content.sections.map((section, index) => (
-                <section key={index} className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+                <section key={index} className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
                   <h2 className="text-2xl font-bold mb-4">{section.heading}</h2>
                   <p className="text-base leading-relaxed">{section.content}</p>
                 </section>
@@ -136,14 +138,14 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
 
           {/* Fallback if no content */}
           {!keywordPage.content?.introduction && !keywordPage.content?.sections && (
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
               <p className="text-lg leading-relaxed">
                 {keywordPage.description}
               </p>
             </div>
           )}
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
             <h2 className="text-2xl font-bold mb-4">Ready to Start Writing?</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Use Akowe to apply these strategies in your own research. Get AI-powered writing assistance, 
