@@ -7,21 +7,27 @@ import { ChevronDown } from 'lucide-react';
 import { routing } from '@/i18n/routing';
 
 const localeLabels: Record<string, string> = {
+  de: 'Deutsch',
   en: 'English',
   es: 'Español',
+  fr: 'Français',
   ja: '日本語',
   ko: '한국어',
   'pt-BR': 'Português (Brasil)',
   'pt-PT': 'Português (Portugal)',
+  th: 'ไทย',
 };
 
 const localeFlags: Record<string, string> = {
+  de: '🇩🇪',
   en: '🇺🇸',
   es: '🇪🇸',
+  fr: '🇫🇷',
   ja: '🇯🇵',
   ko: '🇰🇷',
   'pt-BR': '🇧🇷',
   'pt-PT': '🇵🇹',
+  th: '🇹🇭',
 };
 
 function localeDisplay(loc: string) {
