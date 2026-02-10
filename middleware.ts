@@ -83,7 +83,8 @@ export async function middleware(request: NextRequest) {
   // 5. Prefer saved locale: root (/) and any path without a locale prefix (e.g. /dashboard, /project/123).
   // Links using next/link with href="/dashboard" or router.push("/project/123") hit the server without
   // a locale; without this, next-intl would redirect to default (en) and the chosen language would revert.
-  const hasLocalePrefix = /^\/(en|ja|ko)(?:\/|$)/.test(pathname);
+  const localePattern = (routing.locales as readonly string[]).join('|');
+  const hasLocalePrefix = new RegExp(`^/(${localePattern})(?:/|$)`).test(pathname);
   if (!hasLocalePrefix) {
     const preferred = request.cookies.get('NEXT_LOCALE')?.value;
     if (preferred && (routing.locales as readonly string[]).includes(preferred)) {
@@ -106,7 +107,7 @@ export async function middleware(request: NextRequest) {
   let response = handleI18nRouting(request);
 
   // 7. Persist current locale so next visit reuses it
-  const localeMatch = pathname.match(/^\/(en|ja|ko)(?:\/|$)/);
+  const localeMatch = pathname.match(new RegExp(`^/(${localePattern})(?:/|$)`));
   const localeToPersist = localeMatch ? localeMatch[1] : routing.defaultLocale;
   const localeCookieMaxAge = 365 * 24 * 60 * 60;
   response.cookies.set('NEXT_LOCALE', localeToPersist, {

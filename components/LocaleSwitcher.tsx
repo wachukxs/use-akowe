@@ -8,12 +8,14 @@ import { routing } from '@/i18n/routing';
 
 const localeLabels: Record<string, string> = {
   en: 'English',
+  es: 'Español',
   ja: '日本語',
   ko: '한국어',
 };
 
 const localeFlags: Record<string, string> = {
   en: '🇺🇸',
+  es: '🇪🇸',
   ja: '🇯🇵',
   ko: '🇰🇷',
 };
