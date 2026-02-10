@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { GitCompare, ArrowRight } from 'lucide-react';
 import { getAllComparisonSlugs, getComparisonBySlug } from '@/lib/seo/comparisons';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -56,9 +57,10 @@ export default function CompareIndexPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [{ label: 'Comparisons', href: '/compare' }],
-            })),
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [{ label: 'Comparisons', href: '/compare' }],
+              baseUrl
+            )),
           }}
         />
         <div className="mb-12">

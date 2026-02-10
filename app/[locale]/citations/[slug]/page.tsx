@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
 
@@ -41,12 +42,13 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
 
   const title = keywordPage.title;
   
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Citations', href: '/citations' },
       { label: title, href: `/citations/${slug}` },
     ],
-  });
+    baseUrl
+  );
 
   const citationSlugs = await getAllKeywordSlugs('citation');
   const citationPages = await Promise.all(citationSlugs.map((s) => getKeywordPageBySlug(s)));

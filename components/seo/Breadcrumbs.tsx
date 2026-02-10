@@ -50,23 +50,4 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
   );
 }
 
-export function BreadcrumbStructuredData({ items }: BreadcrumbsProps) {
-  const allItems = [
-    { label: 'Home', href: '/' },
-    ...items,
-  ];
-
-  const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
-
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: allItems.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.label,
-      item: `${baseUrl}${item.href}`,
-    })),
-  };
-}
 

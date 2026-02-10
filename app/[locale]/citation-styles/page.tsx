@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -56,9 +57,10 @@ export default function CitationStylesIndexPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [{ label: 'Citation Styles', href: '/citation-styles' }],
-            })),
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [{ label: 'Citation Styles', href: '/citation-styles' }],
+              baseUrl
+            )),
           }}
         />
         <div className="mb-12">

@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { GitCompare, Check, X } from 'lucide-react';
 import { getAllComparisonSlugs, getComparisonBySlug } from '@/lib/seo/comparisons';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
@@ -76,12 +77,13 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [
                 { label: 'Comparisons', href: '/compare' },
                 { label: comparison.title, href: `/compare/${slug}` },
               ],
-            })),
+              baseUrl
+            )),
           }}
         />
         <script

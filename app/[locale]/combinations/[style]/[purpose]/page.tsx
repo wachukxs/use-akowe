@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
 
@@ -90,13 +91,14 @@ export default async function CombinationPage({ params }: { params: Promise<{ st
   const purposeName = purpose.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const title = `${citationStyle.name} Citation Guide for ${purposeName}`;
   
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Citation Guides', href: '/citation-styles' },
       { label: citationStyle.name, href: `/citation-styles/${style}` },
       { label: title, href: `/combinations/${style}/${purpose}` },
     ],
-  });
+    baseUrl
+  );
 
   // Generate related combinations
   const allStyles = getAllCitationStyleSlugs();

@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getAllTemplateSlugs, getTemplateBySlug } from '@/lib/seo/templates';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
@@ -50,12 +51,13 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
     description: t!.description,
   }));
 
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Templates', href: '/templates' },
       { label: template.title, href: `/templates/${type}` },
     ],
-  });
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">

@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { HelpCircle, ArrowRight } from 'lucide-react';
 import { getAllFAQSlugs, getFAQBySlug } from '@/lib/seo/faqs';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -29,9 +30,10 @@ export default function FAQIndexPage() {
     .map((slug) => getFAQBySlug(slug))
     .filter((faq): faq is NonNullable<typeof faq> => faq !== undefined);
 
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [{ label: 'FAQ', href: '/faq' }],
-  });
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [{ label: 'FAQ', href: '/faq' }],
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">

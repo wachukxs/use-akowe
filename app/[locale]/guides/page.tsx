@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { getAllGuideSlugs, getGuideBySlug } from '@/lib/seo/guides';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -56,9 +57,10 @@ export default function GuidesIndexPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [{ label: 'Guides', href: '/guides' }],
-            })),
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [{ label: 'Guides', href: '/guides' }],
+              baseUrl
+            )),
           }}
         />
         <div className="mb-12">

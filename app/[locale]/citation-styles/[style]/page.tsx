@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
 import { getCitationSourceByTypeAndStyle } from '@/lib/seo/citation-sources';
@@ -72,12 +73,13 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
 
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Citation Styles', href: '/citation-styles' },
       { label: citationStyle.name, href: `/citation-styles/${style}` },
     ],
-  });
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">

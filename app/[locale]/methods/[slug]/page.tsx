@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { getKeywordPageBySlug } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
@@ -45,12 +46,13 @@ export default async function MethodologyPage({ params }: { params: Promise<{ sl
   
   const title = keywordPage.title;
   
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Research Methods', href: '/methods' },
       { label: title, href: `/methods/${slug}` },
     ],
-  });
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">

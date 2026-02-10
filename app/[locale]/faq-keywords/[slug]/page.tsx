@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
 
@@ -41,12 +42,13 @@ export default async function FAQKeywordPage({ params }: { params: Promise<{ slu
   
   const title = keywordPage.title;
   
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'FAQ', href: '/faq' },
       { label: title, href: `/faq-keywords/${slug}` },
     ],
-  });
+    baseUrl
+  );
 
   const faqSlugs = await getAllKeywordSlugs('faq');
   const faqPages = await Promise.all(faqSlugs.map((s) => getKeywordPageBySlug(s)));

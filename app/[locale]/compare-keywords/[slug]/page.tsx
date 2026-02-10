@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, GitCompare } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
 
@@ -41,12 +42,13 @@ export default async function ComparisonKeywordPage({ params }: { params: Promis
   
   const title = keywordPage.title;
   
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Comparisons', href: '/compare' },
       { label: title, href: `/compare-keywords/${slug}` },
     ],
-  });
+    baseUrl
+  );
 
   const comparisonSlugs = await getAllKeywordSlugs('comparison');
   const comparisonPages = await Promise.all(comparisonSlugs.map((s) => getKeywordPageBySlug(s)));

@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { HelpCircle } from 'lucide-react';
 import { getFAQBySlug } from '@/lib/seo/faqs';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import InlineImportTool from '@/components/InlineImportTool';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
@@ -93,12 +94,13 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(BreadcrumbStructuredData({
-              items: [
+            __html: JSON.stringify(getBreadcrumbStructuredData(
+              [
                 { label: 'FAQ', href: '/faq' },
                 { label: faq.question, href: `/faq/${slug}` },
               ],
-            })),
+              baseUrl
+            )),
           }}
         />
         <script

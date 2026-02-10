@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react';
 import { getAllGuideSlugs, getGuideBySlug } from '@/lib/seo/guides';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import InlinePlagiarismTool from '@/components/InlinePlagiarismTool';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
@@ -54,12 +55,13 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     description: g!.description,
   }));
 
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Guides', href: '/guides' },
       { label: guide.title, href: `/guides/${slug}` },
     ],
-  });
+    baseUrl
+  );
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">

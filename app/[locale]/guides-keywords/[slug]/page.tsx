@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
-import { Breadcrumbs, BreadcrumbStructuredData } from '@/components/seo/Breadcrumbs';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
 
@@ -41,12 +42,13 @@ export default async function GuideKeywordPage({ params }: { params: Promise<{ s
   
   const title = keywordPage.title;
   
-  const breadcrumbData = BreadcrumbStructuredData({
-    items: [
+  const breadcrumbData = getBreadcrumbStructuredData(
+    [
       { label: 'Guides', href: '/guides' },
       { label: title, href: `/guides-keywords/${slug}` },
     ],
-  });
+    baseUrl
+  );
 
   const guideSlugs = await getAllKeywordSlugs('guide');
   const guidePages = await Promise.all(guideSlugs.map((s) => getKeywordPageBySlug(s)));
