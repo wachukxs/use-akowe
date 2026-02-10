@@ -25,9 +25,14 @@ export default function AboutPage() {
               </div>
             </Link>
             <nav className="flex items-center gap-6 text-xs font-semibold uppercase tracking-[0.28em]">
-              <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              <a
+                href="https://blog.useakowe.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[hsl(var(--secondary))] transition-colors"
+              >
                 Blog
-              </Link>
+              </a>
               <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
               </Link>
@@ -57,11 +62,15 @@ export default function AboutPage() {
                     Start Writing
                   </Button>
                 </Link>
-                <Link href="/blog">
+                <a
+                  href="https://blog.useakowe.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Button variant="outline" className="px-8 py-4">
                     Explore Blog
                   </Button>
-                </Link>
+                </a>
               </div>
             </div>
             <Card className="lg:col-span-5 p-8 space-y-4 bg-[hsl(var(--surface))]">
@@ -291,9 +300,14 @@ export default function AboutPage() {
             <Link href="/about" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Our Story
             </Link>
-            <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+            <a
+              href="https://blog.useakowe.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
               Blog
-            </Link>
+            </a>
             <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
               Sign In
             </Link>

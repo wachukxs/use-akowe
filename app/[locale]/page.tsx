@@ -128,12 +128,14 @@ function HomePageContent() {
               </span>
             </Link>
             <nav className="flex flex-wrap items-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] sm:tracking-[0.28em]">
-              <Link
-                href="/blog"
+              <a
+                href="https://blog.useakowe.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-[hsl(var(--secondary))] transition-colors"
               >
                 {tCommon("blog")}
-              </Link>
+              </a>
               <Link
                 href="/auth/signin"
                 className="hover:text-[hsl(var(--secondary))] transition-colors"
@@ -1329,12 +1331,14 @@ function HomePageContent() {
             >
               {tHome("footer.learnStory")}
             </Link>
-            <Link
-              href="/blog"
+            <a
+              href="https://blog.useakowe.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-[hsl(var(--secondary))] transition-colors"
             >
               {tCommon("blog")}
-            </Link>
+            </a>
             <Link
               href="/privacy"
               className="hover:text-[hsl(var(--secondary))] transition-colors"

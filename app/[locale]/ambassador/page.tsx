@@ -130,9 +130,14 @@ export default function AmbassadorPage() {
               </span>
             </Link>
             <nav className="flex flex-wrap items-center gap-3 sm:gap-6 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] sm:tracking-[0.28em]">
-              <Link href="/blog" className="hover:text-[hsl(var(--secondary))] transition-colors">
+              <a
+                href="https://blog.useakowe.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[hsl(var(--secondary))] transition-colors"
+              >
                 Blog
-              </Link>
+              </a>
               <Link href="/auth/signin" className="hover:text-[hsl(var(--secondary))] transition-colors">
                 Sign In
               </Link>
