@@ -11,6 +11,8 @@ const localeLabels: Record<string, string> = {
   es: 'Español',
   ja: '日本語',
   ko: '한국어',
+  'pt-BR': 'Português (Brasil)',
+  'pt-PT': 'Português (Portugal)',
 };
 
 const localeFlags: Record<string, string> = {
@@ -18,12 +20,14 @@ const localeFlags: Record<string, string> = {
   es: '🇪🇸',
   ja: '🇯🇵',
   ko: '🇰🇷',
+  'pt-BR': '🇧🇷',
+  'pt-PT': '🇵🇹',
 };
 
 function localeDisplay(loc: string) {
   const flag = localeFlags[loc] ?? '🌐';
   const label = localeLabels[loc] ?? loc;
-  const iso2 = loc.toUpperCase().slice(0, 2);
+  const iso2 = loc.includes('-') ? loc.split('-')[1]!.toUpperCase() : loc.toUpperCase().slice(0, 2);
   return { flag, label, iso2, full: `${flag} ${label} (${iso2})` };
 }
 
