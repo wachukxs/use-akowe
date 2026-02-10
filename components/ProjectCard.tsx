@@ -48,7 +48,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         
           <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
             <span>{t(typeKey)}</span>
-            <span>•</span>
+            <span>&#8226;</span>
             <span>{project.wordCount} {t('words')}</span>
           </div>
         </div>
