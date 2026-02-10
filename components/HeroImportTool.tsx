@@ -174,7 +174,7 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleFileDrop}
               className={cn(
-                'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center cursor-pointer transition-colors',
+                'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center cursor-pointer transition-colors',
                 'hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))]',
                 file && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
               )}

@@ -152,7 +152,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/70 z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg animate-in fade-in zoom-in duration-300">
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b-[3px] border-[hsl(var(--border-strong))]">
             <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
             </div>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors"
+              className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"
             >
               <X size={20} />
             </button>
@@ -188,7 +188,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder={t('exitIntent.pastePlaceholder')}
-                    className="w-full h-24 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
+                    className="w-full h-24 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
                     disabled={!!file || isAnalyzing}
                   />
                 )}
@@ -196,7 +196,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className={cn(
-                    'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 text-center cursor-pointer transition-colors',
+                    'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-4 text-center cursor-pointer transition-colors',
                     'hover:border-[hsl(var(--primary))]',
                     file && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
                   )}

@@ -2577,7 +2577,7 @@ export default function ProjectEditorPage({
 
             {/* Desktop Experience Note - Top of Page (Mobile Only) */}
             {isMobile && showDesktopNoteTop && (
-              <div className="md:hidden mb-4 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <div className="md:hidden mb-4 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-[10px] uppercase tracking-[0.18em] leading-relaxed flex-1">
                     💡 For the best experience, use Akọ̀wé on desktop
@@ -2590,7 +2590,7 @@ export default function ProjectEditorPage({
                         "true"
                       );
                     }}
-                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
+                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
                     aria-label={t("dismiss")}
                   >
                     <X className="h-3 w-3" />
@@ -2607,7 +2607,7 @@ export default function ProjectEditorPage({
                 )}
               >
                 {/* Sections Panel */}
-                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                   <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
@@ -2659,7 +2659,7 @@ export default function ProjectEditorPage({
                             setDragOverSectionId(null);
                           }}
                           className={cn(
-                            "w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 group border-2 border-[hsl(var(--border))]",
+                            "w-full px-3 py-2 rounded-(--radius) text-xs uppercase tracking-[0.18em] transition-all duration-150 group border-2 border-[hsl(var(--border))]",
                             activeSection === section.id
                               ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[4px_4px_0_rgba(29,41,57,0.12)]"
                               : "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]",
@@ -2803,7 +2803,7 @@ export default function ProjectEditorPage({
                 </div>
 
                 {/* Research & Quality Tools */}
-                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
                   <div className="p-4 border-b-[3px] border-[hsl(var(--border-strong))]">
                     <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
                       {t("tools")}
@@ -2816,7 +2816,7 @@ export default function ProjectEditorPage({
                     <div
                       onClick={() => discoverCitations()}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer transition-transform duration-150 text-xs uppercase tracking-[0.18em]",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer transition-transform duration-150 text-xs uppercase tracking-[0.18em]",
                         isDiscoveringCitations
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2833,7 +2833,7 @@ export default function ProjectEditorPage({
 
                     <div
                       onClick={() => setShowManualCitationModal(true)}
-                      className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                      className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                     >
                       <div className="flex items-center gap-2">
                         <Plus className="h-4 w-4" />
@@ -2844,7 +2844,7 @@ export default function ProjectEditorPage({
                     <div
                       onClick={detectCitations}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
                         isDetectingCitations || !hasContentToScan
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2864,7 +2864,7 @@ export default function ProjectEditorPage({
                     <div
                       onClick={checkPlagiarism}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
                         isCheckingPlagiarism
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2884,7 +2884,7 @@ export default function ProjectEditorPage({
                     <div
                       onClick={() => setShowExportModal(true)}
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
+                        "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
                         isExporting
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
@@ -2907,7 +2907,7 @@ export default function ProjectEditorPage({
                 <div className="space-y-6">
                   {/* Desktop Experience Note - Tools Drawer */}
                   {showDesktopNoteTools && (
-                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                       <div className="flex items-start justify-between gap-3">
                         <p className="text-[10px] uppercase tracking-[0.18em] leading-relaxed flex-1">
                           💡 For the best experience, use Akọ̀wé on desktop
@@ -2920,7 +2920,7 @@ export default function ProjectEditorPage({
                               "true"
                             );
                           }}
-                          className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
+                          className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
                           aria-label={t("dismiss")}
                         >
                           <X className="h-3 w-3" />
@@ -2930,7 +2930,7 @@ export default function ProjectEditorPage({
                   )}
 
                   {/* Mobile Sections Panel */}
-                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
+                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius)">
                     <div className="p-4 border-b-2 border-[hsl(var(--border-strong))] flex items-center justify-between">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
                         {t("paperSections")}
@@ -2980,7 +2980,7 @@ export default function ProjectEditorPage({
                               setDragOverSectionId(null);
                             }}
                             className={cn(
-                              "w-full px-3 py-2 rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] transition-all duration-150 border-2 border-[hsl(var(--border))]",
+                              "w-full px-3 py-2 rounded-(--radius) text-xs uppercase tracking-[0.18em] transition-all duration-150 border-2 border-[hsl(var(--border))]",
                               activeSection === section.id
                                 ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))]"
                                 : "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]",
@@ -3110,7 +3110,7 @@ title={t("deleteSection")}
                   </div>
 
                   {/* Mobile Tools Panel */}
-                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)]">
+                  <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius)">
                     <div className="p-4 border-b-2 border-[hsl(var(--border-strong))]">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">
                         Tools
@@ -3122,7 +3122,7 @@ title={t("deleteSection")}
                     <div className="p-4 space-y-2">
                       <button
                         onClick={() => setIsAIDrawerOpen(true)}
-                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
                       >
                         <div className="flex items-center gap-2">
                           <Bot className="h-4 w-4" />
@@ -3135,7 +3135,7 @@ title={t("deleteSection")}
                       <button
                         onClick={() => discoverCitations()}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isDiscoveringCitations ? "opacity-60" : ""
                         )}
                       >
@@ -3147,7 +3147,7 @@ title={t("deleteSection")}
 
                       <button
                         onClick={() => setShowManualCitationModal(true)}
-                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]"
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
                       >
                         <div className="flex items-center gap-2">
                           <Plus className="h-4 w-4" />
@@ -3158,7 +3158,7 @@ title={t("deleteSection")}
                       <button
                         onClick={detectCitations}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isDetectingCitations || !hasContentToScan
                             ? "opacity-60"
                             : ""
@@ -3175,7 +3175,7 @@ title={t("deleteSection")}
                       <button
                         onClick={checkPlagiarism}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isCheckingPlagiarism ? "opacity-60" : ""
                         )}
                       >
@@ -3192,7 +3192,7 @@ title={t("deleteSection")}
                       <button
                         onClick={() => setShowExportModal(true)}
                         className={cn(
-                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em]",
+                          "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isExporting ? "opacity-60" : ""
                         )}
                       >
@@ -3216,7 +3216,7 @@ title={t("deleteSection")}
                 {activeS ? (
                   <div
                     ref={editorSectionRef}
-                    className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
+                    className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
                   >
                     <div className="p-4 md:p-6 space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -3231,21 +3231,21 @@ title={t("deleteSection")}
                           {t("askAkowe")}
                         </button>
                       </div>
-                      <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] overflow-hidden bg-[hsl(var(--surface))]">
+                      <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) overflow-hidden bg-[hsl(var(--surface))]">
                         {/* Rich Text Toolbar */}
                         <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-2 md:p-3 flex items-center gap-1 md:gap-2 bg-[hsl(var(--surface-muted))] overflow-x-auto toolbar-container">
                           {/* Undo/Redo */}
                           <div className="flex items-center gap-1">
                             <button
                               onClick={undo}
-                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                               title={t("undo")}
                             >
                               <Undo className="h-4 w-4" />
                             </button>
                             <button
                               onClick={redo}
-                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                               title={t("redo")}
                             >
                               <Redo className="h-4 w-4" />
@@ -3259,7 +3259,7 @@ title={t("deleteSection")}
                             <button
                               onClick={applyBold}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.bold
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3271,7 +3271,7 @@ title={t("deleteSection")}
                             <button
                               onClick={applyItalic}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.italic
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3283,7 +3283,7 @@ title={t("deleteSection")}
                             <button
                               onClick={applyUnderline}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.underline
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3301,7 +3301,7 @@ title={t("deleteSection")}
                             <button
                               onClick={applyUnorderedList}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.unorderedList
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3313,7 +3313,7 @@ title={t("deleteSection")}
                             <button
                               onClick={applyOrderedList}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.orderedList
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3331,7 +3331,7 @@ title={t("deleteSection")}
                             <button
                               onClick={() => applyHeader(1)}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.h1
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3343,7 +3343,7 @@ title={t("deleteSection")}
                             <button
                               onClick={() => applyHeader(2)}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.h2
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3355,7 +3355,7 @@ title={t("deleteSection")}
                             <button
                               onClick={() => applyHeader(3)}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.h3
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3367,7 +3367,7 @@ title={t("deleteSection")}
                             <button
                               onClick={applyNormal}
                               className={cn(
-                                "cursor-pointer p-2 rounded-[var(--radius)] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
                                 formattingState.normal
                                   ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
                                   : "hover:border-[hsl(var(--border-strong))]"
@@ -3386,14 +3386,14 @@ title={t("deleteSection")}
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => setShowMathModal(true)}
-                              className="cursor-pointer p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              className="cursor-pointer p-2 rounded-(--radius) border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                               title={t("insertMathEquation")}
                             >
                               <Calculator className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => setShowChartModal(true)}
-                              className="cursor-pointer p-2 rounded-[var(--radius)] border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
+                              className="cursor-pointer p-2 rounded-(--radius) border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
                               title={t("insertChart")}
                             >
                               <BarChart3 className="h-4 w-4" />
@@ -3813,11 +3813,11 @@ title={t("deleteSection")}
                   </div>
                 ) : (
                   // Empty state - no section selected or no sections exist
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] p-6 md:p-8 lg:p-10">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)] p-6 md:p-8 lg:p-10">
                     {project?.sections && project.sections.length > 0 ? (
                       // Has sections but none selected
                       <div className="text-center space-y-4">
-                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center bg-[hsl(var(--surface-muted))]">
+                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center bg-[hsl(var(--surface-muted))]">
                           <FileText className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
                         </div>
                         <div className="space-y-2">
@@ -3832,7 +3832,7 @@ title={t("deleteSection")}
                     ) : (
                       // No sections exist - show guidance
                       <div className="text-center space-y-6">
-                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center bg-[hsl(var(--surface-muted))]">
+                        <div className="w-16 h-16 mx-auto border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center bg-[hsl(var(--surface-muted))]">
                           <FileText className="h-8 w-8 text-[hsl(var(--muted-foreground))]" />
                         </div>
                         <div className="space-y-3">
@@ -3845,9 +3845,9 @@ title={t("deleteSection")}
                           </p>
                         </div>
                         {/* Mobile-specific guidance */}
-                        <div className="md:hidden border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] p-4 space-y-3">
+                        <div className="md:hidden border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] rounded-(--radius) p-4 space-y-3">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
+                            <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
                               <Bot className="h-4 w-4" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -3950,7 +3950,7 @@ title={t("deleteSection")}
                   </div>
 
                   {/* Smart Encouragement Message */}
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] p-4 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) p-4 text-center">
                     <p className="text-xs uppercase tracking-[0.2em] font-semibold">
                       {getEncouragementMessage(
                         Math.round(
@@ -3964,7 +3964,7 @@ title={t("deleteSection")}
 
                 {/* Summary Statistics */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 sm:p-6 text-center">
                     <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">
                       {project.sections?.length || 0}
                     </h4>
@@ -3972,7 +3972,7 @@ title={t("deleteSection")}
                       {t("sections")}
                     </p>
                   </div>
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 sm:p-6 text-center">
                     <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">
                       {project.citations?.length || 0}
                     </h4>
@@ -3985,7 +3985,7 @@ title={t("deleteSection")}
                         : "0 auto-detected"}
                     </p>
                   </div>
-                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 sm:p-6 text-center">
+                  <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 sm:p-6 text-center">
                     <h4 className="text-2xl font-bold uppercase tracking-[0.12em]">
                       {Math.round(
                         (localWordCount / (project.targetWordCount || 1)) * 100
@@ -4012,7 +4012,7 @@ title={t("deleteSection")}
             <div className="border-b-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] flex items-center justify-center">
+                  <div className="w-10 h-10 border-2 border-[hsl(var(--secondary-foreground))] rounded-(--radius) flex items-center justify-center">
                     <Bot className="h-5 w-5" />
                   </div>
                   <div>
@@ -4027,13 +4027,13 @@ title={t("deleteSection")}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setAiMessages([])}
-                    className="text-[10px] uppercase tracking-[0.24em] px-3 py-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="text-[10px] uppercase tracking-[0.24em] px-3 py-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     Clear
                   </button>
                   <button
                     onClick={() => setIsAIDrawerOpen(false)}
-                    className="p-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-1 border-2 border-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -4056,7 +4056,7 @@ title={t("deleteSection")}
                         "true"
                       );
                     }}
-                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-[var(--radius)] transition-colors"
+                    className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
                     aria-label="Dismiss"
                   >
                     <X className="h-3 w-3" />
@@ -4070,9 +4070,9 @@ title={t("deleteSection")}
               {/* Welcome Message */}
               {aiMessages.length === 0 && (
                 <div className="space-y-4">
-                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] p-4 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+                  <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) p-4 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0">
                         <Bot className="h-4 w-4" />
                       </div>
                       <div className="flex-1">
@@ -4102,7 +4102,7 @@ title={t("deleteSection")}
                             "Help me improve the structure of this section"
                           )
                         }
-                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
+                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                       >
                         <span className="font-semibold text-[hsl(var(--foreground))]">
                           📝
@@ -4115,7 +4115,7 @@ title={t("deleteSection")}
                             "Suggest better wording for this paragraph"
                           )
                         }
-                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
+                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                       >
                         <span className="font-semibold text-[hsl(var(--foreground))]">
                           ✨
@@ -4126,7 +4126,7 @@ title={t("deleteSection")}
                         onClick={() =>
                           setAiInput("Generate a conclusion for this section")
                         }
-                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
+                        className="text-left px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 text-xs uppercase tracking-[0.18em]"
                       >
                         <span className="font-semibold text-[hsl(var(--foreground))]">
                           🎯
@@ -4159,7 +4159,7 @@ title={t("deleteSection")}
                       >
                         {message.type === "assistant" && (
                           <div className="flex items-center gap-2 mb-1">
-                            <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center">
+                            <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center">
                               <Bot className="h-3 w-3" />
                             </div>
                             <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold">
@@ -4169,7 +4169,7 @@ title={t("deleteSection")}
                         )}
                         <div
                           className={cn(
-                            "p-3 rounded-[var(--radius)] border-2",
+                            "p-3 rounded-(--radius) border-2",
                             message.type === "user"
                               ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] border-[hsl(var(--border-strong))]"
                               : "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] border-[hsl(var(--border-strong))] shadow-[4px_4px_0_rgba(29,41,57,0.12)] rounded-bl-[1.75rem]"
@@ -4301,14 +4301,14 @@ title={t("deleteSection")}
                 <div className="flex justify-start">
                   <div className="max-w-[85%]">
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center">
                         <Bot className="h-3 w-3" />
                       </div>
                       <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold">
                         Akọ̀wé
                       </span>
                     </div>
-                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] rounded-bl-[1.75rem] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+                    <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) rounded-bl-[1.75rem] p-3 shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                       <div className="flex items-center space-x-2">
                         <div className="flex space-x-1">
                           <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-bounce"></div>
@@ -4333,7 +4333,7 @@ title={t("deleteSection")}
 
             <div className="border-t-[3px] border-[hsl(var(--border-strong))] p-4 space-y-3 bg-[hsl(var(--surface))]">
               {(session?.user as any)?.plan === "free" && (
-                <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
+                <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
                   <span>{t("freePlanLimit")}</span>
                   <button
                     onClick={() => router.push("/settings")}
@@ -4356,12 +4356,12 @@ title={t("deleteSection")}
                       handleAIWrite(activeS?.id || "")
                     }
                     placeholder={t("askAboutSection", { title: activeS?.title || "Introduction" })}
-                    className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
+                    className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
                   />
                   <button
                     onClick={() => handleAIWrite(activeS?.id || "")}
                     disabled={aiIsLoading || !aiInput.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
                   >
                     <Send className="h-4 w-4" />
                   </button>
@@ -4378,7 +4378,7 @@ title={t("deleteSection")}
         {contextMenuPillVisible && contextMenuPillPosition && (
           <div
             ref={contextMenuPillRef}
-            className="fixed z-[60] rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[44px] flex items-center"
+            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[44px] flex items-center"
             style={{
               left: contextMenuPillPosition.x,
               top: contextMenuPillPosition.y,
@@ -4390,7 +4390,7 @@ title={t("deleteSection")}
                 setContextMenuPillVisible(false);
                 discoverCitations(0, false);
               }}
-              className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors touch-manipulation"
+              className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation"
             >
               {CONTEXT_MENU_FIND_CITATION_LABEL}
             </button>
@@ -4411,7 +4411,7 @@ title={t("deleteSection")}
               aria-modal="true"
               aria-labelledby="citation-dialog-title"
               aria-describedby="citation-dialog-description"
-              className="w-full max-w-6xl h-[95dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden border-0 sm:border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-t-2xl sm:rounded-[var(--radius)] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col"
+              className="w-full max-w-6xl h-[95dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden border-0 sm:border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-t-2xl sm:rounded-(--radius) shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col"
             >
               {/* Header */}
               <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-4 sm:p-6 bg-[hsl(var(--surface))] shrink-0">
@@ -4446,7 +4446,7 @@ title={t("deleteSection")}
                     type="button"
                     onClick={closeCitationDiscoveryModal}
                     aria-label={t("closeCitationDiscovery")}
-                    className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer touch-manipulation"
+                    className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 cursor-pointer touch-manipulation"
                   >
                     <X className="h-6 w-6" />
                   </button>
@@ -4471,7 +4471,7 @@ title={t("deleteSection")}
                           }
                         }}
                         placeholder={t("filterOrSearch")}
-                        className="w-full min-h-[44px] pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
+                        className="w-full min-h-[44px] pl-9 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm sm:text-xs uppercase tracking-[0.12em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                         aria-label={t("filterAriaLabel")}
                       />
                     </div>
@@ -4505,7 +4505,7 @@ title={t("deleteSection")}
                             ? "search-new-citation-tooltip"
                             : undefined
                         }
-                        className="w-full min-w-[44px] shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
+                        className="w-full min-w-[44px] shrink-0 min-h-[44px] px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs font-semibold uppercase tracking-[0.18em] hover:border-[hsl(var(--ring))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
                       >
                         {isDiscoveringCitations
                           ? "Searching…"
@@ -4515,7 +4515,7 @@ title={t("deleteSection")}
                         id="search-new-citation-tooltip"
                         ref={searchNewCitationTooltipRef}
                         role="tooltip"
-                        className="absolute z-50 bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-56 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs text-left shadow-lg pointer-events-none"
+                        className="absolute z-50 bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-56 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs text-left shadow-lg pointer-events-none"
                         style={{ display: "none" }}
                         aria-hidden="true"
                       >
@@ -4529,7 +4529,7 @@ title={t("deleteSection")}
                     <select
                       value={citationFilter}
                       onChange={(e) => setCitationFilter(e.target.value as any)}
-                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
+                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                     >
                       <option value="all">{t("allCitations")}</option>
                       <option value="recent">{t("recent")}</option>
@@ -4539,7 +4539,7 @@ title={t("deleteSection")}
                     <select
                       value={citationSortBy}
                       onChange={(e) => setCitationSortBy(e.target.value as any)}
-                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
+                      className="flex-1 min-w-0 min-h-[44px] px-3 sm:px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 touch-manipulation"
                     >
                       <option value="relevance">{t("sortByRelevance")}</option>
                       <option value="year">{t("sortByYear")}</option>
@@ -4589,7 +4589,7 @@ title={t("deleteSection")}
                 citationDiscoveryError &&
                 !isDiscoveringCitations ? (
                   <div className="text-center py-8 sm:py-12">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--destructive))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4 bg-[hsl(var(--destructive))]/10">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--destructive))] rounded-(--radius) flex items-center justify-center mx-auto mb-4 bg-[hsl(var(--destructive))]/10">
                       <AlertCircle className="h-7 w-7 sm:h-8 sm:w-8 text-[hsl(var(--destructive))]" />
                     </div>
                     <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">
@@ -4602,7 +4602,7 @@ title={t("deleteSection")}
                       type="button"
                       onClick={retryCitationDiscovery}
                       disabled={isDiscoveringCitations}
-                      className="min-h-[44px] px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center justify-center gap-2 mx-auto cursor-pointer touch-manipulation"
+                      className="min-h-[44px] px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center justify-center gap-2 mx-auto cursor-pointer touch-manipulation"
                     >
                       {isDiscoveringCitations ? (
                         <>
@@ -4633,7 +4633,7 @@ title={t("deleteSection")}
                     {getFilteredAndSortedCitations().map((citation, index) => (
                       <div
                         key={index}
-                        className="border-2 sm:border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 sm:p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[4px_4px_0_rgba(29,41,57,0.1)] sm:shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
+                        className="border-2 sm:border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 sm:p-6 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 shadow-[4px_4px_0_rgba(29,41,57,0.1)] sm:shadow-[6px_6px_0_rgba(29,41,57,0.12)]"
                       >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3 sm:mb-4">
                           <div className="min-w-0 flex-1">
@@ -4659,7 +4659,7 @@ title={t("deleteSection")}
                                   Year:
                                 </span>
                                 <span
-                                  className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]"
+                                  className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius)"
                                   title={
                                     citation.year == null
                                       ? "Publication date not in metadata"
@@ -4674,7 +4674,7 @@ title={t("deleteSection")}
                                   <span className="font-semibold text-[hsl(var(--foreground))]">
                                     Citations:
                                   </span>
-                                  <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)]">
+                                  <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius)">
                                     {citation.citationCount}
                                   </span>
                                 </div>
@@ -4687,7 +4687,7 @@ title={t("deleteSection")}
                                 href={citation.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border))] rounded-[var(--radius)] hover:border-[hsl(var(--border-strong))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] touch-manipulation"
+                                className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] touch-manipulation"
                                 title={t("viewSource")}
                               >
                                 <Link className="h-4 w-4" />
@@ -4696,7 +4696,7 @@ title={t("deleteSection")}
                             <button
                               onClick={() => addCitationToEditor(citation)}
                               disabled={isAddingCitation}
-                              className={`min-h-[44px] px-4 py-2 rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center justify-center gap-2 touch-manipulation ${
+                              className={`min-h-[44px] px-4 py-2 rounded-(--radius) text-xs font-semibold uppercase tracking-[0.18em] transition-transform duration-150 flex items-center justify-center gap-2 touch-manipulation ${
                                 isAddingCitation
                                   ? "bg-[hsl(var(--muted))] cursor-not-allowed text-[hsl(var(--muted-foreground))]"
                                   : "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] cursor-pointer"
@@ -4739,7 +4739,7 @@ title={t("deleteSection")}
                             <span className="font-semibold text-[hsl(var(--foreground))] shrink-0 whitespace-nowrap">
                               DOI:
                             </span>
-                            <code className="border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-2 py-1 break-all min-w-0">
+                            <code className="border-2 border-[hsl(var(--border-strong))] rounded-(--radius) px-2 py-1 break-all min-w-0">
                               {citation.doi}
                             </code>
                           </div>
@@ -4761,7 +4761,7 @@ title={t("deleteSection")}
                             <button
                               onClick={loadMoreCitations}
                               disabled={isLoadingMoreCitations}
-                              className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 cursor-pointer"
+                              className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0 flex items-center gap-2 cursor-pointer"
                             >
                               {isLoadingMoreCitations ? (
                                 <>
@@ -4785,7 +4785,7 @@ title={t("deleteSection")}
                   </div>
                 ) : (
                   <div className="text-center py-8 sm:py-12">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto mb-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center mx-auto mb-4">
                       <Search className="h-7 w-7 sm:h-8 sm:w-8 text-[hsl(var(--muted-foreground))]" />
                     </div>
                     <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.15em] sm:tracking-[0.18em] text-[hsl(var(--foreground))] mb-2">
@@ -4816,14 +4816,14 @@ title={t("deleteSection")}
         {showExportModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                     {t("exportProject")}
                   </h3>
                   <button
                     onClick={() => setShowExportModal(false)}
-                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -4835,7 +4835,7 @@ title={t("deleteSection")}
                       <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] flex items-center gap-2">
                         {t("citationStyle")}
                         {isAutoDetected.citationStyle && (
-                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
+                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
                             {t("auto")}
                           </span>
                         )}
@@ -4849,7 +4849,7 @@ title={t("deleteSection")}
                             citationStyle: false,
                           }));
                         }}
-                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                         disabled={isExporting}
                       >
                         <option value="apa">APA</option>
@@ -4863,7 +4863,7 @@ title={t("deleteSection")}
                       <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] flex items-center gap-2">
                         {t("academicTemplate")}
                         {isAutoDetected.template && (
-                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
+                          <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] bg-[hsl(var(--surface-muted))]">
                             {t("auto")}
                           </span>
                         )}
@@ -4877,7 +4877,7 @@ title={t("deleteSection")}
                             template: false,
                           }));
                         }}
-                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                        className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.18em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                         disabled={isExporting}
                       >
                         <option value="research-paper">{t("researchPaper")}</option>
@@ -4932,7 +4932,7 @@ title={t("deleteSection")}
                           }}
                           disabled={isProcessing}
                           className={cn(
-                            "w-full border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] px-4 py-4 text-left flex items-start gap-4 transition-transform duration-150 bg-[hsl(var(--surface))]",
+                            "w-full border-2 border-[hsl(var(--border-strong))] rounded-(--radius) px-4 py-4 text-left flex items-start gap-4 transition-transform duration-150 bg-[hsl(var(--surface))]",
                             isProcessing
                               ? "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-not-allowed"
                               : isActive
@@ -4940,7 +4940,7 @@ title={t("deleteSection")}
                               : "hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                           )}
                         >
-                          <div className="w-10 h-10 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--surface))]">
+                          <div className="w-10 h-10 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0 bg-[hsl(var(--surface))]">
                             <FileText className="h-5 w-5" />
                           </div>
                           <div className="flex-1">
@@ -4989,14 +4989,14 @@ title={t("deleteSection")}
         {showManualCitationModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                     {t("addManualCitation")}
                   </h3>
                   <button
                     onClick={() => setShowManualCitationModal(false)}
-                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -5088,7 +5088,7 @@ title={t("deleteSection")}
                       }
                       placeholder={t("placeholderNotes")}
                       rows={4}
-                      className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.12em] text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 resize-y"
+                      className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.12em] text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 resize-y"
                     />
                   </div>
                 </div>
@@ -5120,14 +5120,14 @@ title={t("deleteSection")}
         {showPlagiarismModal && plagiarismResult && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-4xl">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col max-h-[90vh]">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col max-h-[90vh]">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))] flex items-center justify-between">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                     {t("plagiarismCheckResults")}
                   </h3>
                   <button
                     onClick={() => setShowPlagiarismModal(false)}
-                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -5137,7 +5137,7 @@ title={t("deleteSection")}
                   <div className="grid gap-4 md:grid-cols-3">
                     <div
                       className={cn(
-                        "border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center space-y-2",
+                        "border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center space-y-2",
                         plagiarismResult.matchPercentage < 10
                           ? "bg-[hsl(var(--surface))] text-[hsl(var(--foreground))]"
                           : plagiarismResult.matchPercentage < 25
@@ -5156,7 +5156,7 @@ title={t("deleteSection")}
                       </span>
                     </div>
 
-                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center space-y-2 bg-[hsl(var(--surface-muted))]">
+                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center space-y-2 bg-[hsl(var(--surface-muted))]">
                       <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold block">
                         {t("checksRemaining")}
                       </span>
@@ -5168,7 +5168,7 @@ title={t("deleteSection")}
                       </span>
                     </div>
 
-                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 space-y-3">
+                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-6 space-y-3">
                       <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] font-semibold block">
                         Sources Checked
                       </span>
@@ -5201,7 +5201,7 @@ title={t("deleteSection")}
                             (section, index) => (
                               <div
                                 key={index}
-                                className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface-muted))]"
+                                className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 bg-[hsl(var(--surface-muted))]"
                               >
                                 <div className="flex items-center justify-between mb-3">
                                   <h5 className="text-xs font-semibold uppercase tracking-[0.18em]">
@@ -5210,7 +5210,7 @@ title={t("deleteSection")}
                                   <div className="flex items-center gap-2">
                                     <span
                                       className={cn(
-                                        "px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em]",
+                                        "px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em]",
                                         section.matchPercentage < 10
                                           ? "bg-green-500/20"
                                           : section.matchPercentage < 25
@@ -5263,14 +5263,14 @@ title={t("deleteSection")}
                         {plagiarismResult.matches.map((match, index) => (
                           <div
                             key={index}
-                            className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                            className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 bg-[hsl(var(--surface))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                           >
                             <div className="flex items-start justify-between gap-3 mb-2">
                               <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] flex-1 leading-relaxed">
                                 &quot;{match.text}&quot;
                               </p>
                               {typeof match.similarity === "number" && (
-                                <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[8px] uppercase tracking-[0.24em] whitespace-nowrap">
+                                <span className="px-2 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[8px] uppercase tracking-[0.24em] whitespace-nowrap">
                                   {match.similarity}% similar
                                 </span>
                               )}
@@ -5305,7 +5305,7 @@ title={t("deleteSection")}
                       </div>
                     </div>
                   ) : (
-                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-10 text-center bg-[hsl(var(--surface-muted))] space-y-3">
+                    <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-10 text-center bg-[hsl(var(--surface-muted))] space-y-3">
                       <CheckCircle2 className="h-10 w-10 mx-auto text-[hsl(var(--secondary))]" />
                       <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
                         No plagiarism detected. Your content is original.
@@ -5332,7 +5332,7 @@ title={t("deleteSection")}
         {sectionToDelete && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
-              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
                 <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))]">
                   <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--destructive))]">
                     {t("deleteSectionTitle")}
@@ -5366,7 +5366,7 @@ title={t("deleteSection")}
         {showSuccessMessage && (
           <div className="fixed top-4 right-4 left-4 sm:left-auto z-50 max-w-md">
             <div
-              className={`flex items-start gap-3 px-4 py-3 sm:px-6 sm:py-4 border-2 rounded-[var(--radius)] shadow-[6px_6px_0_rgba(29,41,57,0.12)] bg-[hsl(var(--surface))] ${
+              className={`flex items-start gap-3 px-4 py-3 sm:px-6 sm:py-4 border-2 rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)] bg-[hsl(var(--surface))] ${
                 showSuccessMessage.includes("❌")
                   ? "border-[hsl(var(--destructive))]"
                   : showSuccessMessage.includes("✅")
@@ -5376,17 +5376,17 @@ title={t("deleteSection")}
             >
               <div className="flex-shrink-0 mt-0.5">
                 {showSuccessMessage.includes("❌") ? (
-                  <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-(--radius) border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 flex items-center justify-center">
                     <span className="text-[hsl(var(--destructive))] text-xs font-bold">
                       !
                     </span>
                   </div>
                 ) : showSuccessMessage.includes("✅") ? (
-                  <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))]/10 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-(--radius) border-2 border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))]/10 flex items-center justify-center">
                     <CheckCircle2 className="h-4 w-4 text-[hsl(var(--secondary-foreground))]" />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
                     <AlertCircle className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
                   </div>
                 )}
@@ -5400,7 +5400,7 @@ title={t("deleteSection")}
                 type="button"
                 onClick={() => setShowSuccessMessage("")}
                 aria-label={t("dismiss")}
-                className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--foreground))]/30 transition-colors cursor-pointer touch-manipulation"
+                className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--foreground))]/30 transition-colors cursor-pointer touch-manipulation"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -5411,7 +5411,7 @@ title={t("deleteSection")}
         {/* Simple Math Modal */}
         {showMathModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-3xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8">
+            <div className="w-full max-w-3xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                   {t("insertMathEquation")}
@@ -5422,7 +5422,7 @@ title={t("deleteSection")}
                     setMathPreview("");
                     setMathExplanation("");
                   }}
-                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -5438,7 +5438,7 @@ title={t("deleteSection")}
                     type="text"
                     value={mathPreview}
                     onChange={(e) => setMathPreview(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm font-mono text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm font-mono text-[hsl(var(--foreground))] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                     placeholder={t("latexPlaceholder")}
                   />
                   <div className="flex items-center justify-between mt-1">
@@ -5461,7 +5461,7 @@ title={t("deleteSection")}
                   <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] mb-2">
                     {t("preview")}
                   </label>
-                  <div className="p-6 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface-muted))] min-h-[80px] flex items-center justify-center">
+                  <div className="p-6 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface-muted))] min-h-[80px] flex items-center justify-center">
                     {mathPreview ? (
                       <div
                         id="math-preview"
@@ -5487,12 +5487,12 @@ title={t("deleteSection")}
                       type="button"
                       onClick={() => generateMathExplanation(mathPreview)}
                       disabled={!mathPreview.trim() || isGeneratingExplanation}
-                      className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-[10px] uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
+                      className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[10px] uppercase tracking-[0.2em] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
                     >
                       {isGeneratingExplanation ? t("generating") : t("generate")}
                     </button>
                   </div>
-                  <div className="p-4 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface-muted))] max-h-[140px] overflow-y-auto">
+                  <div className="p-4 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface-muted))] max-h-[140px] overflow-y-auto">
                     {mathExplanation ? (
                       <div className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--foreground))] leading-relaxed">
                         {mathExplanation
@@ -5534,7 +5534,7 @@ title={t("deleteSection")}
                       <button
                         key={example.label}
                         onClick={() => setMathPreview(example.value)}
-                        className="p-3 text-left border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 bg-[hsl(var(--surface))]"
+                        className="p-3 text-left border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 bg-[hsl(var(--surface))]"
                       >
                         <div className="font-semibold text-xs uppercase tracking-[0.18em]">
                           {example.label}
@@ -5590,21 +5590,21 @@ title={t("deleteSection")}
         {/* Chart Modal */}
         {showChartModal && (
           <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-2xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8 text-center">
+            <div className="w-full max-w-2xl border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] p-8 space-y-8 text-center">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold uppercase tracking-[0.2em]">
                   {t("insertChart")}
                 </h3>
                 <button
                   onClick={() => setShowChartModal(false)}
-                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                  className="p-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               <div className="space-y-4 py-6">
-                <div className="w-20 h-20 border-4 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center mx-auto text-[hsl(var(--muted-foreground))]">
+                <div className="w-20 h-20 border-4 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center mx-auto text-[hsl(var(--muted-foreground))]">
                   <BarChart3 className="h-8 w-8" />
                 </div>
                 <h4 className="text-lg font-semibold uppercase tracking-[0.18em]">

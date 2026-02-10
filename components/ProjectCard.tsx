@@ -36,7 +36,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     <Link href={`/project/${project._id}`}>
       <Card hover className="p-6 cursor-pointer space-y-6">
         <div
-          className={`w-14 h-14 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] flex items-center justify-center ${accentClass}`}
+          className={`w-14 h-14 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] flex items-center justify-center ${accentClass}`}
         >
           <Icon size={24} />
         </div>
@@ -73,7 +73,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         <div className="flex items-center justify-between border-t-2 border-[hsl(var(--border-strong))] pt-4">
-          <span className={cn('px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]', {
+          <span className={cn('px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]', {
             'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]': project.status === 'draft',
             'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]': project.status === 'in_progress',
             'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]': project.status === 'completed',

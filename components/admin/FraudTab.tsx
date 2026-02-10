@@ -198,7 +198,7 @@ export default function FraudTab() {
                 value={searchCode}
                 onChange={(e) => setSearchCode(e.target.value)}
                 placeholder="Enter referral code"
-                className="flex-1 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm touch-manipulation"
+                className="flex-1 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm touch-manipulation"
               />
               <button
                 onClick={() => searchCode && fetchReferralCodeAnalysis(searchCode)}
@@ -218,7 +218,7 @@ export default function FraudTab() {
                 value={searchIP}
                 onChange={(e) => setSearchIP(e.target.value)}
                 placeholder="Enter IP address"
-                className="flex-1 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm touch-manipulation"
+                className="flex-1 px-3 py-2.5 min-h-[44px] border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm touch-manipulation"
               />
               <button
                 onClick={() => searchIP && fetchIPAnalysis(searchIP)}

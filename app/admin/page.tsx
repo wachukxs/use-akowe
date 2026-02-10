@@ -864,7 +864,7 @@ export default function AdminDashboard() {
               setAbortController(controller);
               fetchMetrics(controller.signal);
             }}
-            className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] hover:-translate-y-0.5 hover:shadow-lg transition-all cursor-pointer"
+            className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] hover:-translate-y-0.5 hover:shadow-lg transition-all cursor-pointer"
           >
             Retry
           </button>

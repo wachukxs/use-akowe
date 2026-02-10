@@ -85,7 +85,7 @@ export function MobileMenuButton() {
   return (
     <button
       onClick={() => setIsOpen(true)}
-      className="fixed top-4 left-4 z-40 p-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden cursor-pointer"
+      className="fixed top-4 left-4 z-40 p-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) shadow-[4px_4px_0_rgba(29,41,57,0.12)] md:hidden cursor-pointer"
       aria-label={t('openMenu')}
     >
       <Menu size={24} />
@@ -180,9 +180,9 @@ export function MobileProjectToolsButton({
             onClick={dismissTooltip}
           />
           <div className="fixed bottom-24 right-4 z-50 md:hidden max-w-[280px] animate-in slide-in-from-bottom duration-300">
-            <div className="bg-[hsl(var(--surface))] border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+            <div className="bg-[hsl(var(--surface))] border-[4px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
+                <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
                   <Bot className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ export function MobileProjectToolsButton({
                 </div>
                 <button
                   onClick={dismissTooltip}
-                  className="p-1 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] flex-shrink-0"
+                  className="p-1 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) flex-shrink-0"
                   aria-label="Dismiss"
                 >
                   <X size={16} />
@@ -238,7 +238,7 @@ export function MobileToolsDrawer({ children }: { children: React.ReactNode }) {
           <h3 className="text-sm font-semibold uppercase tracking-[0.24em]">Sections & Tools</h3>
           <button
             onClick={() => setShowProjectTools(false)}
-            className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] cursor-pointer"
+            className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -266,7 +266,7 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <>
-      <div className="p-6 border-b-[4px] border-[hsl(var(--border-strong))]">
+      <div className="p-6 border-b-4 border-[hsl(var(--border-strong))]">
         <Link href="/dashboard" className="block" onClick={() => isMobile && setIsOpen(false)}>
           <span className="text-xs font-semibold uppercase tracking-[0.4em] text-[hsl(var(--muted-foreground))]">
             {t('brand')}
@@ -306,7 +306,7 @@ export default function Sidebar() {
               href={item.href}
               onClick={() => isMobile && setIsOpen(false)}
               className={cn(
-                'flex items-center justify-between px-4 py-3 border-2 border-transparent rounded-[var(--radius)] transition-transform duration-150 uppercase tracking-[0.28em] text-[11px]',
+                'flex items-center justify-between px-4 py-3 border-2 border-transparent rounded-(--radius) transition-transform duration-150 uppercase tracking-[0.28em] text-[11px]',
                 isActive
                   ? 'bg-[hsl(var(--accent))] border-[hsl(var(--border-strong))] text-[hsl(var(--accent-foreground))] -translate-x-[0.25rem] -translate-y-[0.25rem] shadow-[6px_6px_0_rgba(29,41,57,0.14)]'
                   : 'text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] hover:border-[hsl(var(--border-strong))]'
@@ -324,7 +324,7 @@ export default function Sidebar() {
 
       <div className="p-4 border-t-[4px] border-[hsl(var(--border-strong))] mt-auto">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-[var(--radius)] border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] flex items-center justify-center text-[hsl(var(--accent-foreground))] font-bold tracking-[0.16em]">
+          <div className="w-12 h-12 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] flex items-center justify-center text-[hsl(var(--accent-foreground))] font-bold tracking-[0.16em]">
             {session?.user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
@@ -345,7 +345,7 @@ export default function Sidebar() {
             // Force a hard refresh to clear any cached content
             window.location.href = '/auth/signin';
           }}
-          className="w-full flex items-center justify-between px-4 py-3 border-2 border-transparent rounded-[var(--radius)] text-[11px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--foreground))] transition-transform duration-150 hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))] hover:-translate-y-[0.125rem] hover:-translate-x-[0.125rem] cursor-pointer"
+          className="w-full flex items-center justify-between px-4 py-3 border-2 border-transparent rounded-(--radius) text-[11px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--foreground))] transition-transform duration-150 hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--surface-muted))] hover:-translate-y-[0.125rem] hover:-translate-x-[0.125rem] cursor-pointer"
         >
           <span className="flex items-center gap-3">
             <LogOut size={16} />
@@ -378,7 +378,7 @@ export default function Sidebar() {
             {/* Close button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] cursor-pointer"
+              className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) cursor-pointer"
             >
               <X size={20} />
             </button>

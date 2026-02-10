@@ -194,7 +194,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
               value={text}
               onChange={handleTextChange}
               placeholder={t('plagiarismTool.placeholder')}
-              className="w-full h-28 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
+              className="w-full h-28 px-3 py-2 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
               disabled={!!file || isAnalyzing}
             />
 
@@ -207,7 +207,7 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
             <div
               onClick={() => !text && fileInputRef.current?.click()}
               className={cn(
-                'border-[2px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-3 text-center cursor-pointer transition-colors',
+                'border-[2px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-3 text-center cursor-pointer transition-colors',
                 text ? 'opacity-50 cursor-not-allowed' : 'hover:border-[hsl(var(--primary))]',
                 file && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
               )}

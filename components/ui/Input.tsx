@@ -18,7 +18,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={cn(
-            'w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] rounded-[var(--radius)] transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 focus:border-[hsl(var(--border-strong))] focus:-translate-y-[0.125rem] focus:-translate-x-[0.125rem] placeholder:text-[hsl(var(--muted-foreground))]',
+            'w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] rounded-(--radius) transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 focus:border-[hsl(var(--border-strong))] focus:-translate-y-[0.125rem] focus:-translate-x-[0.125rem] placeholder:text-[hsl(var(--muted-foreground))]',
             error && 'border-[hsl(var(--destructive))] focus-visible:outline-[hsl(var(--destructive))]',
             className
           )}

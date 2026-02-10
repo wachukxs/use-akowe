@@ -8,11 +8,11 @@ import Card from '@/components/ui/Card';
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="sticky top-0 z-50 border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <ArrowLeft size={18} />
               </span>
               <div className="flex flex-col gap-0.5">
@@ -143,7 +143,7 @@ export default function AboutPage() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               <Card hover className="p-6 space-y-4 bg-[hsl(var(--surface))]">
-                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--foreground))]">
+                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--foreground))]">
                   <Lightbulb size={22} />
                 </div>
                 <h3 className="text-lg font-semibold uppercase tracking-[0.18em]">
@@ -154,7 +154,7 @@ export default function AboutPage() {
                 </p>
               </Card>
               <Card hover className="p-6 space-y-4 bg-[hsl(var(--surface))]">
-                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--foreground))]">
+                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--foreground))]">
                   <BookOpen size={22} />
                 </div>
                 <h3 className="text-lg font-semibold uppercase tracking-[0.18em]">
@@ -165,7 +165,7 @@ export default function AboutPage() {
                 </p>
               </Card>
               <Card hover className="p-6 space-y-4 bg-[hsl(var(--surface))]">
-                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--foreground))]">
+                <div className="w-12 h-12 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--foreground))]">
                   <Users size={22} />
                 </div>
                 <h3 className="text-lg font-semibold uppercase tracking-[0.18em]">

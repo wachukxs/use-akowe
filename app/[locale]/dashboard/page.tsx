@@ -193,14 +193,14 @@ export default function DashboardPage() {
                     placeholder={t('searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.24em] rounded-[var(--radius)] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                    className="w-full pl-10 pr-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-xs uppercase tracking-[0.24em] rounded-(--radius) focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                   />
                 </div>
                 <div className="flex items-center gap-3 justify-end">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={cn(
-                      'px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
+                      'px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
                       viewMode === 'grid'
                         ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem]'
                         : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
@@ -211,7 +211,7 @@ export default function DashboardPage() {
                   <button
                     onClick={() => setViewMode('list')}
                     className={cn(
-                      'px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
+                      'px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150',
                       viewMode === 'list'
                         ? 'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem]'
                         : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
@@ -229,19 +229,19 @@ export default function DashboardPage() {
                 </span>
                 <button
                   onClick={() => router.push('/dashboard/new')}
-                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
                   {t('createNewProject')}
                 </button>
                 <button
                   onClick={() => router.push('/dashboard/import')}
-                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
                   {t('importDocument')}
                 </button>
                 <button
                   onClick={() => router.push('/settings')}
-                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
                   {t('reviewPlans')}
                 </button>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
               {!searchQuery && (
                 <button
                   onClick={() => router.push('/dashboard/new')}
-                  className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                 >
                   {t('createNewProject')}
                 </button>

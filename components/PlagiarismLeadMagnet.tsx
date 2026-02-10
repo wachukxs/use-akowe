@@ -168,7 +168,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
                 value={text}
                 onChange={handleTextChange}
                 placeholder={t('placeholder')}
-                className="w-full h-40 sm:h-48 px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
+                className="w-full h-40 sm:h-48 px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm tracking-wide resize-none focus:outline-none focus:border-[hsl(var(--primary))]"
                 disabled={!!file || isAnalyzing}
               />
 
@@ -183,7 +183,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
               <div
                 onClick={() => !text && fileInputRef.current?.click()}
                 className={cn(
-                  'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center cursor-pointer transition-colors',
+                  'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center cursor-pointer transition-colors',
                   text ? 'opacity-50 cursor-not-allowed' : 'hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))]',
                   file && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
                 )}
@@ -268,7 +268,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
                 {result.previewIssues.map((issue, index) => (
                   <div
                     key={index}
-                    className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface-muted))]"
+                    className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 bg-[hsl(var(--surface-muted))]"
                   >
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="text-yellow-500 flex-shrink-0 mt-0.5" size={18} />
@@ -291,7 +291,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
 
             {/* Locked content indicator */}
             {result.totalIssues > 2 && (
-              <div className="border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center bg-[hsl(var(--surface-muted))] mb-6">
+              <div className="border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center bg-[hsl(var(--surface-muted))] mb-6">
                 <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   {t('moreIssues', { count: result.totalIssues - 2 })}
                 </p>

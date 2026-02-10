@@ -248,7 +248,7 @@ export default function NewProjectPage() {
           <div className="flex items-center gap-4 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-3 py-2 rounded-[var(--radius)] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+              className="flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-3 py-2 rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
             >
               ← Back
             </button>
@@ -385,7 +385,7 @@ export default function NewProjectPage() {
                   <button
                     type="button"
                     onClick={() => setShowTopicFinder(true)}
-                    className="px-4 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] hover:bg-[hsl(var(--surface-muted))] transition-colors flex items-center gap-2 text-xs uppercase tracking-[0.14em] font-semibold"
+                    className="px-4 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] hover:bg-[hsl(var(--surface-muted))] transition-colors flex items-center gap-2 text-xs uppercase tracking-[0.14em] font-semibold"
                     title="Find unique research topics"
                   >
                     <Sparkles className="w-4 h-4 text-[hsl(var(--primary))]" />
@@ -439,7 +439,7 @@ export default function NewProjectPage() {
                 <select
                   value={citationStyle}
                   onChange={(e) => setCitationStyle(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
+                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-sm uppercase tracking-[0.16em] focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2"
                 >
                   {currentType?.citationStyles.map(style => (
                     <option key={style} value={style}>{style}</option>
@@ -467,7 +467,7 @@ export default function NewProjectPage() {
                   value={methodology}
                   onChange={(e) => setMethodology(e.target.value)}
                   className={cn(
-                    "w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] text-base md:text-lg uppercase tracking-[0.08em]",
+                    "w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] text-base md:text-lg uppercase tracking-[0.08em]",
                     isFirstTimeUser && !methodology && "ring-2 ring-[hsl(var(--primary))] ring-offset-2"
                   )}
                 >
@@ -511,14 +511,14 @@ export default function NewProjectPage() {
                         key={type.type}
                         onClick={() => setSelectedType(type.type)}
                         className={cn(
-                          'text-left p-3 md:p-4 border-2 rounded-[var(--radius)] transition-transform duration-150',
+                          'text-left p-3 md:p-4 border-2 rounded-(--radius) transition-transform duration-150',
                           isSelected
                             ? 'border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] -translate-x-[0.125rem] -translate-y-[0.125rem] shadow-[6px_6px_0_rgba(29,41,57,0.14)]'
                             : 'border-[hsl(var(--border))] bg-[hsl(var(--surface))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]'
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 md:w-12 md:h-12 border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--surface))] flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 md:w-12 md:h-12 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] flex items-center justify-center flex-shrink-0">
                             <Icon size={18} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -601,8 +601,8 @@ export default function NewProjectPage() {
           }}
         >
           <div className="w-full max-w-md">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-6 md:p-8 space-y-6 text-center">
-              <div className="mx-auto w-14 h-14 md:w-16 md:h-16 border-[4px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--destructive))]">
+            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-6 md:p-8 space-y-6 text-center">
+              <div className="mx-auto w-14 h-14 md:w-16 md:h-16 border-[4px] border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--destructive))]">
                 <X className="w-6 h-6 md:w-8 md:h-8" />
               </div>
               <div className="space-y-2">

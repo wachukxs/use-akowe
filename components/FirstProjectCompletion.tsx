@@ -40,7 +40,7 @@ export default function FirstProjectCompletion() {
             setIsVisible(false);
             localStorage.setItem('akowe_first_project_completion_seen', 'true');
           }}
-          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors"
+          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"
           aria-label="Close"
         >
           <X size={20} />
@@ -62,7 +62,7 @@ export default function FirstProjectCompletion() {
             </p>
           </div>
 
-          <div className="space-y-3 text-left bg-[hsl(var(--surface-muted))] p-4 rounded-[var(--radius)]">
+          <div className="space-y-3 text-left bg-[hsl(var(--surface-muted))] p-4 rounded-(--radius)">
             <div className="flex items-start gap-3">
               <Sparkles className="text-[hsl(var(--primary))] flex-shrink-0 mt-0.5" size={18} />
               <div>

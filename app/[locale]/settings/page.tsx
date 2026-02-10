@@ -692,7 +692,7 @@ alert(t('alerts.failedCheckoutSession'));
           {(session?.user as any)?.referralCode && (
             <Card className="p-4 md:p-6 mb-6 md:mb-8">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[hsl(var(--primary))]/10 rounded-[var(--radius)] flex items-center justify-center">
+                <div className="w-10 h-10 bg-[hsl(var(--primary))]/10 rounded-(--radius) flex items-center justify-center">
                   <Gift size={20} className="text-[hsl(var(--primary))]" />
                 </div>
                 <div>
@@ -723,7 +723,7 @@ alert(t('alerts.failedCheckoutSession'));
                     setCopiedReferral(true);
                     setTimeout(() => setCopiedReferral(false), 2000);
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border-2 border-[hsl(var(--border-strong))] bg-white rounded-[var(--radius)] hover:bg-gray-50 hover:-translate-y-0.5 transition-all cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium border-2 border-[hsl(var(--border-strong))] bg-white rounded-(--radius) hover:bg-gray-50 hover:-translate-y-0.5 transition-all cursor-pointer"
                 >
                   {copiedReferral ? (
                     <>

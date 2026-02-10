@@ -30,7 +30,7 @@ export default function GuidedFirstProject({
       <Card className="max-w-2xl w-full border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors"
+          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"
           aria-label={t('close')}
         >
           <X size={20} />
@@ -38,7 +38,7 @@ export default function GuidedFirstProject({
 
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 border-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-[var(--radius)] flex items-center justify-center">
+            <div className="w-12 h-12 border-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-(--radius) flex items-center justify-center">
               <Sparkles className="text-[hsl(var(--primary))]" size={24} />
             </div>
             <div>

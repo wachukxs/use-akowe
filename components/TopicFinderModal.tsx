@@ -217,7 +217,7 @@ export default function TopicFinderModal({
 
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/70 z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b-[3px] border-[hsl(var(--border-strong))]">
           <div className="flex items-center gap-3">
@@ -233,7 +233,7 @@ export default function TopicFinderModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors"
+            className="p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"
           >
             <X size={20} />
           </button>
@@ -252,7 +252,7 @@ export default function TopicFinderModal({
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder={t('placeholder')}
-                  className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                  className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                   onKeyDown={(e) => e.key === 'Enter' && !isAnalyzing && handleAnalyze()}
                 />
               </div>
@@ -265,7 +265,7 @@ export default function TopicFinderModal({
                   <select
                     value={selectedProjectType}
                     onChange={(e) => setSelectedProjectType(e.target.value as any)}
-                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                   >
                     <option value="thesis">{t('projectTypeThesis')}</option>
                     <option value="essay">{t('projectTypeEssay')}</option>
@@ -281,7 +281,7 @@ export default function TopicFinderModal({
                   <select
                     value={selectedMethodology}
                     onChange={(e) => setSelectedMethodology(e.target.value)}
-                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
                   >
                     <option value="">{t('methodologyAny')}</option>
                     <option value="qualitative">{t('methodologyQualitative')}</option>
@@ -369,7 +369,7 @@ export default function TopicFinderModal({
                     <div
                       key={index}
                       className={cn(
-                        "border-[3px] rounded-[var(--radius)] p-4 transition-colors cursor-pointer",
+                        "border-[3px] rounded-(--radius) p-4 transition-colors cursor-pointer",
                         isSelected
                           ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10"
                           : "border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] hover:border-[hsl(var(--primary))]"
@@ -465,7 +465,7 @@ export default function TopicFinderModal({
 
               {/* Pro Upgrade Prompt */}
               {showUpgradePrompt && !isPro && (
-                <div className="border-[3px] border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10 rounded-[var(--radius)] p-4 space-y-3">
+                <div className="border-[3px] border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10 rounded-(--radius) p-4 space-y-3">
                   <div className="flex items-start gap-2">
                     <Lock className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={18} />
                     <div className="flex-1">

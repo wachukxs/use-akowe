@@ -39,7 +39,7 @@ export default function Active37DiscountPopup({
       <Card className="max-w-lg w-full border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative animate-in fade-in zoom-in duration-200">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-[var(--radius)] transition-colors"
+          className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"
           aria-label={t('close')}
         >
           <X size={20} />
@@ -64,7 +64,7 @@ export default function Active37DiscountPopup({
             </p>
           </div>
 
-          <div className="border-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-4 rounded-[var(--radius)]">
+          <div className="border-[3px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-4 rounded-(--radius)">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Sparkles className="text-[hsl(var(--primary))]" size={20} />
               <span className="text-3xl font-black text-[hsl(var(--primary))]">
@@ -79,7 +79,7 @@ export default function Active37DiscountPopup({
             </p>
           </div>
 
-          <div className="space-y-2 text-left bg-[hsl(var(--surface-muted))] p-4 rounded-[var(--radius)]">
+          <div className="space-y-2 text-left bg-[hsl(var(--surface-muted))] p-4 rounded-(--radius)">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] mb-2">
               {t('whatYouGet')}
             </p>

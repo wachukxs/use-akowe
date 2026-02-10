@@ -92,7 +92,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[hsl(var(--destructive))] hover:text-[hsl(var(--destructive-foreground))] hover:border-[hsl(var(--destructive))] transition-colors shadow-[4px_4px_0_rgba(29,41,57,0.12)]"
+            className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[hsl(var(--destructive))] hover:text-[hsl(var(--destructive-foreground))] hover:border-[hsl(var(--destructive))] transition-colors shadow-[4px_4px_0_rgba(29,41,57,0.12)]"
           >
             <LogOut size={14} />
             {isLoggingOut ? t('loggingOut') : t('logout')}

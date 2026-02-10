@@ -146,7 +146,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleFileDrop}
                 className={cn(
-                  'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-8 sm:p-12 text-center cursor-pointer transition-colors',
+                  'border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-8 sm:p-12 text-center cursor-pointer transition-colors',
                   'hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))]',
                   file && 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/5'
                 )}
@@ -247,7 +247,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
               {result.sections.slice(0, 3).map((section, index) => (
                 <div
                   key={index}
-                  className="border-[3px] border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-4 bg-[hsl(var(--surface-muted))]"
+                  className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 bg-[hsl(var(--surface-muted))]"
                 >
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="text-green-500 flex-shrink-0 mt-0.5" size={18} />
@@ -266,7 +266,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
 
             {/* Locked content indicator */}
             {result.sectionCount > 3 && (
-              <div className="border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-[var(--radius)] p-6 text-center bg-[hsl(var(--surface-muted))] mb-6">
+              <div className="border-[3px] border-dashed border-[hsl(var(--border-strong))] rounded-(--radius) p-6 text-center bg-[hsl(var(--surface-muted))] mb-6">
                 <p className="text-sm uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   {t('moreSections', { count: result.sectionCount - 3 })}
                 </p>

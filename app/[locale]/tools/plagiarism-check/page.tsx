@@ -7,11 +7,11 @@ import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
 export default function PlagiarismCheckPage() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <header className="border-b-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
+      <header className="border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-[var(--radius)] shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
+              <span className="flex h-10 w-10 items-center justify-center border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[4px_4px_0_rgba(29,41,57,0.12)]">
                 <ArrowLeft size={18} />
               </span>
               <span className="text-xl font-bold uppercase tracking-[0.16em]">

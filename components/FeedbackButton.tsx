@@ -91,7 +91,7 @@ export default function FeedbackButton() {
 
       {/* Popup Modal */}
       {isOpen && (
-        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-[var(--radius)] shadow-[8px_8px_0_rgba(29,41,57,0.16)] p-6 animate-in slide-in-from-right-4 duration-200">
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) shadow-[8px_8px_0_rgba(29,41,57,0.16)] p-6 animate-in slide-in-from-right-4 duration-200">
           {/* Close Button */}
           <button
             onClick={() => setIsOpen(false)}
@@ -160,7 +160,7 @@ export default function FeedbackButton() {
                     }
                     required
                     rows={4}
-                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] rounded-[var(--radius)] transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 focus:border-[hsl(var(--border-strong))] focus:-translate-y-[0.125rem] focus:-translate-x-[0.125rem] placeholder:text-[hsl(var(--muted-foreground))] resize-none"
+                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] rounded-(--radius) transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 focus:border-[hsl(var(--border-strong))] focus:-translate-y-[0.125rem] focus:-translate-x-[0.125rem] placeholder:text-[hsl(var(--muted-foreground))] resize-none"
                   />
                 </div>
 
