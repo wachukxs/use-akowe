@@ -3,7 +3,7 @@ import { hasLocale } from 'next-intl';
 import { routing } from './routing';
 
 /** Add new namespace when you add a new messages/{locale}/{namespace}.json file */
-const namespaces = ['common', 'components', 'home', 'metadata', 'auth', 'dashboard', 'settings', 'terms', 'privacy'] as const;
+const namespaces = ['common', 'components', 'home', 'metadata', 'auth', 'dashboard', 'settings', 'terms', 'privacy', 'project'] as const;
 
 export default getRequestConfig(async ({ requestLocale }) => {
   const requested = await requestLocale;
