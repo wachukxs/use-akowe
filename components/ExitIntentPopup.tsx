@@ -152,7 +152,7 @@ export default function ExitIntentPopup({ variant, tool }: ExitIntentPopupProps)
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/70 z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg animate-in fade-in zoom-in duration-300">
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b-[3px] border-[hsl(var(--border-strong))]">
             <div className="flex items-center gap-2">

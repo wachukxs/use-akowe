@@ -215,7 +215,7 @@ export default function ImportLeadMagnet({ variant }: ImportLeadMagnetProps) {
       ) : (
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Results */}
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 sm:p-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 sm:p-8">
             {/* Title */}
             <div className="text-center mb-8">
               <h3 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.12em]">

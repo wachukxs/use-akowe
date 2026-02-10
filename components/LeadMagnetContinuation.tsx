@@ -109,7 +109,7 @@ export default function LeadMagnetContinuation() {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[hsl(var(--surface))] border-[4px] border-[hsl(var(--border-strong))] max-w-md w-full p-6 space-y-4">
+      <div className="bg-[hsl(var(--surface))] border-4 border-[hsl(var(--border-strong))] max-w-md w-full p-6 space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             {storedContent.type === 'plagiarism' ? (

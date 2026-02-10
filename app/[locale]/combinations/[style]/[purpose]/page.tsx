@@ -172,7 +172,7 @@ export default async function CombinationPage({ params }: { params: Promise<{ st
             </p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">About {citationStyle.name} Style</h2>
             <p className="text-lg leading-relaxed mb-4">{citationStyle.description}</p>
             <div className="mt-4">
@@ -185,7 +185,7 @@ export default async function CombinationPage({ params }: { params: Promise<{ st
             </div>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">{citationStyle.name} Citation Examples</h2>
             <div className="space-y-4">
               <div>
@@ -207,7 +207,7 @@ export default async function CombinationPage({ params }: { params: Promise<{ st
             </div>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Best Practices for {purposeName}</h2>
             <ul className="list-disc list-inside space-y-2 text-lg">
               <li>Always verify your citations match the {citationStyle.name} style requirements</li>
@@ -227,7 +227,7 @@ export default async function CombinationPage({ params }: { params: Promise<{ st
             </div>
           )}
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
             <h2 className="text-2xl font-bold mb-4">Need Help with Citations?</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Use Akowe to automatically format citations in {citationStyle.name} style. Search real academic sources, add citations with one click, and ensure consistency throughout your {purposeName.toLowerCase()}.

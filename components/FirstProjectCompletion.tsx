@@ -34,7 +34,7 @@ export default function FirstProjectCompletion() {
 
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/80 z-50 flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative">
+      <Card className="max-w-2xl w-full border-4 border-[hsl(var(--primary))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative">
         <button
           onClick={() => {
             setIsVisible(false);
@@ -48,7 +48,7 @@ export default function FirstProjectCompletion() {
 
         <div className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="w-16 h-16 border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-full flex items-center justify-center">
               <CheckCircle2 className="text-[hsl(var(--primary))]" size={32} />
             </div>
           </div>

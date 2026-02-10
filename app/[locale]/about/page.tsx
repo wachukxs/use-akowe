@@ -111,7 +111,7 @@ export default function AboutPage() {
                 They were rigorous, meticulous, and deeply trusted. Not because they loved paperwork, but
                 because preserving truth kept the community intact.
               </p>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
                 <p className="text-xs sm:text-sm uppercase tracking-[0.18em] sm:tracking-[0.22em] leading-relaxed">
                   &ldquo;Choosing Akọ̀wé anchors our work in a legacy of integrity. The studio isn&apos;t
                   just software—it is a continuation of that covenant with accuracy and care.&rdquo;
@@ -245,7 +245,7 @@ export default function AboutPage() {
                   body: 'Design choices echo the archival rigor and artistic lineage that inspired Akọ̀wé.'
                 }
               ].map((value, index) => (
-                <Card key={value.title} className="p-6 bg-[hsl(var(--surface))] space-y-3 border-[4px] border-[hsl(var(--border-strong))]">
+                <Card key={value.title} className="p-6 bg-[hsl(var(--surface))] space-y-3 border-4 border-[hsl(var(--border-strong))]">
                   <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                     {String(index + 1).padStart(2, '0')}
                   </span>
@@ -261,7 +261,7 @@ export default function AboutPage() {
 
         {/* CTA */}
         <section className="max-w-7xl mx-auto py-20 border-t-[4px] border-[hsl(var(--border-strong))]">
-          <Card className="p-10 bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[4px] border-[hsl(var(--border-strong))] space-y-6 text-center">
+          <Card className="p-10 bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-4 border-[hsl(var(--border-strong))] space-y-6 text-center">
             <span className="text-xs uppercase tracking-[0.32em]">Join the studio</span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-[0.08em] sm:tracking-[0.1em] lg:tracking-[0.12em] leading-tight">
               Ready to publish work that withstands scrutiny?

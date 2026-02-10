@@ -854,7 +854,7 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center p-6">
-        <div className="max-w-md w-full border-[4px] border-[hsl(var(--destructive))] bg-[hsl(var(--surface))] p-6 text-center space-y-4">
+        <div className="max-w-md w-full border-4 border-[hsl(var(--destructive))] bg-[hsl(var(--surface))] p-6 text-center space-y-4">
           <AlertCircle className="text-[hsl(var(--destructive))] mx-auto" size={48} />
           <h2 className="text-xl font-bold uppercase tracking-[0.16em]">Error Loading Dashboard</h2>
           <p className="text-sm text-[hsl(var(--muted-foreground))]">{error}</p>

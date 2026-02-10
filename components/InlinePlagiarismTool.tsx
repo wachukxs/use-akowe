@@ -96,7 +96,7 @@ export default function InlinePlagiarismTool() {
   };
 
   return (
-    <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg my-8">
+    <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg my-8">
       <div className="flex items-center gap-2 mb-4">
         <Shield size={20} className="text-[hsl(var(--primary))]" />
         <h3 className="text-lg font-bold uppercase tracking-[0.1em]">

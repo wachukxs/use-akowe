@@ -105,7 +105,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
         </div>
 
         <div className="space-y-8">
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Why Choose Akowe?</h2>
             <ul className="space-y-3">
               {comparison.akoweAdvantages.map((advantage, index) => (
@@ -117,7 +117,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             </ul>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">{comparison.competitor} Limitations</h2>
             <ul className="space-y-3">
               {comparison.competitorLimitations.map((limitation, index) => (
@@ -129,7 +129,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
             </ul>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Which Should You Choose?</h2>
             <p className="text-lg leading-relaxed">{comparison.useCase}</p>
           </div>

@@ -116,14 +116,14 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
             <p className="text-xl text-[hsl(var(--muted-foreground))]">{template.description}</p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Template Type</h2>
             <p className="text-lg mb-4">{template.type}</p>
             <h2 className="text-2xl font-bold mb-4">Best For</h2>
             <p className="text-lg">{template.useCase}</p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Structure</h2>
             <ol className="list-decimal list-inside space-y-3">
               {template.structure.map((section, index) => (
@@ -135,7 +135,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
             </ol>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Use This Template in Akowe</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Create a new project in Akowe and use this structure to organize your {template.type.toLowerCase()}. 

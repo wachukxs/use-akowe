@@ -117,7 +117,7 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
           </div>
 
           {keywordPage.content?.introduction && (
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
               <p className="text-lg leading-relaxed">{keywordPage.content.introduction}</p>
             </div>
           )}
@@ -125,7 +125,7 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
           {keywordPage.content?.sections && keywordPage.content.sections.length > 0 && (
             <div className="space-y-8">
               {keywordPage.content.sections.map((section, index) => (
-                <section key={index} className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+                <section key={index} className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
                   <h2 className="text-2xl font-bold mb-4">{section.heading}</h2>
                   <p className="text-base leading-relaxed">{section.content}</p>
                 </section>
@@ -134,7 +134,7 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
           )}
 
           {!keywordPage.content?.introduction && !keywordPage.content?.sections && (
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
               <p className="text-lg leading-relaxed">
                 {keywordPage.description}
               </p>
@@ -154,7 +154,7 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
             </div>
           )}
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
             <h2 className="text-2xl font-bold mb-4">Ready to Start Writing?</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Use Akowe to apply these citation strategies in your own research. Get AI-powered writing assistance, 

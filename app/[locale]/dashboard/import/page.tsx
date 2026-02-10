@@ -196,7 +196,7 @@ function ImportProjectPageInner() {
             <span className="hidden sm:inline">Import existing project</span>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
             <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Import Existing Project</h1>
             <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Upload your document to import sections, content, and citations into Akọ̀wé.
@@ -204,7 +204,7 @@ function ImportProjectPageInner() {
           </div>
 
           {continuationMessage && (
-            <div className="border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-4 flex items-center gap-3">
+            <div className="border-4 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-4 flex items-center gap-3">
               <CheckCircle2 className="text-[hsl(var(--primary))] flex-shrink-0" size={20} />
               <p className="text-xs uppercase tracking-[0.18em]">{continuationMessage}</p>
               <button 
@@ -485,7 +485,7 @@ export default function ImportProjectPage() {
           <MobileMenuButton />
           <div className="flex-1 md:ml-64 overflow-auto">
             <div className="max-w-6xl mx-auto p-4 pt-16 md:pt-10 md:p-10 space-y-6 md:space-y-10">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-8 space-y-2">
                 <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-[0.12em]">Import Existing Project</h1>
                 <p className="text-xs md:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                   Loading...

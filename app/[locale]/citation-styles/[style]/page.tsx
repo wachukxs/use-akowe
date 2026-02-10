@@ -143,7 +143,7 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
             <p className="text-lg">{citationStyle.description}</p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-8">
             <h2 className="text-2xl font-bold mb-4">Common Uses</h2>
             <ul className="list-disc list-inside space-y-2">
               {citationStyle.commonUses.map((use, index) => (
@@ -153,7 +153,7 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
           </div>
 
           <div className="space-y-8">
-            <section className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+            <section className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <CheckCircle size={24} className="text-[hsl(var(--primary))]" />
                 Book Citation
@@ -163,7 +163,7 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
               </div>
             </section>
 
-            <section className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+            <section className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <CheckCircle size={24} className="text-[hsl(var(--primary))]" />
                 Journal Article Citation
@@ -173,7 +173,7 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
               </div>
             </section>
 
-            <section className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+            <section className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <CheckCircle size={24} className="text-[hsl(var(--primary))]" />
                 Website Citation
@@ -183,7 +183,7 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
               </div>
             </section>
 
-            <section className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+            <section className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
                 <CheckCircle size={24} className="text-[hsl(var(--primary))]" />
                 In-Text Citation
@@ -194,7 +194,7 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
             </section>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
             <h2 className="text-2xl font-bold mb-4">Automate Your Citations</h2>
             <p className="mb-6 text-lg leading-relaxed">
               Don&apos;t memorize citation formats. Use Akowe to automatically format citations in {citationStyle.name} style. 

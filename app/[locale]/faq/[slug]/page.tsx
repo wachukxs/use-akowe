@@ -121,7 +121,7 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
         </div>
 
         <div className="prose prose-lg max-w-none">
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 rounded-lg">
             <p className="text-lg leading-relaxed whitespace-pre-line">{faq.answer}</p>
           </div>
         </div>

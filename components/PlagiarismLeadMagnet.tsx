@@ -161,7 +161,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
 
       {!result ? (
         <div className="max-w-3xl mx-auto">
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
             {/* Text input */}
             <div className="space-y-4">
               <textarea
@@ -245,7 +245,7 @@ export default function PlagiarismLeadMagnet({ variant }: PlagiarismLeadMagnetPr
       ) : (
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Results */}
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 sm:p-8">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 sm:p-8">
             {/* Risk score */}
             <div className="text-center mb-8">
               <div className={cn('text-6xl sm:text-7xl font-bold', getRiskColor(result.riskScore))}>

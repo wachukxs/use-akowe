@@ -77,7 +77,7 @@ export default function TemplatesIndexPage() {
             <Link
               key={template.slug}
               href={`/templates/${template.slug}`}
-              className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
+              className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg hover:shadow-lg transition-shadow"
             >
               <h2 className="text-xl font-bold mb-2">{template.title}</h2>
               <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4 line-clamp-2">

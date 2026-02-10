@@ -29,7 +29,7 @@ export function RelatedContent({ title, items, type }: RelatedContentProps) {
           <Link
             key={index}
             href={item.href}
-            className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg hover:shadow-lg transition-shadow group"
+            className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg hover:shadow-lg transition-shadow group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">

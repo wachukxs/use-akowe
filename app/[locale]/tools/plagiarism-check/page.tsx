@@ -106,7 +106,7 @@ export default function PlagiarismCheckPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-16 border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-8 text-center">
+        <div className="mt-16 border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-8 text-center">
           <h2 className="text-2xl font-bold uppercase tracking-[0.1em] mb-4">
             Need Full Plagiarism Reports?
           </h2>

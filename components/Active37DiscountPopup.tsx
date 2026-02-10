@@ -36,7 +36,7 @@ export default function Active37DiscountPopup({
 
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/90 z-50 flex items-center justify-center p-4">
-      <Card className="max-w-lg w-full border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative animate-in fade-in zoom-in duration-200">
+      <Card className="max-w-lg w-full border-4 border-[hsl(var(--primary))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative animate-in fade-in zoom-in duration-200">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"
@@ -47,7 +47,7 @@ export default function Active37DiscountPopup({
 
         <div className="space-y-4 text-center">
           <div className="flex justify-center">
-            <div className="w-16 h-16 border-[4px] border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 rounded-full flex items-center justify-center">
               <Gift className="text-[hsl(var(--primary))]" size={32} />
             </div>
           </div>

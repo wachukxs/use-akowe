@@ -128,7 +128,7 @@ export default function DashboardPage() {
         <MobileMenuButton />
         <div className="flex-1 md:ml-64 flex items-center justify-center">
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 border-[4px] border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div className="w-16 h-16 border-4 border-[hsl(var(--secondary))] border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
               {t('loadingWorkspace')}
             </p>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="col-span-12 lg:col-span-4">
-              <div className="h-full border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 md:p-6 flex flex-row lg:flex-col justify-between items-center lg:items-start gap-4">
+              <div className="h-full border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 md:p-6 flex flex-row lg:flex-col justify-between items-center lg:items-start gap-4">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))]">
                   {t('activeCount')}
                 </span>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-12 gap-4 md:gap-6">
             <div className="col-span-12 lg:col-span-9">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4 md:items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))]" size={18} />
                   <input
@@ -223,7 +223,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="col-span-12 lg:col-span-3 space-y-3">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-5 space-y-3">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 md:p-5 space-y-3">
                 <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   {t('quickActions')}
                 </span>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
           </div>
 
           {filteredProjects.length === 0 ? (
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-12 md:py-16 px-4 md:px-6 flex flex-col items-center gap-4 md:gap-6">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-12 md:py-16 px-4 md:px-6 flex flex-col items-center gap-4 md:gap-6">
               <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
                 <FileText className="text-[hsl(var(--secondary))]" size={32} />
               </div>

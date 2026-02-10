@@ -180,7 +180,7 @@ export function MobileProjectToolsButton({
             onClick={dismissTooltip}
           />
           <div className="fixed bottom-24 right-4 z-50 md:hidden max-w-[280px] animate-in slide-in-from-bottom duration-300">
-            <div className="bg-[hsl(var(--surface))] border-[4px] border-[hsl(var(--border-strong))] rounded-(--radius) p-4 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+            <div className="bg-[hsl(var(--surface))] border-4 border-[hsl(var(--border-strong))] rounded-(--radius) p-4 shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center flex-shrink-0 bg-[hsl(var(--secondary))]">
                   <Bot className="h-4 w-4" />

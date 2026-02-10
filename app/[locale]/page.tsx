@@ -249,13 +249,13 @@ function HomePageContent() {
             {/* Trust Signals - Only show for control */}
             {abVariant === "control" && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 sm:pt-6">
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
                   <span className="text-3xl sm:text-4xl font-bold">{tHome("trustSignals.setup")}</span>
                   <p className="mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                     {tHome("trustSignals.setupSub")}
                   </p>
                 </div>
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 text-center sm:text-left">
                   <span className="text-3xl sm:text-4xl font-bold">
                     {tHome("trustSignals.citations")}
                   </span>
@@ -263,7 +263,7 @@ function HomePageContent() {
                     {tHome("trustSignals.citationsSub")}
                   </p>
                 </div>
-                <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 text-center sm:text-left">
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 text-center sm:text-left">
                   <span className="text-3xl sm:text-4xl font-bold text-[hsl(var(--accent-foreground))]">
                     {tHome("trustSignals.saved")}
                   </span>
@@ -381,22 +381,22 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("painA.manualResearch")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("painA.missingCitations")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("painA.lateFixes")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] font-semibold">
                   {tHome("painA.mostRush")}
                 </p>
@@ -413,22 +413,22 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("painB.fakeCitations")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("painB.plagiarismFlags")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("painB.marksDrop")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] font-semibold">
                   {tHome("painB.submitNoTrust")}
                 </p>
@@ -446,17 +446,17 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6 mb-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("solutionA.findsSources")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("solutionA.insertsCitations")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("solutionA.preparesDrafts")}
                 </p>
@@ -476,17 +476,17 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("solutionB.supportsResponsible")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("solutionB.realSources")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("solutionB.submitConfidence")}
                 </p>
@@ -525,22 +525,22 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6 mb-8">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("workflows.litReview")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("workflows.structureChapters")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("workflows.notesDrafts")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("workflows.export")}
                 </p>
@@ -561,17 +561,17 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("trustA.thesesPapers")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("trustA.verifiableSources")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("trustA.citationAccuracy")}
                 </p>
@@ -589,17 +589,17 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("trustB.thesisFocused")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("trustB.citationFirst")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
                 <p className="text-sm uppercase tracking-[0.18em]">
                   {tHome("trustB.submissionReady")}
                 </p>
@@ -696,7 +696,7 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
                   {tHome("faq.whoUses")}
                 </h3>
@@ -704,7 +704,7 @@ function HomePageContent() {
                   {tHome("faq.whoUsesAnswer")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
                   {tHome("faq.citationsIncluded")}
                 </h3>
@@ -725,7 +725,7 @@ function HomePageContent() {
               </h2>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
                   {tHome("faq.doesInvent")}
                 </h3>
@@ -733,7 +733,7 @@ function HomePageContent() {
                   {tHome("faq.doesInventAnswer")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h3 className="text-base font-semibold uppercase tracking-[0.16em] mb-3">
                   {tHome("faq.similarityChecked")}
                 </h3>
@@ -756,7 +756,7 @@ function HomePageContent() {
 
             <div className="grid gap-6 mb-12">
               {/* Comparison Table */}
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] overflow-hidden">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] overflow-hidden">
                 <div className="grid md:grid-cols-2">
                   <div className="p-6 border-b-2 md:border-b-0 md:border-r-2 border-[hsl(var(--border-strong))]">
                     <h3 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4 text-[hsl(var(--muted-foreground))]">
@@ -830,7 +830,7 @@ function HomePageContent() {
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold mb-3">1</div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">
                 {tHome("howItWorks.step1Title")}
@@ -839,7 +839,7 @@ function HomePageContent() {
                 {tHome("howItWorks.step1Desc")}
               </p>
             </div>
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold mb-3">2</div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">
                 {tHome("howItWorks.step2Title")}
@@ -848,7 +848,7 @@ function HomePageContent() {
                 {tHome("howItWorks.step2Desc")}
               </p>
             </div>
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center">
               <div className="text-3xl sm:text-4xl font-bold mb-3">3</div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] mb-2">
                 {tHome("howItWorks.step3Title")}
@@ -886,7 +886,7 @@ function HomePageContent() {
                 {tHome("features.feature1Desc")}
               </p>
             </div>
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
                 src="/feature-ai-assistant.png"
                 alt={tHome("imageAlt.aiAssistant")}
@@ -899,7 +899,7 @@ function HomePageContent() {
 
           {/* Feature 2: Real Citations */}
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
-            <div className="order-2 lg:order-1 border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
+            <div className="order-2 lg:order-1 border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
                 src="/feature-citations.png"
                 alt="Akowe citation search and management interface"
@@ -920,7 +920,7 @@ function HomePageContent() {
               <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
                 {tHome("features.feature2Desc")}
               </p>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-4 mt-4">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-4 mt-4">
                 <p className="text-xs uppercase tracking-[0.2em]">
                   {tHome("features.feature2Badge")}
                 </p>
@@ -943,7 +943,7 @@ function HomePageContent() {
                 {tHome("features.feature3Desc")}
               </p>
             </div>
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 rounded-lg">
               <Image
                 src="/feature-plagiarism-check.png"
                 alt={tHome("imageAlt.plagiarismCheck")}
@@ -955,7 +955,7 @@ function HomePageContent() {
           </div>
 
           {/* Ethical AI Trust Badge */}
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-6 mt-16">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-6 mt-16">
             <h4 className="text-lg font-semibold uppercase tracking-[0.16em] mb-4">
               {tHome("features.ethicalBadgeTitle")}
             </h4>
@@ -989,7 +989,7 @@ function HomePageContent() {
             </p>
           </div>
 
-          <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl space-y-2">
               <span className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                 {tHome("plans.aiWordsLabel")}
@@ -1037,7 +1037,7 @@ function HomePageContent() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6">
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   {tHome("plans.freePlanLabel")}
@@ -1075,7 +1075,7 @@ function HomePageContent() {
               </p>
             </div>
 
-            <div className="relative border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-8 flex flex-col gap-6">
+            <div className="relative border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-8 flex flex-col gap-6">
               <span className="absolute -top-4 left-4 px-3 py-1 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[10px] font-semibold uppercase tracking-[0.3em] text-[hsl(var(--foreground))]">
                 {tHome("plans.proPlanBadge")}
               </span>
@@ -1137,7 +1137,7 @@ function HomePageContent() {
               </p>
             </div>
 
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6 opacity-80">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6 opacity-80">
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   {tHome("plans.teamPlanLabel")}
@@ -1184,14 +1184,14 @@ function HomePageContent() {
               <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                 {tHome("academicAlignment.desc")}
               </p>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 mt-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-4 mt-6">
                 <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--foreground))]">
                   <strong>{tHome("academicAlignment.designTitle")}</strong> {tHome("academicAlignment.designDesc")}
                 </p>
               </div>
             </div>
             <div className="lg:col-span-7 grid gap-4">
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
                   {tHome("academicAlignment.allInOneTitle")}
                 </h4>
@@ -1199,7 +1199,7 @@ function HomePageContent() {
                   {tHome("academicAlignment.allInOneDesc")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] p-6">
                 <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
                   {tHome("academicAlignment.designedTitle")}
                 </h4>
@@ -1207,7 +1207,7 @@ function HomePageContent() {
                   {tHome("academicAlignment.designedDesc")}
                 </p>
               </div>
-              <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
                 <h4 className="text-sm font-semibold uppercase tracking-[0.24em] mb-3">
                   {tHome("academicAlignment.pricingTitle")}
                 </h4>
@@ -1219,7 +1219,7 @@ function HomePageContent() {
           </div>
 
           <div className="mt-12 grid md:grid-cols-3 gap-6">
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
               <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">
                 {tHome("stats.savings")}
               </span>
@@ -1227,7 +1227,7 @@ function HomePageContent() {
                 {tHome("stats.savingsDesc")}
               </p>
             </div>
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 text-center space-y-2 text-[hsl(var(--accent-foreground))]">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-6 text-center space-y-2 text-[hsl(var(--accent-foreground))]">
               <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">
                 {tHome("stats.allInOne")}
               </span>
@@ -1235,7 +1235,7 @@ function HomePageContent() {
                 {tHome("stats.allInOneDesc")}
               </p>
             </div>
-            <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 text-center space-y-2">
               <span className="text-4xl font-extrabold uppercase tracking-[0.1em]">
                 {tHome("stats.tenHours")}
               </span>

@@ -27,7 +27,7 @@ export default function GuidedFirstProject({
 
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/80 z-50 flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative">
+      <Card className="max-w-2xl w-full border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 md:p-8 space-y-6 relative">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors"

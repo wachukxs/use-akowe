@@ -54,7 +54,7 @@ export default function LeadMagnetEmailCapture({
   return (
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[8px_8px_0_rgba(29,41,57,0.15)] p-6 sm:p-8">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[8px_8px_0_rgba(29,41,57,0.15)] p-6 sm:p-8">
           <div className="flex items-start justify-between mb-6">
             <div className="space-y-2">
               <h3 className="text-lg sm:text-xl font-bold uppercase tracking-[0.12em]">

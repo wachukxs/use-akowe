@@ -213,7 +213,7 @@ export default function LeadsTab() {
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <Mail className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
@@ -223,7 +223,7 @@ export default function LeadsTab() {
           <p className="text-2xl sm:text-3xl font-bold">{totalLeads}</p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <CheckCircle className="text-green-500 sm:w-5 sm:h-5" size={18} />
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
@@ -236,7 +236,7 @@ export default function LeadsTab() {
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Plagiarism Tool
@@ -248,7 +248,7 @@ export default function LeadsTab() {
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Import Tool
@@ -260,7 +260,7 @@ export default function LeadsTab() {
           </p>
         </div>
 
-        <div className="border-[4px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
+        <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-4 sm:p-6">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <span className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Topic Finder
