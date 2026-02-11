@@ -155,12 +155,21 @@
   "rewriteUpgradeTitle": "Upgrade to unlock unlimited rewrites",
   "rewriteUpgradeBody": "Free users get 2 rewrites per day. Upgrade to Pro for unlimited rewrites with a better AI model.",
   "rewriteUpgradeCta": "Upgrade to Pro",
+  "citationChoiceTitle": "Add Citation",
+  "citationInsertReference": "Insert reference",
+  "citationInsertReferenceDesc": "Drop (Author, Year) at cursor. Instant, no AI.",
+  "citationInsertWithContext": "Insert with context",
+  "citationInsertWithContextDesc": "Generate a supporting sentence using the paper's abstract.",
+  "citationContextLoading": "Generating context...",
+  "citationContextPreviewTitle": "Generated passage",
+  "citationContextUpgradeBody": "Free users have limited AI words per day. Upgrade for unlimited.",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",
     "discoverFailed": "Failed to discover citations. Please try again.",
     "exportFailed": "Export failed. Please try again.",
     "mathExplanation": "Unable to generate explanation at this time.",
-    "wordLimitReached": "Word limit reached."
+    "wordLimitReached": "Word limit reached.",
+    "contextGenerationFailed": "Failed to generate context. Please try again."
   }
 }

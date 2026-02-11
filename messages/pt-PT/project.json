@@ -155,12 +155,21 @@
   "rewriteUpgradeTitle": "Atualize para reescritas ilimitadas",
   "rewriteUpgradeBody": "Utilizadores gratuitos têm 2 reescritas por dia. Atualize para Pro para reescritas ilimitadas com um melhor modelo de IA.",
   "rewriteUpgradeCta": "Atualizar para Pro",
+  "citationChoiceTitle": "Adicionar citação",
+  "citationInsertReference": "Inserir referência",
+  "citationInsertReferenceDesc": "Colocar (Autor, Ano) no cursor. Instantâneo, sem IA.",
+  "citationInsertWithContext": "Inserir com contexto",
+  "citationInsertWithContextDesc": "Gerar uma frase de apoio utilizando o resumo do artigo.",
+  "citationContextLoading": "A gerar contexto...",
+  "citationContextPreviewTitle": "Trecho gerado",
+  "citationContextUpgradeBody": "Os utilizadores gratuitos têm palavras de IA limitadas por dia. Atualize para utilização ilimitada.",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",
     "discoverFailed": "Failed to discover citations. Please try again.",
     "exportFailed": "Export failed. Please try again.",
     "mathExplanation": "Unable to generate explanation at this time.",
-    "wordLimitReached": "Word limit reached."
+    "wordLimitReached": "Word limit reached.",
+    "contextGenerationFailed": "Falha ao gerar contexto. Por favor, tente novamente."
   }
 }

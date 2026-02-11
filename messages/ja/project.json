@@ -155,12 +155,21 @@
   "rewriteUpgradeTitle": "アップグレードして無制限の書き換えを利用",
   "rewriteUpgradeBody": "無料ユーザーは1日2回の書き換えが可能です。Proにアップグレードすると、より優れたAIモデルで無制限に書き換えができます。",
   "rewriteUpgradeCta": "Proにアップグレード",
+  "citationChoiceTitle": "引用を追加",
+  "citationInsertReference": "参照を挿入",
+  "citationInsertReferenceDesc": "カーソル位置に（著者, 年）を挿入。即時、AIなし。",
+  "citationInsertWithContext": "文脈付きで挿入",
+  "citationInsertWithContextDesc": "論文の要旨を使用して補足文を生成します。",
+  "citationContextLoading": "文脈を生成中...",
+  "citationContextPreviewTitle": "生成されたテキスト",
+  "citationContextUpgradeBody": "無料ユーザーは1日あたりのAI単語数に制限があります。無制限にするにはアップグレードしてください。",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",
     "discoverFailed": "Failed to discover citations. Please try again.",
     "exportFailed": "Export failed. Please try again.",
     "mathExplanation": "Unable to generate explanation at this time.",
-    "wordLimitReached": "Word limit reached."
+    "wordLimitReached": "Word limit reached.",
+    "contextGenerationFailed": "文脈の生成に失敗しました。もう一度お試しください。"
   }
 }

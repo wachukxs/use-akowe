@@ -576,6 +576,16 @@ export default function ProjectEditorPage({
   const [rewriteHighlightRects, setRewriteHighlightRects] = useState<Array<{top: number; left: number; width: number; height: number}>>([]);
   const [rewriteHighlightType, setRewriteHighlightType] = useState<'loading' | 'success' | null>(null);
 
+  // Citation choice popover state
+  const [citationChoiceVisible, setCitationChoiceVisible] = useState(false);
+  const [citationChoicePending, setCitationChoicePending] = useState<any>(null);
+  const [citationContextStatus, setCitationContextStatus] = useState<'idle' | 'loading' | 'preview' | 'error'>('idle');
+  const [citationContextResult, setCitationContextResult] = useState('');
+  const [citationContextError, setCitationContextError] = useState('');
+  const [citationContextLimitReached, setCitationContextLimitReached] = useState(false);
+  const [citationContextRemaining, setCitationContextRemaining] = useState<number | null>(null);
+  const [citationContextLimit, setCitationContextLimit] = useState<number | null>(null);
+
   const handleSectionChange = useCallback(
     async (sectionId: string, content: string) => {
       if (!project) return;
@@ -707,6 +717,13 @@ export default function ProjectEditorPage({
   const closeCitationDiscoveryModal = useCallback(() => {
     setShowCitationDiscovery(false);
     storedInsertRangeRef.current = null;
+    // Also close citation choice popover if open
+    setCitationChoiceVisible(false);
+    setCitationChoicePending(null);
+    setCitationContextStatus('idle');
+    setCitationContextResult('');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
   }, []);
 
   useEffect(() => {
@@ -1881,31 +1898,59 @@ export default function ProjectEditorPage({
     }
   };
 
-  const addCitationToEditor = async (citation: any) => {
+  const addCitationToEditor = (citation: any) => {
     if (!project || !activeSection) return;
+    const section = project.sections.find((s) => s.id === activeSection);
+    if (!section) return;
+
+    // Stage citation and show choice popover
+    setCitationChoicePending(citation);
+    setCitationContextStatus('idle');
+    setCitationContextResult('');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
+    setCitationContextRemaining(null);
+    setCitationContextLimit(null);
+    setCitationChoiceVisible(true);
+  };
+
+  const closeCitationChoice = () => {
+    setCitationChoiceVisible(false);
+    setCitationChoicePending(null);
+    setCitationContextStatus('idle');
+    setCitationContextResult('');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
+    setCitationContextRemaining(null);
+    setCitationContextLimit(null);
+  };
+
+  const handleInsertReference = async () => {
+    const citation = citationChoicePending;
+    if (!project || !activeSection || !citation) return;
 
     const section = project.sections.find((s) => s.id === activeSection);
     if (!section) return;
 
     setIsAddingCitation(true);
-
     const currentContent = cleanupSectionContent(section.content || "");
     const editor = editorContentEditableRef.current;
     const storedRange = storedInsertRangeRef.current;
 
-    // Insert-at-position path: only when stored range is in the current editor (avoids wrong section after switch)
+    const authorsText = Array.isArray(citation.authors)
+      ? citation.authors.join(", ")
+      : citation.authors || "Unknown Author";
+    const citationText = `(${authorsText}, ${formatYearForDisplay(
+      citation.year
+    )})`;
+
+    // Insert at stored cursor range if valid
     if (
       editor &&
       storedRange &&
       document.contains(storedRange.startContainer) &&
       editor.contains(storedRange.startContainer)
     ) {
-      const authorsText = Array.isArray(citation.authors)
-        ? citation.authors.join(", ")
-        : citation.authors || "Unknown Author";
-      const citationText = `(${authorsText}, ${formatYearForDisplay(
-        citation.year
-      )})`;
       insertCitationAtRange(editor, storedRange, citationText, true);
       const newContent = editor.innerHTML;
       const normalized = normalizeCitationForProject(citation);
@@ -1920,6 +1965,7 @@ export default function ProjectEditorPage({
       );
       setLocalSectionContent(newContent);
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
       await refreshCitationsAfterAdd(
@@ -1930,157 +1976,10 @@ export default function ProjectEditorPage({
       );
       scheduleCitationHighlightRemoval(editor);
       scheduleScrollEditorIntoView(editorSectionRef);
-      setShowSuccessMessage("✅ Citation added to section!");
+      setShowSuccessMessage("Citation added to section!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
-      setIsAddingCitation(false);
-      return;
-    }
-
-    // Use intelligent integration for all content lengths
-    try {
-      const response = await fetch("/api/citations/integrate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sectionContent: currentContent,
-          citation: citation,
-          citationStyle: project.citationStyle || "APA",
-          sectionTitle: section.title,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        // Track first output generated if server indicates it
-        if (data.tracking?.trackEvent) {
-          const { eventName, params } = data.tracking.trackEvent;
-          if (eventName === "first_output_generated") {
-            trackFunnel.firstOutputGenerated(
-              params.user_id,
-              params.output_type
-            );
-          }
-        }
-
-        const integratedContent = data.integratedContent;
-        const normalized = normalizeCitationForProject(citation);
-        const citationsToSave = getCitationsWithAdded(
-          project.citations ?? [],
-          normalized
-        );
-
-        // Update both the project state and local section content for real-time editor update
-        handleSectionChange(activeSection, integratedContent);
-        setProject((prev) =>
-          prev ? { ...prev, citations: citationsToSave } : null
-        );
-        setLocalSectionContent(integratedContent);
-        setRealTimeWordCount(
-          countWords(cleanupSectionContent(integratedContent))
-        );
-
-        // Update editor content directly with cursor preservation
-        updateEditorContent(integratedContent);
-
-        const citationTextForHighlight = `(${
-          Array.isArray(citation.authors)
-            ? citation.authors.join(", ")
-            : citation.authors ?? "Unknown Author"
-        }, ${formatYearForDisplay(citation.year)})`;
-        if (editor) {
-          wrapCitationInHighlight(editor, citationTextForHighlight);
-          scheduleCitationHighlightRemoval(editor);
-        }
-        setShowCitationDiscovery(false);
-        storedInsertRangeRef.current = null;
-        await refreshCitationsAfterAdd(
-          project,
-          activeSection,
-          integratedContent,
-          citationsToSave
-        );
-        scheduleScrollEditorIntoView(editorSectionRef);
-
-        // Provide context-aware success message based on integration type
-        let successMessage = "✅ Citation added to section!";
-        if (data.integrationType === "TEMPLATE_REPLACEMENT") {
-          successMessage = "✅ Citation integrated with new content!";
-        } else if (data.integrationType === "CONTENT_EXPANSION") {
-          successMessage = "✅ Citation added with enhanced content!";
-        } else if (data.integrationType === "NATURAL_INTEGRATION") {
-          successMessage = "✅ Citation intelligently placed in section!";
-        } else if (data.integrationType === "CONTENT_CONDENSATION") {
-          successMessage = "✅ Citation integrated with improved content!";
-        }
-
-        setShowSuccessMessage(successMessage);
-        setTimeout(() => setShowSuccessMessage(""), 6000);
-      } else if (response.status === 429) {
-        // AI word limit – do not add citation; show clear error for 6 seconds
-        let errorMessage = t("errors.wordLimitReached");
-        try {
-          const data = await response.json();
-          if (typeof data?.error === "string" && data.error.trim()) {
-            errorMessage = data.error.trim();
-          }
-        } catch {
-          // ignore JSON parse failure
-        }
-        setShowSuccessMessage(
-          `Citation not added. ${errorMessage} Upgrade to add more citations.`
-        );
-        setTimeout(() => setShowSuccessMessage(""), 6000);
-        storedInsertRangeRef.current = null;
-      } else {
-        // Fallback to simple append if integration fails (with highlight span)
-        const authorsText = Array.isArray(citation.authors)
-          ? citation.authors.join(", ")
-          : citation.authors || "Unknown Author";
-        const citationText = `(${authorsText}, ${formatYearForDisplay(
-          citation.year
-        )})`;
-        const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
-          citationText
-        )}</span>`;
-        const newContent =
-          currentContent + (currentContent ? " " : "") + highlightedCitation;
-        const normalized = normalizeCitationForProject(citation);
-        const citationsToSave = getCitationsWithAdded(
-          project.citations ?? [],
-          normalized
-        );
-
-        handleSectionChange(activeSection, newContent);
-        setProject((prev) =>
-          prev ? { ...prev, citations: citationsToSave } : null
-        );
-        setLocalSectionContent(newContent);
-        setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
-        updateEditorContent(newContent);
-
-        if (editor) scheduleCitationHighlightRemoval(editor);
-        setShowCitationDiscovery(false);
-        storedInsertRangeRef.current = null;
-        await refreshCitationsAfterAdd(
-          project,
-          activeSection,
-          newContent,
-          citationsToSave
-        );
-        scheduleScrollEditorIntoView(editorSectionRef);
-        setShowSuccessMessage("Citation added to editor!");
-        setTimeout(() => setShowSuccessMessage(""), 6000);
-      }
-    } catch (error) {
-      console.error("Error integrating citation:", error);
-      // Fallback to simple append (with highlight span)
-      const authorsText = Array.isArray(citation.authors)
-        ? citation.authors.join(", ")
-        : citation.authors || "Unknown Author";
-      const citationText = `(${authorsText}, ${formatYearForDisplay(
-        citation.year
-      )})`;
+    } else {
+      // Fallback: append at end of section
       const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
         citationText
       )}</span>`;
@@ -2101,6 +2000,7 @@ export default function ProjectEditorPage({
       updateEditorContent(newContent);
 
       if (editor) scheduleCitationHighlightRemoval(editor);
+      closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
       await refreshCitationsAfterAdd(
@@ -2110,12 +2010,147 @@ export default function ProjectEditorPage({
         citationsToSave
       );
       scheduleScrollEditorIntoView(editorSectionRef);
-      setShowSuccessMessage("Citation added to editor!");
+      setShowSuccessMessage("Citation added to section!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
-    } finally {
-      // Always reset loading state
-      setIsAddingCitation(false);
     }
+    setIsAddingCitation(false);
+  };
+
+  const handleInsertWithContext = async () => {
+    const citation = citationChoicePending;
+    if (!project || !activeSection || !citation) return;
+
+    const section = project.sections.find((s) => s.id === activeSection);
+    if (!section) return;
+
+    setCitationContextStatus('loading');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
+
+    try {
+      const response = await fetch("/api/citations/generate-context", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          citation,
+          citationStyle: project.citationStyle || "APA",
+          sectionTitle: section.title,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCitationContextResult(data.generatedText);
+        setCitationContextRemaining(data.remaining);
+        setCitationContextLimit(data.limit);
+        setCitationContextStatus('preview');
+      } else if (response.status === 429) {
+        let remaining = 0;
+        let limit = 0;
+        try {
+          const data = await response.json();
+          remaining = data.remaining ?? 0;
+          limit = data.limit ?? 0;
+        } catch {
+          // ignore
+        }
+        setCitationContextRemaining(remaining);
+        setCitationContextLimit(limit);
+        setCitationContextLimitReached(true);
+        setCitationContextStatus('error');
+      } else {
+        setCitationContextError(t("errors.contextGenerationFailed"));
+        setCitationContextStatus('error');
+      }
+    } catch {
+      setCitationContextError(t("errors.contextGenerationFailed"));
+      setCitationContextStatus('error');
+    }
+  };
+
+  const acceptCitationContext = async () => {
+    const citation = citationChoicePending;
+    if (!project || !activeSection || !citation || !citationContextResult) return;
+
+    const section = project.sections.find((s) => s.id === activeSection);
+    if (!section) return;
+
+    setIsAddingCitation(true);
+    const currentContent = cleanupSectionContent(section.content || "");
+    const editor = editorContentEditableRef.current;
+    const storedRange = storedInsertRangeRef.current;
+    const textToInsert = citationContextResult;
+
+    // Insert at stored cursor range if valid
+    if (
+      editor &&
+      storedRange &&
+      document.contains(storedRange.startContainer) &&
+      editor.contains(storedRange.startContainer)
+    ) {
+      insertCitationAtRange(editor, storedRange, textToInsert, true);
+      const newContent = editor.innerHTML;
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(
+        project.citations ?? [],
+        normalized
+      );
+
+      handleSectionChange(activeSection, newContent);
+      setProject((prev) =>
+        prev ? { ...prev, citations: citationsToSave } : null
+      );
+      setLocalSectionContent(newContent);
+      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      closeCitationChoice();
+      setShowCitationDiscovery(false);
+      storedInsertRangeRef.current = null;
+      await refreshCitationsAfterAdd(
+        project,
+        activeSection,
+        newContent,
+        citationsToSave
+      );
+      scheduleCitationHighlightRemoval(editor);
+      scheduleScrollEditorIntoView(editorSectionRef);
+      setShowSuccessMessage("Citation added with context!");
+      setTimeout(() => setShowSuccessMessage(""), 6000);
+    } else {
+      // Fallback: append at end of section
+      const highlightedText = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
+        textToInsert
+      )}</span>`;
+      const newContent =
+        currentContent + (currentContent ? " " : "") + highlightedText;
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(
+        project.citations ?? [],
+        normalized
+      );
+
+      handleSectionChange(activeSection, newContent);
+      setProject((prev) =>
+        prev ? { ...prev, citations: citationsToSave } : null
+      );
+      setLocalSectionContent(newContent);
+      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      updateEditorContent(newContent);
+
+      if (editor) scheduleCitationHighlightRemoval(editor);
+      closeCitationChoice();
+      setShowCitationDiscovery(false);
+      storedInsertRangeRef.current = null;
+      await refreshCitationsAfterAdd(
+        project,
+        activeSection,
+        newContent,
+        citationsToSave
+      );
+      scheduleScrollEditorIntoView(editorSectionRef);
+      setShowSuccessMessage("Citation added with context!");
+      setTimeout(() => setShowSuccessMessage(""), 6000);
+    }
+    setIsAddingCitation(false);
   };
 
   // Citation filtering and sorting functions
@@ -4898,6 +4933,159 @@ title={t("deleteSection")}
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Citation Choice Popover */}
+        {citationChoiceVisible && citationChoicePending && (
+          <div
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeCitationChoice();
+            }}
+          >
+            <div className="w-full max-w-[360px] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-4">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Plus className="h-4 w-4 text-[hsl(var(--primary))]" />
+                  {t("citationChoiceTitle")}
+                </div>
+                <button
+                  type="button"
+                  onClick={closeCitationChoice}
+                  className="p-1 rounded-(--radius) hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Idle: Two choice buttons */}
+              {citationContextStatus === 'idle' && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={handleInsertReference}
+                    className="p-3 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Plus className="h-4 w-4" />
+                      {t("citationInsertReference")}
+                    </div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
+                      {t("citationInsertReferenceDesc")}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleInsertWithContext}
+                    className="p-3 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Sparkles className="h-4 w-4" />
+                      {t("citationInsertWithContext")}
+                    </div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
+                      {t("citationInsertWithContextDesc")}
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {/* Loading */}
+              {citationContextStatus === 'loading' && (
+                <div className="flex items-center justify-center gap-2 py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--primary))]" />
+                  <span className="text-sm text-[hsl(var(--muted-foreground))]">{t("citationContextLoading")}</span>
+                </div>
+              )}
+
+              {/* Preview */}
+              {citationContextStatus === 'preview' && (
+                <div>
+                  <p className="text-xs font-semibold text-[hsl(var(--muted-foreground))] mb-1.5">{t("citationContextPreviewTitle")}</p>
+                  <div className="max-h-[200px] overflow-y-auto rounded-(--radius) border-2 border-[hsl(var(--border-strong))] p-2 text-sm mb-3">
+                    {citationContextResult}
+                  </div>
+                  {citationContextRemaining !== null && citationContextLimit !== null && (
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
+                      {citationContextRemaining}/{citationContextLimit} {t("rewriteRemaining")}
+                    </p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={acceptCitationContext}
+                      className="flex-1 px-3 py-2 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      {t("rewriteAccept")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleInsertWithContext}
+                      className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                    >
+                      {t("rewriteTryAgain")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeCitationChoice}
+                      className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                    >
+                      {t("dismiss")}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Error / Upsell */}
+              {citationContextStatus === 'error' && (
+                <div>
+                  {citationContextLimitReached ? (
+                    <div className="text-center">
+                      <div className="w-10 h-10 rounded-full bg-[hsl(var(--accent))] flex items-center justify-center mx-auto mb-3">
+                        <Sparkles className="h-5 w-5 text-[hsl(var(--primary))]" />
+                      </div>
+                      <p className="text-sm font-semibold mb-1">{t("rewriteUpgradeTitle")}</p>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))] mb-4">{t("citationContextUpgradeBody")}</p>
+                      <NavLink
+                        href="/settings"
+                        className="block w-full px-3 py-2.5 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity text-center mb-3"
+                      >
+                        {t("rewriteUpgradeCta")}
+                      </NavLink>
+                      <button
+                        type="button"
+                        onClick={handleInsertReference}
+                        className="w-full px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                      >
+                        {t("citationInsertReference")}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-red-600 mb-3">{citationContextError || t("errors.contextGenerationFailed")}</p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleInsertWithContext}
+                          className="flex-1 px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                        >
+                          {t("rewriteTryAgain")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleInsertReference}
+                          className="flex-1 px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                        >
+                          {t("citationInsertReference")}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
