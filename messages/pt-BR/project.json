@@ -151,6 +151,10 @@
   "rewriteLimitReached": "Limite diário de palavras de IA atingido",
   "rewriteError": "Algo deu errado. Por favor, tente novamente.",
   "rewriteTooltipNew": "NOVO: Reescreva o texto selecionado com IA",
+  "rewriteRemaining": "restantes",
+  "rewriteUpgradeTitle": "Faça upgrade para reescritas ilimitadas",
+  "rewriteUpgradeBody": "Usuários gratuitos têm 2 reescritas por dia. Faça upgrade para Pro para reescritas ilimitadas com um modelo de IA melhor.",
+  "rewriteUpgradeCta": "Fazer upgrade para Pro",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",

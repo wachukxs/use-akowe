@@ -151,6 +151,10 @@
   "rewriteLimitReached": "Daily AI word limit reached",
   "rewriteError": "Something went wrong. Please try again.",
   "rewriteTooltipNew": "NEW: Rewrite selected text with AI",
+  "rewriteRemaining": "remaining",
+  "rewriteUpgradeTitle": "Upgrade to unlock unlimited rewrites",
+  "rewriteUpgradeBody": "Free users get 2 rewrites per day. Upgrade to Pro for unlimited rewrites with a better AI model.",
+  "rewriteUpgradeCta": "Upgrade to Pro",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",

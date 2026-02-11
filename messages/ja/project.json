@@ -151,6 +151,10 @@
   "rewriteLimitReached": "1日のAI文字数上限に達しました",
   "rewriteError": "エラーが発生しました。もう一度お試しください。",
   "rewriteTooltipNew": "NEW: 選択したテキストをAIで書き換え",
+  "rewriteRemaining": "残り",
+  "rewriteUpgradeTitle": "アップグレードして無制限の書き換えを利用",
+  "rewriteUpgradeBody": "無料ユーザーは1日2回の書き換えが可能です。Proにアップグレードすると、より優れたAIモデルで無制限に書き換えができます。",
+  "rewriteUpgradeCta": "Proにアップグレード",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",

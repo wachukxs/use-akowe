@@ -151,6 +151,10 @@
   "rewriteLimitReached": "ถึงขีดจำกัดคำ AI รายวันแล้ว",
   "rewriteError": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
   "rewriteTooltipNew": "ใหม่: เขียนข้อความที่เลือกใหม่ด้วย AI",
+  "rewriteRemaining": "คงเหลือ",
+  "rewriteUpgradeTitle": "อัปเกรดเพื่อเขียนใหม่ไม่จำกัด",
+  "rewriteUpgradeBody": "ผู้ใช้ฟรีได้รับ 2 ครั้งต่อวัน อัปเกรดเป็น Pro เพื่อเขียนใหม่ไม่จำกัดด้วยโมเดล AI ที่ดีกว่า",
+  "rewriteUpgradeCta": "อัปเกรดเป็น Pro",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",

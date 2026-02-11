@@ -75,6 +75,31 @@ export async function checkAIWordLimit(userId: string, wordsToGenerate: number):
   };
 }
 
+export async function checkParaphraseLimit(userId: string): Promise<{ allowed: boolean; remaining: number; limit: number }> {
+  await connectDB();
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const limits = PLAN_LIMITS[user.plan as PlanType];
+
+  if (limits.paraphrasePerDay === Infinity) {
+    return { allowed: true, remaining: Infinity, limit: Infinity };
+  }
+
+  const usage = await getUserUsageTodayByUserId(userId);
+  const used = usage.paraphraseUses || 0;
+  const remaining = limits.paraphrasePerDay - used;
+
+  return {
+    allowed: remaining > 0,
+    remaining: Math.max(0, remaining),
+    limit: limits.paraphrasePerDay,
+  };
+}
+
 export async function incrementParaphraseUses(userId: string, words: number) {
   await connectDB();
 

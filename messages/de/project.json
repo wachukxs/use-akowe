@@ -151,6 +151,10 @@
   "rewriteLimitReached": "Tägliches KI-Wortlimit erreicht",
   "rewriteError": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
   "rewriteTooltipNew": "NEU: Ausgewählten Text mit KI umschreiben",
+  "rewriteRemaining": "verbleibend",
+  "rewriteUpgradeTitle": "Upgraden Sie für unbegrenzte Umschreibungen",
+  "rewriteUpgradeBody": "Kostenlose Nutzer erhalten 2 Umschreibungen pro Tag. Upgraden Sie auf Pro für unbegrenzte Umschreibungen mit einem besseren KI-Modell.",
+  "rewriteUpgradeCta": "Auf Pro upgraden",
   "errors": {
     "aiAssistant": "AI Assistant error. Please try again.",
     "citationSearchFailed": "Citation search failed. Please try again.",

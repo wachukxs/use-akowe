@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import OpenAI from 'openai';
-import { checkAIWordLimit, incrementParaphraseUses } from '@/lib/usage';
+import { checkAIWordLimit, checkParaphraseLimit, incrementParaphraseUses } from '@/lib/usage';
 import { countWords } from '@/lib/utils';
 import User from '@/models/User';
 import connectDB from '@/lib/mongodb';
@@ -63,6 +63,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Check rewrite-specific limit (2/day free, unlimited pro/team)
+    const paraphraseCheck = await checkParaphraseLimit(session.user.id);
+
+    if (!paraphraseCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Daily rewrite limit reached',
+          limitType: 'paraphrase',
+          remaining: paraphraseCheck.remaining,
+          limit: paraphraseCheck.limit,
+        },
+        { status: 429 }
+      );
+    }
+
+    // Also check shared AI word limit
     const usageCheck = await checkAIWordLimit(session.user.id, 500);
 
     if (!usageCheck.allowed) {
@@ -101,10 +117,17 @@ export async function POST(request: NextRequest) {
 
     await incrementParaphraseUses(session.user.id, wordCount);
 
+    // Return remaining rewrites (after increment)
+    const remainingRewrites = paraphraseCheck.limit === Infinity
+      ? Infinity
+      : Math.max(0, paraphraseCheck.remaining - 1);
+
     return NextResponse.json({
       rewrittenText,
       wordCount,
       originalWordCount,
+      remainingRewrites,
+      rewriteLimit: paraphraseCheck.limit,
     });
   } catch (error) {
     console.error('Error in rewrite API:', error);

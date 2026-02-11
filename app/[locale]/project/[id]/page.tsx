@@ -570,6 +570,9 @@ export default function ProjectEditorPage({
   const [rewriteOriginalWordCount, setRewriteOriginalWordCount] = useState(0);
   const [rewriteNewWordCount, setRewriteNewWordCount] = useState(0);
   const rewritePanelRef = useRef<HTMLDivElement | null>(null);
+  const [rewriteLimitReached, setRewriteLimitReached] = useState(false);
+  const [rewriteRemaining, setRewriteRemaining] = useState<number | null>(null);
+  const [rewriteLimit, setRewriteLimit] = useState<number | null>(null);
   const [rewriteHighlightRects, setRewriteHighlightRects] = useState<Array<{top: number; left: number; width: number; height: number}>>([]);
   const [rewriteHighlightType, setRewriteHighlightType] = useState<'loading' | 'success' | null>(null);
 
@@ -1075,8 +1078,13 @@ export default function ProjectEditorPage({
 
       if (res.status === 429) {
         const data = await res.json();
-        setRewriteError(data.error || t("rewriteLimitReached"));
-        setRewriteStatus('error');
+        if (data.limitType === 'paraphrase') {
+          setRewriteLimitReached(true);
+          setRewriteStatus('error');
+        } else {
+          setRewriteError(data.error || t("rewriteLimitReached"));
+          setRewriteStatus('error');
+        }
         return;
       }
 
@@ -1090,6 +1098,10 @@ export default function ProjectEditorPage({
       setRewriteResult(data.rewrittenText);
       setRewriteNewWordCount(data.wordCount);
       setRewriteOriginalWordCount(data.originalWordCount);
+      if (data.remainingRewrites !== undefined && data.remainingRewrites !== Infinity) {
+        setRewriteRemaining(data.remainingRewrites);
+        setRewriteLimit(data.rewriteLimit);
+      }
       setRewriteStatus('preview');
     } catch {
       setRewriteHighlightRects([]);
@@ -1155,6 +1167,7 @@ export default function ProjectEditorPage({
     setRewriteError('');
     setRewriteMode('');
     setRewriteStatus('mode_select');
+    setRewriteLimitReached(false);
   };
 
   // Function to check current formatting state using document.queryCommandState
@@ -4804,9 +4817,16 @@ title={t("deleteSection")}
                 <div className="max-h-[200px] overflow-y-auto rounded-(--radius) border-2 border-[hsl(var(--border-strong))] p-2 text-sm mb-3">
                   {rewriteResult}
                 </div>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
-                  {rewriteOriginalWordCount} &rarr; {rewriteNewWordCount} {t("words")}
-                </p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    {rewriteOriginalWordCount} &rarr; {rewriteNewWordCount} {t("words")}
+                  </p>
+                  {rewriteRemaining !== null && rewriteLimit !== null && (
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {rewriteRemaining}/{rewriteLimit} {t("rewriteRemaining")}
+                    </p>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -4826,17 +4846,35 @@ title={t("deleteSection")}
               </div>
             )}
 
-            {/* Error */}
+            {/* Error / Upsell */}
             {rewriteStatus === 'error' && (
               <div>
-                <p className="text-sm text-red-600 mb-3">{rewriteError || t("rewriteError")}</p>
-                <button
-                  type="button"
-                  onClick={() => setRewriteStatus('mode_select')}
-                  className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors w-full"
-                >
-                  {t("rewriteTryAgain")}
-                </button>
+                {rewriteLimitReached ? (
+                  <div className="text-center">
+                    <div className="w-10 h-10 rounded-full bg-[hsl(var(--accent))] flex items-center justify-center mx-auto mb-3">
+                      <Sparkles className="h-5 w-5 text-[hsl(var(--primary))]" />
+                    </div>
+                    <p className="text-sm font-semibold mb-1">{t("rewriteUpgradeTitle")}</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-4">{t("rewriteUpgradeBody")}</p>
+                    <NavLink
+                      href="/settings"
+                      className="block w-full px-3 py-2.5 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity text-center"
+                    >
+                      {t("rewriteUpgradeCta")}
+                    </NavLink>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-red-600 mb-3">{rewriteError || t("rewriteError")}</p>
+                    <button
+                      type="button"
+                      onClick={() => setRewriteStatus('mode_select')}
+                      className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors w-full"
+                    >
+                      {t("rewriteTryAgain")}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
