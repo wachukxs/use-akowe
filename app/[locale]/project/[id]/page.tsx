@@ -772,6 +772,17 @@ export default function ProjectEditorPage({
     };
   }, [rewritePanelVisible]);
 
+  // Clear overlay highlights on scroll (fixed-position rects drift when editor scrolls)
+  useEffect(() => {
+    if (rewriteHighlightRects.length === 0) return;
+    const handleScroll = () => {
+      setRewriteHighlightRects([]);
+      setRewriteHighlightType(null);
+    };
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, [rewriteHighlightRects]);
+
   // AI Assistant functions
   const handleAIWrite = async (sectionId: string) => {
     if (!project || !aiInput.trim()) return;
@@ -1018,21 +1029,31 @@ export default function ProjectEditorPage({
     if (!selText) return;
 
     const wordCount = selText.split(/\s+/).filter((w) => w.length > 0).length;
-    if (wordCount < 3) {
-      setRewriteError(t("rewriteSelectMore"));
-      return;
-    }
-    if (selText.length > 4000) {
-      setRewriteError(t("rewriteTooLong"));
+
+    const range = selection.getRangeAt(0).cloneRange();
+    const rect = range.getBoundingClientRect();
+
+    // Validation: too short or too long — open panel showing the error
+    if (wordCount < 3 || selText.length > 4000) {
+      setRewritePanelPosition(
+        viewportSafeRewritePanelPosition(rect.left, rect.bottom)
+      );
+      setRewriteError(wordCount < 3 ? t("rewriteSelectMore") : t("rewriteTooLong"));
+      setRewriteStatus('error');
+      setRewriteResult('');
+      setRewriteMode('');
+      setRewriteLimitReached(false);
+      setRewritePanelVisible(true);
+      setSelectionBarVisible(false);
+      setRewriteTooltipVisible(false);
+      if (fromContextMenu) setContextMenuPillVisible(false);
       return;
     }
 
-    const range = selection.getRangeAt(0).cloneRange();
     rewriteOriginalRangeRef.current = range;
     setRewriteOriginalText(selText);
     setRewriteOriginalWordCount(wordCount);
 
-    const rect = range.getBoundingClientRect();
     setRewritePanelPosition(
       viewportSafeRewritePanelPosition(rect.left, rect.bottom)
     );
