@@ -97,6 +97,22 @@ export async function sendPasswordResetEmail(
   }
 }
 
+interface EmailSendResult {
+  messageId: string;
+}
+
+const EMAIL_FOOTER = `
+  <p style="margin-top:32px; padding-top:16px; border-top:1px solid #e5e7eb; font-size:12px; color:#6b7280;">
+    You're receiving this because you signed up for Akowe. Reply to this email if you'd like to stop receiving updates.
+  </p>
+`;
+
+const EMAIL_FOOTER_TEXT = '\n\n---\nYou\'re receiving this because you signed up for Akowe. Reply to this email if you\'d like to stop receiving updates.';
+
+function ctaButton(url: string, label: string): string {
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="padding: 12px 18px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">${label}</a>`;
+}
+
 export async function sendWelcomeEmail(to: string, name: string) {
   if (!transporter) {
     console.warn('Skipping welcome email send - transporter not configured');
@@ -175,4 +191,200 @@ export async function sendWelcomeEmail(to: string, name: string) {
     console.error('[email] Welcome email failed', { to, error: err });
     throw err;
   }
+}
+
+// ============================================
+// Engagement email functions (daily cron)
+// ============================================
+
+export async function sendGhostSignupEmail(to: string, name: string): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const dashboardUrl = `${baseUrl}/dashboard`;
+  const greeting = name || 'there';
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: 'What are you working on?',
+    text: [
+      `Hi ${greeting},`,
+      '',
+      'It\'s Olamide from Akowe. You signed up a couple of days ago but haven\'t started a project yet. That\'s totally fine — maybe you haven\'t had the right assignment yet.',
+      '',
+      'When you do, Akowe is ready. Creating a project takes about 30 seconds, and you\'ll have an organized workspace for your essay, thesis, or research paper.',
+      '',
+      `Create your first project: ${dashboardUrl}`,
+      '',
+      'What assignment are you most stressed about right now? Start it inside Akowe today.',
+      EMAIL_FOOTER_TEXT,
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>It's Olamide from Akowe. You signed up a couple of days ago but haven't started a project yet. That's totally fine — maybe you haven't had the right assignment yet.</p>
+      <p>When you do, Akowe is ready. Creating a project takes about 30 seconds, and you'll have an organized workspace for your essay, thesis, or research paper.</p>
+      <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Create your first project')}</p>
+      <p>What assignment are you most stressed about right now? Start it inside Akowe today.</p>
+      ${EMAIL_FOOTER}
+    `,
+  });
+
+  console.info('[email] Ghost signup email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
+export async function sendStuckStarterEmail(to: string, name: string): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const dashboardUrl = `${baseUrl}/dashboard`;
+  const greeting = name || 'there';
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: 'Your project is waiting for you',
+    text: [
+      `Hi ${greeting},`,
+      '',
+      'You started a project on Akowe — nice first step. But it looks like you haven\'t written much yet.',
+      '',
+      'The hardest part of academic writing is the blank page. Here\'s a trick: use the AI writing tools to generate a first draft of any section. You can always edit it, but having something on the page makes everything easier.',
+      '',
+      `Continue writing: ${dashboardUrl}`,
+      EMAIL_FOOTER_TEXT,
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>You started a project on Akowe — nice first step. But it looks like you haven't written much yet.</p>
+      <p>The hardest part of academic writing is the blank page. Here's a trick: use the <strong>AI writing tools</strong> to generate a first draft of any section. You can always edit it, but having something on the page makes everything easier.</p>
+      <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Continue writing')}</p>
+      ${EMAIL_FOOTER}
+    `,
+  });
+
+  console.info('[email] Stuck starter email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
+export async function sendAlmostActivatedEmail(to: string, name: string): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const dashboardUrl = `${baseUrl}/dashboard`;
+  const greeting = name || 'there';
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: "You're almost there — keep going",
+    text: [
+      `Hi ${greeting},`,
+      '',
+      'You\'ve been using Akowe\'s AI tools, which means you\'ve found the right workflow. You\'re close to having a solid draft.',
+      '',
+      'Keep going — most users who reach this point end up finishing their project. The next step: fill in any empty sections, or use the AI rewrite tool to improve what you\'ve already written.',
+      '',
+      `Keep writing: ${dashboardUrl}`,
+      EMAIL_FOOTER_TEXT,
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>You've been using Akowe's AI tools, which means you've found the right workflow. You're close to having a solid draft.</p>
+      <p>Keep going — most users who reach this point end up finishing their project. The next step: fill in any empty sections, or use the <strong>AI rewrite tool</strong> to improve what you've already written.</p>
+      <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Keep writing')}</p>
+      ${EMAIL_FOOTER}
+    `,
+  });
+
+  console.info('[email] Almost activated email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
+export async function sendGoingIdleEmail(to: string, name: string): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const dashboardUrl = `${baseUrl}/dashboard`;
+  const greeting = name || 'there';
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: 'Your research is still here',
+    text: [
+      `Hi ${greeting},`,
+      '',
+      'It\'s been a little while since you opened Akowe. Your projects and all your work are exactly where you left them.',
+      '',
+      'If you have a new assignment or want to revisit an old one, everything is ready.',
+      '',
+      `Open your projects: ${dashboardUrl}`,
+      EMAIL_FOOTER_TEXT,
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>It's been a little while since you opened Akowe. Your projects and all your work are exactly where you left them.</p>
+      <p>If you have a new assignment or want to revisit an old one, everything is ready.</p>
+      <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Open your projects')}</p>
+      ${EMAIL_FOOTER}
+    `,
+  });
+
+  console.info('[email] Going idle email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
+export async function sendWinBackEmail(to: string, name: string): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const dashboardUrl = `${baseUrl}/dashboard`;
+  const greeting = name || 'there';
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: "We've added new features since you left",
+    text: [
+      `Hi ${greeting},`,
+      '',
+      'It\'s been a while! We\'ve been busy building. Here\'s what\'s new:',
+      '',
+      '- AI Rewrite Tool: Highlight any text and improve it instantly.',
+      '- Citation Discovery: Find relevant papers and add them in one click.',
+      '- Plagiarism Checker: Scan your work before submitting.',
+      '',
+      'Your account and projects are still here, ready when you are.',
+      '',
+      `See what's new: ${dashboardUrl}`,
+      EMAIL_FOOTER_TEXT,
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>It's been a while! We've been busy building. Here's what's new:</p>
+      <ul>
+        <li><strong>AI Rewrite Tool</strong> — Highlight any text and improve it instantly.</li>
+        <li><strong>Citation Discovery</strong> — Find relevant papers and add them in one click.</li>
+        <li><strong>Plagiarism Checker</strong> — Scan your work before submitting.</li>
+      </ul>
+      <p>Your account and projects are still here, ready when you are.</p>
+      <p style="margin:16px 0;">${ctaButton(dashboardUrl, "See what's new")}</p>
+      ${EMAIL_FOOTER}
+    `,
+  });
+
+  console.info('[email] Win-back email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
 }
