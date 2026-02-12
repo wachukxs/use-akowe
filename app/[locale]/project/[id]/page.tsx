@@ -2931,14 +2931,14 @@ export default function ProjectEditorPage({
             {/* Low-progress nudge */}
             {showLowProgressNudge && project && (
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-3 md:p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[10px] md:text-xs uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] flex-1">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] flex-1">
                     {t("lowProgressNudge")}
                   </p>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setIsAIDrawerOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[10px] font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 whitespace-nowrap touch-manipulation"
                     >
                       {t("askAIForHelp")}
                     </button>
@@ -2950,10 +2950,10 @@ export default function ProjectEditorPage({
                           "true"
                         );
                       }}
-                      className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
+                      className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors touch-manipulation"
                       aria-label={t("dismiss")}
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 </div>

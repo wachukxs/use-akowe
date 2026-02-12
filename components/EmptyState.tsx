@@ -20,34 +20,34 @@ interface EmptyStateProps {
   };
 }
 
-export function EmptyState({ 
-  icon, 
-  title, 
-  description, 
-  action, 
-  secondaryAction 
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+  secondaryAction
 }: EmptyStateProps) {
   return (
-    <div className="text-center py-12">
-      <div className="mx-auto w-24 h-24 text-gray-400 mb-4">
+    <div className="text-center py-8 sm:py-12 px-4">
+      <div className="mx-auto w-16 h-16 sm:w-24 sm:h-24 text-[hsl(var(--muted-foreground))] mb-4">
         {icon}
       </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-6 max-w-md mx-auto">{description}</p>
-      
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <h3 className="text-base sm:text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{title}</h3>
+      <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-md mx-auto">{description}</p>
+
+      <div className="flex flex-col sm:flex-row gap-3 justify-center px-4 sm:px-0">
         {action && (
           <Link href={action.href}>
-            <Button className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto min-h-[44px] touch-manipulation">
               {action.label}
             </Button>
           </Link>
         )}
         {secondaryAction && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={secondaryAction.onClick}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto min-h-[44px] touch-manipulation"
           >
             {secondaryAction.label}
           </Button>
@@ -60,9 +60,9 @@ export function EmptyState({
 export function LoadingState({ message }: { message?: string }) {
   const t = useTranslations('components.emptyState');
   return (
-    <div className="text-center py-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-      <p className="text-gray-600">{message ?? t('loading')}</p>
+    <div className="text-center py-8 sm:py-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[hsl(var(--primary))] mx-auto mb-4"></div>
+      <p className="text-sm text-[hsl(var(--muted-foreground))]">{message ?? t('loading')}</p>
     </div>
   );
 }
@@ -76,14 +76,14 @@ export function ErrorState({
 }) {
   const t = useTranslations('components.emptyState');
   return (
-    <div className="text-center py-12">
-      <div className="mx-auto size-24 text-red-500 mb-4 flex items-center justify-center">
+    <div className="text-center py-8 sm:py-12 px-4">
+      <div className="mx-auto size-16 sm:size-24 text-[hsl(var(--destructive))] mb-4 flex items-center justify-center">
         <AlertTriangle className="size-full" />
       </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">{t('errorTitle')}</h3>
-      <p className="text-gray-600 mb-6 max-w-md mx-auto">{message}</p>
+      <h3 className="text-base sm:text-lg font-semibold text-[hsl(var(--foreground))] mb-2">{t('errorTitle')}</h3>
+      <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6 max-w-md mx-auto">{message}</p>
       {onRetry && (
-        <Button onClick={onRetry}>
+        <Button onClick={onRetry} className="min-h-[44px] touch-manipulation">
           {t('tryAgain')}
         </Button>
       )}
