@@ -13,5 +13,18 @@
   "noProjectsYet": "No projects yet",
   "noProjectsFound": "No projects found",
   "emptyAdjustFilters": "Adjust your filters or keywords to continue exploring.",
-  "emptyGetStarted": "Begin by launching your first research project with Akọ̀wé."
+  "emptyGetStarted": "Begin by launching your first research project with Akọ̀wé.",
+  "whatAreYouWriting": "What are you writing?",
+  "selectToGetStarted": "Choose a project type to get started.",
+  "typeEssay": "Essay",
+  "typeEssayDesc": "Short academic papers and assignments",
+  "typeThesis": "Thesis",
+  "typeThesisDesc": "Graduate research and thesis projects",
+  "typeJournal": "Journal Article",
+  "typeJournalDesc": "Research papers for publication",
+  "typeResearch": "Research Paper",
+  "typeResearchDesc": "Comprehensive research documents",
+  "idleProjectNudge": "Your \"{name}\" is {percent}% complete — pick up where you left off",
+  "continueWriting": "Continue writing",
+  "dismiss": "Dismiss"
 }

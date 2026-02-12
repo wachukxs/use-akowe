@@ -2,12 +2,12 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from '@/i18n/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import ProjectCard from '@/components/ProjectCard';
 import { Project } from '@/types';
-import { Search, Grid, List, FileText } from 'lucide-react';
+import { Search, Grid, List, FileText, GraduationCap, BookOpen, FlaskConical, ArrowRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import LeadMagnetContinuation from '@/components/LeadMagnetContinuation';
 import Active37DiscountPopup from '@/components/Active37DiscountPopup';
@@ -22,6 +22,24 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showActive37Popup, setShowActive37Popup] = useState(false);
   const [active37Eligibility, setActive37Eligibility] = useState<{ eligible: boolean; activeDays?: number } | null>(null);
+  const [showIdleNudge, setShowIdleNudge] = useState(true);
+
+  // Find the most stale incomplete project for idle nudge
+  const idleProject = useMemo(() => {
+    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+    return projects
+      .filter(p => {
+        if (p.status === 'completed' || p.status === 'archived') return false;
+        if (!p.lastEditedAt || new Date(p.lastEditedAt) >= fiveDaysAgo) return false;
+        if (p.targetWordCount <= 0) return false;
+        if (p.wordCount >= p.targetWordCount * 0.8) return false;
+        // Check localStorage dismiss for today
+        const dismissKey = `akowe_idle_nudge_dismissed_${p._id}_${new Date().toDateString()}`;
+        if (typeof window !== 'undefined' && localStorage.getItem(dismissKey)) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.lastEditedAt).getTime() - new Date(b.lastEditedAt).getTime())[0] || null;
+  }, [projects]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -249,26 +267,83 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {filteredProjects.length === 0 ? (
-            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-12 md:py-16 px-4 md:px-6 flex flex-col items-center gap-4 md:gap-6">
-              <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
-                <FileText className="text-[hsl(var(--secondary))]" size={32} />
+          {/* Idle project nudge banner */}
+          {showIdleNudge && idleProject && (
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex-1">
+                <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--accent-foreground))]">
+                  {t('idleProjectNudge', {
+                    name: idleProject.name,
+                    percent: Math.round((idleProject.wordCount / idleProject.targetWordCount) * 100),
+                  })}
+                </p>
               </div>
-              <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em] text-center">
-                {searchQuery ? t('noProjectsFound') : t('noProjectsYet')}
-              </h3>
-              <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] max-w-md text-center">
-                {searchQuery ? t('emptyAdjustFilters') : t('emptyGetStarted')}
-              </p>
-              {!searchQuery && (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => router.push('/dashboard/new')}
-                  className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  onClick={() => router.push(`/project/${idleProject._id}`)}
+                  className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
                 >
-                  {t('createNewProject')}
+                  {t('continueWriting')}
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </button>
-              )}
+                <button
+                  onClick={() => {
+                    setShowIdleNudge(false);
+                    localStorage.setItem(
+                      `akowe_idle_nudge_dismissed_${idleProject._id}_${new Date().toDateString()}`,
+                      'true'
+                    );
+                  }}
+                  className="p-2 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
+                  aria-label={t('dismiss') || 'Dismiss'}
+                >
+                  <X className="h-4 w-4 text-[hsl(var(--accent-foreground))]" />
+                </button>
+              </div>
             </div>
+          )}
+
+          {filteredProjects.length === 0 ? (
+            searchQuery ? (
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-12 md:py-16 px-4 md:px-6 flex flex-col items-center gap-4 md:gap-6">
+                <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] flex items-center justify-center">
+                  <FileText className="text-[hsl(var(--secondary))]" size={32} />
+                </div>
+                <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em] text-center">
+                  {t('noProjectsFound')}
+                </h3>
+                <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] max-w-md text-center">
+                  {t('emptyAdjustFilters')}
+                </p>
+              </div>
+            ) : (
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] py-10 md:py-14 px-4 md:px-8 flex flex-col items-center gap-6">
+                <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em] text-center">
+                  {t('whatAreYouWriting')}
+                </h3>
+                <p className="text-xs uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))] max-w-md text-center">
+                  {t('selectToGetStarted')}
+                </p>
+                <div className="grid grid-cols-2 gap-3 md:gap-4 w-full max-w-lg">
+                  {[
+                    { type: 'essay', icon: FileText, label: t('typeEssay'), desc: t('typeEssayDesc') },
+                    { type: 'thesis', icon: GraduationCap, label: t('typeThesis'), desc: t('typeThesisDesc') },
+                    { type: 'journal', icon: BookOpen, label: t('typeJournal'), desc: t('typeJournalDesc') },
+                    { type: 'research', icon: FlaskConical, label: t('typeResearch'), desc: t('typeResearchDesc') },
+                  ].map((item) => (
+                    <button
+                      key={item.type}
+                      onClick={() => router.push(`/dashboard/new?type=${item.type}`)}
+                      className="p-4 md:p-5 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))] transition-all duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] text-left flex flex-col gap-2"
+                    >
+                      <item.icon className="h-6 w-6 text-[hsl(var(--primary))]" />
+                      <div className="text-sm font-semibold uppercase tracking-[0.12em]">{item.label}</div>
+                      <div className="text-[10px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))] leading-relaxed">{item.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
           ) : (
             <div
               className={

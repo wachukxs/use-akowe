@@ -99,15 +99,18 @@ export default function NewProjectPage() {
     }
   }, [session]);
 
-  // Handle topic from URL query parameter (from landing page topic finder)
+  // Handle topic and type from URL query parameters
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const topicParam = params.get('topic');
       if (topicParam && !topic.trim()) {
         setTopic(decodeURIComponent(topicParam));
-        // Optionally open topic finder modal if user wants to refine
-        // setShowTopicFinder(true);
+      }
+      const typeParam = params.get('type');
+      const validTypes = ['essay', 'thesis', 'journal', 'research'];
+      if (typeParam && validTypes.includes(typeParam)) {
+        setSelectedType(typeParam as ProjectType);
       }
     }
   }, []);

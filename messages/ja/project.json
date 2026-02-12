@@ -171,5 +171,7 @@
     "mathExplanation": "Unable to generate explanation at this time.",
     "wordLimitReached": "Word limit reached.",
     "contextGenerationFailed": "文脈の生成に失敗しました。もう一度お試しください。"
-  }
+  },
+  "lowProgressNudge": "始め方がわからない場合は、AIアシスタントにアウトラインの展開を依頼してみましょう。",
+  "askAIForHelp": "AIに相談する"
 }

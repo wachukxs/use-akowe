@@ -104,7 +104,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
   }
 
   const baseUrl = getBaseUrl();
-  const newProjectUrl = `${baseUrl}/dashboard/new`;
+  const newProjectUrl = `${baseUrl}/dashboard`;
 
   const subject = 'Welcome to Akowe — your first project awaits';
 
@@ -155,7 +155,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
     <p>
       <a href="${newProjectUrl}" target="_blank" rel="noopener noreferrer"
         style="padding: 12px 18px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">
-        Create a new project
+        Start your first project
       </a>
     </p>
     <p>Think about this: What assignment are you most stressed about right now? Start it inside Akowe today.</p>
