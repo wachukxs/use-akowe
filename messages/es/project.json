@@ -171,5 +171,7 @@
     "mathExplanation": "Unable to generate explanation at this time.",
     "wordLimitReached": "Word limit reached.",
     "contextGenerationFailed": "No se pudo generar el contexto. Por favor, inténtalo de nuevo."
-  }
+  },
+  "lowProgressNudge": "¿Necesitas ayuda para empezar? Prueba pedirle al asistente de IA que amplíe tu esquema.",
+  "askAIForHelp": "Pedir ayuda a la IA"
 }

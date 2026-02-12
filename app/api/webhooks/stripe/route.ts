@@ -14,6 +14,7 @@ import { stripe } from '@/lib/stripe';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { trackPaywallEvent } from '@/lib/paywall-tracking';
+import { sendGA4ServerEvent } from '@/lib/ga4-server';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -107,6 +108,30 @@ export async function POST(request: NextRequest) {
                 },
               },
             });
+
+            // Fire GA4 server-side event — ensures conversion is tracked
+            // even if the client-side redirect after checkout fails
+            sendGA4ServerEvent(userId, userId, [
+              {
+                name: 'subscription_started',
+                params: {
+                  billing_cycle: billingCycle,
+                  plan_type: 'pro',
+                  value: priceInDollars,
+                  currency: 'USD',
+                  subscription_id: subscription.id,
+                },
+              },
+              {
+                name: 'purchase',
+                params: {
+                  billing_cycle: billingCycle,
+                  plan_type: 'pro',
+                  value: priceInDollars,
+                  currency: 'USD',
+                },
+              },
+            ]).catch(() => {}); // Fire-and-forget, never block the webhook
           } catch (error) {
             console.error('Error fetching subscription in webhook:', error);
             // Fallback: use current date as start and clear end date (user is re-subscribing)
@@ -138,6 +163,20 @@ export async function POST(request: NextRequest) {
                 : 'variant_a';
               await trackPaywallEvent(userId, userVariant, 'conversion', 'checkout_completed');
             }
+
+            // Fire GA4 server-side event (fallback path)
+            sendGA4ServerEvent(userId, userId, [
+              {
+                name: 'subscription_started',
+                params: {
+                  billing_cycle: billingCycle,
+                  plan_type: 'pro',
+                  value: 0,
+                  currency: 'USD',
+                  subscription_id: typeof session.subscription === 'string' ? session.subscription : session.subscription.id,
+                },
+              },
+            ]).catch(() => {});
           }
         }
         break;

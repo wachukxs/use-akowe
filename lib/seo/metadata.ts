@@ -28,7 +28,9 @@ export function generateSEOMetadata(options: SEOMetadataOptions): Metadata {
     modifiedTime,
   } = options;
 
-  const url = `${baseUrl}${path}`;
+  // Ensure canonical URL includes the /en locale prefix (localePrefix: 'always')
+  const localePath = path.startsWith('/en/') || path === '/en' ? path : `/en${path}`;
+  const url = `${baseUrl}${localePath}`;
   const fullTitle = title.includes('Akowe') ? title : `${title} | Akowe`;
 
   return {

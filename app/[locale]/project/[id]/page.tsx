@@ -89,6 +89,7 @@ export default function ProjectEditorPage({
   const [showDesktopNoteTop, setShowDesktopNoteTop] = useState(false);
   const [showDesktopNoteTools, setShowDesktopNoteTools] = useState(false);
   const [showDesktopNoteAI, setShowDesktopNoteAI] = useState(false);
+  const [showLowProgressNudge, setShowLowProgressNudge] = useState(false);
 
   useEffect(() => {
     if (isMobile) {
@@ -106,6 +107,17 @@ export default function ProjectEditorPage({
       setShowDesktopNoteAI(!aiDismissed);
     }
   }, [isMobile]);
+
+  // Low-progress nudge: <200 words AND created 3+ days ago
+  useEffect(() => {
+    if (!project) return;
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const isLowProgress =
+      project.wordCount < 200 &&
+      new Date(project.createdAt) < threeDaysAgo &&
+      !localStorage.getItem(`akowe_lowprogress_dismissed_${project._id}`);
+    setShowLowProgressNudge(isLowProgress);
+  }, [project]);
 
   // Update ref whenever activeSection changes
   useEffect(() => {
@@ -842,6 +854,14 @@ export default function ProjectEditorPage({
               params.user_id,
               params.output_type
             );
+            // One-time celebration for first AI output (aha moment)
+            if (!localStorage.getItem("akowe_first_output_celebrated")) {
+              localStorage.setItem("akowe_first_output_celebrated", "true");
+              setShowSuccessMessage(
+                "✅ Your first AI-generated draft is ready! Use Rewrite to refine it, or ask the AI assistant for help."
+              );
+              setTimeout(() => setShowSuccessMessage(""), 8000);
+            }
           }
         }
 
@@ -2907,6 +2927,38 @@ export default function ProjectEditorPage({
                 {t("words")} • {project.citationStyle}
               </p>
             </div>
+
+            {/* Low-progress nudge */}
+            {showLowProgressNudge && project && (
+              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-3 md:p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[10px] md:text-xs uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] flex-1">
+                    {t("lowProgressNudge")}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsAIDrawerOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-[10px] font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 whitespace-nowrap"
+                    >
+                      {t("askAIForHelp")}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowLowProgressNudge(false);
+                        localStorage.setItem(
+                          `akowe_lowprogress_dismissed_${project._id}`,
+                          "true"
+                        );
+                      }}
+                      className="flex-shrink-0 p-1 hover:bg-[hsl(var(--accent-foreground))]/10 rounded-(--radius) transition-colors"
+                      aria-label={t("dismiss")}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Desktop Experience Note - Top of Page (Mobile Only) */}
             {isMobile && showDesktopNoteTop && (

@@ -13,5 +13,18 @@
   "noProjectsYet": "プロジェクトがまだありません",
   "noProjectsFound": "プロジェクトが見つかりません",
   "emptyAdjustFilters": "フィルターやキーワードを調整して続けてください。",
-  "emptyGetStarted": "Akọ̀wéで最初の研究プロジェクトを始めましょう。"
+  "emptyGetStarted": "Akọ̀wéで最初の研究プロジェクトを始めましょう。",
+  "whatAreYouWriting": "何を書いていますか？",
+  "selectToGetStarted": "プロジェクトの種類を選んで始めましょう。",
+  "typeEssay": "エッセイ",
+  "typeEssayDesc": "短い学術論文と課題",
+  "typeThesis": "論文",
+  "typeThesisDesc": "大学院の研究・学位論文",
+  "typeJournal": "学術誌論文",
+  "typeJournalDesc": "出版用の研究論文",
+  "typeResearch": "研究論文",
+  "typeResearchDesc": "包括的な研究文書",
+  "idleProjectNudge": "「{name}」は{percent}%完了しています — 続きから再開しましょう",
+  "continueWriting": "執筆を続ける",
+  "dismiss": "閉じる"
 }

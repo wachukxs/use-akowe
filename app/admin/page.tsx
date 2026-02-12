@@ -26,13 +26,16 @@ import {
   Shield,
   RefreshCw,
   Link as LinkIcon,
+  Mail,
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
 import MarketingTab from '@/components/admin/MarketingTab';
 import AnalyticsTab from '@/components/admin/AnalyticsTab';
+import EngagementEmailsTab from '@/components/admin/EngagementEmailsTab';
+import ActivationFunnelTab from '@/components/admin/ActivationFunnelTab';
 import TimeSeriesChart from '@/components/admin/TimeSeriesChart';
 
-type AdminTab = 'dashboard' | 'marketing' | 'referrals' | 'analytics';
+type AdminTab = 'dashboard' | 'marketing' | 'referrals' | 'analytics' | 'engagement' | 'funnel';
 
 // Updated interface to match new structure
 interface AdminMetricsResponse {
@@ -924,6 +927,28 @@ export default function AdminDashboard() {
         <BarChart3 size={14} className="sm:w-4 sm:h-4" />
         <span>Analytics</span>
       </button>
+      <button
+        onClick={() => setActiveTab('engagement')}
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+          activeTab === 'engagement'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <Mail size={14} className="sm:w-4 sm:h-4" />
+        <span>Engagement</span>
+      </button>
+      <button
+        onClick={() => setActiveTab('funnel')}
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+          activeTab === 'funnel'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <Target size={14} className="sm:w-4 sm:h-4" />
+        <span>Funnel</span>
+      </button>
     </div>
   );
 
@@ -979,6 +1004,44 @@ export default function AdminDashboard() {
           </div>
           <TabNavigation />
           <AnalyticsTab />
+        </div>
+      </div>
+    );
+  }
+
+  // Render engagement tab
+  if (activeTab === 'engagement') {
+    return (
+      <div className="min-h-screen bg-[hsl(var(--background))] p-3 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
+          {/* Header */}
+          <div className="pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Engagement Email Campaigns
+            </p>
+          </div>
+          <TabNavigation />
+          <EngagementEmailsTab />
+        </div>
+      </div>
+    );
+  }
+
+  // Render funnel tab
+  if (activeTab === 'funnel') {
+    return (
+      <div className="min-h-screen bg-[hsl(var(--background))] p-3 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
+          {/* Header */}
+          <div className="pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              Activation Funnel & Drop-off Analysis
+            </p>
+          </div>
+          <TabNavigation />
+          <ActivationFunnelTab />
         </div>
       </div>
     );

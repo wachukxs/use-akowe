@@ -171,5 +171,7 @@
     "mathExplanation": "Unable to generate explanation at this time.",
     "wordLimitReached": "Word limit reached.",
     "contextGenerationFailed": "ไม่สามารถสร้างบริบทได้ กรุณาลองอีกครั้ง"
-  }
+  },
+  "lowProgressNudge": "ต้องการความช่วยเหลือในการเริ่มต้นไหม? ลองขอให้ผู้ช่วย AI ขยายโครงร่างของคุณ",
+  "askAIForHelp": "ขอความช่วยเหลือจาก AI"
 }

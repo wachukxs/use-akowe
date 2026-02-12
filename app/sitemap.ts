@@ -9,6 +9,8 @@ import { getAllKeywordSlugs } from '@/lib/seo/keywords';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
+  // All SEO pages live under the /en locale prefix (localePrefix: 'always')
+  const prefix = `${baseUrl}/en`;
 
   // Static public routes
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -19,44 +21,93 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/about`,
+      url: `${prefix}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/latex-guide`,
+      url: `${prefix}/latex-guide`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     },
     // Index pages
     {
-      url: `${baseUrl}/guides`,
+      url: `${prefix}/guides`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/templates`,
+      url: `${prefix}/templates`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/citation-styles`,
+      url: `${prefix}/citation-styles`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/faq`,
+      url: `${prefix}/faq`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/compare`,
+      url: `${prefix}/compare`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    // New keyword-based index pages
+    {
+      url: `${prefix}/methods`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/topics`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/fields`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/citations`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/guides-keywords`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/templates-keywords`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/compare-keywords`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/faq-keywords`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
@@ -65,7 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Programmatic SEO pages - Guides
   const guideRoutes: MetadataRoute.Sitemap = getAllGuideSlugs().map((slug) => ({
-    url: `${baseUrl}/guides/${slug}`,
+    url: `${prefix}/guides/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -73,7 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Programmatic SEO pages - Citation Styles
   const citationStyleRoutes: MetadataRoute.Sitemap = getAllCitationStyleSlugs().map((style) => ({
-    url: `${baseUrl}/citation-styles/${style}`,
+    url: `${prefix}/citation-styles/${style}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
@@ -81,26 +132,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Programmatic SEO pages - Templates
   const templateRoutes: MetadataRoute.Sitemap = getAllTemplateSlugs().map((type) => ({
-    url: `${baseUrl}/templates/${type}`,
+    url: `${prefix}/templates/${type}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));
 
   // Programmatic SEO pages - Citation Sources (highly targeted long-tail)
-  // Using scaled function for maximum coverage
   const citationSourceRoutes: MetadataRoute.Sitemap = getAllCitationSourceCombinationsScaled().map(
     ({ sourceType, citationStyle }) => ({
-      url: `${baseUrl}/citation-sources/${citationStyle}/${sourceType}`,
+      url: `${prefix}/citation-sources/${citationStyle}/${sourceType}`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
-      priority: 0.8, // High priority for long-tail keywords
+      priority: 0.8,
     })
   );
 
   // Programmatic SEO pages - FAQs
   const faqRoutes: MetadataRoute.Sitemap = getAllFAQSlugs().map((slug) => ({
-    url: `${baseUrl}/faq/${slug}`,
+    url: `${prefix}/faq/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -108,16 +158,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Programmatic SEO pages - Comparisons
   const comparisonRoutes: MetadataRoute.Sitemap = getAllComparisonSlugs().map((slug) => ({
-    url: `${baseUrl}/compare/${slug}`,
+    url: `${prefix}/compare/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
-    priority: 0.8, // High priority for comparison keywords
+    priority: 0.8,
   }));
 
-  // Programmatic SEO pages - Topics (keyword-based, for scaling to 20k+)
+  // Programmatic SEO pages - Topics (keyword-based)
   const topicSlugs = await getAllKeywordSlugs('topic');
   const topicRoutes: MetadataRoute.Sitemap = topicSlugs.map((slug: string) => ({
-    url: `${baseUrl}/topics/${slug}`,
+    url: `${prefix}/topics/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -125,7 +175,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const methodologySlugs = await getAllKeywordSlugs('methodology');
   const methodologyRoutes: MetadataRoute.Sitemap = methodologySlugs.map((slug: string) => ({
-    url: `${baseUrl}/methods/${slug}`,
+    url: `${prefix}/methods/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -133,7 +183,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const fieldSlugs = await getAllKeywordSlugs('field');
   const fieldRoutes: MetadataRoute.Sitemap = fieldSlugs.map((slug: string) => ({
-    url: `${baseUrl}/fields/${slug}`,
+    url: `${prefix}/fields/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -142,7 +192,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Keyword-based citation pages
   const citationSlugs = await getAllKeywordSlugs('citation');
   const citationKeywordRoutes: MetadataRoute.Sitemap = citationSlugs.map((slug: string) => ({
-    url: `${baseUrl}/citations/${slug}`,
+    url: `${prefix}/citations/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
@@ -151,7 +201,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Keyword-based guide pages
   const guideSlugs = await getAllKeywordSlugs('guide');
   const guideKeywordRoutes: MetadataRoute.Sitemap = guideSlugs.map((slug: string) => ({
-    url: `${baseUrl}/guides-keywords/${slug}`,
+    url: `${prefix}/guides-keywords/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -160,7 +210,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Keyword-based template pages
   const templateSlugs = await getAllKeywordSlugs('template');
   const templateKeywordRoutes: MetadataRoute.Sitemap = templateSlugs.map((slug: string) => ({
-    url: `${baseUrl}/templates-keywords/${slug}`,
+    url: `${prefix}/templates-keywords/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -169,7 +219,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Keyword-based FAQ pages
   const faqSlugs = await getAllKeywordSlugs('faq');
   const faqKeywordRoutes: MetadataRoute.Sitemap = faqSlugs.map((slug: string) => ({
-    url: `${baseUrl}/faq-keywords/${slug}`,
+    url: `${prefix}/faq-keywords/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
@@ -178,7 +228,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Keyword-based comparison pages
   const comparisonSlugs = await getAllKeywordSlugs('comparison');
   const comparisonKeywordRoutes: MetadataRoute.Sitemap = comparisonSlugs.map((slug: string) => ({
-    url: `${baseUrl}/compare-keywords/${slug}`,
+    url: `${prefix}/compare-keywords/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.8,
@@ -226,7 +276,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const style of allStyleSlugs) {
     for (const purpose of validPurposes) {
       combinationRoutes.push({
-        url: `${baseUrl}/combinations/${style}/${purpose}`,
+        url: `${prefix}/combinations/${style}/${purpose}`,
         lastModified: new Date(),
         changeFrequency: 'monthly' as const,
         priority: 0.8,
@@ -253,4 +303,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...combinationRoutes,
   ];
 }
-

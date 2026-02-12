@@ -1,0 +1,274 @@
+import { NextRequest, NextResponse } from 'next/server';
+import connectDB from '@/lib/mongodb';
+import User from '@/models/User';
+import Project from '@/models/Project';
+import Activation from '@/models/Activation';
+import DailyUsage from '@/models/DailyUsage';
+import EmailLog, { EngagementCohort } from '@/models/EmailLog';
+import {
+  sendGhostSignupEmail,
+  sendStuckStarterEmail,
+  sendAlmostActivatedEmail,
+  sendGoingIdleEmail,
+  sendWinBackEmail,
+} from '@/lib/email';
+
+const MAX_PER_COHORT = 50;
+const MAX_RUNTIME_MS = 20_000; // 20 seconds, leaving buffer for Netlify timeout
+
+interface CohortResult {
+  sent: number;
+  skipped: number;
+  failed: number;
+}
+
+export async function POST(request: NextRequest) {
+  // Bearer token auth
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (!cronSecret) {
+    console.error('[cron] CRON_SECRET env var not configured');
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+  }
+
+  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const startTime = Date.now();
+  await connectDB();
+
+  const now = new Date();
+  const results: Record<string, CohortResult> = {};
+
+  // Helper: get user IDs that already received a given cohort email
+  async function getAlreadySent(cohort: EngagementCohort): Promise<Set<string>> {
+    const logs = await EmailLog.find({ cohort, status: 'sent' }).select('userId').lean();
+    return new Set(logs.map((l) => l.userId));
+  }
+
+  // Helper: send emails for a cohort with de-duplication
+  async function processCohort(
+    cohort: EngagementCohort,
+    candidates: Array<{ email: string; name: string }>,
+    sendFn: (to: string, name: string) => Promise<{ messageId: string }>
+  ): Promise<CohortResult> {
+    const alreadySent = await getAlreadySent(cohort);
+    const toSend = candidates.filter((c) => !alreadySent.has(c.email));
+    const batch = toSend.slice(0, MAX_PER_COHORT);
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const candidate of batch) {
+      // Check timeout before each send
+      if (Date.now() - startTime > MAX_RUNTIME_MS) {
+        console.warn(`[cron] Approaching timeout during ${cohort}, stopping early`);
+        break;
+      }
+
+      try {
+        const result = await sendFn(candidate.email, candidate.name);
+        await EmailLog.create({
+          userId: candidate.email,
+          cohort,
+          sentAt: now,
+          status: 'sent',
+          messageId: result.messageId,
+        });
+        sent++;
+      } catch (err) {
+        try {
+          await EmailLog.create({
+            userId: candidate.email,
+            cohort,
+            sentAt: now,
+            status: 'failed',
+            error: err instanceof Error ? err.message : String(err),
+          });
+        } catch (logErr: any) {
+          // Duplicate key = already logged, skip silently
+          if (logErr?.code !== 11000) {
+            console.error('[cron] Failed to log email failure:', logErr);
+          }
+        }
+        failed++;
+      }
+    }
+
+    return { sent, skipped: alreadySent.size, failed };
+  }
+
+  try {
+    // ============================================
+    // COHORT 1: ghost_signup
+    // Signed up 2-3 days ago, zero projects, free plan
+    // ============================================
+    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+    const ghostUsers = await User.find({
+      plan: 'free',
+      createdAt: { $gte: threeDaysAgo, $lte: twoDaysAgo },
+    }).select('email name').lean();
+
+    if (ghostUsers.length > 0) {
+      const ghostEmails = ghostUsers.map((u) => u.email);
+      const ghostWithProjects = new Set(
+        await Project.distinct('userId', { userId: { $in: ghostEmails } })
+      );
+      const ghostCandidates = ghostUsers
+        .filter((u) => !ghostWithProjects.has(u.email))
+        .map((u) => ({ email: u.email, name: u.name }));
+
+      results.ghost_signup = await processCohort('ghost_signup', ghostCandidates, sendGhostSignupEmail);
+    } else {
+      results.ghost_signup = { sent: 0, skipped: 0, failed: 0 };
+    }
+
+    if (Date.now() - startTime > MAX_RUNTIME_MS) {
+      console.warn('[cron] Approaching timeout after ghost_signup, stopping');
+      return NextResponse.json({ success: true, results, partial: true }, { status: 200 });
+    }
+
+    // ============================================
+    // COHORT 2: stuck_starter
+    // 3-5 days old, has project but <100 total words, free plan
+    // ============================================
+    const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+
+    const stuckUsers = await User.find({
+      plan: 'free',
+      createdAt: { $gte: fiveDaysAgo, $lte: threeDaysAgo },
+    }).select('email name').lean();
+
+    if (stuckUsers.length > 0) {
+      const stuckEmails = stuckUsers.map((u) => u.email);
+      const userWordCounts = await Project.aggregate([
+        { $match: { userId: { $in: stuckEmails } } },
+        { $group: { _id: '$userId', totalWords: { $sum: '$wordCount' } } },
+      ]);
+
+      const wordCountMap = new Map(userWordCounts.map((r: any) => [r._id, r.totalWords]));
+      const usersWithProjects = new Set(userWordCounts.map((r: any) => r._id));
+
+      const stuckCandidates = stuckUsers
+        .filter((u) => {
+          if (!usersWithProjects.has(u.email)) return false;
+          return (wordCountMap.get(u.email) || 0) < 100;
+        })
+        .map((u) => ({ email: u.email, name: u.name }));
+
+      results.stuck_starter = await processCohort('stuck_starter', stuckCandidates, sendStuckStarterEmail);
+    } else {
+      results.stuck_starter = { sent: 0, skipped: 0, failed: 0 };
+    }
+
+    if (Date.now() - startTime > MAX_RUNTIME_MS) {
+      console.warn('[cron] Approaching timeout after stuck_starter, stopping');
+      return NextResponse.json({ success: true, results, partial: true }, { status: 200 });
+    }
+
+    // ============================================
+    // COHORT 3: almost_activated
+    // 5-10 days old, has project + some AI usage, NOT activated, free plan
+    // ============================================
+    const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+
+    const almostUsers = await User.find({
+      plan: 'free',
+      createdAt: { $gte: tenDaysAgo, $lte: fiveDaysAgo },
+    }).select('email name').lean();
+
+    if (almostUsers.length > 0) {
+      const almostEmails = almostUsers.map((u) => u.email);
+
+      const activatedRecords = await Activation.find({
+        userId: { $in: almostEmails },
+        isActivated: true,
+      }).select('userId').lean();
+      const activatedSet = new Set(activatedRecords.map((a: any) => a.userId));
+
+      const usersWithAIUsage = new Set(
+        await DailyUsage.distinct('userId', {
+          userId: { $in: almostEmails },
+          aiWordsGenerated: { $gt: 0 },
+        })
+      );
+
+      const almostCandidates = almostUsers
+        .filter((u) => !activatedSet.has(u.email) && usersWithAIUsage.has(u.email))
+        .map((u) => ({ email: u.email, name: u.name }));
+
+      results.almost_activated = await processCohort('almost_activated', almostCandidates, sendAlmostActivatedEmail);
+    } else {
+      results.almost_activated = { sent: 0, skipped: 0, failed: 0 };
+    }
+
+    if (Date.now() - startTime > MAX_RUNTIME_MS) {
+      console.warn('[cron] Approaching timeout after almost_activated, stopping');
+      return NextResponse.json({ success: true, results, partial: true }, { status: 200 });
+    }
+
+    // ============================================
+    // COHORT 4: going_idle
+    // lastActiveAt 7-14 days ago, had projects, free plan
+    // ============================================
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const idleUsers = await User.find({
+      plan: 'free',
+      lastActiveAt: { $gte: fourteenDaysAgo, $lte: sevenDaysAgo },
+    }).select('email name').lean();
+
+    if (idleUsers.length > 0) {
+      const idleEmails = idleUsers.map((u) => u.email);
+      const idleWithProjects = new Set(
+        await Project.distinct('userId', { userId: { $in: idleEmails } })
+      );
+
+      const idleCandidates = idleUsers
+        .filter((u) => idleWithProjects.has(u.email))
+        .map((u) => ({ email: u.email, name: u.name }));
+
+      results.going_idle = await processCohort('going_idle', idleCandidates, sendGoingIdleEmail);
+    } else {
+      results.going_idle = { sent: 0, skipped: 0, failed: 0 };
+    }
+
+    if (Date.now() - startTime > MAX_RUNTIME_MS) {
+      console.warn('[cron] Approaching timeout after going_idle, stopping');
+      return NextResponse.json({ success: true, results, partial: true }, { status: 200 });
+    }
+
+    // ============================================
+    // COHORT 5: win_back
+    // lastActiveAt 30+ days ago, free plan
+    // ============================================
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const winBackUsers = await User.find({
+      plan: 'free',
+      lastActiveAt: { $lte: thirtyDaysAgo },
+    }).select('email name').lean();
+
+    if (winBackUsers.length > 0) {
+      const winBackCandidates = winBackUsers.map((u) => ({ email: u.email, name: u.name }));
+      results.win_back = await processCohort('win_back', winBackCandidates, sendWinBackEmail);
+    } else {
+      results.win_back = { sent: 0, skipped: 0, failed: 0 };
+    }
+
+    const duration = Date.now() - startTime;
+    console.info('[cron] Engagement emails complete', { duration: `${duration}ms`, results });
+    return NextResponse.json({ success: true, results, duration: `${duration}ms` }, { status: 200 });
+  } catch (error) {
+    console.error('[cron] Engagement emails failed:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', results },
+      { status: 500 }
+    );
+  }
+}

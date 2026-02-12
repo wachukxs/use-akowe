@@ -18,6 +18,7 @@ interface IUser extends Omit<UserType, '_id'> {
     date: Date;
     count: number;
   };
+  lastActiveAt?: Date | null;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -91,6 +92,10 @@ const UserSchema = new Schema<IUser>(
         default: 0,
       },
     },
+    lastActiveAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -126,6 +131,7 @@ UserSchema.index({ plan: 1, createdAt: -1 }); // Optimizes queries like: User.fi
 // Note: referralCode index is already created by unique: true in the schema definition
 UserSchema.index({ referredBy: 1 }); // For counting referrals per user
 UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer
+UserSchema.index({ lastActiveAt: 1 }); // For idle-user queries
 
 const User: Model<IUser> = (mongoose.models && mongoose.models.User) || mongoose.model<IUser>('User', UserSchema);
 

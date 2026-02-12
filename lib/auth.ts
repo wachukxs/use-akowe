@@ -222,6 +222,19 @@ export const authOptions: NextAuthConfig = {
             token.referralCode = dbUser.referralCode || null;
             token.planLastUpdated = Date.now();
           }
+
+          // Update lastActiveAt (throttled to once per hour)
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const result = await User.updateOne(
+            { _id: token.id, $or: [{ lastActiveAt: null }, { lastActiveAt: { $lt: oneHourAgo } }] },
+            { $set: { lastActiveAt: new Date() } }
+          );
+
+          // If lastActiveAt was actually updated, check activation conditions
+          if (result.modifiedCount > 0) {
+            const { checkAndUpdateActivation } = await import('@/lib/activation-tracking');
+            await checkAndUpdateActivation(token.id as string).catch(() => {});
+          }
         } catch (error) {
           // If DB query fails, use cached values - don't break auth
           console.error('Failed to refresh user plan from DB:', error);
