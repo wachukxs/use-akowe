@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { getUnsubscribeUrl } from '@/lib/email-suppression';
 
 type TransporterOrNull = ReturnType<typeof nodemailer.createTransport> | null;
 
@@ -101,13 +102,26 @@ interface EmailSendResult {
   messageId: string;
 }
 
-const EMAIL_FOOTER = `
+function emailFooter(unsubscribeUrl: string): string {
+  return `
   <p style="margin-top:32px; padding-top:16px; border-top:1px solid #e5e7eb; font-size:12px; color:#6b7280;">
-    You're receiving this because you signed up for Akowe. Reply to this email if you'd like to stop receiving updates.
+    You're receiving this because you signed up for Akowe.
+    <a href="${unsubscribeUrl}" style="color:#6b7280; text-decoration:underline;">Unsubscribe</a>
   </p>
 `;
+}
 
-const EMAIL_FOOTER_TEXT = '\n\n---\nYou\'re receiving this because you signed up for Akowe. Reply to this email if you\'d like to stop receiving updates.';
+function emailFooterText(unsubscribeUrl: string): string {
+  return `\n\n---\nYou're receiving this because you signed up for Akowe. Unsubscribe: ${unsubscribeUrl}`;
+}
+
+function unsubscribeHeaders(email: string): Record<string, string> {
+  const url = getUnsubscribeUrl(email);
+  return {
+    'List-Unsubscribe': `<${url}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+}
 
 function ctaButton(url: string, label: string): string {
   return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="padding: 12px 18px; background: #111827; color: #ffffff; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600;">${label}</a>`;
@@ -205,11 +219,13 @@ export async function sendGhostSignupEmail(to: string, name: string): Promise<Em
   const baseUrl = getBaseUrl();
   const dashboardUrl = `${baseUrl}/dashboard`;
   const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
 
   const info = await transporter.sendMail({
     from: defaultFrom,
     to,
     subject: 'What are you working on?',
+    headers: unsubscribeHeaders(to),
     text: [
       `Hi ${greeting},`,
       '',
@@ -220,7 +236,7 @@ export async function sendGhostSignupEmail(to: string, name: string): Promise<Em
       `Create your first project: ${dashboardUrl}`,
       '',
       'What assignment are you most stressed about right now? Start it inside Akowe today.',
-      EMAIL_FOOTER_TEXT,
+      emailFooterText(unsubUrl),
     ].join('\n'),
     html: `
       <p>Hi ${greeting},</p>
@@ -228,7 +244,7 @@ export async function sendGhostSignupEmail(to: string, name: string): Promise<Em
       <p>When you do, Akowe is ready. Creating a project takes about 30 seconds, and you'll have an organized workspace for your essay, thesis, or research paper.</p>
       <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Create your first project')}</p>
       <p>What assignment are you most stressed about right now? Start it inside Akowe today.</p>
-      ${EMAIL_FOOTER}
+      ${emailFooter(unsubUrl)}
     `,
   });
 
@@ -244,11 +260,13 @@ export async function sendStuckStarterEmail(to: string, name: string): Promise<E
   const baseUrl = getBaseUrl();
   const dashboardUrl = `${baseUrl}/dashboard`;
   const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
 
   const info = await transporter.sendMail({
     from: defaultFrom,
     to,
     subject: 'Your project is waiting for you',
+    headers: unsubscribeHeaders(to),
     text: [
       `Hi ${greeting},`,
       '',
@@ -257,14 +275,14 @@ export async function sendStuckStarterEmail(to: string, name: string): Promise<E
       'The hardest part of academic writing is the blank page. Here\'s a trick: use the AI writing tools to generate a first draft of any section. You can always edit it, but having something on the page makes everything easier.',
       '',
       `Continue writing: ${dashboardUrl}`,
-      EMAIL_FOOTER_TEXT,
+      emailFooterText(unsubUrl),
     ].join('\n'),
     html: `
       <p>Hi ${greeting},</p>
       <p>You started a project on Akowe — nice first step. But it looks like you haven't written much yet.</p>
       <p>The hardest part of academic writing is the blank page. Here's a trick: use the <strong>AI writing tools</strong> to generate a first draft of any section. You can always edit it, but having something on the page makes everything easier.</p>
       <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Continue writing')}</p>
-      ${EMAIL_FOOTER}
+      ${emailFooter(unsubUrl)}
     `,
   });
 
@@ -280,11 +298,13 @@ export async function sendAlmostActivatedEmail(to: string, name: string): Promis
   const baseUrl = getBaseUrl();
   const dashboardUrl = `${baseUrl}/dashboard`;
   const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
 
   const info = await transporter.sendMail({
     from: defaultFrom,
     to,
     subject: "You're almost there — keep going",
+    headers: unsubscribeHeaders(to),
     text: [
       `Hi ${greeting},`,
       '',
@@ -293,14 +313,14 @@ export async function sendAlmostActivatedEmail(to: string, name: string): Promis
       'Keep going — most users who reach this point end up finishing their project. The next step: fill in any empty sections, or use the AI rewrite tool to improve what you\'ve already written.',
       '',
       `Keep writing: ${dashboardUrl}`,
-      EMAIL_FOOTER_TEXT,
+      emailFooterText(unsubUrl),
     ].join('\n'),
     html: `
       <p>Hi ${greeting},</p>
       <p>You've been using Akowe's AI tools, which means you've found the right workflow. You're close to having a solid draft.</p>
       <p>Keep going — most users who reach this point end up finishing their project. The next step: fill in any empty sections, or use the <strong>AI rewrite tool</strong> to improve what you've already written.</p>
       <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Keep writing')}</p>
-      ${EMAIL_FOOTER}
+      ${emailFooter(unsubUrl)}
     `,
   });
 
@@ -316,11 +336,13 @@ export async function sendGoingIdleEmail(to: string, name: string): Promise<Emai
   const baseUrl = getBaseUrl();
   const dashboardUrl = `${baseUrl}/dashboard`;
   const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
 
   const info = await transporter.sendMail({
     from: defaultFrom,
     to,
     subject: 'Your research is still here',
+    headers: unsubscribeHeaders(to),
     text: [
       `Hi ${greeting},`,
       '',
@@ -329,14 +351,14 @@ export async function sendGoingIdleEmail(to: string, name: string): Promise<Emai
       'If you have a new assignment or want to revisit an old one, everything is ready.',
       '',
       `Open your projects: ${dashboardUrl}`,
-      EMAIL_FOOTER_TEXT,
+      emailFooterText(unsubUrl),
     ].join('\n'),
     html: `
       <p>Hi ${greeting},</p>
       <p>It's been a little while since you opened Akowe. Your projects and all your work are exactly where you left them.</p>
       <p>If you have a new assignment or want to revisit an old one, everything is ready.</p>
       <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Open your projects')}</p>
-      ${EMAIL_FOOTER}
+      ${emailFooter(unsubUrl)}
     `,
   });
 
@@ -352,11 +374,13 @@ export async function sendWinBackEmail(to: string, name: string): Promise<EmailS
   const baseUrl = getBaseUrl();
   const dashboardUrl = `${baseUrl}/dashboard`;
   const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
 
   const info = await transporter.sendMail({
     from: defaultFrom,
     to,
     subject: "We've added new features since you left",
+    headers: unsubscribeHeaders(to),
     text: [
       `Hi ${greeting},`,
       '',
@@ -369,7 +393,7 @@ export async function sendWinBackEmail(to: string, name: string): Promise<EmailS
       'Your account and projects are still here, ready when you are.',
       '',
       `See what's new: ${dashboardUrl}`,
-      EMAIL_FOOTER_TEXT,
+      emailFooterText(unsubUrl),
     ].join('\n'),
     html: `
       <p>Hi ${greeting},</p>
@@ -381,7 +405,7 @@ export async function sendWinBackEmail(to: string, name: string): Promise<EmailS
       </ul>
       <p>Your account and projects are still here, ready when you are.</p>
       <p style="margin:16px 0;">${ctaButton(dashboardUrl, "See what's new")}</p>
-      ${EMAIL_FOOTER}
+      ${emailFooter(unsubUrl)}
     `,
   });
 

@@ -12,9 +12,25 @@ import {
   sendGoingIdleEmail,
   sendWinBackEmail,
 } from '@/lib/email';
+import { getSuppressedEmails, suppressEmail } from '@/lib/email-suppression';
 
 const MAX_PER_COHORT = 50;
 const MAX_RUNTIME_MS = 20_000; // 20 seconds, leaving buffer for Netlify timeout
+
+const HARD_BOUNCE_PATTERNS = [
+  /^5\d{2}\b/,           // 5xx SMTP status codes
+  /mailbox not found/i,
+  /user unknown/i,
+  /no such user/i,
+  /address rejected/i,
+  /does not exist/i,
+  /invalid recipient/i,
+  /recipient rejected/i,
+];
+
+function isHardBounce(errorMessage: string): boolean {
+  return HARD_BOUNCE_PATTERNS.some((p) => p.test(errorMessage));
+}
 
 interface CohortResult {
   sent: number;
@@ -48,14 +64,19 @@ export async function POST(request: NextRequest) {
     return new Set(logs.map((l) => l.userId));
   }
 
-  // Helper: send emails for a cohort with de-duplication
+  // Load suppressed emails once for the entire run
+  const suppressedEmails = await getSuppressedEmails();
+
+  // Helper: send emails for a cohort with de-duplication and suppression
   async function processCohort(
     cohort: EngagementCohort,
     candidates: Array<{ email: string; name: string }>,
     sendFn: (to: string, name: string) => Promise<{ messageId: string }>
   ): Promise<CohortResult> {
     const alreadySent = await getAlreadySent(cohort);
-    const toSend = candidates.filter((c) => !alreadySent.has(c.email));
+    const toSend = candidates.filter(
+      (c) => !alreadySent.has(c.email) && !suppressedEmails.has(c.email.toLowerCase())
+    );
     const batch = toSend.slice(0, MAX_PER_COHORT);
 
     let sent = 0;
@@ -79,13 +100,21 @@ export async function POST(request: NextRequest) {
         });
         sent++;
       } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+
+        // Auto-suppress on hard bounces (5xx SMTP codes, mailbox not found)
+        if (isHardBounce(errorMsg)) {
+          await suppressEmail(candidate.email, 'bounced', 'bounce-auto').catch(() => {});
+          suppressedEmails.add(candidate.email.toLowerCase());
+        }
+
         try {
           await EmailLog.create({
             userId: candidate.email,
             cohort,
             sentAt: now,
             status: 'failed',
-            error: err instanceof Error ? err.message : String(err),
+            error: errorMsg,
           });
         } catch (logErr: any) {
           // Duplicate key = already logged, skip silently
