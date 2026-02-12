@@ -68,8 +68,8 @@ export async function getAllTimeUserMetrics() {
 
   // Get usage metrics for recent users (all-time)
   const userIds = recentUsers.map((u: any) => u._id.toString());
-  const usageMap = new Map<string, { totalAIWords: number; totalPlagiarismChecks: number; activeDays: number }>();
-  
+  const usageMap = new Map<string, { totalAIWords: number; totalPlagiarismChecks: number; totalParaphraseUses: number; activeDays: number }>();
+
   if (userIds.length > 0) {
     const usageData = await DailyUsage.aggregate([
       {
@@ -82,6 +82,7 @@ export async function getAllTimeUserMetrics() {
           _id: '$userId',
           totalAIWords: { $sum: '$aiWordsGenerated' },
           totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
+          totalParaphraseUses: { $sum: '$paraphraseUses' },
           activeDays: { $sum: 1 }
         }
       }
@@ -91,6 +92,7 @@ export async function getAllTimeUserMetrics() {
       usageMap.set(usage._id, {
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
+        totalParaphraseUses: usage.totalParaphraseUses,
         activeDays: usage.activeDays,
       });
     });
@@ -137,6 +139,7 @@ export async function getAllTimeUsageMetrics() {
   const cached = metricsCache.get<{
     totalAIWords: number;
     totalPlagiarismChecks: number;
+    totalParaphraseUses: number;
   }>(cacheKey);
   if (cached) return cached;
 
@@ -145,16 +148,18 @@ export async function getAllTimeUsageMetrics() {
       $group: {
         _id: null,
         totalAIWords: { $sum: '$aiWordsGenerated' },
-        totalPlagiarismChecks: { $sum: '$plagiarismChecks' }
+        totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
+        totalParaphraseUses: { $sum: '$paraphraseUses' }
       }
     }
   ], { maxTimeMS: 30000 }); // 30 second timeout
 
-  const usage = totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0 };
+  const usage = totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0, totalParaphraseUses: 0 };
 
   const result = {
     totalAIWords: usage.totalAIWords,
     totalPlagiarismChecks: usage.totalPlagiarismChecks,
+    totalParaphraseUses: usage.totalParaphraseUses,
   };
 
   // Cache all-time usage metrics for longer (they don't change often)

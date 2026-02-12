@@ -37,3 +37,21 @@ export function viewportSafePillPosition(clientX: number, clientY: number): { x:
   if (y < 0) y = PILL_OFFSET;
   return { x, y };
 }
+
+const REWRITE_PANEL_OFFSET = 8;
+const REWRITE_PANEL_EST_WIDTH = 320;
+const REWRITE_PANEL_EST_HEIGHT = 350;
+
+/**
+ * Returns viewport-safe { x, y } for the Rewrite panel so it stays on screen.
+ */
+export function viewportSafeRewritePanelPosition(clientX: number, clientY: number): { x: number; y: number } {
+  if (typeof window === 'undefined') return { x: clientX, y: clientY + REWRITE_PANEL_OFFSET };
+  let x = clientX;
+  let y = clientY + REWRITE_PANEL_OFFSET;
+  if (x + REWRITE_PANEL_EST_WIDTH > window.innerWidth) x = Math.max(0, window.innerWidth - REWRITE_PANEL_EST_WIDTH);
+  if (x < 0) x = 0;
+  if (y + REWRITE_PANEL_EST_HEIGHT > window.innerHeight) y = Math.max(REWRITE_PANEL_OFFSET, clientY - REWRITE_PANEL_EST_HEIGHT - REWRITE_PANEL_OFFSET);
+  if (y < 0) y = REWRITE_PANEL_OFFSET;
+  return { x, y };
+}

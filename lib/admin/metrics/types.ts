@@ -39,6 +39,7 @@ export interface PeriodPerformance {
     aiWordsInPeriod: number;
     plagiarismChecksInPeriod: number;
     topicFinderSearchesInPeriod: number;
+    paraphraseUsesInPeriod: number;
     growth: Array<{ _id: string; count: number }>;
     topUsersByUsage: Array<{
       userId: string;
@@ -48,6 +49,7 @@ export interface PeriodPerformance {
       totalAIWords: number;
       totalPlagiarismChecks: number;
       totalTopicFinderSearches: number;
+      totalParaphraseUses: number;
     }>;
   };
   revenue: {

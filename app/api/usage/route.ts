@@ -16,6 +16,7 @@ export async function GET() {
     return NextResponse.json({
       aiWordsGenerated: usage.aiWordsGenerated,
       plagiarismChecks: usage.plagiarismChecks,
+      paraphraseUses: usage.paraphraseUses || 0,
       limits,
     });
   } catch (error) {

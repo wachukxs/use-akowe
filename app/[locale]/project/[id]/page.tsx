@@ -38,6 +38,8 @@ import {
   GripVertical,
   AlertCircle,
   RefreshCw,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -53,6 +55,7 @@ import {
 import {
   getRangeAtPoint,
   viewportSafePillPosition,
+  viewportSafeRewritePanelPosition,
 } from "@/lib/editor-context-menu-helpers";
 import {
   CITATION_HIGHLIGHT_ATTR,
@@ -547,6 +550,41 @@ export default function ProjectEditorPage({
     y: number;
   } | null>(null);
   const [contextMenuPillVisible, setContextMenuPillVisible] = useState(false);
+  const [contextMenuHasSelection, setContextMenuHasSelection] = useState(false);
+
+  // Rewrite tool state
+  const [hasTextSelection, setHasTextSelection] = useState(false);
+  const [selectionBarPosition, setSelectionBarPosition] = useState<{x: number; y: number} | null>(null);
+  const [selectionBarVisible, setSelectionBarVisible] = useState(false);
+  const selectionBarRef = useRef<HTMLDivElement | null>(null);
+  const [rewriteTooltipVisible, setRewriteTooltipVisible] = useState(false);
+  const rewriteTooltipShownRef = useRef(false);
+  const rewriteOriginalRangeRef = useRef<Range | null>(null);
+  const [rewriteOriginalText, setRewriteOriginalText] = useState('');
+  const [rewritePanelVisible, setRewritePanelVisible] = useState(false);
+  const [rewritePanelPosition, setRewritePanelPosition] = useState<{x: number; y: number} | null>(null);
+  const [rewriteStatus, setRewriteStatus] = useState<'mode_select' | 'loading' | 'preview' | 'error'>('mode_select');
+  const [rewriteResult, setRewriteResult] = useState('');
+  const [rewriteError, setRewriteError] = useState('');
+  const [rewriteMode, setRewriteMode] = useState<string>('');
+  const [rewriteOriginalWordCount, setRewriteOriginalWordCount] = useState(0);
+  const [rewriteNewWordCount, setRewriteNewWordCount] = useState(0);
+  const rewritePanelRef = useRef<HTMLDivElement | null>(null);
+  const [rewriteLimitReached, setRewriteLimitReached] = useState(false);
+  const [rewriteRemaining, setRewriteRemaining] = useState<number | null>(null);
+  const [rewriteLimit, setRewriteLimit] = useState<number | null>(null);
+  const [rewriteHighlightRects, setRewriteHighlightRects] = useState<Array<{top: number; left: number; width: number; height: number}>>([]);
+  const [rewriteHighlightType, setRewriteHighlightType] = useState<'loading' | 'success' | null>(null);
+
+  // Citation choice popover state
+  const [citationChoiceVisible, setCitationChoiceVisible] = useState(false);
+  const [citationChoicePending, setCitationChoicePending] = useState<any>(null);
+  const [citationContextStatus, setCitationContextStatus] = useState<'idle' | 'loading' | 'preview' | 'error'>('idle');
+  const [citationContextResult, setCitationContextResult] = useState('');
+  const [citationContextError, setCitationContextError] = useState('');
+  const [citationContextLimitReached, setCitationContextLimitReached] = useState(false);
+  const [citationContextRemaining, setCitationContextRemaining] = useState<number | null>(null);
+  const [citationContextLimit, setCitationContextLimit] = useState<number | null>(null);
 
   const handleSectionChange = useCallback(
     async (sectionId: string, content: string) => {
@@ -679,6 +717,13 @@ export default function ProjectEditorPage({
   const closeCitationDiscoveryModal = useCallback(() => {
     setShowCitationDiscovery(false);
     storedInsertRangeRef.current = null;
+    // Also close citation choice popover if open
+    setCitationChoiceVisible(false);
+    setCitationChoicePending(null);
+    setCitationContextStatus('idle');
+    setCitationContextResult('');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
   }, []);
 
   useEffect(() => {
@@ -711,6 +756,49 @@ export default function ProjectEditorPage({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [contextMenuPillVisible]);
+
+  // Outside-click dismiss for rewrite panel
+  useEffect(() => {
+    if (!rewritePanelVisible) return;
+    const isInsidePanel = (target: EventTarget | null) => {
+      const node = target as Node;
+      const panel = rewritePanelRef.current;
+      return panel?.contains(node) ?? false;
+    };
+    const handleMouseDown = (e: MouseEvent) => {
+      if (isInsidePanel(e.target as Node)) return;
+      closeRewritePanel();
+    };
+    const handleTouchStart = (e: TouchEvent) => {
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      if (el && isInsidePanel(el)) return;
+      closeRewritePanel();
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRewritePanel();
+    };
+    document.addEventListener("mousedown", handleMouseDown, true);
+    document.addEventListener("touchstart", handleTouchStart, true);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown, true);
+      document.removeEventListener("touchstart", handleTouchStart, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [rewritePanelVisible]);
+
+  // Clear overlay highlights on scroll (fixed-position rects drift when editor scrolls)
+  useEffect(() => {
+    if (rewriteHighlightRects.length === 0) return;
+    const handleScroll = () => {
+      setRewriteHighlightRects([]);
+      setRewriteHighlightType(null);
+    };
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, [rewriteHighlightRects]);
 
   // AI Assistant functions
   const handleAIWrite = async (sectionId: string) => {
@@ -932,6 +1020,194 @@ export default function ProjectEditorPage({
     discoverCitations(0, false, citationSearchQuery);
   };
 
+  // ── Rewrite tool functions ──
+
+  const getOverlayRectsFromRange = (range: Range): Array<{top: number; left: number; width: number; height: number}> => {
+    const clientRects = range.getClientRects();
+    const rects: Array<{top: number; left: number; width: number; height: number}> = [];
+    for (let i = 0; i < clientRects.length; i++) {
+      const r = clientRects[i];
+      if (r.width === 0 && r.height === 0) continue;
+      rects.push({
+        top: r.top,
+        left: r.left,
+        width: r.width,
+        height: r.height,
+      });
+    }
+    return rects;
+  };
+
+  const openRewritePanel = (fromContextMenu: boolean) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const selText = selection.toString().trim();
+    if (!selText) return;
+
+    const wordCount = selText.split(/\s+/).filter((w) => w.length > 0).length;
+
+    const range = selection.getRangeAt(0).cloneRange();
+    const rect = range.getBoundingClientRect();
+
+    // Validation: too short or too long — open panel showing the error
+    if (wordCount < 3 || selText.length > 4000) {
+      setRewritePanelPosition(
+        viewportSafeRewritePanelPosition(rect.left, rect.bottom)
+      );
+      setRewriteError(wordCount < 3 ? t("rewriteSelectMore") : t("rewriteTooLong"));
+      setRewriteStatus('error');
+      setRewriteResult('');
+      setRewriteMode('');
+      setRewriteLimitReached(false);
+      setRewritePanelVisible(true);
+      setSelectionBarVisible(false);
+      setRewriteTooltipVisible(false);
+      if (fromContextMenu) setContextMenuPillVisible(false);
+      return;
+    }
+
+    rewriteOriginalRangeRef.current = range;
+    setRewriteOriginalText(selText);
+    setRewriteOriginalWordCount(wordCount);
+
+    setRewritePanelPosition(
+      viewportSafeRewritePanelPosition(rect.left, rect.bottom)
+    );
+    setRewriteStatus('mode_select');
+    setRewriteResult('');
+    setRewriteError('');
+    setRewriteMode('');
+    setRewritePanelVisible(true);
+    setSelectionBarVisible(false);
+    setRewriteTooltipVisible(false);
+
+    if (fromContextMenu) {
+      setContextMenuPillVisible(false);
+    }
+  };
+
+  const handleRewriteModeSelect = async (mode: string) => {
+    setRewriteStatus('loading');
+    setRewriteMode(mode);
+    setRewriteError('');
+
+    // Show loading overlay highlight (outside editor DOM - never persisted)
+    const range = rewriteOriginalRangeRef.current;
+    if (range) {
+      setRewriteHighlightRects(getOverlayRectsFromRange(range));
+      setRewriteHighlightType('loading');
+    }
+
+    try {
+      const res = await fetch('/api/ai/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: rewriteOriginalText,
+          mode,
+          projectId: project?._id,
+        }),
+      });
+
+      // Clear loading highlight
+      setRewriteHighlightRects([]);
+      setRewriteHighlightType(null);
+
+      if (res.status === 429) {
+        const data = await res.json();
+        if (data.limitType === 'paraphrase') {
+          setRewriteLimitReached(true);
+          setRewriteStatus('error');
+        } else {
+          setRewriteError(data.error || t("rewriteLimitReached"));
+          setRewriteStatus('error');
+        }
+        return;
+      }
+
+      if (!res.ok) {
+        setRewriteError(t("rewriteError"));
+        setRewriteStatus('error');
+        return;
+      }
+
+      const data = await res.json();
+      setRewriteResult(data.rewrittenText);
+      setRewriteNewWordCount(data.wordCount);
+      setRewriteOriginalWordCount(data.originalWordCount);
+      if (data.remainingRewrites !== undefined && data.remainingRewrites !== Infinity) {
+        setRewriteRemaining(data.remainingRewrites);
+        setRewriteLimit(data.rewriteLimit);
+      }
+      setRewriteStatus('preview');
+    } catch {
+      setRewriteHighlightRects([]);
+      setRewriteHighlightType(null);
+      setRewriteError(t("rewriteError"));
+      setRewriteStatus('error');
+    }
+  };
+
+  const acceptRewrite = () => {
+    if (!rewritePanelVisible) return;
+    setRewritePanelVisible(false);
+
+    const range = rewriteOriginalRangeRef.current;
+    const editor = document.querySelector('[contenteditable="true"]');
+    if (!range || !editor || !editor.contains(range.startContainer)) {
+      closeRewritePanel();
+      return;
+    }
+
+    try {
+      // Insert plain text only - no wrapper spans in editor DOM
+      range.deleteContents();
+      const textNode = document.createTextNode(rewriteResult);
+      range.insertNode(textNode);
+
+      // Dispatch input to save clean content
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Show success overlay highlight (outside editor DOM - never persisted)
+      // Create a temporary range around the inserted text to get its rects
+      const tempRange = document.createRange();
+      tempRange.selectNode(textNode);
+      const rects = getOverlayRectsFromRange(tempRange);
+      setRewriteHighlightRects(rects);
+      setRewriteHighlightType('success');
+
+      // Fade out and clear after 3s
+      setTimeout(() => {
+        setRewriteHighlightType(null);
+        setRewriteHighlightRects([]);
+      }, 3000);
+    } catch (err) {
+      console.warn('Rewrite accept failed:', err);
+    }
+
+    // Reset state
+    rewriteOriginalRangeRef.current = null;
+    setRewriteOriginalText('');
+    setRewriteResult('');
+    setRewriteError('');
+    setRewriteMode('');
+    setRewriteStatus('mode_select');
+  };
+
+  const closeRewritePanel = () => {
+    setRewriteHighlightRects([]);
+    setRewriteHighlightType(null);
+    setRewritePanelVisible(false);
+    rewriteOriginalRangeRef.current = null;
+    setRewriteOriginalText('');
+    setRewriteResult('');
+    setRewriteError('');
+    setRewriteMode('');
+    setRewriteStatus('mode_select');
+    setRewriteLimitReached(false);
+  };
+
   // Function to check current formatting state using document.queryCommandState
   const checkFormattingState = () => {
     try {
@@ -943,6 +1219,43 @@ export default function ProjectEditorPage({
 
         // Only check formatting if selection is within our editor
         if (editor && editor.contains(range.commonAncestorContainer)) {
+          // Track whether user has text selected (for rewrite button + floating bar)
+          const selText = selection.toString();
+          const hasSelection = selText.trim().length > 0;
+          setHasTextSelection(hasSelection);
+
+          // Position the floating selection bar when text is selected
+          if (hasSelection && !rewritePanelVisible) {
+            const rect = range.getBoundingClientRect();
+            if (rect.width > 0) {
+              const barX = rect.left + rect.width / 2 - 60;
+              const barY = rect.top - 48;
+              const safeX = Math.max(8, Math.min(barX, window.innerWidth - 130));
+              const safeY = barY < 8 ? rect.bottom + 8 : barY;
+              setSelectionBarPosition({ x: safeX, y: safeY });
+              setSelectionBarVisible(true);
+
+              // First-use tooltip: show once ever
+              if (!rewriteTooltipShownRef.current) {
+                try {
+                  const dismissed = localStorage.getItem('akowe-rewrite-tooltip-dismissed');
+                  if (!dismissed) {
+                    setRewriteTooltipVisible(true);
+                    rewriteTooltipShownRef.current = true;
+                    localStorage.setItem('akowe-rewrite-tooltip-dismissed', '1');
+                    setTimeout(() => setRewriteTooltipVisible(false), 5000);
+                  } else {
+                    rewriteTooltipShownRef.current = true;
+                  }
+                } catch {
+                  rewriteTooltipShownRef.current = true;
+                }
+              }
+            }
+          } else {
+            setSelectionBarVisible(false);
+          }
+
           // Use document.queryCommandState for more accurate state detection
           const isBold = document.queryCommandState("bold");
           const isItalic = document.queryCommandState("italic");
@@ -1015,6 +1328,8 @@ export default function ProjectEditorPage({
         }
       } else {
         // No selection, reset formatting state
+        setHasTextSelection(false);
+        setSelectionBarVisible(false);
         setFormattingState({
           bold: false,
           italic: false,
@@ -1583,31 +1898,59 @@ export default function ProjectEditorPage({
     }
   };
 
-  const addCitationToEditor = async (citation: any) => {
+  const addCitationToEditor = (citation: any) => {
     if (!project || !activeSection) return;
+    const section = project.sections.find((s) => s.id === activeSection);
+    if (!section) return;
+
+    // Stage citation and show choice popover
+    setCitationChoicePending(citation);
+    setCitationContextStatus('idle');
+    setCitationContextResult('');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
+    setCitationContextRemaining(null);
+    setCitationContextLimit(null);
+    setCitationChoiceVisible(true);
+  };
+
+  const closeCitationChoice = () => {
+    setCitationChoiceVisible(false);
+    setCitationChoicePending(null);
+    setCitationContextStatus('idle');
+    setCitationContextResult('');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
+    setCitationContextRemaining(null);
+    setCitationContextLimit(null);
+  };
+
+  const handleInsertReference = async () => {
+    const citation = citationChoicePending;
+    if (!project || !activeSection || !citation) return;
 
     const section = project.sections.find((s) => s.id === activeSection);
     if (!section) return;
 
     setIsAddingCitation(true);
-
     const currentContent = cleanupSectionContent(section.content || "");
     const editor = editorContentEditableRef.current;
     const storedRange = storedInsertRangeRef.current;
 
-    // Insert-at-position path: only when stored range is in the current editor (avoids wrong section after switch)
+    const authorsText = Array.isArray(citation.authors)
+      ? citation.authors.join(", ")
+      : citation.authors || "Unknown Author";
+    const citationText = `(${authorsText}, ${formatYearForDisplay(
+      citation.year
+    )})`;
+
+    // Insert at stored cursor range if valid
     if (
       editor &&
       storedRange &&
       document.contains(storedRange.startContainer) &&
       editor.contains(storedRange.startContainer)
     ) {
-      const authorsText = Array.isArray(citation.authors)
-        ? citation.authors.join(", ")
-        : citation.authors || "Unknown Author";
-      const citationText = `(${authorsText}, ${formatYearForDisplay(
-        citation.year
-      )})`;
       insertCitationAtRange(editor, storedRange, citationText, true);
       const newContent = editor.innerHTML;
       const normalized = normalizeCitationForProject(citation);
@@ -1622,6 +1965,7 @@ export default function ProjectEditorPage({
       );
       setLocalSectionContent(newContent);
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
       await refreshCitationsAfterAdd(
@@ -1632,157 +1976,10 @@ export default function ProjectEditorPage({
       );
       scheduleCitationHighlightRemoval(editor);
       scheduleScrollEditorIntoView(editorSectionRef);
-      setShowSuccessMessage("✅ Citation added to section!");
+      setShowSuccessMessage("Citation added to section!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
-      setIsAddingCitation(false);
-      return;
-    }
-
-    // Use intelligent integration for all content lengths
-    try {
-      const response = await fetch("/api/citations/integrate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sectionContent: currentContent,
-          citation: citation,
-          citationStyle: project.citationStyle || "APA",
-          sectionTitle: section.title,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        // Track first output generated if server indicates it
-        if (data.tracking?.trackEvent) {
-          const { eventName, params } = data.tracking.trackEvent;
-          if (eventName === "first_output_generated") {
-            trackFunnel.firstOutputGenerated(
-              params.user_id,
-              params.output_type
-            );
-          }
-        }
-
-        const integratedContent = data.integratedContent;
-        const normalized = normalizeCitationForProject(citation);
-        const citationsToSave = getCitationsWithAdded(
-          project.citations ?? [],
-          normalized
-        );
-
-        // Update both the project state and local section content for real-time editor update
-        handleSectionChange(activeSection, integratedContent);
-        setProject((prev) =>
-          prev ? { ...prev, citations: citationsToSave } : null
-        );
-        setLocalSectionContent(integratedContent);
-        setRealTimeWordCount(
-          countWords(cleanupSectionContent(integratedContent))
-        );
-
-        // Update editor content directly with cursor preservation
-        updateEditorContent(integratedContent);
-
-        const citationTextForHighlight = `(${
-          Array.isArray(citation.authors)
-            ? citation.authors.join(", ")
-            : citation.authors ?? "Unknown Author"
-        }, ${formatYearForDisplay(citation.year)})`;
-        if (editor) {
-          wrapCitationInHighlight(editor, citationTextForHighlight);
-          scheduleCitationHighlightRemoval(editor);
-        }
-        setShowCitationDiscovery(false);
-        storedInsertRangeRef.current = null;
-        await refreshCitationsAfterAdd(
-          project,
-          activeSection,
-          integratedContent,
-          citationsToSave
-        );
-        scheduleScrollEditorIntoView(editorSectionRef);
-
-        // Provide context-aware success message based on integration type
-        let successMessage = "✅ Citation added to section!";
-        if (data.integrationType === "TEMPLATE_REPLACEMENT") {
-          successMessage = "✅ Citation integrated with new content!";
-        } else if (data.integrationType === "CONTENT_EXPANSION") {
-          successMessage = "✅ Citation added with enhanced content!";
-        } else if (data.integrationType === "NATURAL_INTEGRATION") {
-          successMessage = "✅ Citation intelligently placed in section!";
-        } else if (data.integrationType === "CONTENT_CONDENSATION") {
-          successMessage = "✅ Citation integrated with improved content!";
-        }
-
-        setShowSuccessMessage(successMessage);
-        setTimeout(() => setShowSuccessMessage(""), 6000);
-      } else if (response.status === 429) {
-        // AI word limit – do not add citation; show clear error for 6 seconds
-        let errorMessage = t("errors.wordLimitReached");
-        try {
-          const data = await response.json();
-          if (typeof data?.error === "string" && data.error.trim()) {
-            errorMessage = data.error.trim();
-          }
-        } catch {
-          // ignore JSON parse failure
-        }
-        setShowSuccessMessage(
-          `Citation not added. ${errorMessage} Upgrade to add more citations.`
-        );
-        setTimeout(() => setShowSuccessMessage(""), 6000);
-        storedInsertRangeRef.current = null;
-      } else {
-        // Fallback to simple append if integration fails (with highlight span)
-        const authorsText = Array.isArray(citation.authors)
-          ? citation.authors.join(", ")
-          : citation.authors || "Unknown Author";
-        const citationText = `(${authorsText}, ${formatYearForDisplay(
-          citation.year
-        )})`;
-        const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
-          citationText
-        )}</span>`;
-        const newContent =
-          currentContent + (currentContent ? " " : "") + highlightedCitation;
-        const normalized = normalizeCitationForProject(citation);
-        const citationsToSave = getCitationsWithAdded(
-          project.citations ?? [],
-          normalized
-        );
-
-        handleSectionChange(activeSection, newContent);
-        setProject((prev) =>
-          prev ? { ...prev, citations: citationsToSave } : null
-        );
-        setLocalSectionContent(newContent);
-        setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
-        updateEditorContent(newContent);
-
-        if (editor) scheduleCitationHighlightRemoval(editor);
-        setShowCitationDiscovery(false);
-        storedInsertRangeRef.current = null;
-        await refreshCitationsAfterAdd(
-          project,
-          activeSection,
-          newContent,
-          citationsToSave
-        );
-        scheduleScrollEditorIntoView(editorSectionRef);
-        setShowSuccessMessage("Citation added to editor!");
-        setTimeout(() => setShowSuccessMessage(""), 6000);
-      }
-    } catch (error) {
-      console.error("Error integrating citation:", error);
-      // Fallback to simple append (with highlight span)
-      const authorsText = Array.isArray(citation.authors)
-        ? citation.authors.join(", ")
-        : citation.authors || "Unknown Author";
-      const citationText = `(${authorsText}, ${formatYearForDisplay(
-        citation.year
-      )})`;
+    } else {
+      // Fallback: append at end of section
       const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
         citationText
       )}</span>`;
@@ -1803,6 +2000,7 @@ export default function ProjectEditorPage({
       updateEditorContent(newContent);
 
       if (editor) scheduleCitationHighlightRemoval(editor);
+      closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
       await refreshCitationsAfterAdd(
@@ -1812,12 +2010,147 @@ export default function ProjectEditorPage({
         citationsToSave
       );
       scheduleScrollEditorIntoView(editorSectionRef);
-      setShowSuccessMessage("Citation added to editor!");
+      setShowSuccessMessage("Citation added to section!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
-    } finally {
-      // Always reset loading state
-      setIsAddingCitation(false);
     }
+    setIsAddingCitation(false);
+  };
+
+  const handleInsertWithContext = async () => {
+    const citation = citationChoicePending;
+    if (!project || !activeSection || !citation) return;
+
+    const section = project.sections.find((s) => s.id === activeSection);
+    if (!section) return;
+
+    setCitationContextStatus('loading');
+    setCitationContextError('');
+    setCitationContextLimitReached(false);
+
+    try {
+      const response = await fetch("/api/citations/generate-context", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          citation,
+          citationStyle: project.citationStyle || "APA",
+          sectionTitle: section.title,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCitationContextResult(data.generatedText);
+        setCitationContextRemaining(data.remaining);
+        setCitationContextLimit(data.limit);
+        setCitationContextStatus('preview');
+      } else if (response.status === 429) {
+        let remaining = 0;
+        let limit = 0;
+        try {
+          const data = await response.json();
+          remaining = data.remaining ?? 0;
+          limit = data.limit ?? 0;
+        } catch {
+          // ignore
+        }
+        setCitationContextRemaining(remaining);
+        setCitationContextLimit(limit);
+        setCitationContextLimitReached(true);
+        setCitationContextStatus('error');
+      } else {
+        setCitationContextError(t("errors.contextGenerationFailed"));
+        setCitationContextStatus('error');
+      }
+    } catch {
+      setCitationContextError(t("errors.contextGenerationFailed"));
+      setCitationContextStatus('error');
+    }
+  };
+
+  const acceptCitationContext = async () => {
+    const citation = citationChoicePending;
+    if (!project || !activeSection || !citation || !citationContextResult) return;
+
+    const section = project.sections.find((s) => s.id === activeSection);
+    if (!section) return;
+
+    setIsAddingCitation(true);
+    const currentContent = cleanupSectionContent(section.content || "");
+    const editor = editorContentEditableRef.current;
+    const storedRange = storedInsertRangeRef.current;
+    const textToInsert = citationContextResult;
+
+    // Insert at stored cursor range if valid
+    if (
+      editor &&
+      storedRange &&
+      document.contains(storedRange.startContainer) &&
+      editor.contains(storedRange.startContainer)
+    ) {
+      insertCitationAtRange(editor, storedRange, textToInsert, true);
+      const newContent = editor.innerHTML;
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(
+        project.citations ?? [],
+        normalized
+      );
+
+      handleSectionChange(activeSection, newContent);
+      setProject((prev) =>
+        prev ? { ...prev, citations: citationsToSave } : null
+      );
+      setLocalSectionContent(newContent);
+      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      closeCitationChoice();
+      setShowCitationDiscovery(false);
+      storedInsertRangeRef.current = null;
+      await refreshCitationsAfterAdd(
+        project,
+        activeSection,
+        newContent,
+        citationsToSave
+      );
+      scheduleCitationHighlightRemoval(editor);
+      scheduleScrollEditorIntoView(editorSectionRef);
+      setShowSuccessMessage("Citation added with context!");
+      setTimeout(() => setShowSuccessMessage(""), 6000);
+    } else {
+      // Fallback: append at end of section
+      const highlightedText = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
+        textToInsert
+      )}</span>`;
+      const newContent =
+        currentContent + (currentContent ? " " : "") + highlightedText;
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(
+        project.citations ?? [],
+        normalized
+      );
+
+      handleSectionChange(activeSection, newContent);
+      setProject((prev) =>
+        prev ? { ...prev, citations: citationsToSave } : null
+      );
+      setLocalSectionContent(newContent);
+      setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+      updateEditorContent(newContent);
+
+      if (editor) scheduleCitationHighlightRemoval(editor);
+      closeCitationChoice();
+      setShowCitationDiscovery(false);
+      storedInsertRangeRef.current = null;
+      await refreshCitationsAfterAdd(
+        project,
+        activeSection,
+        newContent,
+        citationsToSave
+      );
+      scheduleScrollEditorIntoView(editorSectionRef);
+      setShowSuccessMessage("Citation added with context!");
+      setTimeout(() => setShowSuccessMessage(""), 6000);
+    }
+    setIsAddingCitation(false);
   };
 
   // Citation filtering and sorting functions
@@ -3398,6 +3731,20 @@ title={t("deleteSection")}
                             >
                               <BarChart3 className="h-4 w-4" />
                             </button>
+                            <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+                            <button
+                              onClick={() => openRewritePanel(false)}
+                              disabled={!hasTextSelection}
+                              className={cn(
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                hasTextSelection
+                                  ? "hover:border-[hsl(var(--border-strong))] text-[hsl(var(--primary))]"
+                                  : "opacity-40 cursor-not-allowed"
+                              )}
+                              title={t("rewriteWithAI")}
+                            >
+                              <Sparkles className="h-4 w-4" />
+                            </button>
                           </div>
 
                           <div className="flex-1"></div>
@@ -3430,6 +3777,8 @@ title={t("deleteSection")}
                                 .getRangeAt(0)
                                 .cloneRange();
                               storedInsertRangeRef.current = range;
+                              const hasSelection = selection.toString().trim().length > 0;
+                              setContextMenuHasSelection(hasSelection);
                               setContextMenuPillPosition(
                                 viewportSafePillPosition(e.clientX, e.clientY)
                               );
@@ -4394,6 +4743,349 @@ title={t("deleteSection")}
             >
               {CONTEXT_MENU_FIND_CITATION_LABEL}
             </button>
+            {contextMenuHasSelection && (
+              <>
+                <div className="w-px h-6 bg-[hsl(var(--border-strong))]" />
+                <button
+                  type="button"
+                  onClick={() => openRewritePanel(true)}
+                  className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation flex items-center"
+                >
+                  <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                  {t("rewrite")}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Rewrite highlight overlay (outside editor DOM - never persisted in content) */}
+        {rewriteHighlightRects.length > 0 && rewriteHighlightType && (
+          <>
+            {rewriteHighlightRects.map((rect, i) => (
+              <div
+                key={i}
+                className={`fixed pointer-events-none z-[55] rounded-sm ${
+                  rewriteHighlightType === 'loading'
+                    ? 'rewrite-loading-highlight'
+                    : 'rewrite-just-applied'
+                }`}
+                style={{
+                  top: rect.top,
+                  left: rect.left,
+                  width: rect.width,
+                  height: rect.height,
+                }}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Floating selection bar - appears when text is selected */}
+        {selectionBarVisible && selectionBarPosition && !rewritePanelVisible && !contextMenuPillVisible && (
+          <div
+            ref={selectionBarRef}
+            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[40px] flex items-center animate-in fade-in duration-150"
+            style={{
+              left: selectionBarPosition.x,
+              top: selectionBarPosition.y,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => openRewritePanel(false)}
+              className="min-h-[36px] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation flex items-center gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+              {t("rewrite")}
+            </button>
+            {rewriteTooltipVisible && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 rounded-(--radius) bg-[hsl(var(--foreground))] text-[hsl(var(--background))] text-xs font-medium whitespace-nowrap shadow-lg animate-in fade-in slide-in-from-top-1 duration-200"
+                onClick={() => setRewriteTooltipVisible(false)}
+              >
+                {t("rewriteTooltipNew")}
+                <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-2 h-2 bg-[hsl(var(--foreground))] rotate-45" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Rewrite Panel */}
+        {rewritePanelVisible && rewritePanelPosition && (
+          <div
+            ref={rewritePanelRef}
+            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-3 w-[320px]"
+            style={{
+              left: rewritePanelPosition.x,
+              top: rewritePanelPosition.y,
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1.5 text-sm font-semibold">
+                <Sparkles className="h-4 w-4 text-[hsl(var(--primary))]" />
+                {t("rewriteWithAI")}
+              </div>
+              <button
+                type="button"
+                onClick={closeRewritePanel}
+                className="p-1 rounded-(--radius) hover:bg-[hsl(var(--surface-muted))] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Mode Selection */}
+            {rewriteStatus === 'mode_select' && (
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { mode: 'academic', label: t("rewriteModeAcademic"), desc: t("rewriteModeAcademicDesc") },
+                  { mode: 'concise', label: t("rewriteModeConcise"), desc: t("rewriteModeConciseDesc") },
+                  { mode: 'expanded', label: t("rewriteModeExpanded"), desc: t("rewriteModeExpandedDesc") },
+                  { mode: 'simplified', label: t("rewriteModeSimplified"), desc: t("rewriteModeSimplifiedDesc") },
+                ].map((item) => (
+                  <button
+                    key={item.mode}
+                    type="button"
+                    onClick={() => handleRewriteModeSelect(item.mode)}
+                    className="p-3 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
+                  >
+                    <div className="text-sm font-semibold">{item.label}</div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">{item.desc}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Loading */}
+            {rewriteStatus === 'loading' && (
+              <div className="flex items-center justify-center gap-2 py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--primary))]" />
+                <span className="text-sm text-[hsl(var(--muted-foreground))]">{t("rewriteLoading")}</span>
+              </div>
+            )}
+
+            {/* Preview */}
+            {rewriteStatus === 'preview' && (
+              <div>
+                <p className="text-xs font-semibold text-[hsl(var(--muted-foreground))] mb-1.5">{t("rewritePreviewTitle")}</p>
+                <div className="max-h-[200px] overflow-y-auto rounded-(--radius) border-2 border-[hsl(var(--border-strong))] p-2 text-sm mb-3">
+                  {rewriteResult}
+                </div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    {rewriteOriginalWordCount} &rarr; {rewriteNewWordCount} {t("words")}
+                  </p>
+                  {rewriteRemaining !== null && rewriteLimit !== null && (
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {rewriteRemaining}/{rewriteLimit} {t("rewriteRemaining")}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={acceptRewrite}
+                    className="flex-1 px-3 py-2 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    {t("rewriteAccept")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRewriteStatus('mode_select')}
+                    className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                  >
+                    {t("rewriteTryAgain")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Error / Upsell */}
+            {rewriteStatus === 'error' && (
+              <div>
+                {rewriteLimitReached ? (
+                  <div className="text-center">
+                    <div className="w-10 h-10 rounded-full bg-[hsl(var(--accent))] flex items-center justify-center mx-auto mb-3">
+                      <Sparkles className="h-5 w-5 text-[hsl(var(--primary))]" />
+                    </div>
+                    <p className="text-sm font-semibold mb-1">{t("rewriteUpgradeTitle")}</p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-4">{t("rewriteUpgradeBody")}</p>
+                    <NavLink
+                      href="/settings"
+                      className="block w-full px-3 py-2.5 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity text-center"
+                    >
+                      {t("rewriteUpgradeCta")}
+                    </NavLink>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-red-600 mb-3">{rewriteError || t("rewriteError")}</p>
+                    <button
+                      type="button"
+                      onClick={() => setRewriteStatus('mode_select')}
+                      className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors w-full"
+                    >
+                      {t("rewriteTryAgain")}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Citation Choice Popover */}
+        {citationChoiceVisible && citationChoicePending && (
+          <div
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeCitationChoice();
+            }}
+          >
+            <div className="w-full max-w-[360px] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-4">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Plus className="h-4 w-4 text-[hsl(var(--primary))]" />
+                  {t("citationChoiceTitle")}
+                </div>
+                <button
+                  type="button"
+                  onClick={closeCitationChoice}
+                  className="p-1 rounded-(--radius) hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Idle: Two choice buttons */}
+              {citationContextStatus === 'idle' && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={handleInsertReference}
+                    className="p-3 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Plus className="h-4 w-4" />
+                      {t("citationInsertReference")}
+                    </div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
+                      {t("citationInsertReferenceDesc")}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleInsertWithContext}
+                    className="p-3 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Sparkles className="h-4 w-4" />
+                      {t("citationInsertWithContext")}
+                    </div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">
+                      {t("citationInsertWithContextDesc")}
+                    </div>
+                  </button>
+                </div>
+              )}
+
+              {/* Loading */}
+              {citationContextStatus === 'loading' && (
+                <div className="flex items-center justify-center gap-2 py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--primary))]" />
+                  <span className="text-sm text-[hsl(var(--muted-foreground))]">{t("citationContextLoading")}</span>
+                </div>
+              )}
+
+              {/* Preview */}
+              {citationContextStatus === 'preview' && (
+                <div>
+                  <p className="text-xs font-semibold text-[hsl(var(--muted-foreground))] mb-1.5">{t("citationContextPreviewTitle")}</p>
+                  <div className="max-h-[200px] overflow-y-auto rounded-(--radius) border-2 border-[hsl(var(--border-strong))] p-2 text-sm mb-3">
+                    {citationContextResult}
+                  </div>
+                  {citationContextRemaining !== null && citationContextLimit !== null && (
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-3">
+                      {citationContextRemaining}/{citationContextLimit} {t("rewriteRemaining")}
+                    </p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={acceptCitationContext}
+                      className="flex-1 px-3 py-2 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      {t("rewriteAccept")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleInsertWithContext}
+                      className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                    >
+                      {t("rewriteTryAgain")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeCitationChoice}
+                      className="px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                    >
+                      {t("dismiss")}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Error / Upsell */}
+              {citationContextStatus === 'error' && (
+                <div>
+                  {citationContextLimitReached ? (
+                    <div className="text-center">
+                      <div className="w-10 h-10 rounded-full bg-[hsl(var(--accent))] flex items-center justify-center mx-auto mb-3">
+                        <Sparkles className="h-5 w-5 text-[hsl(var(--primary))]" />
+                      </div>
+                      <p className="text-sm font-semibold mb-1">{t("rewriteUpgradeTitle")}</p>
+                      <p className="text-xs text-[hsl(var(--muted-foreground))] mb-4">{t("citationContextUpgradeBody")}</p>
+                      <NavLink
+                        href="/settings"
+                        className="block w-full px-3 py-2.5 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity text-center mb-3"
+                      >
+                        {t("rewriteUpgradeCta")}
+                      </NavLink>
+                      <button
+                        type="button"
+                        onClick={handleInsertReference}
+                        className="w-full px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                      >
+                        {t("citationInsertReference")}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-red-600 mb-3">{citationContextError || t("errors.contextGenerationFailed")}</p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleInsertWithContext}
+                          className="flex-1 px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                        >
+                          {t("rewriteTryAgain")}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleInsertReference}
+                          className="flex-1 px-3 py-2 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] text-sm font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
+                        >
+                          {t("citationInsertReference")}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

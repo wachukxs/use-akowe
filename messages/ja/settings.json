@@ -17,7 +17,8 @@
     "aiWordsToday": "本日のAI文字数",
     "plagiarismChecksToday": "本日の盗用チェック数",
     "maxProjects": "プロジェクト上限",
-    "unlimited": "無制限"
+    "unlimited": "無制限",
+    "paraphraseUsesToday": "本日の書き換え回数"
   },
   "plans": {
     "choosePlan": "プランを選択",

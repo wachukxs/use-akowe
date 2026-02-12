@@ -17,7 +17,8 @@
     "aiWordsToday": "AI Words Today",
     "plagiarismChecksToday": "Plagiarism Checks Today",
     "maxProjects": "Max Projects",
-    "unlimited": "Unlimited"
+    "unlimited": "Unlimited",
+    "paraphraseUsesToday": "Rewrites today"
   },
   "plans": {
     "choosePlan": "Choose Your Plan",

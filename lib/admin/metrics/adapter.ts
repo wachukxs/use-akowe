@@ -43,6 +43,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
       totalPlagiarismChecks: 0, // Not in new structure, can be calculated if needed
       aiWordsLast30Days: response.periodPerformance.usage.aiWordsInPeriod,
       plagiarismChecksLast30Days: response.periodPerformance.usage.plagiarismChecksInPeriod,
+      paraphraseUsesInPeriod: response.periodPerformance.usage.paraphraseUsesInPeriod,
       growth: response.periodPerformance.usage.growth || [],
       topUsersByUsage: response.detailedLists.topUsersByUsage,
     },

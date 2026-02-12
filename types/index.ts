@@ -113,6 +113,7 @@ export interface DailyUsage {
   aiWordsGenerated: number;
   plagiarismChecks: number;
   topicFinderSearches: number;
+  paraphraseUses: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -120,6 +121,7 @@ export interface DailyUsage {
 export interface UsageLimits {
   aiWordsPerDay: number;
   plagiarismChecksPerDay: number;
+  paraphrasePerDay: number;
   maxProjects?: number;
 }
 
@@ -127,15 +129,18 @@ export const PLAN_LIMITS: Record<PlanType, UsageLimits> = {
   free: {
     aiWordsPerDay: 1500,
     plagiarismChecksPerDay: 3,
+    paraphrasePerDay: 2,
     maxProjects: 3,
   },
   pro: {
     aiWordsPerDay: Infinity,
     plagiarismChecksPerDay: Infinity,
+    paraphrasePerDay: Infinity,
   },
   team: {
     aiWordsPerDay: Infinity,
     plagiarismChecksPerDay: Infinity,
+    paraphrasePerDay: Infinity,
   },
 };
 

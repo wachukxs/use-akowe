@@ -58,6 +58,7 @@ interface AdminMetricsResponse {
       aiWordsInPeriod: number;
       plagiarismChecksInPeriod: number;
       topicFinderSearchesInPeriod: number;
+      paraphraseUsesInPeriod: number;
       growth: Array<{ _id: string; count: number }>;
       topUsersByUsage: Array<{
         userId: string;
@@ -67,6 +68,7 @@ interface AdminMetricsResponse {
         totalAIWords: number;
         totalPlagiarismChecks: number;
         totalTopicFinderSearches: number;
+        totalParaphraseUses: number;
         totalCitations: number;
         projectsWithCitations: number;
       }>;
@@ -143,6 +145,7 @@ interface AdminMetricsResponse {
       totalAIWords?: number;
       totalPlagiarismChecks?: number;
       totalTopicFinderSearches?: number;
+      totalParaphraseUses?: number;
       totalCitations?: number;
       projectsWithCitations?: number;
       activeDays?: number;
@@ -680,6 +683,7 @@ export default function AdminDashboard() {
           totalAIWords: user.totalAIWords || 0,
           totalPlagiarismChecks: user.totalPlagiarismChecks || 0,
           totalTopicFinderSearches: user.totalTopicFinderSearches || 0,
+          totalParaphraseUses: user.totalParaphraseUses || 0,
           totalCitations: user.totalCitations ?? 0,
           projectsWithCitations: user.projectsWithCitations ?? 0,
           activeDays: user.activeDays || 0,
@@ -1228,7 +1232,7 @@ export default function AdminDashboard() {
               <MetricCard
                 label="AI Words Generated"
                 value={formatNumber(metrics.periodPerformance.usage.aiWordsInPeriod)}
-                subtitle={`${formatNumber(metrics.periodPerformance.usage.plagiarismChecksInPeriod)} plagiarism checks · ${formatNumber(metrics.periodPerformance.usage.topicFinderSearchesInPeriod)} topic searches`}
+                subtitle={`${formatNumber(metrics.periodPerformance.usage.plagiarismChecksInPeriod)} plagiarism checks · ${formatNumber(metrics.periodPerformance.usage.topicFinderSearchesInPeriod)} topic searches · ${formatNumber(metrics.periodPerformance.usage.paraphraseUsesInPeriod || 0)} rewrites`}
                 trend={metrics.comparisons?.changes.aiWords}
                 icon={<Activity size={16} />}
                 timeContext="period"
@@ -1494,13 +1498,14 @@ export default function AdminDashboard() {
                           <th className="text-right py-2 px-3 text-xs uppercase">AI Words</th>
                           <th className="text-right py-2 px-3 text-xs uppercase">Checks</th>
                           <th className="text-right py-2 px-3 text-xs uppercase">Topics</th>
+                          <th className="text-right py-2 px-3 text-xs uppercase">Rewrites</th>
                           <th className="text-right py-2 px-3 text-xs uppercase">Citations</th>
                         </tr>
                       </thead>
                       <tbody>
                         {isSearching && filteredUsers.length === 0 ? (
                           <tr>
-                            <td colSpan={8} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                            <td colSpan={9} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
                               <div className="flex items-center justify-center gap-2">
                                 <RefreshCw size={14} className="animate-spin" />
                                 <span>Searching...</span>
@@ -1508,7 +1513,7 @@ export default function AdminDashboard() {
                             </td>
                           </tr>
                         ) : filteredUsers.length > 0 ? (
-                          filteredUsers.slice(0, 10).map((user: { userId?: string; _id?: string; name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalCitations?: number; activeDays?: number }, idx: number) => (
+                          filteredUsers.slice(0, 10).map((user: { userId?: string; _id?: string; name?: string; email?: string; plan?: string; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalParaphraseUses?: number; totalCitations?: number; activeDays?: number }, idx: number) => (
                             <tr key={user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                               <td className="py-2 px-3 font-bold">#{idx + 1}</td>
                               <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
@@ -1525,12 +1530,13 @@ export default function AdminDashboard() {
                               <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords || 0)}</td>
                               <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks || 0)}</td>
                               <td className="py-2 px-3 text-right">{formatNumber(user.totalTopicFinderSearches || 0)}</td>
+                              <td className="py-2 px-3 text-right">{formatNumber(user.totalParaphraseUses || 0)}</td>
                               <td className="py-2 px-3 text-right">{formatNumber(user.totalCitations || 0)}</td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={8} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                            <td colSpan={9} className="py-4 px-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
                               {debouncedSearch ? 'No users found matching your search' : 'No users found'}
                             </td>
                           </tr>
@@ -1582,6 +1588,7 @@ export default function AdminDashboard() {
                         <th className="text-right py-2 px-3 text-xs uppercase">AI Words</th>
                         <th className="text-right py-2 px-3 text-xs uppercase">Plagiarism Checks</th>
                         <th className="text-right py-2 px-3 text-xs uppercase">Topic Searches</th>
+                        <th className="text-right py-2 px-3 text-xs uppercase">Rewrites</th>
                         <th className="text-right py-2 px-3 text-xs uppercase">Citations</th>
                         <th className="text-right py-2 px-3 text-xs uppercase">Active Days</th>
                         <th className="text-left py-2 px-3 text-xs uppercase">Subscription</th>
@@ -1607,7 +1614,7 @@ export default function AdminDashboard() {
                           );
                         }
                         
-                        return filteredUsers.slice(0, 20).map((user: { _id?: string; userId?: string; name?: string; email?: string; plan?: string; createdAt?: string | Date; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalCitations?: number; activeDays?: number; stripeSubscriptionId?: string }) => (
+                        return filteredUsers.slice(0, 20).map((user: { _id?: string; userId?: string; name?: string; email?: string; plan?: string; createdAt?: string | Date; totalAIWords?: number; totalPlagiarismChecks?: number; totalTopicFinderSearches?: number; totalParaphraseUses?: number; totalCitations?: number; activeDays?: number; stripeSubscriptionId?: string }) => (
                           <tr key={user._id || user.userId} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
                           <td className="py-2 px-3 font-medium">{user.name || 'N/A'}</td>
                           <td className="py-2 px-3">{user.email || 'N/A'}</td>
@@ -1623,6 +1630,7 @@ export default function AdminDashboard() {
                           <td className="py-2 px-3 text-right font-semibold">{formatNumber(user.totalAIWords || 0)}</td>
                           <td className="py-2 px-3 text-right">{formatNumber(user.totalPlagiarismChecks || 0)}</td>
                           <td className="py-2 px-3 text-right">{formatNumber(user.totalTopicFinderSearches || 0)}</td>
+                          <td className="py-2 px-3 text-right">{formatNumber(user.totalParaphraseUses || 0)}</td>
                           <td className="py-2 px-3 text-right">{formatNumber(user.totalCitations || 0)}</td>
                           <td className="py-2 px-3 text-right">{formatNumber(user.activeDays || 0)}</td>
                           <td className="py-2 px-3">
