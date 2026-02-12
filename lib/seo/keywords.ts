@@ -3,6 +3,8 @@
  * This allows programmatic generation of pages based on keyword research
  */
 
+import { generateKeywordContent } from './generate-keyword-content';
+
 export interface KeywordPage {
   slug: string;
   keyword: string;
@@ -54,7 +56,11 @@ export async function getKeywordPageBySlug(slug: string): Promise<KeywordPage | 
     const keywords = await loadKeywordsFromSource();
     keywordCache = new Map(keywords.map((k) => [k.slug, k]));
   }
-  return keywordCache.get(slug);
+  const page = keywordCache.get(slug);
+  if (page && !page.content?.introduction && !page.content?.sections) {
+    page.content = generateKeywordContent(page);
+  }
+  return page;
 }
 
 /**
@@ -66,6 +72,14 @@ export async function getAllKeywordSlugs(category?: KeywordPage['category']): Pr
     ? keywords.filter((k) => k.category === category)
     : keywords;
   return filtered.map((k) => k.slug);
+}
+
+/**
+ * Get all keyword pages for a category (for index pages)
+ */
+export async function getAllKeywordPages(category: KeywordPage['category']): Promise<KeywordPage[]> {
+  const keywords = await loadKeywordsFromSource();
+  return keywords.filter((k) => k.category === category);
 }
 
 /**
