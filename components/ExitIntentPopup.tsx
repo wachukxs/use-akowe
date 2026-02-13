@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';
 import { trackLeadMagnet } from '@/lib/gtag';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface ExitIntentPopupProps {
   variant: 'control' | 'variant_a' | 'variant_b';

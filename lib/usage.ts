@@ -304,6 +304,43 @@ export async function incrementAIUsage(userEmail: string) {
   );
 }
 
+export async function checkLitReviewLimit(userId: string): Promise<{ allowed: boolean; remaining: number; limit: number }> {
+  await connectDB();
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const limits = PLAN_LIMITS[user.plan as PlanType];
+
+  if (limits.litReviewAnalysesPerDay === Infinity) {
+    return { allowed: true, remaining: Infinity, limit: Infinity };
+  }
+
+  const usage = await getUserUsageTodayByUserId(userId);
+  const used = usage.litReviewAnalyses || 0;
+  const remaining = limits.litReviewAnalysesPerDay - used;
+
+  return {
+    allowed: remaining > 0,
+    remaining: Math.max(0, remaining),
+    limit: limits.litReviewAnalysesPerDay,
+  };
+}
+
+export async function incrementLitReviewUses(userId: string, words: number) {
+  await connectDB();
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  await DailyUsage.findOneAndUpdate(
+    { userId, date: today },
+    { $inc: { litReviewAnalyses: 1, aiWordsGenerated: words } },
+    { upsert: true, new: true }
+  );
+}
+
 export async function getUserLimits(userEmail: string): Promise<UsageLimits> {
   await connectDB();
   

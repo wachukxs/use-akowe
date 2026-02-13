@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use, useCallback, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Sidebar, {
@@ -69,7 +69,8 @@ import { scheduleScrollEditorIntoView } from "@/lib/scroll-editor-into-view";
 import { cn } from "@/lib/utils";
 import { trackFunnel } from "@/lib/gtag";
 import FirstProjectCompletion from "@/components/FirstProjectCompletion";
-import { Link as NavLink } from "@/i18n/navigation";
+import LitReviewAssistant from "@/components/LitReviewAssistant";
+import { Link as NavLink, useRouter as useLocaleRouter } from "@/i18n/navigation";
 
 export default function ProjectEditorPage({
   params,
@@ -78,7 +79,7 @@ export default function ProjectEditorPage({
 }) {
   const t = useTranslations("project");
   const resolvedParams = use(params);
-  const router = useRouter();
+  const router = useLocaleRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { isMobile } = useSidebar();
@@ -118,6 +119,7 @@ export default function ProjectEditorPage({
   }, [activeSection]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
+  const [isLitReviewOpen, setIsLitReviewOpen] = useState(false);
   const [aiInput, setAiInput] = useState("");
   const [aiIsLoading, setAiIsLoading] = useState(false);
   const [aiMessages, setAiMessages] = useState<
@@ -3710,6 +3712,23 @@ title={t("deleteSection")}
                             >
                               <Sparkles className="h-4 w-4" />
                             </button>
+                            <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+                            <button
+                              onClick={() => {
+                                setIsLitReviewOpen(true);
+                                setIsAIDrawerOpen(false);
+                              }}
+                              disabled={(project?.citations?.length || 0) < 3}
+                              className={cn(
+                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
+                                (project?.citations?.length || 0) >= 3
+                                  ? "hover:border-[hsl(var(--border-strong))] text-[hsl(var(--secondary))]"
+                                  : "opacity-40 cursor-not-allowed"
+                              )}
+                              title={(project?.citations?.length || 0) >= 3 ? t("litReview.toolbarButton") : t("litReview.toolbarDisabled")}
+                            >
+                              <BookOpen className="h-4 w-4" />
+                            </button>
                           </div>
 
                           <div className="flex-1"></div>
@@ -3717,6 +3736,39 @@ title={t("deleteSection")}
                             {realTimeWordCount} {t("words")}
                           </span>
                         </div>
+
+                        {/* Lit Review Banner */}
+                        {activeS?.type === 'literature_review' &&
+                          (project?.citations?.length || 0) >= 3 &&
+                          !isLitReviewOpen &&
+                          typeof window !== 'undefined' &&
+                          !localStorage.getItem('akowe-lit-review-banner-dismissed') && (
+                          <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-[hsl(var(--secondary)/0.08)] border border-[hsl(var(--secondary)/0.2)] rounded-(--radius) mx-2 mb-2">
+                            <div className="flex items-center gap-2 text-xs">
+                              <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--secondary))]" />
+                              <span>{t("litReview.bannerMessage", { count: String(project?.citations?.length || 0) })}</span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                onClick={() => {
+                                  setIsLitReviewOpen(true);
+                                  setIsAIDrawerOpen(false);
+                                }}
+                                className="text-xs font-medium text-[hsl(var(--secondary))] hover:underline"
+                              >
+                                {t("litReview.bannerCta")}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  localStorage.setItem('akowe-lit-review-banner-dismissed', 'true');
+                                }}
+                                className="p-0.5 hover:bg-[hsl(var(--secondary)/0.1)] rounded"
+                              >
+                                <X className="w-3 h-3 text-[hsl(var(--muted-foreground))]" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Editor */}
                         <div
@@ -6090,6 +6142,40 @@ title={t("deleteSection")}
             </div>
           </div>
         )}
+
+        {/* Lit Review Assistant */}
+        <LitReviewAssistant
+          isOpen={isLitReviewOpen}
+          onClose={() => setIsLitReviewOpen(false)}
+          projectId={resolvedParams?.id || ""}
+          citations={project?.citations || []}
+          topic={project?.topic || ""}
+          methodology={project?.methodology || ""}
+          citationStyle={project?.citationStyle || "APA"}
+          currentSectionContent={activeS?.content || ""}
+          onInsertContent={(html: string) => {
+            if (activeS) {
+              const currentContent = cleanupSectionContent(activeS.content || "");
+              const separator = currentContent.trim() ? "\n\n" : "";
+              const newContent = currentContent + separator + html;
+              handleSectionChange(activeS.id, newContent);
+              setLocalSectionContent(newContent);
+              setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
+              updateEditorContent(newContent);
+            }
+          }}
+          onOpenCitationDiscovery={(searchQuery?: string) => {
+            setIsLitReviewOpen(false);
+            if (searchQuery) {
+              setCitationSearchQuery(searchQuery);
+              discoverCitations(0, false, searchQuery);
+            } else {
+              setShowCitationDiscovery(true);
+            }
+          }}
+          userPlan={((session?.user as any)?.plan || "free") as "free" | "pro" | "team"}
+          t={t}
+        />
 
         {/* Chart Modal */}
         {showChartModal && (

@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';

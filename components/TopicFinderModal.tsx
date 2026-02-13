@@ -5,7 +5,7 @@ import { X, Search, Sparkles, AlertCircle, CheckCircle2, Lightbulb, Lock, ArrowR
 import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { trackFunnel } from '@/lib/gtag';
 
 interface ResearchGap {

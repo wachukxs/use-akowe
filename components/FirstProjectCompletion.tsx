@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2, Sparkles, ArrowRight, X } from 'lucide-react';
 import Button from '@/components/ui/Button';

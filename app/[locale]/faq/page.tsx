@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { HelpCircle, ArrowRight } from 'lucide-react';
 import { getAllFAQSlugs, getFAQBySlug } from '@/lib/seo/faqs';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';

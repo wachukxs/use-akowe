@@ -114,14 +114,56 @@ export interface DailyUsage {
   plagiarismChecks: number;
   topicFinderSearches: number;
   paraphraseUses: number;
+  litReviewAnalyses: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// === Lit Review Assistant Types ===
+
+export interface LitReviewThemePaper {
+  citationId: string;
+  stance: 'supports' | 'contradicts' | 'discusses';
+  reasoning: string;
+}
+
+export interface LitReviewTheme {
+  id: string;
+  name: string;
+  description: string;
+  papers: LitReviewThemePaper[];
+}
+
+export interface LitReviewGap {
+  id: string;
+  title: string;
+  description: string;
+  suggestion: string;
+  searchQuery?: string;
+}
+
+export interface LitReviewAnalysis {
+  themes: LitReviewTheme[];
+  gaps: LitReviewGap[];
+  summary: string;
+  analyzedAt: Date;
+  citationCount: number;
+  citationIds: string[];
+}
+
+export interface LitReviewSynthesis {
+  paragraph: string;
+  wordCount: number;
+  citationsUsed: string[];
+  sourceThemeId?: string;
+  sourceGapId?: string;
 }
 
 export interface UsageLimits {
   aiWordsPerDay: number;
   plagiarismChecksPerDay: number;
   paraphrasePerDay: number;
+  litReviewAnalysesPerDay: number;
   maxProjects?: number;
 }
 
@@ -130,17 +172,20 @@ export const PLAN_LIMITS: Record<PlanType, UsageLimits> = {
     aiWordsPerDay: 1500,
     plagiarismChecksPerDay: 3,
     paraphrasePerDay: 2,
+    litReviewAnalysesPerDay: 2,
     maxProjects: 3,
   },
   pro: {
     aiWordsPerDay: Infinity,
     plagiarismChecksPerDay: Infinity,
     paraphrasePerDay: Infinity,
+    litReviewAnalysesPerDay: Infinity,
   },
   team: {
     aiWordsPerDay: Infinity,
     plagiarismChecksPerDay: Infinity,
     paraphrasePerDay: Infinity,
+    litReviewAnalysesPerDay: Infinity,
   },
 };
 
