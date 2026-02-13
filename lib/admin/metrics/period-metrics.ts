@@ -111,7 +111,8 @@ export async function getPeriodUsageMetrics(range: DateRange) {
               totalAIWords: { $sum: '$aiWordsGenerated' },
               totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
               totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
-              totalParaphraseUses: { $sum: '$paraphraseUses' }
+              totalParaphraseUses: { $sum: '$paraphraseUses' },
+              totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' }
             }
           }
         ],
@@ -135,7 +136,8 @@ export async function getPeriodUsageMetrics(range: DateRange) {
               totalAIWords: { $sum: '$aiWordsGenerated' },
               totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
               totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
-              totalParaphraseUses: { $sum: '$paraphraseUses' }
+              totalParaphraseUses: { $sum: '$paraphraseUses' },
+              totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' }
             }
           },
           {
@@ -149,7 +151,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
     }
   ], { maxTimeMS: 30000 }); // 30 second timeout
 
-  const usage = aggregationResult[0]?.totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0, totalTopicFinderSearches: 0, totalParaphraseUses: 0 };
+  const usage = aggregationResult[0]?.totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0, totalTopicFinderSearches: 0, totalParaphraseUses: 0, totalLitReviewAnalyses: 0 };
   const dailyGrowth = aggregationResult[0]?.dailyGrowth || [];
   const topUsersAggregation = aggregationResult[0]?.topUsers || [];
 
@@ -192,7 +194,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
     });
   }
 
-  const topUsersByUsage = topUsersAggregation.map((usage: { _id: string; totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number }) => {
+  const topUsersByUsage = topUsersAggregation.map((usage: { _id: string; totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number; totalLitReviewAnalyses: number }) => {
     const user = usersMap.get(usage._id) || null;
     const citations = citationsMap.get(usage._id) || { totalCitations: 0, projectsWithCitations: 0 };
     return {
@@ -204,6 +206,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
       totalPlagiarismChecks: usage.totalPlagiarismChecks,
       totalTopicFinderSearches: usage.totalTopicFinderSearches,
       totalParaphraseUses: usage.totalParaphraseUses,
+      totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
       totalCitations: citations.totalCitations,
       projectsWithCitations: citations.projectsWithCitations,
     };
@@ -214,6 +217,7 @@ export async function getPeriodUsageMetrics(range: DateRange) {
     plagiarismChecksInPeriod: usage.totalPlagiarismChecks,
     topicFinderSearchesInPeriod: usage.totalTopicFinderSearches,
     paraphraseUsesInPeriod: usage.totalParaphraseUses,
+    litReviewAnalysesInPeriod: usage.totalLitReviewAnalyses,
     growth: dailyGrowth.map((day: { _id: string; aiWords: number; plagiarismChecks: number; paraphraseUses: number }) => ({
       _id: day._id,
       count: day.aiWords,

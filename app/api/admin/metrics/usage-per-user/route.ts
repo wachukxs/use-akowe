@@ -95,6 +95,7 @@ export async function GET(request: Request) {
             totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
             totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
             totalParaphraseUses: { $sum: '$paraphraseUses' },
+            totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' },
             activeDays: { $sum: 1 }
           }
         }
@@ -131,7 +132,7 @@ export async function GET(request: Request) {
     // Build a usage map keyed by userId (string)
     const usageMap = new Map<
       string,
-      { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number; activeDays: number }
+      { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number; totalLitReviewAnalyses: number; activeDays: number }
     >();
     usageAggregation.forEach(
       (usage: {
@@ -140,6 +141,7 @@ export async function GET(request: Request) {
         totalPlagiarismChecks: number;
         totalTopicFinderSearches: number;
         totalParaphraseUses: number;
+        totalLitReviewAnalyses: number;
         activeDays: number;
       }) => {
         usageMap.set(usage._id, {
@@ -147,6 +149,7 @@ export async function GET(request: Request) {
           totalPlagiarismChecks: usage.totalPlagiarismChecks,
           totalTopicFinderSearches: usage.totalTopicFinderSearches,
           totalParaphraseUses: usage.totalParaphraseUses,
+          totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
           activeDays: usage.activeDays,
         });
       },
@@ -184,6 +187,7 @@ export async function GET(request: Request) {
         totalPlagiarismChecks: 0,
         totalTopicFinderSearches: 0,
         totalParaphraseUses: 0,
+        totalLitReviewAnalyses: 0,
         activeDays: 0,
       };
       const citations = citationMap.get(userId) || {
@@ -200,6 +204,7 @@ export async function GET(request: Request) {
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
         totalTopicFinderSearches: usage.totalTopicFinderSearches,
         totalParaphraseUses: usage.totalParaphraseUses,
+        totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
         totalCitations: citations.totalCitations,
         projectsWithCitations: citations.projectsWithCitations,
         activeDays: usage.activeDays,

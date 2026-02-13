@@ -40,6 +40,7 @@ export interface PeriodPerformance {
     plagiarismChecksInPeriod: number;
     topicFinderSearchesInPeriod: number;
     paraphraseUsesInPeriod: number;
+    litReviewAnalysesInPeriod: number;
     growth: Array<{ _id: string; count: number }>;
     topUsersByUsage: Array<{
       userId: string;
@@ -50,6 +51,7 @@ export interface PeriodPerformance {
       totalPlagiarismChecks: number;
       totalTopicFinderSearches: number;
       totalParaphraseUses: number;
+      totalLitReviewAnalyses: number;
     }>;
   };
   revenue: {
@@ -109,6 +111,7 @@ export interface ProductHealth {
   citationAdoption: number;
   pdfAdoption: number;
   plagiarismAdoption: number;
+  litReviewAdoption: number;
   projects: {
     total: number;
     active: number;
@@ -134,6 +137,7 @@ export interface DetailedLists {
     totalAIWords?: number;
     totalPlagiarismChecks?: number;
     totalTopicFinderSearches?: number;
+    totalLitReviewAnalyses?: number;
     activeDays?: number;
   }>;
   topUsersByUsage: Array<{
@@ -144,6 +148,7 @@ export interface DetailedLists {
     totalAIWords: number;
     totalPlagiarismChecks: number;
     totalTopicFinderSearches: number;
+    totalLitReviewAnalyses: number;
   }>;
   subscriptionDetails: Array<{
     id: string;
@@ -163,6 +168,7 @@ export interface ComparisonMetrics {
     aiWords: number;
     plagiarismChecks: number;
     topicFinderSearches: number;
+    litReviewAnalyses: number;
     revenue: number;
   };
   changes: {
@@ -171,6 +177,7 @@ export interface ComparisonMetrics {
     aiWords: number;
     plagiarismChecks: number;
     topicFinderSearches: number;
+    litReviewAnalyses: number;
     revenue: number;
   };
 }

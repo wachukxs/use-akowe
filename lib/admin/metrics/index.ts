@@ -176,6 +176,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
         aiWords: periodUsageMetrics.aiWordsInPeriod,
         plagiarismChecks: periodUsageMetrics.plagiarismChecksInPeriod,
         topicFinderSearches: periodUsageMetrics.topicFinderSearchesInPeriod,
+        litReviewAnalyses: periodUsageMetrics.litReviewAnalysesInPeriod,
         revenue: periodRevenue.revenueInPeriod,
       }
     ),
@@ -237,6 +238,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       citationAdoption: periodProductMetricsData.citationAdoption,
       pdfAdoption: periodProductMetricsData.pdfAdoption,
       plagiarismAdoption: periodProductMetricsData.plagiarismAdoption,
+      litReviewAdoption: periodProductMetricsData.litReviewAdoption,
       projects: periodProductMetricsData.projects,
     },
     retention: fixedWindowRetention,
