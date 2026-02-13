@@ -2,6 +2,7 @@
 
 import { DateRange } from './types';
 import Project from '@/models/Project';
+import DailyUsage from '@/models/DailyUsage';
 import { metricsCache, getCacheKey, CACHE_TTL } from './cache';
 
 export async function getPeriodProductMetrics(range: DateRange) {
@@ -13,6 +14,7 @@ export async function getPeriodProductMetrics(range: DateRange) {
     citationAdoption: number;
     pdfAdoption: number;
     plagiarismAdoption: number;
+    litReviewAdoption: number;
     projects: { total: number; active: number; completed: number };
   }>(cacheKey);
   if (cached) return cached;
@@ -88,6 +90,43 @@ export async function getPeriodProductMetrics(range: DateRange) {
   const projectsWithPDFs = aggregationResult[0]?.withPDFs[0]?.count || 0;
   const projectsWithPlagiarismChecks = aggregationResult[0]?.withPlagiarismChecks[0]?.count || 0;
 
+  // Lit review adoption: count distinct users who used lit review in this period (from DailyUsage)
+  const litReviewUsersAgg = await DailyUsage.aggregate([
+    {
+      $match: {
+        date: { $gte: range.startStr, $lte: range.endStr },
+        litReviewAnalyses: { $gt: 0 }
+      }
+    },
+    {
+      $group: {
+        _id: '$userId'
+      }
+    },
+    {
+      $count: 'count'
+    }
+  ], { maxTimeMS: 30000 });
+  const usersWithLitReview = litReviewUsersAgg[0]?.count || 0;
+
+  // Total active users in period for lit review adoption calculation
+  const activeUsersAgg = await DailyUsage.aggregate([
+    {
+      $match: {
+        date: { $gte: range.startStr, $lte: range.endStr }
+      }
+    },
+    {
+      $group: {
+        _id: '$userId'
+      }
+    },
+    {
+      $count: 'count'
+    }
+  ], { maxTimeMS: 30000 });
+  const totalActiveUsers = activeUsersAgg[0]?.count || 0;
+
   // Completion rate for period (projects completed / projects created in period)
   const completionRate = projectsInPeriod > 0
     ? ((completedInPeriod / projectsInPeriod) * 100)
@@ -105,6 +144,9 @@ export async function getPeriodProductMetrics(range: DateRange) {
   const plagiarismAdoption = projectsInPeriod > 0
     ? ((projectsWithPlagiarismChecks / projectsInPeriod) * 100)
     : 0;
+  const litReviewAdoption = totalActiveUsers > 0
+    ? ((usersWithLitReview / totalActiveUsers) * 100)
+    : 0;
 
   const result = {
     completionRate,
@@ -113,6 +155,7 @@ export async function getPeriodProductMetrics(range: DateRange) {
     citationAdoption,
     pdfAdoption,
     plagiarismAdoption,
+    litReviewAdoption,
     projects: {
       total: projectsInPeriod,
       active: 0, // Would need to track active projects separately

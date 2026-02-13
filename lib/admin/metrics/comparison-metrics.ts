@@ -63,6 +63,7 @@ export async function getComparisonMetrics(
     aiWords: number;
     plagiarismChecks: number;
     topicFinderSearches: number;
+    litReviewAnalyses: number;
     revenue: number;
   }
 ) {
@@ -99,13 +100,15 @@ export async function getComparisonMetrics(
         _id: null,
         totalAIWords: { $sum: '$aiWordsGenerated' },
         totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
-        totalTopicFinderSearches: { $sum: '$topicFinderSearches' }
+        totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
+        totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' }
       }
     }
   ], { maxTimeMS: 30000 }); // 30 second timeout
   const previousAIWords = previousUsagePeriod[0]?.totalAIWords || 0;
   const previousPlagiarismChecks = previousUsagePeriod[0]?.totalPlagiarismChecks || 0;
   const previousTopicFinderSearches = previousUsagePeriod[0]?.totalTopicFinderSearches || 0;
+  const previousLitReviewAnalyses = previousUsagePeriod[0]?.totalLitReviewAnalyses || 0;
   
   // Previous period: revenue (from Stripe invoices)
   let previousRevenue = 0;
@@ -174,6 +177,7 @@ export async function getComparisonMetrics(
       aiWords: previousAIWords,
       plagiarismChecks: previousPlagiarismChecks,
       topicFinderSearches: previousTopicFinderSearches,
+      litReviewAnalyses: previousLitReviewAnalyses,
       revenue: previousRevenue,
     },
     changes: {
@@ -182,6 +186,7 @@ export async function getComparisonMetrics(
       aiWords: calculateChange(currentMetrics.aiWords, previousAIWords),
       plagiarismChecks: calculateChange(currentMetrics.plagiarismChecks, previousPlagiarismChecks),
       topicFinderSearches: calculateChange(currentMetrics.topicFinderSearches, previousTopicFinderSearches),
+      litReviewAnalyses: calculateChange(currentMetrics.litReviewAnalyses, previousLitReviewAnalyses),
       revenue: calculateChange(currentMetrics.revenue, previousRevenue),
     },
   };

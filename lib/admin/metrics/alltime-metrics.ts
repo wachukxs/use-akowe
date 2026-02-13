@@ -68,7 +68,7 @@ export async function getAllTimeUserMetrics() {
 
   // Get usage metrics for recent users (all-time)
   const userIds = recentUsers.map((u: any) => u._id.toString());
-  const usageMap = new Map<string, { totalAIWords: number; totalPlagiarismChecks: number; totalParaphraseUses: number; activeDays: number }>();
+  const usageMap = new Map<string, { totalAIWords: number; totalPlagiarismChecks: number; totalParaphraseUses: number; totalLitReviewAnalyses: number; activeDays: number }>();
 
   if (userIds.length > 0) {
     const usageData = await DailyUsage.aggregate([
@@ -83,6 +83,7 @@ export async function getAllTimeUserMetrics() {
           totalAIWords: { $sum: '$aiWordsGenerated' },
           totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
           totalParaphraseUses: { $sum: '$paraphraseUses' },
+          totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' },
           activeDays: { $sum: 1 }
         }
       }
@@ -93,6 +94,7 @@ export async function getAllTimeUserMetrics() {
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
         totalParaphraseUses: usage.totalParaphraseUses,
+        totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
         activeDays: usage.activeDays,
       });
     });
@@ -106,7 +108,7 @@ export async function getAllTimeUserMetrics() {
     withSubscriptions: usersWithSubscriptions,
     recentUsers: recentUsers.map((u: any) => {
       const userId = u._id.toString();
-      const usage = usageMap.get(userId) || { totalAIWords: 0, totalPlagiarismChecks: 0, activeDays: 0 };
+      const usage = usageMap.get(userId) || { totalAIWords: 0, totalPlagiarismChecks: 0, totalLitReviewAnalyses: 0, activeDays: 0 };
       return {
         _id: userId,
         name: u.name || 'N/A',
@@ -116,6 +118,7 @@ export async function getAllTimeUserMetrics() {
         stripeSubscriptionId: u.stripeSubscriptionId,
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
+        totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
         activeDays: usage.activeDays,
       };
     }),
@@ -140,6 +143,7 @@ export async function getAllTimeUsageMetrics() {
     totalAIWords: number;
     totalPlagiarismChecks: number;
     totalParaphraseUses: number;
+    totalLitReviewAnalyses: number;
   }>(cacheKey);
   if (cached) return cached;
 
@@ -149,17 +153,19 @@ export async function getAllTimeUsageMetrics() {
         _id: null,
         totalAIWords: { $sum: '$aiWordsGenerated' },
         totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
-        totalParaphraseUses: { $sum: '$paraphraseUses' }
+        totalParaphraseUses: { $sum: '$paraphraseUses' },
+        totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' }
       }
     }
   ], { maxTimeMS: 30000 }); // 30 second timeout
 
-  const usage = totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0, totalParaphraseUses: 0 };
+  const usage = totalUsage[0] || { totalAIWords: 0, totalPlagiarismChecks: 0, totalParaphraseUses: 0, totalLitReviewAnalyses: 0 };
 
   const result = {
     totalAIWords: usage.totalAIWords,
     totalPlagiarismChecks: usage.totalPlagiarismChecks,
     totalParaphraseUses: usage.totalParaphraseUses,
+    totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
   };
 
   // Cache all-time usage metrics for longer (they don't change often)
