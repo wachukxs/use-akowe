@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useSession } from 'next-auth/react';
 import { CheckCircle } from 'lucide-react';
 import { trackFunnel } from '@/lib/gtag';

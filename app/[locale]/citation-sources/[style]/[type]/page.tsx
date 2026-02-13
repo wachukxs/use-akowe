@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getCitationSourceByTypeAndStyle, getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
 import { getCitationStyleBySlug, getAllCitationStyleSlugs } from '@/lib/seo/citation-styles';

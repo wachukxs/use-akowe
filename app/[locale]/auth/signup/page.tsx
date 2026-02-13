@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, Suspense, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Link from 'next/link';
+import { Link, useRouter } from '@/i18n/navigation';
 import Card from '@/components/ui/Card';
 import { Eye, EyeOff } from 'lucide-react';
 import { getStoredReferralCode, clearStoredReferralCode } from '@/components/ReferralCapture';

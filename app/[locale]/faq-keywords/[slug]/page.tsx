@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { RefreshCw } from 'lucide-react';
 
 export default function AffiliateStatsPage() {

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getAllTemplateSlugs, getTemplateBySlug } from '@/lib/seo/templates';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';

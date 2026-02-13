@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllTemplateSlugs, getTemplateBySlug } from '@/lib/seo/templates';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';

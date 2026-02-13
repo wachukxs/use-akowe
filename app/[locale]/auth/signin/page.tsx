@@ -2,8 +2,8 @@
 
 import { signIn } from 'next-auth/react';
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
