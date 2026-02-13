@@ -13,9 +13,29 @@ export async function GET(request: Request) {
     const pageParam = searchParams.get('page');
     const limitParam = searchParams.get('limit');
     const search = searchParams.get('search')?.trim() || '';
+    const daysParam = searchParams.get('days');
+    const startParam = searchParams.get('start');
+    const endParam = searchParams.get('end');
 
     const page = Math.max(1, parseInt(pageParam || '1', 10));
     const limit = Math.max(1, Math.min(100, parseInt(limitParam || '20', 10)));
+
+    // Build date filter for usage aggregation
+    let usageDateFilter: Record<string, string> | null = null;
+    if (startParam && endParam) {
+      usageDateFilter = { $gte: startParam, $lte: endParam };
+    } else if (daysParam && parseInt(daysParam, 10) > 0) {
+      const days = parseInt(daysParam, 10);
+      const startDate = new Date();
+      startDate.setUTCDate(startDate.getUTCDate() - days);
+      startDate.setUTCHours(0, 0, 0, 0);
+      const endDate = new Date();
+      endDate.setUTCHours(23, 59, 59, 999);
+      usageDateFilter = {
+        $gte: startDate.toISOString().split('T')[0],
+        $lte: endDate.toISOString().split('T')[0],
+      };
+    }
 
     const filter: Record<string, unknown> = {};
     if (search && search.trim().length > 0) {
@@ -50,13 +70,37 @@ export async function GET(request: Request) {
     }
     const userIds = users.map((u: UserDocument) => u._id.toString());
 
-    // All-time usage for these users (no date filter) + citations from projects
+    // Usage for these users (respects date filter if provided) + citations from projects
+    const usageMatch: Record<string, unknown> = { userId: { $in: userIds } };
+    if (usageDateFilter) {
+      usageMatch.date = usageDateFilter;
+    }
+
+    // Build citation date filter (uses Date objects for createdAt, not strings)
+    const citationMatch: Record<string, unknown> = {
+      userId: { $in: userIds },
+      citations: { $exists: true, $ne: [] },
+    };
+    if (startParam && endParam) {
+      const citStart = new Date(startParam + 'T00:00:00.000Z');
+      citStart.setUTCHours(0, 0, 0, 0);
+      const citEnd = new Date(endParam + 'T23:59:59.999Z');
+      citEnd.setUTCHours(23, 59, 59, 999);
+      citationMatch.createdAt = { $gte: citStart, $lte: citEnd };
+    } else if (daysParam && parseInt(daysParam, 10) > 0) {
+      const days = parseInt(daysParam, 10);
+      const citStart = new Date();
+      citStart.setUTCDate(citStart.getUTCDate() - days);
+      citStart.setUTCHours(0, 0, 0, 0);
+      const citEnd = new Date();
+      citEnd.setUTCHours(23, 59, 59, 999);
+      citationMatch.createdAt = { $gte: citStart, $lte: citEnd };
+    }
+
     const [usageAggregation, citationAggregation] = await Promise.all([
       DailyUsage.aggregate([
         {
-          $match: {
-            userId: { $in: userIds },
-          },
+          $match: usageMatch,
         },
         {
           $group: {
@@ -65,16 +109,14 @@ export async function GET(request: Request) {
             totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
             totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
             totalParaphraseUses: { $sum: '$paraphraseUses' },
+            totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' },
             activeDays: { $sum: 1 },
           },
         },
       ], { maxTimeMS: 30000 }),
       Project.aggregate([
         {
-          $match: {
-            userId: { $in: userIds },
-            citations: { $exists: true, $ne: [] },
-          },
+          $match: citationMatch,
         },
         {
           $group: {
@@ -98,7 +140,7 @@ export async function GET(request: Request) {
 
     const usageMap = new Map<
       string,
-      { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number; activeDays: number }
+      { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number; totalLitReviewAnalyses: number; activeDays: number }
     >();
     usageAggregation.forEach(
       (usage: {
@@ -107,6 +149,7 @@ export async function GET(request: Request) {
         totalPlagiarismChecks: number;
         totalTopicFinderSearches: number;
         totalParaphraseUses: number;
+        totalLitReviewAnalyses: number;
         activeDays: number;
       }) => {
         usageMap.set(usage._id, {
@@ -114,6 +157,7 @@ export async function GET(request: Request) {
           totalPlagiarismChecks: usage.totalPlagiarismChecks,
           totalTopicFinderSearches: usage.totalTopicFinderSearches,
           totalParaphraseUses: usage.totalParaphraseUses,
+          totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
           activeDays: usage.activeDays,
         });
       },
@@ -134,6 +178,7 @@ export async function GET(request: Request) {
         totalPlagiarismChecks: 0,
         totalTopicFinderSearches: 0,
         totalParaphraseUses: 0,
+        totalLitReviewAnalyses: 0,
         activeDays: 0,
       };
       const citations = citationMap.get(userId) || {
@@ -152,6 +197,7 @@ export async function GET(request: Request) {
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
         totalTopicFinderSearches: usage.totalTopicFinderSearches,
         totalParaphraseUses: usage.totalParaphraseUses,
+        totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
         totalCitations: citations.totalCitations,
         projectsWithCitations: citations.projectsWithCitations,
         activeDays: usage.activeDays,

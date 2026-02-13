@@ -68,7 +68,7 @@ export async function getAllTimeUserMetrics() {
 
   // Get usage metrics for recent users (all-time)
   const userIds = recentUsers.map((u: any) => u._id.toString());
-  const usageMap = new Map<string, { totalAIWords: number; totalPlagiarismChecks: number; totalParaphraseUses: number; totalLitReviewAnalyses: number; activeDays: number }>();
+  const usageMap = new Map<string, { totalAIWords: number; totalPlagiarismChecks: number; totalTopicFinderSearches: number; totalParaphraseUses: number; totalLitReviewAnalyses: number; activeDays: number }>();
 
   if (userIds.length > 0) {
     const usageData = await DailyUsage.aggregate([
@@ -82,6 +82,7 @@ export async function getAllTimeUserMetrics() {
           _id: '$userId',
           totalAIWords: { $sum: '$aiWordsGenerated' },
           totalPlagiarismChecks: { $sum: '$plagiarismChecks' },
+          totalTopicFinderSearches: { $sum: '$topicFinderSearches' },
           totalParaphraseUses: { $sum: '$paraphraseUses' },
           totalLitReviewAnalyses: { $sum: '$litReviewAnalyses' },
           activeDays: { $sum: 1 }
@@ -93,6 +94,7 @@ export async function getAllTimeUserMetrics() {
       usageMap.set(usage._id, {
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
+        totalTopicFinderSearches: usage.totalTopicFinderSearches,
         totalParaphraseUses: usage.totalParaphraseUses,
         totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
         activeDays: usage.activeDays,
@@ -108,7 +110,7 @@ export async function getAllTimeUserMetrics() {
     withSubscriptions: usersWithSubscriptions,
     recentUsers: recentUsers.map((u: any) => {
       const userId = u._id.toString();
-      const usage = usageMap.get(userId) || { totalAIWords: 0, totalPlagiarismChecks: 0, totalLitReviewAnalyses: 0, activeDays: 0 };
+      const usage = usageMap.get(userId) || { totalAIWords: 0, totalPlagiarismChecks: 0, totalTopicFinderSearches: 0, totalParaphraseUses: 0, totalLitReviewAnalyses: 0, activeDays: 0 };
       return {
         _id: userId,
         name: u.name || 'N/A',
@@ -118,6 +120,8 @@ export async function getAllTimeUserMetrics() {
         stripeSubscriptionId: u.stripeSubscriptionId,
         totalAIWords: usage.totalAIWords,
         totalPlagiarismChecks: usage.totalPlagiarismChecks,
+        totalTopicFinderSearches: usage.totalTopicFinderSearches,
+        totalParaphraseUses: usage.totalParaphraseUses,
         totalLitReviewAnalyses: usage.totalLitReviewAnalyses,
         activeDays: usage.activeDays,
       };

@@ -652,6 +652,11 @@ export default function AdminDashboard() {
       const params = new URLSearchParams();
       params.set('page', page.toString());
       params.set('limit', recentUsersPageSize.toString());
+      params.set('days', debouncedDaysFilter.toString());
+      if (debouncedCustomDateRange) {
+        params.set('start', debouncedCustomDateRange.start);
+        params.set('end', debouncedCustomDateRange.end);
+      }
       if (debouncedSearch) {
         params.set('search', debouncedSearch);
       }
