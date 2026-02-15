@@ -11,28 +11,37 @@ export async function GET(request: NextRequest) {
     const days = parseInt(searchParams.get('days') || '0');
 
     // Date filter: 0 = all-time
-    const dateFilter = days > 0
+    const userDateFilter = days > 0
       ? { createdAt: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) } }
       : {};
 
-    // Step 1: Total signups
-    const totalSignups = await User.countDocuments(dateFilter);
+    // Step 1: Total signups in period
+    const totalSignups = await User.countDocuments(userDateFilter);
 
-    // Step 2: Users who created their first project
+    // For date-filtered queries, get the cohort of user emails first
+    // so Activation queries are scoped to the SAME users as step 1
+    let activationFilter: Record<string, any> = {};
+    if (days > 0) {
+      const cohortUsers = await User.find(userDateFilter).select('email').lean();
+      const cohortEmails = cohortUsers.map((u) => u.email);
+      activationFilter = { userId: { $in: cohortEmails } };
+    }
+
+    // Step 2: Users who created their first project (same cohort)
     const withFirstProject = await Activation.countDocuments({
-      ...dateFilter,
+      ...activationFilter,
       firstProjectCreatedAt: { $ne: null },
     });
 
-    // Step 3: Users who generated their first AI output
+    // Step 3: Users who generated their first AI output (same cohort)
     const withFirstOutput = await Activation.countDocuments({
-      ...dateFilter,
+      ...activationFilter,
       firstOutputGeneratedAt: { $ne: null },
     });
 
     // Step 4: Users who subscribed (pro or team)
     const subscribers = await User.countDocuments({
-      ...dateFilter,
+      ...userDateFilter,
       plan: { $in: ['pro', 'team'] },
     });
 
@@ -60,9 +69,9 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Median time-to-activation for activated users
+    // Median time-to-activation for activated users (same cohort)
     const activatedUsers = await Activation.find({
-      ...dateFilter,
+      ...activationFilter,
       isActivated: true,
       timeToActivation: { $ne: null },
     })
@@ -82,73 +91,59 @@ export async function GET(request: NextRequest) {
     }
 
     // Weekly funnel trend (last 8 weeks)
+    // Use User.createdAt for weekly grouping, then look up Activation by email cohort per week
     const eightWeeksAgo = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
-    const [weeklySignups, weeklyProjects, weeklyOutputs, weeklySubscribers] = await Promise.all([
-      User.aggregate([
-        { $match: { createdAt: { $gte: eightWeeksAgo } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-W%V', date: '$createdAt' } },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]),
-      Activation.aggregate([
-        { $match: { createdAt: { $gte: eightWeeksAgo }, firstProjectCreatedAt: { $ne: null } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-W%V', date: '$createdAt' } },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]),
-      Activation.aggregate([
-        { $match: { createdAt: { $gte: eightWeeksAgo }, firstOutputGeneratedAt: { $ne: null } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-W%V', date: '$createdAt' } },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]),
-      User.aggregate([
-        { $match: { createdAt: { $gte: eightWeeksAgo }, plan: { $in: ['pro', 'team'] } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-W%V', date: '$createdAt' } },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]),
-    ]);
 
-    // Merge weekly data
-    const allWeeks = new Set<string>();
-    [weeklySignups, weeklyProjects, weeklyOutputs, weeklySubscribers].forEach((arr) =>
-      arr.forEach((r: { _id: string }) => allWeeks.add(r._id))
-    );
+    // Get all users from last 8 weeks with their emails and signup week
+    const recentUsers = await User.find({ createdAt: { $gte: eightWeeksAgo } })
+      .select('email createdAt plan')
+      .lean();
 
-    const toMap = (arr: Array<{ _id: string; count: number }>) =>
-      new Map(arr.map((r) => [r._id, r.count]));
+    // Group users by signup week
+    const weeklyData = new Map<string, { emails: string[]; signups: number; subscribers: number }>();
+    for (const u of recentUsers) {
+      const week = getISOWeek(new Date(u.createdAt));
+      if (!weeklyData.has(week)) {
+        weeklyData.set(week, { emails: [], signups: 0, subscribers: 0 });
+      }
+      const data = weeklyData.get(week)!;
+      data.emails.push(u.email);
+      data.signups++;
+      if (u.plan === 'pro' || u.plan === 'team') data.subscribers++;
+    }
 
-    const signupsMap = toMap(weeklySignups);
-    const projectsMap = toMap(weeklyProjects);
-    const outputsMap = toMap(weeklyOutputs);
-    const subscribersMap = toMap(weeklySubscribers);
+    // Get all Activation records for these users
+    const allRecentEmails = recentUsers.map((u) => u.email);
+    const recentActivations = await Activation.find({
+      userId: { $in: allRecentEmails },
+    })
+      .select('userId firstProjectCreatedAt firstOutputGeneratedAt')
+      .lean();
 
-    const weeklyTrend = Array.from(allWeeks)
-      .sort()
-      .map((week) => ({
-        week,
-        signups: signupsMap.get(week) || 0,
-        firstProject: projectsMap.get(week) || 0,
-        firstOutput: outputsMap.get(week) || 0,
-        subscribed: subscribersMap.get(week) || 0,
-      }));
+    const activationByEmail = new Map<string, any>();
+    for (const a of recentActivations) {
+      activationByEmail.set(a.userId, a);
+    }
+
+    // Build weekly trend from grouped data
+    const weeklyTrend = Array.from(weeklyData.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([week, data]) => {
+        let firstProject = 0;
+        let firstOutput = 0;
+        for (const email of data.emails) {
+          const activation = activationByEmail.get(email);
+          if (activation?.firstProjectCreatedAt) firstProject++;
+          if (activation?.firstOutputGeneratedAt) firstOutput++;
+        }
+        return {
+          week,
+          signups: data.signups,
+          firstProject,
+          firstOutput,
+          subscribed: data.subscribers,
+        };
+      });
 
     return NextResponse.json({
       funnel,
@@ -159,4 +154,13 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching activation funnel data:', error);
     return NextResponse.json({ error: 'Failed to fetch funnel data' }, { status: 500 });
   }
+}
+
+/** Returns ISO week string like "2025-W03" */
+function getISOWeek(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }
