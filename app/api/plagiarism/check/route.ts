@@ -698,6 +698,14 @@ export async function POST(request: NextRequest) {
       { new: true }
     );
 
+    // Track activation (idempotent — only records first time)
+    if (session.user?.id) {
+      import('@/lib/activation-tracking').then(({ recordFirstOutputGenerated, extractAttributionFromRequest }) => {
+        const attribution = extractAttributionFromRequest(request);
+        recordFirstOutputGenerated(session.user!.id!, attribution).catch(() => {});
+      });
+    }
+
     // Usage was already incremented atomically above, so we don't need to increment again
     return NextResponse.json({
       matchPercentage: result.matchPercentage,
