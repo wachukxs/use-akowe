@@ -96,6 +96,7 @@ export interface BusinessMetrics {
 export interface CoreMetrics {
   wau: number; // Weekly Active Users (rolling 7 days)
   wauChange: number; // Week-over-week % change
+  mau: number; // Monthly Active Users (rolling 30 days)
   activationRate: number; // % of users who reached activation
   activationTotal: number; // Total tracked users
   activationActivated: number; // Users who activated

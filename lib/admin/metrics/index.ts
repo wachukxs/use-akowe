@@ -225,6 +225,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
     coreMetrics: {
       wau: fixedWindowCoreMetrics.wau,
       wauChange: fixedWindowCoreMetrics.wauChange,
+      mau: fixedWindowCoreMetrics.mau,
       activationRate: fixedWindowCoreMetrics.activationRate,
       activationTotal: fixedWindowCoreMetrics.activationTotal,
       activationActivated: fixedWindowCoreMetrics.activationActivated,

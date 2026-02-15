@@ -116,6 +116,7 @@ interface AdminMetricsResponse {
   coreMetrics: {
     wau: number;
     wauChange: number;
+    mau: number;
     activationRate: number;
     activationTotal: number;
     activationActivated: number;
@@ -1424,7 +1425,7 @@ export default function AdminDashboard() {
           icon={<Activity className="text-[hsl(var(--primary))]" size={20} />}
           isExpanded={expandedSections.coreMetrics}
           onToggle={() => toggleSection('coreMetrics')}
-          badge={`WAU: ${metrics.coreMetrics.wau}`}
+          badge={`WAU: ${metrics.coreMetrics.wau} · MAU: ${metrics.coreMetrics.mau}`}
           timeContext="fixed-window"
           description="Key metrics for academic writing product health"
         >
@@ -1444,12 +1445,20 @@ export default function AdminDashboard() {
               explanation="Distinct users with any activity in the last 7 days. Academic work runs on weekly cycles, making WAU more meaningful than DAU."
             />
             <MetricCard
+              label="Monthly Active Users"
+              value={formatNumber(metrics.coreMetrics.mau)}
+              subtitle={`Stickiness: ${metrics.coreMetrics.mau > 0 ? ((metrics.coreMetrics.wau / metrics.coreMetrics.mau) * 100).toFixed(1) : '0'}%`}
+              icon={<Users size={16} />}
+              timeContext="fixed-window"
+              explanation="Distinct users with any activity in the last 30 days. Stickiness = WAU/MAU — higher means users come back weekly, not just monthly."
+            />
+            <MetricCard
               label="Activation Rate"
               value={`${metrics.coreMetrics.activationRate.toFixed(1)}%`}
               subtitle={`${formatNumber(metrics.coreMetrics.activationActivated)} / ${formatNumber(metrics.coreMetrics.activationTotal)} users${metrics.coreMetrics.avgTimeToActivation ? ` · Avg ${Math.round(metrics.coreMetrics.avgTimeToActivation)}min` : ''}`}
               icon={<Zap size={16} />}
               timeContext="fixed-window"
-              explanation="Percentage of users who reached first value (created a project and generated output). Best growth signal."
+              explanation="Percentage of all users who created a project, generated 300+ AI words, and were active on 2+ days. Computed from raw usage data across all users."
             />
             <MetricCard
               label="Week 1 Retention"

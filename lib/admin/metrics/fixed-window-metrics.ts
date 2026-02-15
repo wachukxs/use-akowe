@@ -30,12 +30,20 @@ export async function getFixedWindowCoreMetrics() {
   const prevWauStartStr = toDateStr(fourteenDaysAgo);
   const prevWauEndStr = toDateStr(prevEnd);
 
-  // Run WAU queries, activation (from raw data), and words aggregation in parallel
+  // --- MAU: distinct users in last 30 days ---
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
+  thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
+  const mauStartStr = toDateStr(thirtyDaysAgo);
+  const mauEndStr = toDateStr(now);
+
+  // Run WAU/MAU queries, activation (from raw data), and words aggregation in parallel
   const [
     thisWeekUsers,
     lastWeekUsers,
+    mauUsers,
     totalUsers,
-    usersWithProjects,
+    projectEmails,
     usageByUser,
     activatedRecords,
     wordsAgg,
@@ -48,11 +56,16 @@ export async function getFixedWindowCoreMetrics() {
     DailyUsage.distinct('userId', {
       date: { $gte: prevWauStartStr, $lte: prevWauEndStr },
     }),
+    // MAU: distinct users in last 30 days
+    DailyUsage.distinct('userId', {
+      date: { $gte: mauStartStr, $lte: mauEndStr },
+    }),
     // Total users for activation denominator
     User.countDocuments({}),
-    // Users who have at least one project (activation condition 1)
+    // Users who have at least one project — Project.userId stores EMAIL
     Project.distinct('userId'),
     // Per-user: total AI words + distinct active days (activation conditions 2 & 3)
+    // DailyUsage.userId stores ObjectId strings
     DailyUsage.aggregate([
       {
         $group: {
@@ -99,11 +112,22 @@ export async function getFixedWindowCoreMetrics() {
     }),
   ]);
 
+  const mau = mauUsers.length;
+
   // Compute activation from raw data:
   // Activated = has project AND 300+ AI words AND 2+ active days
-  const projectUserSet = new Set(usersWithProjects.map(String));
+  // Project.userId stores EMAIL, DailyUsage.userId stores ObjectId strings
+  // Bridge via User collection: look up ObjectIds for emails that have projects
+  const usersWithProjectDocs = await User.find({
+    email: { $in: projectEmails },
+  })
+    .select('_id')
+    .lean();
+  const projectUserIdSet = new Set(
+    usersWithProjectDocs.map((u) => u._id!.toString())
+  );
   const activationActivated = usageByUser.filter((u) =>
-    projectUserSet.has(String(u._id))
+    projectUserIdSet.has(String(u._id))
   ).length;
   const activationTotal = totalUsers;
 
@@ -149,6 +173,7 @@ export async function getFixedWindowCoreMetrics() {
   return {
     wau,
     wauChange,
+    mau,
     activationRate,
     activationTotal,
     activationActivated,
