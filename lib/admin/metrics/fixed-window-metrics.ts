@@ -4,24 +4,25 @@ import DailyUsage from '@/models/DailyUsage';
 import User from '@/models/User';
 import Project from '@/models/Project';
 import Activation from '@/models/Activation';
-import { getChurnDateRanges } from './date-utils';
+import { DateRange } from './types';
+import { getChurnDateRanges, createPreviousPeriodRange } from './date-utils';
 
 function toDateStr(d: Date): string {
   return d.toISOString().split('T')[0];
 }
 
-export async function getFixedWindowCoreMetrics() {
+export async function getFixedWindowCoreMetrics(dateRange: DateRange) {
   const now = new Date();
   now.setUTCHours(23, 59, 59, 999);
 
-  // --- WAU: distinct users in last 7 days ---
+  // --- WAU: always last 7 days (fixed) ---
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
   sevenDaysAgo.setUTCHours(0, 0, 0, 0);
   const wauStartStr = toDateStr(sevenDaysAgo);
   const wauEndStr = toDateStr(now);
 
-  // --- Previous week for WoW comparison ---
+  // --- Previous week for WoW comparison (fixed) ---
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setUTCDate(fourteenDaysAgo.getUTCDate() - 14);
   fourteenDaysAgo.setUTCHours(0, 0, 0, 0);
@@ -30,45 +31,64 @@ export async function getFixedWindowCoreMetrics() {
   const prevWauStartStr = toDateStr(fourteenDaysAgo);
   const prevWauEndStr = toDateStr(prevEnd);
 
-  // --- MAU: distinct users in last 30 days ---
+  // --- MAU: always last 30 days (fixed) ---
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
   thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
   const mauStartStr = toDateStr(thirtyDaysAgo);
   const mauEndStr = toDateStr(now);
 
-  // Run WAU/MAU queries, activation (from Activation model), and words aggregation in parallel
+  // --- Date-filtered metrics use the selected period ---
+  const periodDateFilter = {
+    createdAt: { $gte: dateRange.start, $lte: dateRange.end },
+  };
+  const prevRange = createPreviousPeriodRange(dateRange);
+
+  // Run all queries in parallel
   const [
     thisWeekUsers,
     lastWeekUsers,
     mauUsers,
+    // Activation: scoped to date filter
     totalUsers,
     activationActivated,
     activatedRecords,
+    // Words per Active Day: scoped to date filter
     wordsAgg,
+    // Projects Completed: scoped to date filter
     projectsCompleted,
     prevProjectsCompleted,
   ] = await Promise.all([
+    // WAU (fixed)
     DailyUsage.distinct('userId', {
       date: { $gte: wauStartStr, $lte: wauEndStr },
     }),
+    // Previous WAU (fixed)
     DailyUsage.distinct('userId', {
       date: { $gte: prevWauStartStr, $lte: prevWauEndStr },
     }),
-    // MAU: distinct users in last 30 days
+    // MAU (fixed)
     DailyUsage.distinct('userId', {
       date: { $gte: mauStartStr, $lte: mauEndStr },
     }),
-    // Total users for activation denominator
-    User.countDocuments({}),
-    // Activated = users who generated first output (matches Activation Funnel page)
-    Activation.countDocuments({ firstOutputGeneratedAt: { $ne: null } }),
-    // Activation model records for avg time to activation
+    // Activation: users who signed up in the selected period
+    User.countDocuments(periodDateFilter),
+    // Activation: users who generated first output AND signed up in the period
+    Activation.countDocuments({
+      ...periodDateFilter,
+      firstOutputGeneratedAt: { $ne: null },
+    }),
+    // Avg time to activation (all-time, for reference)
     Activation.find({ isActivated: true, timeToActivation: { $ne: null } })
       .select('timeToActivation')
       .lean(),
+    // Words per Active Day: scoped to selected period
     DailyUsage.aggregate([
-      { $match: { date: { $gte: wauStartStr, $lte: wauEndStr } } },
+      {
+        $match: {
+          date: { $gte: dateRange.startStr, $lte: dateRange.endStr },
+        },
+      },
       {
         $group: {
           _id: null,
@@ -77,13 +97,15 @@ export async function getFixedWindowCoreMetrics() {
         },
       },
     ]),
+    // Projects completed in selected period
     Project.countDocuments({
       status: 'completed',
-      updatedAt: { $gte: sevenDaysAgo, $lte: now },
+      updatedAt: { $gte: dateRange.start, $lte: dateRange.end },
     }),
+    // Projects completed in previous period (for comparison)
     Project.countDocuments({
       status: 'completed',
-      updatedAt: { $gte: fourteenDaysAgo, $lte: prevEnd },
+      updatedAt: { $gte: prevRange.start, $lte: prevRange.end },
     }),
   ]);
 
@@ -95,7 +117,7 @@ export async function getFixedWindowCoreMetrics() {
   const wauChange =
     lastWeekWau > 0 ? ((wau - lastWeekWau) / lastWeekWau) * 100 : 0;
 
-  // WoW Retention: % of last week's users who returned this week
+  // WoW Retention: % of last week's users who returned this week (fixed)
   const lastWeekUserSet = new Set(lastWeekUsers.map(String));
   const thisWeekUserSet = new Set(thisWeekUsers.map(String));
   let returnedCount = 0;
@@ -105,7 +127,7 @@ export async function getFixedWindowCoreMetrics() {
   const wowRetention =
     lastWeekWau > 0 ? (returnedCount / lastWeekWau) * 100 : 0;
 
-  // Activation Rate
+  // Activation Rate (scoped to date filter)
   const activationRate =
     activationTotal > 0 ? (activationActivated / activationTotal) * 100 : 0;
   const avgTimeToActivation =
@@ -117,12 +139,12 @@ export async function getFixedWindowCoreMetrics() {
         ) / activatedRecords.length
       : null;
 
-  // Words per Active Day
+  // Words per Active Day (scoped to date filter)
   const totalWords = wordsAgg[0]?.totalWords || 0;
   const totalUserDays = wordsAgg[0]?.totalUserDays || 0;
   const wordsPerActiveDay = totalUserDays > 0 ? totalWords / totalUserDays : 0;
 
-  // Projects completed WoW change
+  // Projects completed change vs previous period
   const projectsCompletedChange =
     prevProjectsCompleted > 0
       ? ((projectsCompleted - prevProjectsCompleted) / prevProjectsCompleted) *

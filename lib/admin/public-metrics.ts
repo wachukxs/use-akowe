@@ -158,7 +158,7 @@ export async function getPublicMetrics() {
     periodMetrics.getPeriodEngagementMetrics(currentRange),
     periodProductMetrics.getPeriodProductMetrics(currentRange),
     // Fixed window core metrics (WAU, activation, etc.)
-    fixedWindowMetrics.getFixedWindowCoreMetrics(),
+    fixedWindowMetrics.getFixedWindowCoreMetrics(currentRange),
   ]);
 
   return {

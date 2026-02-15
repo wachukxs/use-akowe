@@ -1457,8 +1457,8 @@ export default function AdminDashboard() {
               value={`${metrics.coreMetrics.activationRate.toFixed(1)}%`}
               subtitle={`${formatNumber(metrics.coreMetrics.activationActivated)} / ${formatNumber(metrics.coreMetrics.activationTotal)} users${metrics.coreMetrics.avgTimeToActivation ? ` · Avg ${Math.round(metrics.coreMetrics.avgTimeToActivation)}min` : ''}`}
               icon={<Zap size={16} />}
-              timeContext="fixed-window"
-              explanation="Percentage of all users who generated their first AI output. Matches the Activation Funnel (step 3). This is the 'aha moment' when users see real value."
+              timeContext="period"
+              explanation="Of users who signed up in the selected period, what percentage generated their first AI output. Matches the Activation Funnel (step 3)."
             />
             <MetricCard
               label="Week 1 Retention"
@@ -1479,19 +1479,19 @@ export default function AdminDashboard() {
             <MetricCard
               label="Projects Completed"
               value={formatNumber(metrics.coreMetrics.projectsCompleted)}
-              subtitle="Last 7 days"
+              subtitle={customDateRange ? `${new Date(customDateRange.start).toLocaleDateString()} - ${new Date(customDateRange.end).toLocaleDateString()}` : getPeriodLabel(daysFilter)}
               trend={metrics.coreMetrics.projectsCompletedChange}
               icon={<CheckCircle size={16} />}
-              timeContext="fixed-window"
-              explanation="Output metric. Users finish work or they don&apos;t. Tracks projects marked as completed in the last 7 days."
+              timeContext="period"
+              explanation="Output metric. Projects marked as completed in the selected period. Compared against the previous period of equal length."
             />
             <MetricCard
               label="Words per Active Day"
               value={formatNumber(Math.round(metrics.coreMetrics.wordsPerActiveDay))}
-              subtitle="AI words / active user-days (7d)"
+              subtitle={`AI words / active user-days · ${customDateRange ? `${new Date(customDateRange.start).toLocaleDateString()} - ${new Date(customDateRange.end).toLocaleDateString()}` : getPeriodLabel(daysFilter)}`}
               icon={<BarChart3 size={16} />}
-              timeContext="fixed-window"
-              explanation="Depth metric. Total AI words generated divided by total active user-days in the last 7 days. Sessions produce writing or they don&apos;t."
+              timeContext="period"
+              explanation="Depth metric. Total AI words generated divided by total active user-days in the selected period."
             />
           </div>
         </CollapsibleSection>

@@ -147,7 +147,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
     fixedWindowRetention = cachedFixedWindow.retention;
   } else {
     [fixedWindowCoreMetrics, fixedWindowRetention] = await Promise.all([
-      fixedWindowMetrics.getFixedWindowCoreMetrics(),
+      fixedWindowMetrics.getFixedWindowCoreMetrics(currentRange),
       fixedWindowMetrics.getFixedWindowRetentionMetrics(validDays),
     ]);
 
