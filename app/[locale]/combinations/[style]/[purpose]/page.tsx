@@ -11,6 +11,7 @@ import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/cita
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
+export const dynamicParams = true;
 export const revalidate = 86400;
 
 // Valid purposes for combination pages
