@@ -135,24 +135,24 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
 
   // Fixed window metrics (cache separately)
   const fixedWindowCacheKey = getCacheKey('fixedwindow:metrics', validDays);
-  let fixedWindowEngagement, fixedWindowRetention;
-  
+  let fixedWindowCoreMetrics, fixedWindowRetention;
+
   const cachedFixedWindow = metricsCache.get<{
-    engagement: any;
+    coreMetrics: any;
     retention: any;
   }>(fixedWindowCacheKey);
-  
+
   if (cachedFixedWindow) {
-    fixedWindowEngagement = cachedFixedWindow.engagement;
+    fixedWindowCoreMetrics = cachedFixedWindow.coreMetrics;
     fixedWindowRetention = cachedFixedWindow.retention;
   } else {
-    [fixedWindowEngagement, fixedWindowRetention] = await Promise.all([
-      fixedWindowMetrics.getFixedWindowEngagementMetrics(validDays),
+    [fixedWindowCoreMetrics, fixedWindowRetention] = await Promise.all([
+      fixedWindowMetrics.getFixedWindowCoreMetrics(),
       fixedWindowMetrics.getFixedWindowRetentionMetrics(validDays),
     ]);
-    
+
     metricsCache.set(fixedWindowCacheKey, {
-      engagement: fixedWindowEngagement,
+      coreMetrics: fixedWindowCoreMetrics,
       retention: fixedWindowRetention,
     }, CACHE_TTL.periodPerformance);
   }
@@ -192,9 +192,8 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       monthlyRecurringRevenue: allTimeRevenueMetrics.monthlyRecurringRevenue,
       annualRecurringRevenue: allTimeRevenueMetrics.annualRecurringRevenue,
       activeSubscriptions: allTimeRevenueMetrics.activeSubscriptions,
-      dau: fixedWindowEngagement.dau,
-      mau: fixedWindowEngagement.mau,
-      stickiness: fixedWindowEngagement.stickiness,
+      wau: fixedWindowCoreMetrics.wau,
+      wauChange: fixedWindowCoreMetrics.wauChange,
     },
     periodPerformance: {
       users: periodUserMetrics,
@@ -223,13 +222,21 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       },
       monetization: allTimeMonetization,
     },
-    engagement: {
-      dau: fixedWindowEngagement.dau,
-      mau: fixedWindowEngagement.mau,
-      stickiness: fixedWindowEngagement.stickiness,
-      powerUsers: periodEngagementMetrics.powerUsers,
-      consistentUsers: periodEngagementMetrics.consistentUsers,
-      avgActiveDays: periodEngagementMetrics.avgActiveDays,
+    coreMetrics: {
+      wau: fixedWindowCoreMetrics.wau,
+      wauChange: fixedWindowCoreMetrics.wauChange,
+      activationRate: fixedWindowCoreMetrics.activationRate,
+      activationTotal: fixedWindowCoreMetrics.activationTotal,
+      activationActivated: fixedWindowCoreMetrics.activationActivated,
+      avgTimeToActivation: fixedWindowCoreMetrics.avgTimeToActivation,
+      week1Retention: fixedWindowRetention.week1Retention,
+      week1CohortSize: fixedWindowRetention.week1CohortSize,
+      week4Retention: fixedWindowRetention.week4Retention,
+      week4CohortSize: fixedWindowRetention.week4CohortSize,
+      projectsCompleted: fixedWindowCoreMetrics.projectsCompleted,
+      projectsCompletedChange: fixedWindowCoreMetrics.projectsCompletedChange,
+      wordsPerActiveDay: fixedWindowCoreMetrics.wordsPerActiveDay,
+      wowRetention: fixedWindowCoreMetrics.wowRetention,
     },
     productHealth: {
       completionRate: periodProductMetricsData.completionRate,
@@ -241,7 +248,10 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       litReviewAdoption: periodProductMetricsData.litReviewAdoption,
       projects: periodProductMetricsData.projects,
     },
-    retention: fixedWindowRetention,
+    retention: {
+      ...fixedWindowRetention,
+      wowRetention: fixedWindowCoreMetrics.wowRetention,
+    },
     detailedLists: {
       recentUsers: allTimeUserMetrics.recentUsers,
       topUsersByUsage: periodUsageMetrics.topUsersByUsage,
@@ -257,8 +267,8 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       executiveSummary: 'current',
       periodPerformance: 'period',
       businessMetrics: 'mixed',
-      engagement: 'adaptive',
-      productHealth: 'period' as const, // Now respects date filter
+      coreMetrics: 'fixed-window',
+      productHealth: 'period' as const,
       retention: 'fixed-window',
     },
   };

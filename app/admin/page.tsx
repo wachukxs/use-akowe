@@ -40,9 +40,8 @@ interface AdminMetricsResponse {
     monthlyRecurringRevenue: number;
     annualRecurringRevenue: number;
     activeSubscriptions: number;
-    dau: number;
-    mau: number;
-    stickiness: number;
+    wau: number;
+    wauChange: number;
   };
   periodPerformance: {
     users: {
@@ -111,13 +110,21 @@ interface AdminMetricsResponse {
       avgTimeToConversion: number;
     };
   };
-  engagement: {
-    dau: number;
-    mau: number;
-    stickiness: number;
-    powerUsers: number;
-    consistentUsers: number;
-    avgActiveDays: number;
+  coreMetrics: {
+    wau: number;
+    wauChange: number;
+    activationRate: number;
+    activationTotal: number;
+    activationActivated: number;
+    avgTimeToActivation: number | null;
+    week1Retention: number;
+    week1CohortSize: number;
+    week4Retention: number;
+    week4CohortSize: number;
+    projectsCompleted: number;
+    projectsCompletedChange: number;
+    wordsPerActiveDay: number;
+    wowRetention: number;
   };
   productHealth: {
     completionRate: number;
@@ -136,6 +143,11 @@ interface AdminMetricsResponse {
   retention: {
     churnRate: number;
     churnedUsers: number;
+    week1Retention: number;
+    week1CohortSize: number;
+    week4Retention: number;
+    week4CohortSize: number;
+    wowRetention: number;
   };
   detailedLists: {
     recentUsers: Array<{
@@ -205,7 +217,7 @@ interface AdminMetricsResponse {
     executiveSummary: 'current';
     periodPerformance: 'period';
     businessMetrics: 'mixed';
-    engagement: 'adaptive';
+    coreMetrics: 'fixed-window';
     productHealth: 'all-time';
     retention: 'fixed-window';
   };
@@ -310,16 +322,21 @@ function MetricCard({
           {timeContext && <TimeContextBadge context={timeContext} />}
           {explanation && (
             <div className="relative">
-              <Info 
-                size={14} 
-                className="text-[hsl(var(--muted-foreground))] cursor-help"
+              <Info
+                size={14}
+                className="text-[hsl(var(--muted-foreground))] cursor-help shrink-0"
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
+                onClick={() => setShowTooltip(prev => !prev)}
               />
               {showTooltip && (
-                <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-lg text-xs text-left shadow-lg">
-                  {explanation}
-                </div>
+                <>
+                  <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setShowTooltip(false)} />
+                  <div className="fixed bottom-4 left-4 right-4 z-50 p-4 sm:absolute sm:bottom-full sm:left-auto sm:right-0 sm:top-auto sm:w-64 sm:p-3 mb-0 sm:mb-2 bg-[hsl(var(--popover))] border-2 border-[hsl(var(--border-strong))] rounded-lg text-xs text-left shadow-lg">
+                    {explanation}
+                    <button onClick={() => setShowTooltip(false)} className="mt-2 text-[hsl(var(--primary))] font-semibold uppercase tracking-widest sm:hidden">Close</button>
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -470,7 +487,7 @@ export default function AdminDashboard() {
     executiveSummary: true,
     periodPerformance: true,
     businessMetrics: true,
-    engagement: true,
+    coreMetrics: true,
     productHealth: false,
     retention: false,
     detailedLists: false,
@@ -1165,8 +1182,8 @@ export default function AdminDashboard() {
                 <TimeContextBadge context="current" />
               </div>
               <p className="text-xs text-[hsl(var(--muted-foreground))] mb-4">
-                Current state metrics - always up-to-date, no date filter applied. 
-                These show your current business health (MRR, active subscriptions, DAU/MAU) regardless of the selected period.
+                Current state metrics - always up-to-date, no date filter applied.
+                These show your current business health (MRR, active subscriptions, WAU) regardless of the selected period.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
@@ -1184,9 +1201,10 @@ export default function AdminDashboard() {
                   timeContext="current"
                 />
                 <MetricCard
-                  label="Daily Active Users"
-                  value={formatNumber(metrics.executiveSummary.dau)}
-                  subtitle={`MAU: ${formatNumber(metrics.executiveSummary.mau)} • Stickiness: ${metrics.executiveSummary.stickiness.toFixed(1)}%`}
+                  label="Weekly Active Users"
+                  value={formatNumber(metrics.executiveSummary.wau)}
+                  subtitle={`WoW: ${metrics.executiveSummary.wauChange >= 0 ? '+' : ''}${metrics.executiveSummary.wauChange.toFixed(1)}%`}
+                  trend={metrics.executiveSummary.wauChange}
                   icon={<UserCheck size={16} />}
                   timeContext="current"
                 />
@@ -1332,43 +1350,71 @@ export default function AdminDashboard() {
           </div>
         </CollapsibleSection>
 
-        {/* ENGAGEMENT */}
+        {/* CORE METRICS */}
         <CollapsibleSection
-          title="Engagement Metrics"
+          title="Core Metrics"
           icon={<Activity className="text-[hsl(var(--primary))]" size={20} />}
-          isExpanded={expandedSections.engagement}
-          onToggle={() => toggleSection('engagement')}
-          badge={`${metrics.engagement.dau}/${metrics.engagement.mau}`}
-          timeContext="adaptive"
-          description="Adaptive time windows based on context"
+          isExpanded={expandedSections.coreMetrics}
+          onToggle={() => toggleSection('coreMetrics')}
+          badge={`WAU: ${metrics.coreMetrics.wau}`}
+          timeContext="fixed-window"
+          description="Key metrics for academic writing product health"
         >
           <div className="mb-4 p-3 bg-[hsl(var(--accent))]/10 border border-[hsl(var(--border-strong))] rounded text-xs text-[hsl(var(--muted-foreground))]">
-            <strong className="text-[hsl(var(--foreground))]">Why Adaptive Windows?</strong> DAU/MAU metrics use industry-standard time windows 
-            (last 1-2 days for DAU, last 30 days for MAU) to ensure comparability with benchmarks. 
-            However, if you select a longer period, MAU adapts to use that period instead. 
-            This balances standardization with flexibility for longer-term analysis.
+            <strong className="text-[hsl(var(--foreground))]">Why These Metrics?</strong> Academic work runs on weekly cycles.
+            WAU captures this better than DAU. Activation rate, retention cohorts, project completion, and writing depth
+            measure real value delivery rather than vanity engagement.
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard
-              label="Daily Active Users"
-              value={formatNumber(metrics.engagement.dau)}
-              subtitle={`Stickiness: ${metrics.engagement.stickiness.toFixed(1)}%`}
+              label="Weekly Active Users"
+              value={formatNumber(metrics.coreMetrics.wau)}
+              subtitle={`WoW: ${metrics.coreMetrics.wauChange >= 0 ? '+' : ''}${metrics.coreMetrics.wauChange.toFixed(1)}%`}
+              trend={metrics.coreMetrics.wauChange}
               icon={<UserCheck size={16} />}
-              timeContext="adaptive"
+              timeContext="fixed-window"
+              explanation="Distinct users with any activity in the last 7 days. Academic work runs on weekly cycles, making WAU more meaningful than DAU."
             />
             <MetricCard
-              label="Monthly Active Users"
-              value={formatNumber(metrics.engagement.mau)}
-              subtitle={`${formatNumber(metrics.engagement.powerUsers)} power users`}
-              icon={<Users size={16} />}
-              timeContext="adaptive"
+              label="Activation Rate"
+              value={`${metrics.coreMetrics.activationRate.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.coreMetrics.activationActivated)} / ${formatNumber(metrics.coreMetrics.activationTotal)} users${metrics.coreMetrics.avgTimeToActivation ? ` · Avg ${Math.round(metrics.coreMetrics.avgTimeToActivation)}min` : ''}`}
+              icon={<Zap size={16} />}
+              timeContext="fixed-window"
+              explanation="Percentage of users who reached first value (created a project and generated output). Best growth signal."
             />
             <MetricCard
-              label="Usage Consistency"
-              value={`${metrics.engagement.avgActiveDays.toFixed(1)} days`}
-              subtitle={`${formatNumber(metrics.engagement.consistentUsers)} consistent users`}
+              label="Week 1 Retention"
+              value={`${metrics.coreMetrics.week1Retention.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.coreMetrics.week1CohortSize)} users in cohort`}
               icon={<Repeat size={16} />}
-              timeContext="adaptive"
+              timeContext="fixed-window"
+              explanation="Of all users who signed up at least 2 weeks ago, what percentage had activity 7-14 days after signup. Shows who returns after the first week."
+            />
+            <MetricCard
+              label="Week 4 Retention"
+              value={`${metrics.coreMetrics.week4Retention.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.coreMetrics.week4CohortSize)} users in cohort`}
+              icon={<Repeat size={16} />}
+              timeContext="fixed-window"
+              explanation="Of all users who signed up at least 5 weeks ago, what percentage had activity 21-28 days after signup. Shows who sticks after the first month."
+            />
+            <MetricCard
+              label="Projects Completed"
+              value={formatNumber(metrics.coreMetrics.projectsCompleted)}
+              subtitle="Last 7 days"
+              trend={metrics.coreMetrics.projectsCompletedChange}
+              icon={<CheckCircle size={16} />}
+              timeContext="fixed-window"
+              explanation="Output metric. Users finish work or they don&apos;t. Tracks projects marked as completed in the last 7 days."
+            />
+            <MetricCard
+              label="Words per Active Day"
+              value={formatNumber(Math.round(metrics.coreMetrics.wordsPerActiveDay))}
+              subtitle="AI words / active user-days (7d)"
+              icon={<BarChart3 size={16} />}
+              timeContext="fixed-window"
+              explanation="Depth metric. Total AI words generated divided by total active user-days in the last 7 days. Sessions produce writing or they don&apos;t."
             />
           </div>
         </CollapsibleSection>
@@ -1423,9 +1469,33 @@ export default function AdminDashboard() {
           isExpanded={expandedSections.retention}
           onToggle={() => toggleSection('retention')}
           timeContext="fixed-window"
-          description="Fixed time windows for accurate churn calculation"
+          description="Cohort-based retention and churn metrics"
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              label="Week 1 Retention"
+              value={`${metrics.retention.week1Retention.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.retention.week1CohortSize)} users in cohort`}
+              icon={<Repeat size={16} />}
+              timeContext="fixed-window"
+              explanation="Of all users who signed up at least 2 weeks ago, what percentage returned in their second week."
+            />
+            <MetricCard
+              label="Week 4 Retention"
+              value={`${metrics.retention.week4Retention.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.retention.week4CohortSize)} users in cohort`}
+              icon={<Repeat size={16} />}
+              timeContext="fixed-window"
+              explanation="Of all users who signed up at least 5 weeks ago, what percentage returned in their fourth week."
+            />
+            <MetricCard
+              label="WoW Retention"
+              value={`${metrics.retention.wowRetention.toFixed(1)}%`}
+              subtitle="Last week&apos;s users returning this week"
+              icon={<TrendingUp size={16} />}
+              timeContext="fixed-window"
+              explanation="Percentage of last week&apos;s active users who are also active this week"
+            />
             <MetricCard
               label="Churn Rate"
               value={`${metrics.retention.churnRate.toFixed(1)}%`}
@@ -1436,13 +1506,6 @@ export default function AdminDashboard() {
                 value: BENCHMARKS.churnRate.average,
                 label: "Average"
               }}
-            />
-            <MetricCard
-              label="User Retention"
-              value={`${(100 - metrics.retention.churnRate).toFixed(1)}%`}
-              subtitle="Users staying active"
-              icon={<TrendingUp size={16} />}
-              timeContext="fixed-window"
             />
           </div>
         </CollapsibleSection>

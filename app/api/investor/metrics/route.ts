@@ -37,9 +37,8 @@ export async function GET() {
           total: 0,
           newInPeriod: 0,
           newLast7Days: 0,
-          dau: 0,
-          mau: 0,
-          stickiness: 0,
+          wau: 0,
+          wauChange: 0,
         },
         projects: {
           total: 0,
