@@ -13,6 +13,7 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
 // All pSEO pages generated on-demand; cache for 24h (ISR)
+export const dynamicParams = true;
 export const revalidate = 86400;
 
 export async function generateMetadata({
