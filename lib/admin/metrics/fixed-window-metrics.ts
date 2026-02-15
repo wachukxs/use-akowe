@@ -30,12 +30,13 @@ export async function getFixedWindowCoreMetrics() {
   const prevWauStartStr = toDateStr(fourteenDaysAgo);
   const prevWauEndStr = toDateStr(prevEnd);
 
-  // Run WAU queries, activation, and words aggregation in parallel
+  // Run WAU queries, activation (from raw data), and words aggregation in parallel
   const [
     thisWeekUsers,
     lastWeekUsers,
-    activationTotal,
-    activationActivated,
+    totalUsers,
+    usersWithProjects,
+    usageByUser,
     activatedRecords,
     wordsAgg,
     projectsCompleted,
@@ -47,8 +48,34 @@ export async function getFixedWindowCoreMetrics() {
     DailyUsage.distinct('userId', {
       date: { $gte: prevWauStartStr, $lte: prevWauEndStr },
     }),
-    Activation.countDocuments({}),
-    Activation.countDocuments({ isActivated: true }),
+    // Total users for activation denominator
+    User.countDocuments({}),
+    // Users who have at least one project (activation condition 1)
+    Project.distinct('userId'),
+    // Per-user: total AI words + distinct active days (activation conditions 2 & 3)
+    DailyUsage.aggregate([
+      {
+        $group: {
+          _id: '$userId',
+          totalWords: { $sum: '$aiWordsGenerated' },
+          activeDays: { $addToSet: '$date' },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          totalWords: 1,
+          activeDayCount: { $size: '$activeDays' },
+        },
+      },
+      {
+        $match: {
+          totalWords: { $gte: 300 },
+          activeDayCount: { $gte: 2 },
+        },
+      },
+    ]),
+    // Keep Activation model records for avg time to activation
     Activation.find({ isActivated: true, timeToActivation: { $ne: null } })
       .select('timeToActivation')
       .lean(),
@@ -71,6 +98,14 @@ export async function getFixedWindowCoreMetrics() {
       updatedAt: { $gte: fourteenDaysAgo, $lte: prevEnd },
     }),
   ]);
+
+  // Compute activation from raw data:
+  // Activated = has project AND 300+ AI words AND 2+ active days
+  const projectUserSet = new Set(usersWithProjects.map(String));
+  const activationActivated = usageByUser.filter((u) =>
+    projectUserSet.has(String(u._id))
+  ).length;
+  const activationTotal = totalUsers;
 
   const wau = thisWeekUsers.length;
   const lastWeekWau = lastWeekUsers.length;
