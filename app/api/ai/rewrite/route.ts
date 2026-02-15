@@ -117,6 +117,12 @@ export async function POST(request: NextRequest) {
 
     await incrementParaphraseUses(session.user.id, wordCount);
 
+    // Track activation (idempotent — only records first time)
+    import('@/lib/activation-tracking').then(({ recordFirstOutputGenerated, extractAttributionFromRequest }) => {
+      const attribution = extractAttributionFromRequest(request);
+      recordFirstOutputGenerated(session.user!.id!, attribution).catch(() => {});
+    });
+
     // Return remaining rewrites (after increment)
     const remainingRewrites = paraphraseCheck.limit === Infinity
       ? Infinity

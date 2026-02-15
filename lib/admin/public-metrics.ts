@@ -127,7 +127,7 @@ export async function getPublicMetrics() {
     periodProjectMetrics,
     periodEngagementMetrics,
     periodProductMetricsData,
-    fixedWindowEngagement,
+    fixedWindowCoreMetrics,
   ] = await Promise.all([
     // All-time metrics (lightweight - only counts, no expensive aggregations)
     (async () => {
@@ -157,8 +157,8 @@ export async function getPublicMetrics() {
     periodMetrics.getPeriodProjectMetrics(currentRange),
     periodMetrics.getPeriodEngagementMetrics(currentRange),
     periodProductMetrics.getPeriodProductMetrics(currentRange),
-    // Fixed window engagement (DAU/MAU)
-    fixedWindowMetrics.getFixedWindowEngagementMetrics(30),
+    // Fixed window core metrics (WAU, activation, etc.)
+    fixedWindowMetrics.getFixedWindowCoreMetrics(currentRange),
   ]);
 
   return {
@@ -166,9 +166,8 @@ export async function getPublicMetrics() {
       total: allTimeUserMetrics.total,
       newInPeriod: periodUserMetrics.newInPeriod,
       newLast7Days: periodUserMetrics.newLast7Days,
-      dau: fixedWindowEngagement.dau,
-      mau: fixedWindowEngagement.mau,
-      stickiness: fixedWindowEngagement.stickiness,
+      wau: fixedWindowCoreMetrics.wau,
+      wauChange: fixedWindowCoreMetrics.wauChange,
     },
     projects: {
       total: allTimeProjectMetrics.total,

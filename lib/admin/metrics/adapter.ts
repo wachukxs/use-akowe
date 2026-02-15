@@ -60,14 +60,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
       growth: response.periodPerformance.revenue.growth || [],
       subscriptionDetails: response.detailedLists.subscriptionDetails,
     },
-    engagement: {
-      dau: response.engagement.dau,
-      mau: response.engagement.mau,
-      stickiness: response.engagement.stickiness,
-      powerUsers: response.engagement.powerUsers,
-      consistentUsers: response.engagement.consistentUsers,
-      avgActiveDays: response.engagement.avgActiveDays,
-    },
+    coreMetrics: response.coreMetrics,
     product: {
       completionRate: response.productHealth.completionRate,
       avgProjectsPerUser: response.productHealth.avgProjectsPerUser,
@@ -81,10 +74,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
       arpuActive: response.businessMetrics.monetization.arpuActive,
       avgTimeToConversion: response.businessMetrics.monetization.avgTimeToConversion,
     },
-    retention: {
-      churnRate: response.retention.churnRate,
-      churnedUsers: response.retention.churnedUsers,
-    },
+    retention: response.retention,
   };
 }
 

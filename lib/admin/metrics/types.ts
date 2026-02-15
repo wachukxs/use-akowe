@@ -15,9 +15,8 @@ export interface ExecutiveSummary {
   monthlyRecurringRevenue: number;
   annualRecurringRevenue: number;
   activeSubscriptions: number;
-  dau: number; // Daily active users (last 1-2 days)
-  mau: number; // Monthly active users (last 30 days)
-  stickiness: number; // DAU/MAU ratio
+  wau: number; // Weekly active users (rolling 7 days)
+  wauChange: number; // Week-over-week % change
   healthStatus?: {
     mongodb: boolean;
     stripe: boolean;
@@ -93,14 +92,23 @@ export interface BusinessMetrics {
   };
 }
 
-// Engagement Metrics - Adaptive windows based on context
-export interface EngagementMetrics {
-  dau: number; // Daily active users (last 1-2 days)
-  mau: number; // Monthly active users (last 30 days or period if > 30)
-  stickiness: number; // DAU/MAU ratio
-  powerUsers: number; // Users active 5+ days in period
-  consistentUsers: number; // Users active 3+ days in period
-  avgActiveDays: number; // Average active days per user
+// Core Metrics - Key metrics for academic writing product health
+export interface CoreMetrics {
+  wau: number; // Weekly Active Users (rolling 7 days)
+  wauChange: number; // Week-over-week % change
+  mau: number; // Monthly Active Users (rolling 30 days)
+  activationRate: number; // % of users who reached activation
+  activationTotal: number; // Total tracked users
+  activationActivated: number; // Users who activated
+  avgTimeToActivation: number | null; // Minutes
+  week1Retention: number; // % of cohort active 7-14 days after signup
+  week1CohortSize: number; // Size of the cohort measured
+  week4Retention: number; // % of cohort active 21-28 days after signup
+  week4CohortSize: number; // Size of the cohort measured
+  projectsCompleted: number; // Projects completed in last 7 days
+  projectsCompletedChange: number; // WoW change %
+  wordsPerActiveDay: number; // Total AI words / total active user-days (7d)
+  wowRetention: number; // % of last week's WAU who returned this week
 }
 
 // Product Health - Period metrics (respects date filter)
@@ -119,10 +127,15 @@ export interface ProductHealth {
   };
 }
 
-// Retention Metrics - Fixed windows
+// Retention Metrics - Fixed windows with cohort-based retention
 export interface RetentionMetrics {
   churnRate: number;
   churnedUsers: number;
+  week1Retention: number;
+  week1CohortSize: number;
+  week4Retention: number;
+  week4CohortSize: number;
+  wowRetention: number; // % of last week's active users who are active this week
 }
 
 // Detailed Lists - Searchable data
@@ -186,7 +199,7 @@ export interface AdminMetricsResponse {
   executiveSummary: ExecutiveSummary;
   periodPerformance: PeriodPerformance;
   businessMetrics: BusinessMetrics;
-  engagement: EngagementMetrics;
+  coreMetrics: CoreMetrics;
   productHealth: ProductHealth;
   retention: RetentionMetrics;
   detailedLists: DetailedLists;
@@ -200,8 +213,8 @@ export interface AdminMetricsResponse {
     executiveSummary: 'current';
     periodPerformance: 'period';
     businessMetrics: 'mixed';
-    engagement: 'adaptive';
-    productHealth: 'period'; // Now respects date filter
+    coreMetrics: 'fixed-window';
+    productHealth: 'period';
     retention: 'fixed-window';
   };
 }

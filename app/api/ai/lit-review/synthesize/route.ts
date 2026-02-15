@@ -136,6 +136,12 @@ export async function POST(request: NextRequest) {
     // Track AI word usage
     await incrementAIWords(session.user.id, wordCount);
 
+    // Track activation (idempotent — only records first time)
+    import('@/lib/activation-tracking').then(({ recordFirstOutputGenerated, extractAttributionFromRequest }) => {
+      const attribution = extractAttributionFromRequest(request);
+      recordFirstOutputGenerated(session.user!.id!, attribution).catch(() => {});
+    });
+
     // Extract which citations were referenced in the output
     const citationsUsed: string[] = [];
     if (allCitationTexts) {

@@ -195,6 +195,12 @@ export async function POST(request: NextRequest) {
           { $inc: { topicFinderSearches: 1 } },
           { upsert: true }
         );
+
+        // Track activation (idempotent — only records first time)
+        import('@/lib/activation-tracking').then(({ recordFirstOutputGenerated, extractAttributionFromRequest }) => {
+          const attribution = extractAttributionFromRequest(request);
+          recordFirstOutputGenerated(user._id!.toString(), attribution).catch(() => {});
+        });
       }
     }
 
