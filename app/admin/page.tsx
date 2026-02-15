@@ -439,7 +439,6 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [backfillStatus, setBackfillStatus] = useState<{ running: boolean; result: string | null }>({ running: false, result: null });
   const [daysFilter, setDaysFilter] = useState<number>(30);
   const [debouncedDaysFilter, setDebouncedDaysFilter] = useState<number>(30);
   const [customDateRange, setCustomDateRange] = useState<{ start: string; end: string } | null>(null);
@@ -595,21 +594,6 @@ export default function AdminDashboard() {
       setHealthStatus(data);
     } catch (err) {
       console.error('Failed to fetch health status:', err);
-    }
-  };
-
-  const runBackfillActivation = async () => {
-    setBackfillStatus({ running: true, result: null });
-    try {
-      const res = await fetch('/api/admin/backfill-activation', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Backfill failed');
-      setBackfillStatus({
-        running: false,
-        result: `Done: ${data.created} created, ${data.updated} updated, ${data.newlyActivated} newly activated (${data.featureUsersFound} feature users found, ${data.alreadyTracked} already tracked)`,
-      });
-    } catch (err: any) {
-      setBackfillStatus({ running: false, result: `Error: ${err.message}` });
     }
   };
 
@@ -1111,20 +1095,6 @@ export default function AdminDashboard() {
               Actionable Insights & Product Metrics
             </p>
           </div>
-        </div>
-
-        {/* Backfill Activation (temporary) */}
-        <div className="flex items-center gap-3 p-3 border-2 border-dashed border-[hsl(var(--warning))] bg-[hsl(var(--surface))] rounded-lg">
-          <button
-            onClick={runBackfillActivation}
-            disabled={backfillStatus.running}
-            className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--warning))] text-[hsl(var(--warning-foreground))] rounded hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
-          >
-            {backfillStatus.running ? 'Running...' : 'Backfill Activation'}
-          </button>
-          <span className="text-xs text-[hsl(var(--muted-foreground))]">
-            {backfillStatus.result || 'Retroactively set firstOutputGeneratedAt for users who used plagiarism/lit-review/rewrite/topic-finder before tracking was added.'}
-          </span>
         </div>
 
         {/* Tab Navigation */}
