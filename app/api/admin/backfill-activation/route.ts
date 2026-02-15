@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { verifyAdminSession } from '@/lib/admin-auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import DailyUsage from '@/models/DailyUsage';
@@ -14,14 +13,11 @@ import { checkAndUpdateActivation } from '@/lib/activation-tracking';
  *
  * Safe to run multiple times — only touches records where
  * firstOutputGeneratedAt is null.
+ *
+ * Auth is handled by middleware for all /api/admin/* routes.
  */
 export async function POST() {
   try {
-    const isAdmin = await verifyAdminSession();
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     await connectDB();
 
     // Step 1: Find all DailyUsage records where a non-AI-word feature was used
