@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useSession } from 'next-auth/react';
 import { DollarSign, Link2, BarChart3, Mail, CheckCircle, ArrowRight, Copy, ExternalLink } from 'lucide-react';
 import { useState, useMemo } from 'react';

@@ -32,6 +32,10 @@ const DailyUsageSchema = new Schema<IDailyUsage>(
       type: Number,
       default: 0,
     },
+    litReviewAnalyses: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

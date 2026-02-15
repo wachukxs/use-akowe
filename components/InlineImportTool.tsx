@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { FileText, Upload, AlertTriangle, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { trackLeadMagnet } from '@/lib/gtag';
 import LeadMagnetEmailCapture from './LeadMagnetEmailCapture';

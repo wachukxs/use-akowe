@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { buildEducationalResourceLink } from '@/lib/external-links';
 

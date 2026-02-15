@@ -9,13 +9,13 @@ import { getAllKeywordSlugs } from '@/lib/seo/keywords';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
-  // All SEO pages live under the /en locale prefix (localePrefix: 'always')
+  // All routes require locale prefix (localePrefix: 'always' in i18n/routing.ts)
   const prefix = `${baseUrl}/en`;
 
   // Static public routes
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
+      url: prefix,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 1.0,
@@ -63,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
-    // New keyword-based index pages
+    // Keyword-based index pages
     {
       url: `${prefix}/methods`,
       lastModified: new Date(),
