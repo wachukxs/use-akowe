@@ -852,8 +852,8 @@ export default function AdminDashboard() {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: amount > 0 && amount < 1 ? 2 : 0,
+      maximumFractionDigits: amount > 0 && amount < 1 ? 2 : 0,
     }).format(amount);
   };
 
@@ -1411,7 +1411,7 @@ export default function AdminDashboard() {
               <MetricCard
                 label="ARPU (All Users)"
                 value={formatCurrency(metrics.businessMetrics.monetization.arpu)}
-                subtitle="Average revenue per user"
+                subtitle={`Per subscriber: ${formatCurrency(metrics.businessMetrics.monetization.arpuActive)}/mo`}
                 icon={<BarChart3 size={16} />}
                 timeContext="all-time"
               />
@@ -1458,7 +1458,7 @@ export default function AdminDashboard() {
               subtitle={`${formatNumber(metrics.coreMetrics.activationActivated)} / ${formatNumber(metrics.coreMetrics.activationTotal)} users${metrics.coreMetrics.avgTimeToActivation ? ` · Avg ${Math.round(metrics.coreMetrics.avgTimeToActivation)}min` : ''}`}
               icon={<Zap size={16} />}
               timeContext="fixed-window"
-              explanation="Percentage of all users who created a project, generated 300+ AI words, and were active on 2+ days. Computed from raw usage data across all users."
+              explanation="Percentage of all users who generated their first AI output. Matches the Activation Funnel (step 3). This is the 'aha moment' when users see real value."
             />
             <MetricCard
               label="Week 1 Retention"

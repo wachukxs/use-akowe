@@ -37,14 +37,13 @@ export async function getFixedWindowCoreMetrics() {
   const mauStartStr = toDateStr(thirtyDaysAgo);
   const mauEndStr = toDateStr(now);
 
-  // Run WAU/MAU queries, activation (from raw data), and words aggregation in parallel
+  // Run WAU/MAU queries, activation (from Activation model), and words aggregation in parallel
   const [
     thisWeekUsers,
     lastWeekUsers,
     mauUsers,
     totalUsers,
-    projectEmails,
-    usageByUser,
+    activationActivated,
     activatedRecords,
     wordsAgg,
     projectsCompleted,
@@ -62,33 +61,9 @@ export async function getFixedWindowCoreMetrics() {
     }),
     // Total users for activation denominator
     User.countDocuments({}),
-    // Users who have at least one project — Project.userId stores EMAIL
-    Project.distinct('userId'),
-    // Per-user: total AI words + distinct active days (activation conditions 2 & 3)
-    // DailyUsage.userId stores ObjectId strings
-    DailyUsage.aggregate([
-      {
-        $group: {
-          _id: '$userId',
-          totalWords: { $sum: '$aiWordsGenerated' },
-          activeDays: { $addToSet: '$date' },
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          totalWords: 1,
-          activeDayCount: { $size: '$activeDays' },
-        },
-      },
-      {
-        $match: {
-          totalWords: { $gte: 300 },
-          activeDayCount: { $gte: 2 },
-        },
-      },
-    ]),
-    // Keep Activation model records for avg time to activation
+    // Activated = users who generated first output (matches Activation Funnel page)
+    Activation.countDocuments({ firstOutputGeneratedAt: { $ne: null } }),
+    // Activation model records for avg time to activation
     Activation.find({ isActivated: true, timeToActivation: { $ne: null } })
       .select('timeToActivation')
       .lean(),
@@ -113,22 +88,6 @@ export async function getFixedWindowCoreMetrics() {
   ]);
 
   const mau = mauUsers.length;
-
-  // Compute activation from raw data:
-  // Activated = has project AND 300+ AI words AND 2+ active days
-  // Project.userId stores EMAIL, DailyUsage.userId stores ObjectId strings
-  // Bridge via User collection: look up ObjectIds for emails that have projects
-  const usersWithProjectDocs = await User.find({
-    email: { $in: projectEmails },
-  })
-    .select('_id')
-    .lean();
-  const projectUserIdSet = new Set(
-    usersWithProjectDocs.map((u) => u._id!.toString())
-  );
-  const activationActivated = usageByUser.filter((u) =>
-    projectUserIdSet.has(String(u._id))
-  ).length;
   const activationTotal = totalUsers;
 
   const wau = thisWeekUsers.length;
