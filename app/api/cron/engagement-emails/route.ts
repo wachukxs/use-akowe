@@ -219,11 +219,24 @@ export async function POST(request: NextRequest) {
       }).select('userId').lean();
       const activatedSet = new Set(activatedRecords.map((a: any) => a.userId));
 
-      const usersWithAIUsage = new Set(
+      // DailyUsage.userId stores ObjectId strings, not emails — convert first
+      const almostUserDocs = await User.find({
+        email: { $in: almostEmails },
+      }).select('_id email').lean();
+      const emailToId = new Map(almostUserDocs.map((u: any) => [u.email, u._id.toString()]));
+      const almostIds = [...emailToId.values()];
+
+      const usersWithAIUsageIds = new Set(
         await DailyUsage.distinct('userId', {
-          userId: { $in: almostEmails },
+          userId: { $in: almostIds },
           aiWordsGenerated: { $gt: 0 },
         })
+      );
+      // Map back to emails for candidate filtering
+      const usersWithAIUsage = new Set(
+        [...emailToId.entries()]
+          .filter(([, id]) => usersWithAIUsageIds.has(id))
+          .map(([email]) => email)
       );
 
       const almostCandidates = almostUsers
