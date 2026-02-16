@@ -69,9 +69,8 @@ type PublicMetrics = {
     total: number;
     newInPeriod: number;
     newLast7Days: number;
-    dau: number;
-    mau: number;
-    stickiness: number;
+    wau: number;
+    wauChange: number;
   };
   projects: {
     total: number;
@@ -100,34 +99,33 @@ type PublicMetrics = {
 
 const DEFAULT_METRICS: PublicMetrics = {
   users: {
-    total: 0,
-    newInPeriod: 147,
-    newLast7Days: 109,
-    dau: 73,
-    mau: 81,
-    stickiness: 90.1,
+    total: 786,
+    newInPeriod: 786,
+    newLast7Days: 133,
+    wau: 78,
+    wauChange: 0,
   },
   projects: {
-    total: 101,
-    createdInPeriod: 101,
-    avgProjectsPerUser: 1.1,
+    total: 623,
+    createdInPeriod: 623,
+    avgProjectsPerUser: 1.3,
   },
   usage: {
-    aiWordsInPeriod: 16933,
-    plagiarismChecksInPeriod: 98,
-    citationAdoption: 56.6,
-    plagiarismAdoption: 59.0,
+    aiWordsInPeriod: 148290,
+    plagiarismChecksInPeriod: 430,
+    citationAdoption: 39.4,
+    plagiarismAdoption: 37.4,
   },
   productHealth: {
-    activeUsers: 81,
+    activeUsers: 406,
     powerUsers: 0,
     consistentUsers: 0,
   },
   revenue: {
-    totalRevenue: 0,
-    monthlyRecurringRevenue: 0,
+    totalRevenue: 11600,
+    monthlyRecurringRevenue: 11600,
     annualRecurringRevenue: 0,
-    activeSubscriptions: 0,
+    activeSubscriptions: 4,
   },
 };
 
@@ -616,32 +614,32 @@ function InvestorPageContent() {
             </div>
             <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-6">
               <p className="text-center text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-4">
-                Launch: Second Week of December 2025 | Last 30 Days Performance
+                Since Launch: December 2025 | All-Time Metrics
               </p>
             </div>
             <div className="grid md:grid-cols-4 gap-6 mb-6">
               <MetricCard
-                label="New Users"
-                value={metrics?.users.newInPeriod ?? DEFAULT_METRICS.users.newInPeriod}
-                subtitle={`${metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days} in last 7 days`}
+                label="Total Users"
+                value={(metrics?.users.total ?? DEFAULT_METRICS.users.total).toLocaleString()}
+                subtitle={`${metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days} new in last 7 days`}
                 icon={<Users size={20} />}
               />
               <MetricCard
                 label="Projects Created"
-                value={metrics?.projects.createdInPeriod ?? DEFAULT_METRICS.projects.createdInPeriod}
-                subtitle="All-time projects"
+                value={(metrics?.projects.total ?? DEFAULT_METRICS.projects.total).toLocaleString()}
+                subtitle={`${(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)} projects per user`}
                 icon={<FileText size={20} />}
               />
               <MetricCard
                 label="AI Words Generated"
-                value={metrics?.usage.aiWordsInPeriod ?? DEFAULT_METRICS.usage.aiWordsInPeriod}
-                subtitle={`${metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod} plagiarism checks`}
+                value={(metrics?.usage.aiWordsInPeriod ?? DEFAULT_METRICS.usage.aiWordsInPeriod).toLocaleString()}
+                subtitle="Growing with user adoption"
                 icon={<Zap size={20} />}
               />
               <MetricCard
                 label="Plagiarism Checks"
-                value={metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod}
-                subtitle="All-time checks"
+                value={(metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod).toLocaleString()}
+                subtitle="Built-in detection tool"
                 icon={<Shield size={20} />}
               />
             </div>
@@ -678,37 +676,16 @@ function InvestorPageContent() {
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm">DAU</span>
+                    <span className="text-sm">Weekly Active Users</span>
                     <span className="font-bold">
-                      {metrics?.users.dau ?? DEFAULT_METRICS.users.dau}
+                      {metrics?.users.wau ?? DEFAULT_METRICS.users.wau}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">MAU</span>
+                    <span className="text-sm">Active Users (30d)</span>
                     <span className="font-bold">
-                      {metrics?.users.mau ?? DEFAULT_METRICS.users.mau}
+                      {metrics?.productHealth.activeUsers ?? DEFAULT_METRICS.productHealth.activeUsers}
                     </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Stickiness</span>
-                    <span className="font-bold">
-                      {(metrics?.users.stickiness ?? DEFAULT_METRICS.users.stickiness).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
-                <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
-                  Retention
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Retention Rate</span>
-                    <span className="font-bold">81.8%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Churn Rate</span>
-                    <span className="font-bold">18.2%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Projects/User</span>
@@ -720,7 +697,7 @@ function InvestorPageContent() {
               </div>
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
                 <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
-                  Product Health
+                  Feature Adoption
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -736,9 +713,34 @@ function InvestorPageContent() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Active Users</span>
+                    <span className="text-sm">Multi-Feature Users</span>
                     <span className="font-bold">
-                      {metrics?.productHealth.activeUsers ?? DEFAULT_METRICS.productHealth.activeUsers}
+                      {metrics?.productHealth.powerUsers ?? DEFAULT_METRICS.productHealth.powerUsers}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+                <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
+                  Growth Signals
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">New Users (30d)</span>
+                    <span className="font-bold">
+                      {metrics?.users.newInPeriod ?? DEFAULT_METRICS.users.newInPeriod}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">New Users (7d)</span>
+                    <span className="font-bold">
+                      {metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Active Subscriptions</span>
+                    <span className="font-bold">
+                      {metrics?.revenue.activeSubscriptions ?? DEFAULT_METRICS.revenue.activeSubscriptions}
                     </span>
                   </div>
                 </div>
