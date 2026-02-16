@@ -78,6 +78,8 @@ type PublicMetrics = {
     avgProjectsPerUser: number;
   };
   usage: {
+    totalAIWords: number;
+    totalPlagiarismChecks: number;
     aiWordsInPeriod: number;
     plagiarismChecksInPeriod: number;
     citationAdoption: number;
@@ -111,8 +113,10 @@ const DEFAULT_METRICS: PublicMetrics = {
     avgProjectsPerUser: 1.3,
   },
   usage: {
-    aiWordsInPeriod: 148290,
-    plagiarismChecksInPeriod: 430,
+    totalAIWords: 148290,
+    totalPlagiarismChecks: 430,
+    aiWordsInPeriod: 144000,
+    plagiarismChecksInPeriod: 410,
     citationAdoption: 39.4,
     plagiarismAdoption: 37.4,
   },
@@ -612,67 +616,41 @@ function InvestorPageContent() {
                 Traction & Metrics
               </h2>
             </div>
-            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-6">
-              <p className="text-center text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-4">
-                Since Launch: December 2025 | All-Time Metrics
+            <div className="border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6 rounded-lg mb-6">
+              <p className="text-center text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                Soft Launch: December 2025 | Organic Growth, Zero Paid Acquisition
               </p>
             </div>
             <div className="grid md:grid-cols-4 gap-6 mb-6">
               <MetricCard
                 label="Total Users"
                 value={(metrics?.users.total ?? DEFAULT_METRICS.users.total).toLocaleString()}
-                subtitle={`${metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days} new in last 7 days`}
+                subtitle="Organic signups since launch"
                 icon={<Users size={20} />}
               />
               <MetricCard
                 label="Projects Created"
                 value={(metrics?.projects.total ?? DEFAULT_METRICS.projects.total).toLocaleString()}
-                subtitle={`${(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)} projects per user`}
+                subtitle={`${(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)} per user avg`}
                 icon={<FileText size={20} />}
               />
               <MetricCard
                 label="AI Words Generated"
-                value={(metrics?.usage.aiWordsInPeriod ?? DEFAULT_METRICS.usage.aiWordsInPeriod).toLocaleString()}
-                subtitle="Growing with user adoption"
+                value={(metrics?.usage.totalAIWords ?? DEFAULT_METRICS.usage.totalAIWords).toLocaleString()}
+                subtitle="All-time platform usage"
                 icon={<Zap size={20} />}
               />
               <MetricCard
                 label="Plagiarism Checks"
-                value={(metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod).toLocaleString()}
-                subtitle="Built-in detection tool"
+                value={(metrics?.usage.totalPlagiarismChecks ?? DEFAULT_METRICS.usage.totalPlagiarismChecks).toLocaleString()}
+                subtitle="Built-in integrity tool"
                 icon={<Shield size={20} />}
               />
             </div>
-            <div className="grid md:grid-cols-4 gap-6 mb-6">
-              <MetricCard
-                label="Total Revenue"
-                value={`$${((metrics?.revenue.totalRevenue ?? DEFAULT_METRICS.revenue.totalRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-                subtitle="All-time"
-                icon={<DollarSign size={20} />}
-              />
-              <MetricCard
-                label="MRR"
-                value={`$${((metrics?.revenue.monthlyRecurringRevenue ?? DEFAULT_METRICS.revenue.monthlyRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-                subtitle="Monthly recurring"
-                icon={<TrendingUp size={20} />}
-              />
-              <MetricCard
-                label="ARR"
-                value={`$${((metrics?.revenue.annualRecurringRevenue ?? DEFAULT_METRICS.revenue.annualRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-                subtitle="Annual recurring"
-                icon={<TrendingUp size={20} />}
-              />
-              <MetricCard
-                label="Active Subscriptions"
-                value={metrics?.revenue.activeSubscriptions ?? DEFAULT_METRICS.revenue.activeSubscriptions}
-                subtitle="Current"
-                icon={<Users size={20} />}
-              />
-            </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
                 <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
-                  Engagement
+                  User Engagement
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -682,13 +660,13 @@ function InvestorPageContent() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Active Users (30d)</span>
+                    <span className="text-sm">Monthly Active Users</span>
                     <span className="font-bold">
                       {metrics?.productHealth.activeUsers ?? DEFAULT_METRICS.productHealth.activeUsers}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Projects/User</span>
+                    <span className="text-sm">Projects per User</span>
                     <span className="font-bold">
                       {(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)}
                     </span>
@@ -713,36 +691,55 @@ function InvestorPageContent() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Multi-Feature Users</span>
+                    <span className="text-sm">New Users (7d)</span>
                     <span className="font-bold">
-                      {metrics?.productHealth.powerUsers ?? DEFAULT_METRICS.productHealth.powerUsers}
+                      {metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days}
                     </span>
                   </div>
                 </div>
               </div>
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
                 <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
-                  Growth Signals
+                  Early Revenue
                 </h3>
                 <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Paying Subscribers</span>
+                    <span className="font-bold">
+                      {metrics?.revenue.activeSubscriptions ?? DEFAULT_METRICS.revenue.activeSubscriptions}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">MRR</span>
+                    <span className="font-bold">
+                      ${((metrics?.revenue.monthlyRecurringRevenue ?? DEFAULT_METRICS.revenue.monthlyRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-sm">New Users (30d)</span>
                     <span className="font-bold">
                       {metrics?.users.newInPeriod ?? DEFAULT_METRICS.users.newInPeriod}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">New Users (7d)</span>
-                    <span className="font-bold">
-                      {metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Active Subscriptions</span>
-                    <span className="font-bold">
-                      {metrics?.revenue.activeSubscriptions ?? DEFAULT_METRICS.revenue.activeSubscriptions}
-                    </span>
-                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-6 rounded-lg">
+              <h3 className="text-sm uppercase tracking-[0.24em] mb-3">
+                Pre-Investment Growth Context
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6 text-sm">
+                <div>
+                  <div className="font-semibold mb-1">Zero Marketing Spend</div>
+                  <div>All growth organic — community, SEO, and word-of-mouth. Investment unlocks paid acquisition.</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Strong Product Signals</div>
+                  <div>~{(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)} projects/user with {(metrics?.usage.citationAdoption ?? DEFAULT_METRICS.usage.citationAdoption).toFixed(0)}% citation adoption shows real utility.</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Conversion Opportunity</div>
+                  <div>At industry 5-10% conversion, {(metrics?.users.total ?? DEFAULT_METRICS.users.total).toLocaleString()} users = {Math.round((metrics?.users.total ?? DEFAULT_METRICS.users.total) * 0.08)}-{Math.round((metrics?.users.total ?? DEFAULT_METRICS.users.total) * 0.10)} potential subscribers.</div>
                 </div>
               </div>
             </div>

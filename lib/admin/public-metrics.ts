@@ -121,6 +121,7 @@ export async function getPublicMetrics() {
   const [
     allTimeUserMetrics,
     allTimeProjectMetrics,
+    allTimeUsageMetrics,
     periodUsageMetrics,
     localRevenueMetrics,
     periodUserMetrics,
@@ -135,8 +136,8 @@ export async function getPublicMetrics() {
       const freeUsers = await User.countDocuments({ plan: 'free' });
       const proUsers = await User.countDocuments({ plan: 'pro' });
       const teamUsers = await User.countDocuments({ plan: 'team' });
-      const usersWithSubscriptions = await User.countDocuments({ 
-        stripeSubscriptionId: { $exists: true, $ne: null } 
+      const usersWithSubscriptions = await User.countDocuments({
+        stripeSubscriptionId: { $exists: true, $ne: null }
       });
       return {
         total: totalUsers,
@@ -148,6 +149,8 @@ export async function getPublicMetrics() {
     })(),
     // All-time project metrics
     allTimeMetrics.getAllTimeProjectMetrics(),
+    // All-time usage metrics (AI words, plagiarism checks - cumulative totals)
+    allTimeMetrics.getAllTimeUsageMetrics(),
     // Period usage metrics (30 days) - AI words and plagiarism checks for engagement
     periodMetrics.getPeriodUsageMetrics(currentRange),
     // Local revenue metrics (no Stripe API)
@@ -175,6 +178,8 @@ export async function getPublicMetrics() {
       avgProjectsPerUser: periodProductMetricsData.avgProjectsPerUser,
     },
     usage: {
+      totalAIWords: allTimeUsageMetrics.totalAIWords, // All-time cumulative
+      totalPlagiarismChecks: allTimeUsageMetrics.totalPlagiarismChecks, // All-time cumulative
       aiWordsInPeriod: periodUsageMetrics.aiWordsInPeriod, // Last 30 days for engagement
       plagiarismChecksInPeriod: periodUsageMetrics.plagiarismChecksInPeriod, // Last 30 days for engagement
       citationAdoption: periodProductMetricsData.citationAdoption,
