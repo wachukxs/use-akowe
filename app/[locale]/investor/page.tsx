@@ -618,7 +618,7 @@ function InvestorPageContent() {
             </div>
             <div className="border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6 rounded-lg mb-6">
               <p className="text-center text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                Soft Launch: December 2025 | Organic Growth, Zero Paid Acquisition
+                Soft Launch: December 2025 | Organic & Creator-Led Growth
               </p>
             </div>
             <div className="grid md:grid-cols-4 gap-6 mb-6">
@@ -730,8 +730,8 @@ function InvestorPageContent() {
               </h3>
               <div className="grid md:grid-cols-3 gap-6 text-sm">
                 <div>
-                  <div className="font-semibold mb-1">Zero Marketing Spend</div>
-                  <div>All growth organic — community, SEO, and word-of-mouth. Investment unlocks paid acquisition.</div>
+                  <div className="font-semibold mb-1">Creator-Led Growth</div>
+                  <div>Partnering with creators who have built-in audiences. Investment unlocks scaled paid acquisition.</div>
                 </div>
                 <div>
                   <div className="font-semibold mb-1">Strong Product Signals</div>
