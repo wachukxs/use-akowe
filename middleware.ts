@@ -161,6 +161,14 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/api/admin/:path*',
-    '/((?!api|_next|_vercel|.*\\..*).*)',
+    /*
+     * Match all paths EXCEPT:
+     *  - api, _next, _vercel, static files (.*\\.*)
+     *  - pSEO / public content routes (with or without locale prefix) to reduce
+     *    serverless function invocations on Netlify from bot & crawler traffic.
+     *    Routes that still need middleware: /, auth, dashboard, project, settings,
+     *    payment, affiliate-stats, investor.
+     */
+    '/((?!api|_next|_vercel|.*\\..*|(?:[a-z]{2}(?:-[a-zA-Z]{2})?/)?(?:topics|templates|templates-keywords|methods|guides|guides-keywords|fields|faq|faq-keywords|compare|compare-keywords|combinations|citations|citation-styles|citation-sources|latex-guide|for-llms|about|terms|privacy|ambassador|affiliate|tools)(?:/|$)).*)',
   ],
 };
