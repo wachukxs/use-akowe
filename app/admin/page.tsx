@@ -27,6 +27,8 @@ import {
   RefreshCw,
   Link as LinkIcon,
   Mail,
+  MessageSquare,
+  Share2,
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
 import MarketingTab from '@/components/admin/MarketingTab';
@@ -143,6 +145,14 @@ interface AdminMetricsResponse {
       active: number;
       completed: number;
     };
+  };
+  reviewMetrics: {
+    totalShareLinks: number;
+    activeShareLinks: number;
+    totalComments: number;
+    resolvedComments: number;
+    resolutionRate: number;
+    projectsWithShares: number;
   };
   retention: {
     churnRate: number;
@@ -493,6 +503,7 @@ export default function AdminDashboard() {
     businessMetrics: true,
     coreMetrics: true,
     productHealth: false,
+    advisorReviews: false,
     retention: false,
     detailedLists: false,
   });
@@ -1535,6 +1546,40 @@ export default function AdminDashboard() {
               subtitle={`PDF: ${metrics.productHealth.pdfAdoption.toFixed(1)}% • Plagiarism: ${metrics.productHealth.plagiarismAdoption.toFixed(1)}% • Lit Review: ${metrics.productHealth.litReviewAdoption.toFixed(1)}%`}
               icon={<Sparkles size={16} />}
               timeContext="all-time"
+            />
+          </div>
+        </CollapsibleSection>
+
+        {/* ADVISOR REVIEWS */}
+        <CollapsibleSection
+          title="Advisor Reviews"
+          icon={<Share2 className="text-[hsl(var(--primary))]" size={20} />}
+          isExpanded={expandedSections.advisorReviews}
+          onToggle={() => toggleSection('advisorReviews')}
+          timeContext="period"
+          description={`Review sharing metrics for ${customDateRange ? `${new Date(customDateRange.start).toLocaleDateString()} - ${new Date(customDateRange.end).toLocaleDateString()}` : getPeriodLabel(daysFilter)}`}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <MetricCard
+              label="Share Links Created"
+              value={formatNumber(metrics.reviewMetrics.totalShareLinks)}
+              subtitle={`${formatNumber(metrics.reviewMetrics.activeShareLinks)} currently active`}
+              icon={<Share2 size={16} />}
+              timeContext="period"
+            />
+            <MetricCard
+              label="Review Comments"
+              value={formatNumber(metrics.reviewMetrics.totalComments)}
+              subtitle={`${formatNumber(metrics.reviewMetrics.resolvedComments)} resolved (${metrics.reviewMetrics.resolutionRate}%)`}
+              icon={<MessageSquare size={16} />}
+              timeContext="period"
+            />
+            <MetricCard
+              label="Projects with Reviews"
+              value={formatNumber(metrics.reviewMetrics.projectsWithShares)}
+              subtitle="Unique projects shared for review"
+              icon={<FileText size={16} />}
+              timeContext="period"
             />
           </div>
         </CollapsibleSection>

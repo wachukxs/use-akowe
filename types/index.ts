@@ -189,3 +189,50 @@ export const PLAN_LIMITS: Record<PlanType, UsageLimits> = {
   },
 };
 
+// === Advisor Review Types ===
+
+export interface TextAnchor {
+  selectedText: string;
+  prefix: string;
+  suffix: string;
+  sectionId: string;
+  startOffset: number;
+  endOffset: number;
+}
+
+export interface ReviewCommentData {
+  _id: string;
+  shareLinkId: string;
+  projectId: string;
+  sectionId: string;
+  advisorName: string;
+  advisorSessionId: string;
+  commentType: 'inline' | 'general';
+  textAnchor?: TextAnchor;
+  content: string;
+  parentCommentId?: string;
+  authorType: 'advisor' | 'student';
+  authorEmail?: string;
+  status: 'open' | 'resolved';
+  replies?: ReviewCommentData[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ShareLinkData {
+  _id: string;
+  projectId: string;
+  userId: string;
+  token: string;
+  advisorName: string;
+  advisorEmail?: string;
+  sectionIds: string[];
+  expiresAt: Date;
+  revokedAt?: Date;
+  lastAccessedAt?: Date;
+  accessCount: number;
+  commentCount?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+

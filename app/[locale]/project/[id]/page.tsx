@@ -40,8 +40,12 @@ import {
   RefreshCw,
   Sparkles,
   Loader2,
+  Share2,
+  MessageSquare,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import ShareReviewModal from "@/components/ShareReviewModal";
+import ReviewCommentsPanel from "@/components/ReviewCommentsPanel";
 import Input from "@/components/ui/Input";
 import { formatYearForDisplay } from "@/lib/citation-year";
 import {
@@ -82,7 +86,7 @@ export default function ProjectEditorPage({
   const router = useLocaleRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
-  const { isMobile } = useSidebar();
+  const { isMobile, setShowProjectTools } = useSidebar();
   const [project, setProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
@@ -202,6 +206,8 @@ export default function ProjectEditorPage({
     abstract: "",
   });
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showReviewComments, setShowReviewComments] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   type ExportFormat = "pdf" | "docx" | "txt" | "latex";
@@ -3285,6 +3291,31 @@ export default function ProjectEditorPage({
                         <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
                       )}
                     </div>
+
+                    <div
+                      onClick={() => setShowShareModal(true)}
+                      className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150 hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Share2 className="h-4 w-4" />
+                        <span className="font-semibold">Share for Review</span>
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={() => setShowReviewComments(!showReviewComments)}
+                      className={cn(
+                        "flex items-center justify-between px-3 py-2 border-2 rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
+                        showReviewComments
+                          ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10"
+                          : "border-[hsl(var(--border))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="font-semibold">Review Comments</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3577,7 +3608,10 @@ title={t("deleteSection")}
                       <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
 
                       <button
-                        onClick={() => setShowExportModal(true)}
+                        onClick={() => {
+                          setShowProjectTools(false);
+                          setShowExportModal(true);
+                        }}
                         className={cn(
                           "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
                           isExporting ? "opacity-60" : ""
@@ -3586,6 +3620,32 @@ title={t("deleteSection")}
                         <div className="flex items-center gap-2">
                           <Download className="h-4 w-4" />
                           <span className="font-semibold">{t("exportProject")}</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowProjectTools(false);
+                          setShowShareModal(true);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Share2 className="h-4 w-4" />
+                          <span className="font-semibold">Share for Review</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowProjectTools(false);
+                          setShowReviewComments(true);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
+                      >
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4" />
+                          <span className="font-semibold">Review Comments</span>
                         </div>
                       </button>
                     </div>
@@ -5604,6 +5664,133 @@ title={t("deleteSection")}
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Share for Review Modal */}
+        {showShareModal && project && (
+          <ShareReviewModal
+            projectId={project._id}
+            sections={project.sections || []}
+            onClose={() => setShowShareModal(false)}
+          />
+        )}
+
+        {/* Review Comments Panel - Desktop sidebar */}
+        {showReviewComments && project && (
+          <div className="fixed top-0 right-0 w-80 h-full z-40 border-l-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-[-8px_0_24px_rgba(0,0,0,0.1)] hidden md:block">
+            <ReviewCommentsPanel
+              projectId={project._id}
+              sections={project.sections || []}
+              onClose={() => setShowReviewComments(false)}
+              onNavigateToSection={(sectionId) => {
+                setActiveSection(sectionId);
+                setShowReviewComments(false);
+              }}
+              onNavigateToComment={(comment) => {
+                setActiveSection(comment.sectionId);
+                setShowReviewComments(false);
+                // After section switch, scroll to editor and highlight inline text
+                setTimeout(() => {
+                  const editorEl = document.querySelector('[contenteditable="true"]');
+                  if (!editorEl) return;
+                  if (comment.commentType === 'inline' && comment.textAnchor?.selectedText) {
+                    // Try to find and temporarily highlight the commented text
+                    const searchText = comment.textAnchor.selectedText;
+                    const normalized = searchText.replace(/\s+/g, ' ').trim().slice(0, 60);
+                    // Use TreeWalker to find the text in the editor
+                    const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT);
+                    let textNode: Text | null;
+                    let found = false;
+                    while ((textNode = walker.nextNode() as Text | null)) {
+                      const content = (textNode.textContent || '').replace(/\s+/g, ' ');
+                      if (content.includes(normalized)) {
+                        const range = document.createRange();
+                        range.selectNodeContents(textNode);
+                        const rect = range.getBoundingClientRect();
+                        if (rect.top !== 0 || rect.height !== 0) {
+                          textNode.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          // Flash a temporary highlight
+                          const span = textNode.parentElement;
+                          if (span) {
+                            const prev = span.style.backgroundColor;
+                            span.style.backgroundColor = 'hsl(48 96% 70%)';
+                            span.style.transition = 'background-color 0.3s';
+                            setTimeout(() => { span.style.backgroundColor = prev; }, 2500);
+                          }
+                          found = true;
+                          break;
+                        }
+                      }
+                    }
+                    if (!found) {
+                      editorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  } else {
+                    editorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, 250);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Review Comments Panel - Mobile bottom sheet */}
+        {showReviewComments && project && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div
+              className="absolute inset-0 bg-[hsl(var(--foreground))]/40"
+              onClick={() => setShowReviewComments(false)}
+            />
+            <div className="absolute inset-x-0 bottom-0 max-h-[85vh] bg-[hsl(var(--surface))] border-t-4 border-[hsl(var(--border-strong))] rounded-t-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-200">
+              <div className="shrink-0 pt-3 pb-0 px-4">
+                <div className="w-10 h-1 bg-[hsl(var(--border-strong))] rounded-full mx-auto" />
+              </div>
+              <ReviewCommentsPanel
+                projectId={project._id}
+                sections={project.sections || []}
+                onClose={() => setShowReviewComments(false)}
+                onNavigateToSection={(sectionId) => {
+                  setActiveSection(sectionId);
+                  setShowReviewComments(false);
+                }}
+                onNavigateToComment={(comment) => {
+                  setActiveSection(comment.sectionId);
+                  setShowReviewComments(false);
+                  setTimeout(() => {
+                    const editorEl = document.querySelector('[contenteditable="true"]');
+                    if (!editorEl) return;
+                    if (comment.commentType === 'inline' && comment.textAnchor?.selectedText) {
+                      const searchText = comment.textAnchor.selectedText;
+                      const normalized = searchText.replace(/\s+/g, ' ').trim().slice(0, 60);
+                      const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT);
+                      let textNode: Text | null;
+                      let found = false;
+                      while ((textNode = walker.nextNode() as Text | null)) {
+                        const content = (textNode.textContent || '').replace(/\s+/g, ' ');
+                        if (content.includes(normalized)) {
+                          textNode.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          const span = textNode.parentElement;
+                          if (span) {
+                            const prev = span.style.backgroundColor;
+                            span.style.backgroundColor = 'hsl(48 96% 70%)';
+                            span.style.transition = 'background-color 0.3s';
+                            setTimeout(() => { span.style.backgroundColor = prev; }, 2500);
+                          }
+                          found = true;
+                          break;
+                        }
+                      }
+                      if (!found) {
+                        editorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    } else {
+                      editorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }, 250);
+                }}
+              />
             </div>
           </div>
         )}
