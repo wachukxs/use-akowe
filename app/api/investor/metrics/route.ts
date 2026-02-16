@@ -46,6 +46,8 @@ export async function GET() {
           avgProjectsPerUser: 0,
         },
         usage: {
+          totalAIWords: 0,
+          totalPlagiarismChecks: 0,
           aiWordsInPeriod: 0,
           plagiarismChecksInPeriod: 0,
           citationAdoption: 0,

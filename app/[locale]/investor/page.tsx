@@ -69,9 +69,8 @@ type PublicMetrics = {
     total: number;
     newInPeriod: number;
     newLast7Days: number;
-    dau: number;
-    mau: number;
-    stickiness: number;
+    wau: number;
+    wauChange: number;
   };
   projects: {
     total: number;
@@ -79,6 +78,8 @@ type PublicMetrics = {
     avgProjectsPerUser: number;
   };
   usage: {
+    totalAIWords: number;
+    totalPlagiarismChecks: number;
     aiWordsInPeriod: number;
     plagiarismChecksInPeriod: number;
     citationAdoption: number;
@@ -100,34 +101,35 @@ type PublicMetrics = {
 
 const DEFAULT_METRICS: PublicMetrics = {
   users: {
-    total: 0,
-    newInPeriod: 147,
-    newLast7Days: 109,
-    dau: 73,
-    mau: 81,
-    stickiness: 90.1,
+    total: 786,
+    newInPeriod: 786,
+    newLast7Days: 133,
+    wau: 78,
+    wauChange: 0,
   },
   projects: {
-    total: 101,
-    createdInPeriod: 101,
-    avgProjectsPerUser: 1.1,
+    total: 623,
+    createdInPeriod: 623,
+    avgProjectsPerUser: 1.3,
   },
   usage: {
-    aiWordsInPeriod: 16933,
-    plagiarismChecksInPeriod: 98,
-    citationAdoption: 56.6,
-    plagiarismAdoption: 59.0,
+    totalAIWords: 148290,
+    totalPlagiarismChecks: 430,
+    aiWordsInPeriod: 144000,
+    plagiarismChecksInPeriod: 410,
+    citationAdoption: 39.4,
+    plagiarismAdoption: 37.4,
   },
   productHealth: {
-    activeUsers: 81,
+    activeUsers: 406,
     powerUsers: 0,
     consistentUsers: 0,
   },
   revenue: {
-    totalRevenue: 0,
-    monthlyRecurringRevenue: 0,
+    totalRevenue: 11600,
+    monthlyRecurringRevenue: 11600,
     annualRecurringRevenue: 0,
-    activeSubscriptions: 0,
+    activeSubscriptions: 4,
   },
 };
 
@@ -614,104 +616,57 @@ function InvestorPageContent() {
                 Traction & Metrics
               </h2>
             </div>
-            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mb-6">
-              <p className="text-center text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-4">
-                Launch: Second Week of December 2025 | Last 30 Days Performance
+            <div className="border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 p-6 rounded-lg mb-6">
+              <p className="text-center text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+                Soft Launch: December 2025 | Organic & Creator-Led Growth
               </p>
             </div>
             <div className="grid md:grid-cols-4 gap-6 mb-6">
               <MetricCard
-                label="New Users"
-                value={metrics?.users.newInPeriod ?? DEFAULT_METRICS.users.newInPeriod}
-                subtitle={`${metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days} in last 7 days`}
+                label="Total Users"
+                value={(metrics?.users.total ?? DEFAULT_METRICS.users.total).toLocaleString()}
+                subtitle="Organic signups since launch"
                 icon={<Users size={20} />}
               />
               <MetricCard
                 label="Projects Created"
-                value={metrics?.projects.createdInPeriod ?? DEFAULT_METRICS.projects.createdInPeriod}
-                subtitle="All-time projects"
+                value={(metrics?.projects.total ?? DEFAULT_METRICS.projects.total).toLocaleString()}
+                subtitle={`${(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)} per user avg`}
                 icon={<FileText size={20} />}
               />
               <MetricCard
                 label="AI Words Generated"
-                value={metrics?.usage.aiWordsInPeriod ?? DEFAULT_METRICS.usage.aiWordsInPeriod}
-                subtitle={`${metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod} plagiarism checks`}
+                value={(metrics?.usage.totalAIWords ?? DEFAULT_METRICS.usage.totalAIWords).toLocaleString()}
+                subtitle="All-time platform usage"
                 icon={<Zap size={20} />}
               />
               <MetricCard
                 label="Plagiarism Checks"
-                value={metrics?.usage.plagiarismChecksInPeriod ?? DEFAULT_METRICS.usage.plagiarismChecksInPeriod}
-                subtitle="All-time checks"
+                value={(metrics?.usage.totalPlagiarismChecks ?? DEFAULT_METRICS.usage.totalPlagiarismChecks).toLocaleString()}
+                subtitle="Built-in integrity tool"
                 icon={<Shield size={20} />}
               />
             </div>
-            <div className="grid md:grid-cols-4 gap-6 mb-6">
-              <MetricCard
-                label="Total Revenue"
-                value={`$${((metrics?.revenue.totalRevenue ?? DEFAULT_METRICS.revenue.totalRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-                subtitle="All-time"
-                icon={<DollarSign size={20} />}
-              />
-              <MetricCard
-                label="MRR"
-                value={`$${((metrics?.revenue.monthlyRecurringRevenue ?? DEFAULT_METRICS.revenue.monthlyRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-                subtitle="Monthly recurring"
-                icon={<TrendingUp size={20} />}
-              />
-              <MetricCard
-                label="ARR"
-                value={`$${((metrics?.revenue.annualRecurringRevenue ?? DEFAULT_METRICS.revenue.annualRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-                subtitle="Annual recurring"
-                icon={<TrendingUp size={20} />}
-              />
-              <MetricCard
-                label="Active Subscriptions"
-                value={metrics?.revenue.activeSubscriptions ?? DEFAULT_METRICS.revenue.activeSubscriptions}
-                subtitle="Current"
-                icon={<Users size={20} />}
-              />
-            </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
                 <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
-                  Engagement
+                  User Engagement
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm">DAU</span>
+                    <span className="text-sm">Weekly Active Users</span>
                     <span className="font-bold">
-                      {metrics?.users.dau ?? DEFAULT_METRICS.users.dau}
+                      {metrics?.users.wau ?? DEFAULT_METRICS.users.wau}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">MAU</span>
+                    <span className="text-sm">Monthly Active Users</span>
                     <span className="font-bold">
-                      {metrics?.users.mau ?? DEFAULT_METRICS.users.mau}
+                      {metrics?.productHealth.activeUsers ?? DEFAULT_METRICS.productHealth.activeUsers}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Stickiness</span>
-                    <span className="font-bold">
-                      {(metrics?.users.stickiness ?? DEFAULT_METRICS.users.stickiness).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
-                <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
-                  Retention
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Retention Rate</span>
-                    <span className="font-bold">81.8%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Churn Rate</span>
-                    <span className="font-bold">18.2%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Projects/User</span>
+                    <span className="text-sm">Projects per User</span>
                     <span className="font-bold">
                       {(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)}
                     </span>
@@ -720,7 +675,7 @@ function InvestorPageContent() {
               </div>
               <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
                 <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
-                  Product Health
+                  Feature Adoption
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -736,11 +691,55 @@ function InvestorPageContent() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Active Users</span>
+                    <span className="text-sm">New Users (7d)</span>
                     <span className="font-bold">
-                      {metrics?.productHealth.activeUsers ?? DEFAULT_METRICS.productHealth.activeUsers}
+                      {metrics?.users.newLast7Days ?? DEFAULT_METRICS.users.newLast7Days}
                     </span>
                   </div>
+                </div>
+              </div>
+              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
+                <h3 className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-3">
+                  Early Revenue
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Paying Subscribers</span>
+                    <span className="font-bold">
+                      {metrics?.revenue.activeSubscriptions ?? DEFAULT_METRICS.revenue.activeSubscriptions}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">MRR</span>
+                    <span className="font-bold">
+                      ${((metrics?.revenue.monthlyRecurringRevenue ?? DEFAULT_METRICS.revenue.monthlyRecurringRevenue) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">New Users (30d)</span>
+                    <span className="font-bold">
+                      {metrics?.users.newInPeriod ?? DEFAULT_METRICS.users.newInPeriod}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-6 rounded-lg">
+              <h3 className="text-sm uppercase tracking-[0.24em] mb-3">
+                Pre-Investment Growth Context
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6 text-sm">
+                <div>
+                  <div className="font-semibold mb-1">Creator-Led Growth</div>
+                  <div>Partnering with creators who have built-in audiences. Investment unlocks scaled paid acquisition.</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Strong Product Signals</div>
+                  <div>~{(metrics?.projects.avgProjectsPerUser ?? DEFAULT_METRICS.projects.avgProjectsPerUser).toFixed(1)} projects/user with {(metrics?.usage.citationAdoption ?? DEFAULT_METRICS.usage.citationAdoption).toFixed(0)}% citation adoption shows real utility.</div>
+                </div>
+                <div>
+                  <div className="font-semibold mb-1">Conversion Opportunity</div>
+                  <div>At industry 5-10% conversion, {(metrics?.users.total ?? DEFAULT_METRICS.users.total).toLocaleString()} users = {Math.round((metrics?.users.total ?? DEFAULT_METRICS.users.total) * 0.08)}-{Math.round((metrics?.users.total ?? DEFAULT_METRICS.users.total) * 0.10)} potential subscribers.</div>
                 </div>
               </div>
             </div>

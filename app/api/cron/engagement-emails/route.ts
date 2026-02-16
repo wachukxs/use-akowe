@@ -14,8 +14,9 @@ import {
 } from '@/lib/email';
 import { getSuppressedEmails, suppressEmail } from '@/lib/email-suppression';
 
-const MAX_PER_COHORT = 50;
-const MAX_RUNTIME_MS = 20_000; // 20 seconds, leaving buffer for Netlify timeout
+const MAX_PER_COHORT = 15;
+const DELAY_BETWEEN_SENDS_MS = 2_000; // 2 seconds between emails to avoid SMTP rate limits
+const MAX_RUNTIME_MS = 55_000; // 55 seconds, leaving buffer for Netlify 60s timeout
 
 const HARD_BOUNCE_PATTERNS = [
   /^5\d{2}\b/,           // 5xx SMTP status codes
@@ -82,11 +83,18 @@ export async function POST(request: NextRequest) {
     let sent = 0;
     let failed = 0;
 
-    for (const candidate of batch) {
+    for (let i = 0; i < batch.length; i++) {
+      const candidate = batch[i];
+
       // Check timeout before each send
       if (Date.now() - startTime > MAX_RUNTIME_MS) {
         console.warn(`[cron] Approaching timeout during ${cohort}, stopping early`);
         break;
+      }
+
+      // Delay between sends to avoid SMTP rate limits (skip before first)
+      if (i > 0) {
+        await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_SENDS_MS));
       }
 
       try {
