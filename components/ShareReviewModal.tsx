@@ -70,7 +70,13 @@ export default function ShareReviewModal({
 
       if (res.ok) {
         const data = await res.json();
-        setCreatedUrl(data.shareUrl);
+        // Use client-side origin to ensure the URL matches what the user sees,
+        // since the API might return a different base URL (e.g. production domain in dev)
+        const link = data.link;
+        const clientUrl = link?.token
+          ? `${window.location.origin}/review/${link.token}`
+          : data.shareUrl;
+        setCreatedUrl(clientUrl);
         setAdvisorName('');
         setAdvisorEmail('');
         fetchLinks();
@@ -95,11 +101,46 @@ export default function ShareReviewModal({
     }
   }
 
-  function copyToClipboard(url: string, token: string) {
-    navigator.clipboard.writeText(url).then(() => {
+  async function copyToClipboard(url: string, token: string) {
+    try {
+      // Try the modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // Fallback for non-secure contexts or older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
       setCopiedToken(token);
       setTimeout(() => setCopiedToken(null), 2000);
-    });
+    } catch {
+      // Last resort fallback
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        setCopiedToken(token);
+        setTimeout(() => setCopiedToken(null), 2000);
+      } catch {
+        // If all else fails, prompt the user
+        window.prompt('Copy this link:', url);
+      }
+    }
   }
 
   function toggleSection(sectionId: string) {

@@ -289,6 +289,15 @@ export default function ReviewPage({
   // Track whether the inline comment sheet is open on mobile
   const [showMobileInlineSheet, setShowMobileInlineSheet] = useState(false);
 
+  // Cache the last valid selection so we can recover it even if the browser clears
+  // the native selection before we can read it (common on mobile)
+  const lastValidSelectionRef = useRef<{
+    text: string;
+    sectionId: string;
+    anchor: TextAnchor;
+    timestamp: number;
+  } | null>(null);
+
   // Highlighted text from navigating to a comment
   const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
 
@@ -331,9 +340,11 @@ export default function ReviewPage({
     }
   }, [data]);
 
-  // Listen for selectionchange — works for both mobile and desktop
-  // On mobile: shows a floating "Comment on selection" button
-  // On desktop: also used as a backup if mouseup doesn't catch it
+  // Listen for selectionchange — works for both mobile and desktop.
+  // On mobile: shows a floating "Comment on selection" button.
+  // Caches the selection so we can recover it if the browser clears it before the user taps.
+  const selectionDismissTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
   useEffect(() => {
     let debounceTimer: ReturnType<typeof setTimeout>;
 
@@ -345,8 +356,21 @@ export default function ReviewPage({
 
         const selection = window.getSelection();
         if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-          setMobileSelectionReady(false);
-          setMobileSelectionSectionId(null);
+          // On mobile, keep the floating button visible for a grace period (3s)
+          // so the user can tap it even after the native selection handles disappear.
+          // The cached selection in lastValidSelectionRef will still be usable.
+          if (lastValidSelectionRef.current && Date.now() - lastValidSelectionRef.current.timestamp < 10000) {
+            // Button is still showing and cache is fresh — start a dismiss timer
+            clearTimeout(selectionDismissTimer.current);
+            selectionDismissTimer.current = setTimeout(() => {
+              setMobileSelectionReady(false);
+              setMobileSelectionSectionId(null);
+            }, 3000);
+          } else {
+            // No valid cache, dismiss immediately
+            setMobileSelectionReady(false);
+            setMobileSelectionSectionId(null);
+          }
           return;
         }
 
@@ -357,10 +381,11 @@ export default function ReviewPage({
           return;
         }
 
-        // Figure out which section the selection is in (check both anchor and focus)
-        const anchorNode = selection.anchorNode;
-        const focusNode = selection.focusNode;
-        const checkNode = anchorNode || focusNode;
+        // Valid selection — cancel any pending dismiss
+        clearTimeout(selectionDismissTimer.current);
+
+        // Figure out which section the selection is in
+        const checkNode = selection.anchorNode || selection.focusNode;
         if (!checkNode) {
           setMobileSelectionReady(false);
           setMobileSelectionSectionId(null);
@@ -369,19 +394,33 @@ export default function ReviewPage({
 
         const sectionId = findSectionForNode(checkNode, contentRefs.current);
         if (sectionId) {
+          // Cache this valid selection so we can use it even if the browser clears it later
+          const sectionEl = contentRefs.current[sectionId];
+          if (sectionEl) {
+            const anchor = buildTextAnchor(sectionEl, selectedText, sectionId);
+            if (anchor) {
+              lastValidSelectionRef.current = {
+                text: selectedText,
+                sectionId,
+                anchor,
+                timestamp: Date.now(),
+              };
+            }
+          }
           setMobileSelectionSectionId(sectionId);
           setMobileSelectionReady(true);
         } else {
           setMobileSelectionReady(false);
           setMobileSelectionSectionId(null);
         }
-      }, 250);
+      }, 150);
     }
 
     document.addEventListener('selectionchange', handleSelectionChange);
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
       clearTimeout(debounceTimer);
+      clearTimeout(selectionDismissTimer.current);
     };
   }, [showMobileInlineSheet, commentPopupPos]);
 
@@ -442,42 +481,69 @@ export default function ReviewPage({
   /**
    * Capture the current selection and open the comment input.
    * Used by both the mobile floating button and as a shared helper.
+   *
+   * On mobile, the native selection may have already been cleared by the time
+   * the user taps the floating button. In that case, we fall back to the
+   * cached selection from the selectionchange listener.
    */
   function captureSelectionAndOpenComment(sectionId: string, mode: 'mobile' | 'desktop') {
     const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || !selection.toString().trim()) return;
+    const hasLiveSelection = selection && !selection.isCollapsed && selection.toString().trim().length >= 2;
 
-    const selectedText = selection.toString().trim();
-    const sectionEl = contentRefs.current[sectionId];
-    if (!sectionEl) return;
+    let selectedText: string;
+    let anchor: TextAnchor | null;
+    let usedSectionId = sectionId;
 
-    const anchor = buildTextAnchor(sectionEl, selectedText, sectionId);
+    if (hasLiveSelection) {
+      // Live selection is available — use it directly
+      selectedText = selection!.toString().trim();
+      const sectionEl = contentRefs.current[sectionId];
+      if (!sectionEl) return;
+      anchor = buildTextAnchor(sectionEl, selectedText, sectionId);
+    } else {
+      // Live selection was cleared (common on mobile) — use cached selection
+      const cached = lastValidSelectionRef.current;
+      if (!cached || Date.now() - cached.timestamp > 10000) {
+        // Cache is stale (>10s old), give up
+        return;
+      }
+      selectedText = cached.text;
+      anchor = cached.anchor;
+      usedSectionId = cached.sectionId;
+    }
+
     if (!anchor) return;
 
     // Get position from the live selection BEFORE we do anything that might clear it
     let popupPos: { x: number; y: number } | null = null;
-    if (mode === 'desktop') {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      popupPos = {
-        x: Math.min(rect.left + rect.width / 2, window.innerWidth - 200),
-        y: rect.bottom + window.scrollY + 8,
-      };
+    if (mode === 'desktop' && hasLiveSelection) {
+      try {
+        const range = selection!.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        popupPos = {
+          x: Math.min(rect.left + rect.width / 2, window.innerWidth - 200),
+          y: rect.bottom + window.scrollY + 8,
+        };
+      } catch {
+        // Range may be invalid if selection was partially cleared
+      }
     }
 
     // Store highlight info so useLayoutEffect can apply it AFTER React re-renders.
-    // We don't call highlightTextInContainer here because the setState calls below
-    // trigger a re-render, and dangerouslySetInnerHTML may replace the DOM content.
-    pendingHighlightRef.current = { sectionId, text: selectedText };
+    pendingHighlightRef.current = { sectionId: usedSectionId, text: selectedText };
 
     setSelectionAnchor(anchor);
 
     if (mode === 'desktop' && popupPos) {
       setCommentPopupPos(popupPos);
     } else {
+      // On mobile, or desktop without a valid popup position, use the bottom sheet
       setShowMobileInlineSheet(true);
       setMobileSelectionReady(false);
     }
+
+    // Clear the cached selection now that we've used it
+    lastValidSelectionRef.current = null;
   }
 
   /** Remove all highlights (both inline comment and navigation) */
@@ -578,6 +644,10 @@ export default function ReviewPage({
   }
 
   function handleTextSelection(sectionId: string) {
+    // On mobile, text selection is handled by the selectionchange listener
+    // + floating button flow. Skip mouseup handling to avoid conflicts.
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.toString().trim()) {
       // Only clear if we don't have a popup/sheet open already
@@ -1104,10 +1174,12 @@ export default function ReviewPage({
               // Use pointerdown + preventDefault to fire before the browser clears the selection
               e.preventDefault();
               e.stopPropagation();
-              if (mobileSelectionSectionId) {
-                // On mobile, open the bottom sheet; on desktop, try the positioned popup
-                const isMobile = window.matchMedia('(max-width: 767px)').matches;
-                captureSelectionAndOpenComment(mobileSelectionSectionId, isMobile ? 'mobile' : 'desktop');
+
+              // Use the current section ID, or fall back to the cached one
+              const sectionId = mobileSelectionSectionId || lastValidSelectionRef.current?.sectionId;
+              if (sectionId) {
+                const isMobile = window.matchMedia('(pointer: coarse)').matches;
+                captureSelectionAndOpenComment(sectionId, isMobile ? 'mobile' : 'desktop');
               }
             }}
             className="flex items-center gap-2 px-4 py-3 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full shadow-lg text-xs uppercase tracking-[0.18em] font-semibold touch-manipulation min-h-[48px]"
