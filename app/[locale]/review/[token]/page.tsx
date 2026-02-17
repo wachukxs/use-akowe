@@ -299,6 +299,10 @@ export default function ReviewPage({
   // dangerouslySetInnerHTML commits first, then we add our <mark> elements.
   const pendingHighlightRef = useRef<{ sectionId: string; text: string } | null>(null);
 
+  // Stores navigation highlight info (temporary, when clicking a comment to see it in text).
+  // Same pattern: survives re-renders by re-applying after each React commit.
+  const navHighlightRef = useRef<{ sectionId: string; text: string } | null>(null);
+
   useEffect(() => {
     // Check cookies for existing identity
     const savedName = getCookie('akowe_reviewer_name');
@@ -406,23 +410,32 @@ export default function ReviewPage({
     };
   }, [commentPopupPos]);
 
-  // Re-apply the highlight after every render while the comment popup/sheet is open.
-  // This ensures dangerouslySetInnerHTML can't blow away our <mark> elements,
-  // because we re-insert them synchronously after React's DOM commit.
+  // Re-apply highlights after every React DOM commit.
+  // This ensures dangerouslySetInnerHTML can't blow away our <mark> elements.
   useLayoutEffect(() => {
-    const info = pendingHighlightRef.current;
-    if (!info) return;
+    // 1. Inline comment highlight (while popup/sheet is open)
+    const inlineInfo = pendingHighlightRef.current;
+    if (inlineInfo && (commentPopupPos || showMobileInlineSheet)) {
+      const sectionEl = contentRefs.current[inlineInfo.sectionId];
+      if (sectionEl) {
+        const existing = sectionEl.querySelector('mark.akowe-review-highlight');
+        if (!existing) {
+          highlightTextInContainer(sectionEl, inlineInfo.text);
+        }
+      }
+      return; // inline highlight takes priority, don't double-highlight
+    }
 
-    // Only apply while the popup or sheet is actually open
-    if (!commentPopupPos && !showMobileInlineSheet) return;
-
-    const sectionEl = contentRefs.current[info.sectionId];
-    if (!sectionEl) return;
-
-    // Check if highlights already exist (avoid unnecessary DOM work)
-    const existing = sectionEl.querySelector('mark.akowe-review-highlight');
-    if (!existing) {
-      highlightTextInContainer(sectionEl, info.text);
+    // 2. Navigation highlight (temporary, when clicking a comment to find it in text)
+    const navInfo = navHighlightRef.current;
+    if (navInfo) {
+      const sectionEl = contentRefs.current[navInfo.sectionId];
+      if (sectionEl) {
+        const existing = sectionEl.querySelector('mark.akowe-review-highlight');
+        if (!existing) {
+          highlightTextInContainer(sectionEl, navInfo.text);
+        }
+      }
     }
   });
 
@@ -467,19 +480,16 @@ export default function ReviewPage({
     }
   }
 
-  /** Remove the inline comment highlight from whatever section has one */
+  /** Remove all highlights (both inline comment and navigation) */
   function clearInlineHighlight() {
     pendingHighlightRef.current = null;
+    navHighlightRef.current = null;
     for (const el of Object.values(contentRefs.current)) {
       if (el) removeHighlightsFrom(el);
     }
   }
 
   function navigateToComment(comment: ReviewCommentData) {
-    // Switch to the section this comment belongs to
-    setActiveSection(comment.sectionId);
-    setHighlightedCommentId(comment._id);
-
     // Close all open panels/popups
     setShowCommentsPanel(false);
     setShowMobileInlineSheet(false);
@@ -488,27 +498,47 @@ export default function ReviewPage({
     setInlineCommentText('');
     clearInlineHighlight();
 
-    // After React re-renders the section, find and highlight the text
+    // Set the navigation highlight ref BEFORE state changes so the
+    // useLayoutEffect can apply it after React commits the render.
+    if (comment.commentType === 'inline' && comment.textAnchor) {
+      navHighlightRef.current = {
+        sectionId: comment.sectionId,
+        text: comment.textAnchor.selectedText,
+      };
+    } else {
+      navHighlightRef.current = null;
+    }
+
+    // Switch to the section this comment belongs to
+    setActiveSection(comment.sectionId);
+    setHighlightedCommentId(comment._id);
+
+    // After React re-renders and useLayoutEffect applies the highlight, scroll to it
     setTimeout(() => {
       const sectionEl = contentRefs.current[comment.sectionId];
       if (!sectionEl) return;
 
-      // For inline comments with a text anchor, try to find and highlight the text
+      // For inline comments, scroll to the highlighted mark
       if (comment.commentType === 'inline' && comment.textAnchor) {
-        const highlighted = highlightTextInContainer(sectionEl, comment.textAnchor.selectedText);
-        if (highlighted) {
-          highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          setTimeout(() => removeHighlightsFrom(sectionEl), 3000);
-          return;
+        const mark = sectionEl.querySelector('mark.akowe-review-highlight');
+        if (mark) {
+          mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+      } else {
+        // For general comments, scroll to the section top
+        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
 
-      // For general comments or if text not found, scroll to the section top
-      sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      // Clear highlight indicator after animation
-      setTimeout(() => setHighlightedCommentId(null), 3000);
-    }, 150);
+      // Auto-clear navigation highlight after 3 seconds
+      setTimeout(() => {
+        navHighlightRef.current = null;
+        const el = contentRefs.current[comment.sectionId];
+        if (el) removeHighlightsFrom(el);
+        setHighlightedCommentId(null);
+      }, 3000);
+    }, 300);
   }
 
   async function fetchReviewData() {
@@ -805,16 +835,29 @@ export default function ReviewPage({
                           } ${comment.commentType === 'inline' && comment.textAnchor ? 'cursor-pointer' : ''}`}
                           onClick={() => {
                             if (comment.commentType === 'inline' && comment.textAnchor) {
-                              const sectionEl = contentRefs.current[comment.sectionId];
-                              if (sectionEl) {
-                                const highlighted = highlightTextInContainer(sectionEl, comment.textAnchor.selectedText);
-                                if (highlighted) {
-                                  highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                  setTimeout(() => removeHighlightsFrom(sectionEl), 3000);
-                                }
-                              }
+                              // Use the ref so the highlight persists across re-renders
+                              navHighlightRef.current = {
+                                sectionId: comment.sectionId,
+                                text: comment.textAnchor.selectedText,
+                              };
                               setHighlightedCommentId(comment._id);
-                              setTimeout(() => setHighlightedCommentId(null), 3000);
+
+                              // Scroll to the highlighted mark after React commits
+                              requestAnimationFrame(() => {
+                                const sectionEl = contentRefs.current[comment.sectionId];
+                                const mark = sectionEl?.querySelector('mark.akowe-review-highlight');
+                                if (mark) {
+                                  mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                              });
+
+                              // Auto-clear after 3s
+                              setTimeout(() => {
+                                navHighlightRef.current = null;
+                                const sectionEl = contentRefs.current[comment.sectionId];
+                                if (sectionEl) removeHighlightsFrom(sectionEl);
+                                setHighlightedCommentId(null);
+                              }, 3000);
                             }
                           }}
                         >
