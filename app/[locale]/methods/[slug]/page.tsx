@@ -18,14 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const keywordPage = await getKeywordPageBySlug(slug);
   
   if (!keywordPage) {
-    const title = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    return generateSEOMetadata({
-      title: `${title} Research Methodology Guide`,
-      description: `Complete guide to ${title} research methodology for academic writing.`,
-      keywords: [slug, `${slug} methodology`, `${slug} research`],
-      path: `/methods/${slug}`,
-      type: 'article',
-    });
+    return { title: 'Not Found' };
   }
   
   return generateSEOMetadata({

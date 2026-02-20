@@ -13,6 +13,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
     periodPerformance: response.periodPerformance,
     businessMetrics: response.businessMetrics,
     productHealth: response.productHealth,
+    reviewMetrics: response.reviewMetrics,
     detailedLists: response.detailedLists,
     comparisons: response.comparisons,
     dateRange: response.dateRange,

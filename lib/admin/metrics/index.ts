@@ -103,26 +103,29 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
     usage: any;
     engagement: any;
     product: any;
+    review: any;
   }>(periodCacheKey);
 
-  let periodUserMetrics, periodProjectMetrics, periodUsageMetrics, periodEngagementMetrics, periodProductMetricsData;
-  
+  let periodUserMetrics, periodProjectMetrics, periodUsageMetrics, periodEngagementMetrics, periodProductMetricsData, periodReviewMetricsData;
+
   if (cachedPeriod) {
     periodUserMetrics = cachedPeriod.users;
     periodProjectMetrics = cachedPeriod.projects;
     periodUsageMetrics = cachedPeriod.usage;
     periodEngagementMetrics = cachedPeriod.engagement;
     periodProductMetricsData = cachedPeriod.product;
+    periodReviewMetricsData = cachedPeriod.review;
   } else {
     // Calculate period metrics in parallel
-    [periodUserMetrics, periodProjectMetrics, periodUsageMetrics, periodEngagementMetrics, periodProductMetricsData] = await Promise.all([
+    [periodUserMetrics, periodProjectMetrics, periodUsageMetrics, periodEngagementMetrics, periodProductMetricsData, periodReviewMetricsData] = await Promise.all([
       periodMetrics.getPeriodUserMetrics(currentRange),
       periodMetrics.getPeriodProjectMetrics(currentRange),
       periodMetrics.getPeriodUsageMetrics(currentRange),
       periodMetrics.getPeriodEngagementMetrics(currentRange),
       periodProductMetrics.getPeriodProductMetrics(currentRange),
+      periodProductMetrics.getReviewMetrics(currentRange),
     ]);
-    
+
     // Cache period metrics
     metricsCache.set(periodCacheKey, {
       users: periodUserMetrics,
@@ -130,6 +133,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       usage: periodUsageMetrics,
       engagement: periodEngagementMetrics,
       product: periodProductMetricsData,
+      review: periodReviewMetricsData,
     }, CACHE_TTL.periodPerformance);
   }
 
@@ -249,6 +253,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       litReviewAdoption: periodProductMetricsData.litReviewAdoption,
       projects: periodProductMetricsData.projects,
     },
+    reviewMetrics: periodReviewMetricsData,
     retention: {
       ...fixedWindowRetention,
       wowRetention: fixedWindowCoreMetrics.wowRetention,

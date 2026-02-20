@@ -195,6 +195,15 @@ export interface ComparisonMetrics {
   };
 }
 
+export interface ReviewMetrics {
+  totalShareLinks: number;
+  activeShareLinks: number;
+  totalComments: number;
+  resolvedComments: number;
+  resolutionRate: number;
+  projectsWithShares: number;
+}
+
 export interface AdminMetricsResponse {
   executiveSummary: ExecutiveSummary;
   periodPerformance: PeriodPerformance;
@@ -202,6 +211,7 @@ export interface AdminMetricsResponse {
   coreMetrics: CoreMetrics;
   productHealth: ProductHealth;
   retention: RetentionMetrics;
+  reviewMetrics: ReviewMetrics;
   detailedLists: DetailedLists;
   comparisons: ComparisonMetrics;
   dateRange: {

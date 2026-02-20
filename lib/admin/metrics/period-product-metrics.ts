@@ -3,6 +3,8 @@
 import { DateRange } from './types';
 import Project from '@/models/Project';
 import DailyUsage from '@/models/DailyUsage';
+import ShareLink from '@/models/ShareLink';
+import ReviewComment from '@/models/ReviewComment';
 import { metricsCache, getCacheKey, CACHE_TTL } from './cache';
 
 export async function getPeriodProductMetrics(range: DateRange) {
@@ -161,6 +163,65 @@ export async function getPeriodProductMetrics(range: DateRange) {
       active: 0, // Would need to track active projects separately
       completed: completedInPeriod,
     },
+  };
+
+  metricsCache.set(cacheKey, result, CACHE_TTL.periodPerformance);
+  return result;
+}
+
+export async function getReviewMetrics(range: DateRange) {
+  const cacheKey = getCacheKey('period:review', range.startStr, range.endStr);
+  const cached = metricsCache.get<{
+    totalShareLinks: number;
+    activeShareLinks: number;
+    totalComments: number;
+    resolvedComments: number;
+    resolutionRate: number;
+    projectsWithShares: number;
+  }>(cacheKey);
+  if (cached) return cached;
+
+  const now = new Date();
+
+  const [
+    totalShareLinks,
+    activeShareLinks,
+    totalComments,
+    resolvedComments,
+    projectsWithShares,
+  ] = await Promise.all([
+    ShareLink.countDocuments({
+      createdAt: { $gte: range.start, $lte: range.end },
+    }),
+    ShareLink.countDocuments({
+      expiresAt: { $gt: now },
+      revokedAt: { $exists: false },
+    }),
+    ReviewComment.countDocuments({
+      authorType: 'advisor',
+      createdAt: { $gte: range.start, $lte: range.end },
+    }),
+    ReviewComment.countDocuments({
+      authorType: 'advisor',
+      status: 'resolved',
+      createdAt: { $gte: range.start, $lte: range.end },
+    }),
+    ShareLink.distinct('projectId', {
+      createdAt: { $gte: range.start, $lte: range.end },
+    }).then((ids) => ids.length),
+  ]);
+
+  const resolutionRate = totalComments > 0
+    ? Math.round((resolvedComments / totalComments) * 1000) / 10
+    : 0;
+
+  const result = {
+    totalShareLinks,
+    activeShareLinks,
+    totalComments,
+    resolvedComments,
+    resolutionRate,
+    projectsWithShares,
   };
 
   metricsCache.set(cacheKey, result, CACHE_TTL.periodPerformance);
