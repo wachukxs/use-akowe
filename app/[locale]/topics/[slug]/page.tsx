@@ -18,15 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const keywordPage = await getKeywordPageBySlug(slug);
   
   if (!keywordPage) {
-    // Fallback for missing keywords
-    const title = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    return generateSEOMetadata({
-      title: `${title} - Academic Writing Guide`,
-      description: `Complete guide to ${title} for academic writing. Learn best practices, citation formats, and writing strategies.`,
-      keywords: [slug, `${slug} academic writing`, `${slug} guide`],
-      path: `/topics/${slug}`,
-      type: 'article',
-    });
+    return { title: 'Not Found' };
   }
   
   return generateSEOMetadata({
