@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { Link } from '@/i18n/navigation';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllCitationStyleSlugs, getCitationStyleBySlug } from '@/lib/seo/citation-styles';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Citation Style Guides - Akowe',
-  description: 'Complete citation style guides for APA, MLA, Chicago, IEEE, Harvard, Vancouver, ACS, and AMA. Learn how to cite sources in any citation style.',
-  keywords: [
-    'citation style guides',
-    'APA MLA Chicago guides',
-    'citation format guides',
-    'how to cite sources',
-    'citation style reference',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Citation Style Guides - Akowe',
-    description: 'Complete citation style guides for APA, MLA, Chicago, IEEE, Harvard, Vancouver, ACS, and AMA.',
-    url: `${baseUrl}/citation-styles`,
-  },
-};
+    description: 'Complete citation style guides for APA, MLA, Chicago, IEEE, Harvard, Vancouver, ACS, and AMA. Learn how to cite sources in any citation style.',
+    keywords: ['citation style guides', 'APA MLA Chicago guides', 'citation format guides', 'how to cite sources', 'citation style reference'],
+    path: '/citation-styles',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default function CitationStylesIndexPage() {
   const styleSlugs = getAllCitationStyleSlugs();

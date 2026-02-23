@@ -11649,6 +11649,651 @@ const KEYWORD_DATA: Array<{
       conclusion: 'If Cite This For Me\'s restrictions are frustrating, Akowe offers a genuinely free alternative with citation generation, writing assistance, and plagiarism checking in one platform. Try Akowe free—no Chegg subscription needed.',
     },
   },
+
+  // ─── HIGH COMMERCIAL INTENT OVERRIDES & NEW ENTRIES ──────────────────────
+
+  {
+    keyword: 'apa citation generator',
+    title: 'APA Citation Generator — Free, Accurate, Verified Sources',
+    description: 'Generate APA 7th edition citations instantly. Free APA citation generator with verified sources from academic databases—no sign-up required for basic citations.',
+    keywords: ['apa citation generator', 'apa citation maker', 'apa reference generator', 'free apa citation generator', 'apa 7th edition citation generator'],
+    category: 'citation',
+    searchVolume: 33000,
+    difficulty: 28,
+    intent: 'transactional',
+    content: {
+      introduction: 'An APA citation generator formats your references in APA 7th edition style automatically—saving you from memorizing dozens of formatting rules for different source types. The best generators don\'t just format what you type; they verify the source exists and pull accurate metadata directly from academic databases.',
+      sections: [
+        {
+          heading: 'How APA Citation Generators Work',
+          content: 'A quality APA citation generator works in three steps: (1) You enter a DOI, ISBN, URL, or source title; (2) The tool queries academic databases (Crossref, OpenAlex, Google Scholar) to pull verified author names, publication dates, journal names, and volume/issue information; (3) It formats the metadata into APA 7th edition format with correct punctuation, italicization, and hanging indent. Generators that rely solely on user input—rather than database lookup—are only as accurate as what you type. Akowe\'s citation generator verifies sources against real academic databases before formatting.',
+        },
+        {
+          heading: 'APA 7th Edition: What Changed from APA 6th',
+          content: 'APA 7th edition (released 2020) introduced key changes: (1) Running heads removed for student papers (only required for manuscripts submitted for publication); (2) Up to 20 authors listed before an ellipsis (APA 6th cut off at 7); (3) DOIs formatted as hyperlinks (https://doi.org/...) rather than plain text; (4) "Retrieved from" dropped for most URLs—just include the URL itself; (5) Publisher location removed from book citations; (6) New guidance for social media, podcasts, and YouTube citations; (7) Singular "they" accepted as a gender-neutral pronoun. Many free generators still use APA 6th rules—check that yours is explicitly labeled APA 7th.',
+        },
+        {
+          heading: 'APA Citation Formats by Source Type',
+          content: 'Journal article: Author, A. A., & Author, B. B. (Year). Title of article. Journal Name, volume(issue), page–page. https://doi.org/... | Book: Author, A. A. (Year). Title of work: Capital letter also for subtitle. Publisher. | Website: Author, A. A. (Year, Month Day). Title of page. Site Name. URL | YouTube video: Creator, A. (Year, Month Day). Title of video [Video]. YouTube. URL | Podcast episode: Host, A. (Host). (Year, Month Day). Episode title (No. episode#) [Audio podcast episode]. In Podcast Name. Publisher. URL | Dissertation: Author, A. (Year). Title of dissertation [Doctoral dissertation, University Name]. Database Name. URL',
+        },
+        {
+          heading: 'Why Free APA Generators Often Get It Wrong',
+          content: 'Common APA citation errors from free generators: missing DOIs, incorrect capitalization of article titles (APA uses sentence case, not title case), wrong author formatting for groups/organizations, outdated edition rules, incorrect italicization of journal vs. volume vs. issue numbers, missing "https://doi.org/" prefix for DOIs. Akowe\'s generator cross-checks metadata against academic databases so the raw data is correct before formatting—reducing the most common class of citation errors.',
+        },
+      ],
+      conclusion: 'Stop second-guessing every comma and period in your reference list. Akowe\'s APA citation generator verifies sources automatically and formats them correctly in APA 7th edition. Try it free—generate citations for books, journals, websites, and 30+ other source types without creating an account.',
+    },
+  },
+
+  {
+    keyword: 'academic writing tool',
+    title: 'Best Academic Writing Tools for Students and Researchers (2025)',
+    description: 'Compare the best academic writing tools: AI assistance, citation management, plagiarism checking, and structured writing environments. Find the right tool for your research.',
+    keywords: ['academic writing tool', 'academic writing software', 'best academic writing tool', 'research writing tool', 'writing tool for students'],
+    category: 'topic',
+    searchVolume: 2600,
+    difficulty: 20,
+    intent: 'transactional',
+    content: {
+      introduction: 'Academic writing tools range from basic word processors to full research environments with AI assistance, citation management, and plagiarism checking. The right tool depends on what stage you\'re at—drafting a term paper or writing a dissertation—and how many separate apps you want to manage.',
+      sections: [
+        {
+          heading: 'What Makes an Academic Writing Tool Different from Word?',
+          content: 'A dedicated academic writing tool goes beyond a word processor by adding: (1) Citation management—inserting footnotes or parenthetical citations directly from your source library; (2) Source integration—searching academic databases and pulling verified sources without leaving the writing environment; (3) Academic style guides—built-in formatting rules for APA, MLA, Chicago, Harvard, and IEEE; (4) Plagiarism checking—comparing your text against academic publications, not just websites; (5) AI assistance tuned for academic register—suggesting formal phrasing, structuring arguments, and expanding literature without introducing hallucinated sources. Microsoft Word offers none of these natively.',
+        },
+        {
+          heading: 'Top Academic Writing Tools Compared',
+          content: 'Microsoft Word + Zotero: The traditional approach. Free, widely supported, strong track record—but requires installing a separate reference manager, a separate plagiarism checker, and a separate AI writing tool. Three apps to maintain. Scrivener: Excellent for long-form document organization (chapters, notes, outline); no citation management; no AI assistance; not designed specifically for academic formatting. Overleaf: Best for STEM fields requiring LaTeX. Steep learning curve; not suitable for humanities or social science students. Notion/Obsidian: Good for research notes and knowledge management; no citation formatting; not a writing environment for final drafts. Akowe: Purpose-built for academic writing—combines AI writing assistance, academic source search, citation generation in 20+ styles, and plagiarism checking in one workspace. No plugin installation required.',
+        },
+        {
+          heading: 'What to Look for in an Academic Writing Tool',
+          content: 'Must-have features: APA 7th and MLA 9th edition support (current editions); verified academic sources rather than Google results; export to Word (.docx) and PDF without reformatting; plagiarism check against academic journals, not just websites. Nice-to-have: Real-time collaboration for co-authored papers; LaTeX export for STEM; discipline-specific citation styles (Vancouver for medicine, Chicago for history); version history for long projects. Red flags: Tools that only check against web content for plagiarism (misses published papers); generators that don\'t verify sources exist; platforms that restrict export behind a paywall.',
+        },
+      ],
+      conclusion: 'The best academic writing tool is one that reduces the time you spend on formatting and citation logistics—so you can focus on research and argument. Akowe brings writing, citation management, source search, and plagiarism checking into one platform. Try it free and see how much faster a paper comes together.',
+    },
+  },
+
+  {
+    keyword: 'ai writing assistant',
+    title: 'AI Writing Assistant for Academic Writing: What Actually Works',
+    description: 'How to use AI writing assistants for research papers, theses, and dissertations without compromising academic integrity. Compare tools built for academic use vs. general-purpose AI.',
+    keywords: ['ai writing assistant', 'ai writing assistant for students', 'ai academic writing assistant', 'best ai writing assistant', 'ai writing helper'],
+    category: 'topic',
+    searchVolume: 3000,
+    difficulty: 25,
+    intent: 'commercial',
+    content: {
+      introduction: 'AI writing assistants can significantly speed up academic writing—but general-purpose AI tools like ChatGPT are not designed for academic work and carry serious risks: hallucinated citations, unsupported claims, and content that reads as AI-generated to plagiarism detectors. Academic-specific AI writing assistants approach the problem differently.',
+      sections: [
+        {
+          heading: 'General AI vs. Academic AI Writing Assistants',
+          content: 'General AI tools (ChatGPT, Claude, Gemini): Excellent for brainstorming and drafting—but they fabricate citations, cannot access academic databases, produce generic rather than discipline-specific phrasing, and their outputs are easily flagged as AI-generated. Academic AI writing assistants: Designed to augment research writing specifically. They search real databases (Crossref, OpenAlex, PubMed) for sources; only cite sources that actually exist; maintain academic register appropriate to your field; and integrate citation management so you can verify every source used. Akowe is built as an academic writing assistant—every claim it helps you make can be traced back to a real, verifiable source.',
+        },
+        {
+          heading: 'Legitimate Uses of AI in Academic Writing',
+          content: 'Appropriate uses that preserve academic integrity: (1) Outlining—structuring a research argument before drafting; (2) Literature synthesis—helping organize and connect findings from multiple papers you\'ve already read; (3) Language editing—improving clarity and academic register in your own writing; (4) Citation formatting—automatically formatting sources you\'ve identified; (5) Research gap identification—surfacing related work you may not have found. Problematic uses: Having AI write complete sections without your intellectual input; submitting AI-generated text as original work; using AI to cite sources you haven\'t read.',
+        },
+        {
+          heading: 'How to Use an AI Writing Assistant Without Violating Academic Integrity',
+          content: 'Rules that protect you: (1) Verify every source—if an AI suggests a citation, look it up yourself before including it; (2) Write your own argument—use AI to help structure and clarify, but the intellectual contribution must be yours; (3) Disclose AI use—many institutions now require disclosure; check your institution\'s policy; (4) Run plagiarism checks—including AI-detection if your institution requires it; (5) Revise AI drafts substantially—edit heavily so the final text reflects your voice and understanding. Akowe\'s approach: AI assistance is grounded in verified academic sources, so any suggested citation points to a real paper you can read and evaluate.',
+        },
+      ],
+      conclusion: 'An AI writing assistant should make you a better academic writer, not a faster one at the cost of integrity. Akowe\'s AI assistance is built around real sources—so every suggestion is grounded in verifiable research. Try Akowe free for your next paper.',
+    },
+  },
+
+  {
+    keyword: 'academic writing software',
+    title: 'Academic Writing Software: Top Picks for Students and Researchers',
+    description: 'Compare academic writing software with built-in citation management, AI assistance, and plagiarism checking. Find the right writing environment for your research level.',
+    keywords: ['academic writing software', 'academic writing program', 'best academic writing software', 'software for academic writing', 'research paper writing software'],
+    category: 'topic',
+    searchVolume: 3500,
+    difficulty: 22,
+    intent: 'transactional',
+    content: {
+      introduction: 'Academic writing software encompasses a spectrum from lightweight citation managers to full research environments. What you need depends on your writing stage: undergraduate papers require different tools than dissertation-level research.',
+      sections: [
+        {
+          heading: 'Categories of Academic Writing Software',
+          content: 'Word processors with academic add-ons (Word + Zotero, Google Docs + Paperpile): Familiar interfaces with reference management added via plugins. The piecemeal approach requires managing multiple apps and creates formatting inconsistencies. Reference managers (Zotero, Mendeley, EndNote): Excellent for organizing large source libraries and generating bibliographies—but not writing environments; you still need a separate document editor. Document-focused writing tools (Scrivener, Ulysses): Strong organizational features for long documents, but lack academic-specific features like citation formatting or source verification. All-in-one academic platforms (Akowe): Writing environment, citation generator, source search, and plagiarism checker in a single tool designed specifically for research writing.',
+        },
+        {
+          heading: 'Free vs. Paid Academic Writing Software',
+          content: 'Free options: Microsoft Word (via Microsoft 365 for Education at many universities); Google Docs; Zotero (reference manager, completely free, open source); Overleaf (free tier for LaTeX); Akowe (free tier includes citation generation, basic AI assistance, source search). Paid options worth considering: Scrivener ($59 one-time, good for book-length projects); EndNote ($275/year, overkill for most students—institutional access often available); Paperpile ($36/year, cleaner than Zotero for Google Docs users). For most students, the combination of free tools—or an all-in-one tool with a generous free tier—covers everything needed through graduate school.',
+        },
+        {
+          heading: 'Must-Have Features in Academic Writing Software',
+          content: 'Non-negotiables: Current citation style support (APA 7th, MLA 9th, Chicago 17th); ability to export clean .docx and PDF; source verification (not just formatting user-entered data); clear academic register assistance. High value: Plagiarism checking against academic databases (not just web content); collaborative editing for co-authored work; integration with university library databases; version history for long projects. Potential red flags: Lock-in export formats (can\'t get your document out easily); citation limits on free tiers; AI that generates hallucinated sources without verification.',
+        },
+      ],
+      conclusion: 'The right academic writing software reduces time spent on citation formatting and source management—and keeps you focused on the research itself. Akowe combines writing, citations, AI assistance, and plagiarism checking in one tool built for academic work. Start free and upgrade when your project demands it.',
+    },
+  },
+
+  {
+    keyword: 'how to cite a website in apa',
+    title: 'How to Cite a Website in APA 7th Edition (With Examples)',
+    description: 'Step-by-step guide to citing websites in APA 7th edition. Includes formats for webpages, online articles, government sites, and social media—with real examples and common mistake fixes.',
+    keywords: ['how to cite a website in apa', 'apa website citation', 'cite website apa 7th edition', 'apa citation website format', 'website citation apa'],
+    category: 'guide',
+    searchVolume: 4800,
+    difficulty: 24,
+    intent: 'informational',
+    content: {
+      introduction: 'Citing a website in APA 7th edition requires the author name, publication date, page title, site name, and URL. The format is simpler than earlier editions—"Retrieved from" is no longer required, and publisher location is dropped. Here\'s exactly how to format website citations in APA 7th.',
+      sections: [
+        {
+          heading: 'Basic APA Website Citation Format',
+          content: 'Author Last, First Initial. (Year, Month Day). Title of webpage. Site Name. URL\n\nExample: Centers for Disease Control and Prevention. (2023, November 14). Understanding how COVID-19 vaccines work. CDC. https://www.cdc.gov/...\n\nKey rules: (1) Use sentence case for the webpage title—only capitalize the first word, proper nouns, and the first word after a colon; (2) Italicize the title of the webpage; (3) Include the full URL—no period after the URL; (4) If no date is available, use (n.d.) in place of the year; (5) If no author is listed, move the title to the author position.',
+        },
+        {
+          heading: 'APA Website Citation: When There Is No Author',
+          content: 'If no author is listed, start the citation with the title of the page: Title of webpage. (Year, Month Day). Site Name. URL\n\nExample: How to write a literature review. (2023, September 5). Scribbr. https://www.scribbr.com/...\n\nIn-text citation: Use a shortened version of the title in quotes: ("How to Write," 2023). Do not use "Anonymous" when no author is named—that term is reserved for works where the author deliberately chose to be anonymous.',
+        },
+        {
+          heading: 'APA Citations for Different Website Types',
+          content: 'Government website: Author/Agency. (Year, Month Day). Page title. Agency Name. URL — Example: National Institutes of Health. (2024, January 10). Clinical research. NIH. https://www.nih.gov/... | Wikipedia article: Title of article. (Year, Month Day). In Wikipedia. URL — Example: Academic writing. (2024, February 3). In Wikipedia. https://en.wikipedia.org/wiki/Academic_writing | Social media post: Author, A. [@username]. (Year, Month Day). First 20 words of post [Post type]. Platform. URL | News article: Author, A. (Year, Month Day). Article title. Publication. URL — For online news, treat as an online article, not a website citation.',
+        },
+        {
+          heading: 'Common APA Website Citation Mistakes',
+          content: 'Mistake 1: Using title case instead of sentence case in the page title. Correct: "How to cite a source in apa format"—not "How to Cite a Source in APA Format." Mistake 2: Including a retrieval date. APA 7th only requires retrieval dates for content that changes regularly without a revision date (like wikis). Mistake 3: Writing "Retrieved from" before the URL—this was removed in APA 7th edition. Mistake 4: Using http:// instead of https:// when the current URL uses https. Mistake 5: Italicizing the site name instead of the page title—the page title is italicized, the site name is not.',
+        },
+      ],
+      conclusion: 'Don\'t let website citations slow down your paper. Akowe\'s citation generator handles APA 7th website formatting automatically—paste in the URL and get a correctly formatted citation in seconds. Try it free for all your APA citations.',
+    },
+  },
+
+  {
+    keyword: 'how to cite a journal article in apa',
+    title: 'How to Cite a Journal Article in APA 7th Edition (Examples)',
+    description: 'Complete guide to APA journal article citations. Covers print and online articles, DOIs, up-to-20 authors rule, and in-text citations—with examples for every situation.',
+    keywords: ['how to cite a journal article in apa', 'apa journal citation', 'journal article citation apa 7', 'cite journal apa', 'apa format journal article'],
+    category: 'guide',
+    searchVolume: 6800,
+    difficulty: 26,
+    intent: 'informational',
+    content: {
+      introduction: 'Journal articles are the most commonly cited sources in academic writing, and APA 7th edition made several important changes to how they\'re formatted—including the DOI format, the number of authors listed, and removal of database names. Here\'s exactly how to cite journal articles in APA 7th edition.',
+      sections: [
+        {
+          heading: 'Standard APA Journal Article Format',
+          content: 'Author, A. A., Author, B. B., & Author, C. C. (Year). Article title in sentence case. Journal Name in Title Case and Italics, volume(issue), page–page. https://doi.org/xxxxx\n\nReal example: Nguyen, T. H., & Patel, S. R. (2022). The effect of sleep deprivation on academic performance in undergraduate students. Journal of Educational Psychology, 114(3), 412–427. https://doi.org/10.1037/edu0000321\n\nKey rules: (1) Article title in sentence case—only capitalize first word, proper nouns, and first word after a colon; (2) Journal name in title case and italicized; (3) Volume number italicized; (4) Issue number in parentheses, not italicized; (5) DOI formatted as https://doi.org/... hyperlink.',
+        },
+        {
+          heading: 'APA 7th Edition: The 20-Author Rule',
+          content: 'APA 7th edition changed author limits significantly: list up to 20 authors before using an ellipsis. For 21 or more authors: List authors 1–19, add "…" (three periods), then list the last author. No ampersand before the final name when using the ellipsis.\n\nExample with 22 authors: Smith, A., Jones, B., Brown, C., Davis, D., Wilson, E., Moore, F., Taylor, G., Anderson, H., Thomas, I., Jackson, J., White, K., Harris, L., Martin, M., Thompson, N., Garcia, O., Martinez, P., Robinson, Q., Clark, R., Rodriguez, S., … Lewis, V. (2023).\n\nIn-text citation: For 3+ authors, always use (First Author et al., Year) from the first mention.',
+        },
+        {
+          heading: 'Journal Articles Without a DOI',
+          content: 'If the article has no DOI but was found in a database (like JSTOR, EBSCO, PubMed): APA 7th no longer requires database names or retrieval URLs for academic articles. Omit the DOI/URL entirely.\n\nFormat: Author, A. (Year). Article title. Journal Name, volume(issue), pages.\n\nIf the article has no DOI but is available on a website (not a database): Include the direct URL to the article: Author, A. (Year). Article title. Journal Name, volume(issue), pages. URL\n\nDo not include database URLs from JSTOR, EBSCO, or library access URLs—these only work for people with institutional access.',
+        },
+        {
+          heading: 'In-Text Citations for Journal Articles',
+          content: 'Parenthetical: (Author, Year) or (Author, Year, p. X) for direct quotes. Narrative: Author (Year) or Author (Year, p. X) for direct quotes.\n\nTwo authors: (Smith & Jones, 2022) — always include both names. Three or more: (Smith et al., 2022) — use et al. from first mention in APA 7th (changed from APA 6th which required listing all authors on first mention for 3–5 authors). No author: Use shortened title in quotes: ("Article Title," Year). Two works, same author, same year: Add letters: (Smith, 2022a) and (Smith, 2022b) — list alphabetically by title in the reference list.',
+        },
+      ],
+      conclusion: 'Journal articles are the backbone of academic citation—and getting the format exactly right matters for your grade and credibility. Akowe\'s citation generator handles APA 7th journal citations automatically, including correct DOI formatting and author limits. Generate your citations free.',
+    },
+  },
+
+  {
+    keyword: 'how to cite a book in mla',
+    title: 'How to Cite a Book in MLA 9th Edition (With Examples)',
+    description: 'Step-by-step guide to citing books in MLA 9th edition. Covers single authors, multiple authors, edited books, chapters, ebooks, and in-text citations—with real examples.',
+    keywords: ['how to cite a book in mla', 'mla book citation', 'cite a book mla 9th edition', 'mla format book citation', 'book citation mla'],
+    category: 'guide',
+    searchVolume: 5000,
+    difficulty: 22,
+    intent: 'informational',
+    content: {
+      introduction: 'MLA 9th edition (2021) uses a flexible "core elements" system for citations—rather than memorizing different formats for each source type, you fill in a consistent set of fields. For books, the key core elements are: Author, Title, Publisher, Year, and optionally a location (URL or DOI for ebooks). Here\'s exactly how to cite books in MLA format.',
+      sections: [
+        {
+          heading: 'Basic MLA Book Citation Format',
+          content: 'Last Name, First Name. Title of Book. Publisher, Year.\n\nExample: Turabian, Kate L. A Manual for Writers of Research Papers, Theses, and Dissertations. University of Chicago Press, 2018.\n\nKey rules: (1) Title in title case and italicized; (2) Publisher name as it appears on the title page—abbreviate "University" to "U" and "Press" to "P" only if your instructor follows the older MLA abbreviated style; (3) Year is the copyright year from the title page, not the printing year; (4) Hanging indent for Works Cited entries (first line flush left, subsequent lines indented 0.5 inches).',
+        },
+        {
+          heading: 'MLA Book Citations: Multiple Authors and Editors',
+          content: 'Two authors: Reverse only the first author\'s name. Last, First, and First Last. Title. Publisher, Year.\n\nExample: Strunk, William, Jr., and E. B. White. The Elements of Style. Pearson, 2000.\n\nThree or more authors: List only the first author, then "et al.": Last, First, et al. Title. Publisher, Year.\n\nEdited book (whole volume): Editor Last, First, editor. Title. Publisher, Year.\n\nExample: Davis, Philip J., editor. The Mathematical Experience. Birkhäuser, 1981.\n\nChapter in edited book: Author Last, First. "Chapter Title." Book Title, edited by Editor First Last, Publisher, Year, pp. X–Y.',
+        },
+        {
+          heading: 'Ebooks and Online Books',
+          content: 'For ebooks from a library database or Kindle, add the version after the title and include a URL or DOI:\n\nAuthor Last, First. Title. Publisher, Year. Platform/Database. URL or DOI.\n\nExample: Graff, Gerald, and Cathy Birkenstein. They Say / I Say: The Moves That Matter in Academic Writing. W. W. Norton, 2021. Google Books. https://books.google.com/...\n\nFor Kindle: note the edition: Author Last, First. Title. Kindle ed., Publisher, Year.\n\nFor books from academic databases (JSTOR, Project MUSE): include the database name and stable URL or DOI.',
+        },
+        {
+          heading: 'MLA In-Text Citations for Books',
+          content: 'MLA uses page numbers (not dates) in in-text citations: (Author Last Name Page Number) — no comma between name and page.\n\nExample: (Turabian 42) or (Strunk and White 15)\n\nNo page numbers (ebook without pagination): Use chapter or section numbers: (Graff, ch. 3). When author is named in the sentence: Just add the page number in parentheses at the end. Multiple works by the same author: Add a shortened title: (Orwell, "Politics" 15) or (Orwell, Animal Farm 87). Anonymous/no author: Use a shortened title instead of author name: ("Academic Writing" 23).',
+        },
+      ],
+      conclusion: 'MLA book citations have more variations than most students expect—single authors, edited volumes, ebooks, chapters. Akowe\'s citation generator handles all MLA 9th edition book formats automatically. Paste in an ISBN or title and get a correct Works Cited entry instantly. Try it free.',
+    },
+  },
+
+  {
+    keyword: 'ai citation tool',
+    title: 'AI Citation Tool: How to Generate Accurate Citations with AI',
+    description: 'What an AI citation tool does, how to evaluate accuracy, and why source verification matters. Compare AI citation tools that check real databases vs. those that format user input.',
+    keywords: ['ai citation tool', 'ai citation generator', 'ai powered citation tool', 'best ai citation tool', 'automatic citation tool'],
+    category: 'topic',
+    searchVolume: 2100,
+    difficulty: 20,
+    intent: 'commercial',
+    content: {
+      introduction: 'An AI citation tool uses artificial intelligence to find, verify, and format academic sources—going beyond simple formatting tools that only arrange what you manually enter. The key distinction: does the tool verify that a source exists, or does it just format whatever text you provide?',
+      sections: [
+        {
+          heading: 'What Makes an AI Citation Tool Different',
+          content: 'Traditional citation formatters (EasyBib, Citation Machine): Take user-entered data and format it according to a style guide. They don\'t check whether the source actually exists or whether the metadata is accurate. AI citation tools with source verification (Akowe): Query live academic databases (Crossref, OpenAlex, Semantic Scholar) to find the source, pull verified metadata, and then format the citation. Result: The author names, publication year, journal name, volume, and DOI are all pulled directly from the official record—not from what you typed. This eliminates the most common citation error: incorrect metadata.',
+        },
+        {
+          heading: 'How to Evaluate an AI Citation Tool\'s Accuracy',
+          content: 'Test any citation tool with these checks: (1) Enter a known DOI—does the tool retrieve the correct author names, title, and journal? (2) Enter a partial title—does the tool return the actual paper or hallucinate a plausible-sounding but nonexistent one? (3) Test a complex source type (government report, conference paper, dissertation)—does it handle the format correctly? (4) Check a recent paper (2023–2024)—does the tool have up-to-date database access? Red flags: Tools that return a "successfully formatted citation" for a clearly wrong DOI; tools that suggest sources you can\'t verify in any database; free tools with no documented data sources.',
+        },
+        {
+          heading: 'AI Citation Tools vs. Reference Managers',
+          content: 'AI citation tools and reference managers serve different needs: AI citation tools generate a single citation quickly from minimal input (DOI, URL, or title search). Best for: quick individual citations during writing. Reference managers (Zotero, Mendeley) maintain a library of sources across multiple projects with rich metadata, notes, and tags. Best for: managing 50+ sources across multiple long-term projects. Akowe combines both: you can generate individual citations quickly or build a library of sources tied to your writing project—with AI assistance that references those verified sources as you write.',
+        },
+      ],
+      conclusion: 'The difference between a citation tool and an AI citation tool is source verification. Akowe\'s citation generation is grounded in real academic databases—so you\'re not just formatting text, you\'re citing sources that exist. Try Akowe free for your next paper.',
+    },
+  },
+
+  {
+    keyword: 'ai research assistant',
+    title: 'AI Research Assistant for Academic Writing: What to Look For',
+    description: 'How AI research assistants help with literature reviews, source discovery, and writing. Learn which features matter for academic research and what to avoid for academic integrity.',
+    keywords: ['ai research assistant', 'ai academic research tool', 'ai for research papers', 'ai research helper', 'best ai research assistant'],
+    category: 'topic',
+    searchVolume: 2500,
+    difficulty: 22,
+    intent: 'commercial',
+    content: {
+      introduction: 'An AI research assistant helps you find, organize, and synthesize academic sources—and ideally assists with the writing process without compromising your intellectual contribution. The key requirement for academic work: the AI must cite real, verifiable sources, not generate plausible-sounding but nonexistent ones.',
+      sections: [
+        {
+          heading: 'What a Good AI Research Assistant Does',
+          content: 'Core capabilities: (1) Source discovery—finding relevant academic papers, books, and datasets from your research question; (2) Literature synthesis—summarizing what a field of research says about a topic, based on real papers; (3) Citation generation—formatting sources in your required style; (4) Research gap identification—surfacing what hasn\'t been studied or where findings are contradictory; (5) Writing assistance—helping structure arguments and transitions in academic register. Must-have constraint: Every source mentioned must be a real, retrievable paper. AI that generates fabricated citations is worse than no AI—it creates work when you discover the sources don\'t exist.',
+        },
+        {
+          heading: 'AI Research Assistants vs. General AI (ChatGPT, etc.)',
+          content: 'General AI tools (ChatGPT, Claude, Gemini): Excellent reasoning capability and broad knowledge—but trained on internet text, not live academic databases. They cannot access Crossref, OpenAlex, or PubMed in real time (without plugins), leading to hallucinated citations. Academic AI research tools: Built specifically to query academic databases. Akowe searches OpenAlex (200M+ works) and Crossref in real time—so source suggestions are grounded in papers that actually exist, with DOIs you can verify. Use case guidance: Use general AI for brainstorming and argument structure; use academic AI for source discovery and citation generation.',
+        },
+        {
+          heading: 'Using an AI Research Assistant Responsibly',
+          content: 'Responsible use: Read sources the AI suggests before citing them—don\'t cite a paper you haven\'t at least skimmed. Verify DOIs and author names against the official record. Disclose AI assistance per your institution\'s policy. Use AI to find sources, not to construct your argument from scratch. Problematic use: Submitting AI-synthesized text without significant revision and intellectual contribution; citing papers you haven\'t read; using AI-generated citations without verification. Most universities now have AI use policies—academic AI tools designed for research work are generally permitted; using AI to write entire papers is generally not.',
+        },
+      ],
+      conclusion: 'An AI research assistant should make your research process faster and more thorough—not create integrity risks. Akowe is built for academic research: real sources from live databases, citation formatting in 20+ styles, and AI assistance grounded in verifiable papers. Start your research free.',
+    },
+  },
+
+  // ─── HIGH-VOLUME TEMPLATE ENTRIES ─────────────────────────────────────────
+
+  {
+    keyword: 'research paper template',
+    title: 'Research Paper Template: Structure, Format, and Examples',
+    description: 'Free research paper templates for APA, MLA, and Chicago formats. Includes structure guides, section-by-section formatting, and examples for undergraduate and graduate papers.',
+    keywords: ['research paper template', 'research paper format template', 'academic research paper template', 'free research paper template', 'research paper structure template'],
+    category: 'template',
+    searchVolume: 12000,
+    difficulty: 28,
+    intent: 'transactional',
+    content: {
+      introduction: 'A research paper template gives you a pre-formatted structure with the correct margins, headings, font, and citation style—so you can focus on content rather than formatting. Here\'s a complete guide to what a research paper template should include and how to use one effectively.',
+      sections: [
+        {
+          heading: 'Standard Research Paper Structure',
+          content: 'Most academic research papers follow this structure: (1) Title page—title, your name, institution, course, instructor, date; format varies by citation style; (2) Abstract (if required)—150–250 words summarizing research question, methodology, findings, and conclusion; (3) Introduction—background, research question, thesis statement, paper roadmap; (4) Literature Review—synthesis of relevant prior research; establishes research gap; (5) Methodology (for empirical papers)—research design, data collection, analysis approach; (6) Results/Findings—what the data shows, with tables and figures; (7) Discussion—interpret findings, connect to literature, acknowledge limitations; (8) Conclusion—restate thesis, summarize contributions, suggest future research; (9) References/Works Cited—formatted in your required citation style.',
+        },
+        {
+          heading: 'Research Paper Template by Citation Style',
+          content: 'APA format: 1-inch margins, 12pt Times New Roman or 11pt Calibri, double-spaced, title page with running head (manuscripts only—not student papers per APA 7th), abstract page, in-text citations as (Author, Year), References page with hanging indent. MLA format: 1-inch margins, 12pt Times New Roman, double-spaced, header with last name and page number, no title page for most assignments (name/instructor/course/date in header), parenthetical citations as (Author Page), Works Cited page. Chicago format: 1-inch margins, 12pt Times New Roman, double-spaced with specific first-line indent, footnotes or author-date citations (depending on Chicago Notes-Bibliography vs. Author-Date system), Bibliography page.',
+        },
+        {
+          heading: 'Research Paper Template: Common Formatting Mistakes',
+          content: 'Spacing: Double-space the entire paper including the References/Works Cited page—common error is single-spacing the reference list. Title page: APA 7th student papers do NOT include a running head (only manuscripts submitted for publication use running heads). Headers: Use Word\'s heading styles so your table of contents generates automatically and heading levels are consistent. Citations: Don\'t mix citation styles (APA parenthetical and MLA Works Cited are not interchangeable). Page numbers: Include on every page including the title page in APA; exclude from the title page in Chicago. Figure captions: APA places them below figures; Chicago places them below figures; MLA has less standardized figure labeling.',
+        },
+        {
+          heading: 'How to Use a Research Paper Template Effectively',
+          content: 'Step 1: Confirm your required citation style before starting—changing from APA to MLA after drafting requires reformatting every citation. Step 2: Set up the template structure before writing—create all section headings, set margins and font, add page numbers. Step 3: Write section by section—introduction, then literature review, then methodology, etc. Step 4: Add citations as you write, not after—tools like Akowe let you insert citations directly from your source library while writing. Step 5: Format the reference list last—reference list errors are easier to catch in one editing pass than scattered through the document.',
+        },
+      ],
+      conclusion: 'A research paper template saves hours of formatting work—but the real time sink is citation management. Akowe combines a structured writing environment with automatic citation generation in APA, MLA, Chicago, and 20+ other styles. Start writing your research paper free.',
+    },
+  },
+
+  {
+    keyword: 'research paper outline template',
+    title: 'Research Paper Outline Template: Structure Your Paper Before You Write',
+    description: 'Free research paper outline templates for argumentative, analytical, and scientific papers. Includes Roman numeral and alphanumeric formats with examples for each paper type.',
+    keywords: ['research paper outline template', 'research paper outline', 'research paper outline format', 'outline for research paper', 'academic paper outline template'],
+    category: 'template',
+    searchVolume: 9500,
+    difficulty: 24,
+    intent: 'transactional',
+    content: {
+      introduction: 'A research paper outline is the most important step most students skip—and the most reliable predictor of whether a paper comes together smoothly or gets rewritten from scratch. An outline forces you to organize your argument before writing, revealing gaps in your research before you\'re 3,000 words in.',
+      sections: [
+        {
+          heading: 'Standard Research Paper Outline Format',
+          content: 'The alphanumeric outline uses Roman numerals, letters, and Arabic numbers to show hierarchy:\n\nI. Introduction\n   A. Background/context\n   B. Research problem statement\n   C. Thesis statement\n\nII. Literature Review\n   A. First thematic area\n      1. Key finding or study\n      2. Contrasting finding\n   B. Second thematic area\n   C. Research gap your paper addresses\n\nIII. Methodology (empirical papers)\n   A. Research design\n   B. Data collection\n   C. Analysis approach\n\nIV. Results/Analysis\n   A. Main finding 1\n   B. Main finding 2\n\nV. Discussion\n   A. Interpretation of findings\n   B. Limitations\n\nVI. Conclusion\n   A. Restatement of thesis\n   B. Contributions and future research\n\nVII. References',
+        },
+        {
+          heading: 'Outline Templates by Paper Type',
+          content: 'Argumentative paper outline: I. Introduction + Thesis (position statement); II. Background; III. First supporting argument + evidence; IV. Second supporting argument + evidence; V. Counterargument + rebuttal; VI. Conclusion. Analytical paper outline: I. Introduction + analytical lens; II. Context/background; III. Analysis Point 1 (with textual evidence); IV. Analysis Point 2; V. Analysis Point 3; VI. Synthesis + conclusion. Scientific/empirical paper (IMRAD): I. Introduction (problem + hypothesis); II. Methods; III. Results (data, tables, figures); IV. Discussion (interpret + compare to literature); V. Conclusion; VI. References.',
+        },
+        {
+          heading: 'How Detailed Should a Research Paper Outline Be?',
+          content: 'Rule of thumb: Your outline should be detailed enough that someone else could write a rough draft from it. For a 10-page paper, your outline should probably be 1–1.5 pages. Level of detail by paper length: 5-page paper: main sections + 2–3 bullet points per section. 10-page paper: main sections + subsections + key sources for each point. 20+ page paper (thesis chapter level): full sentence outline with topic sentences drafted for each paragraph, key evidence noted with page numbers. Tip: Write your thesis statement at the top of your outline and check every section against it—if a section doesn\'t support or develop your thesis, it probably shouldn\'t be in the paper.',
+        },
+      ],
+      conclusion: 'An outline won\'t write your paper—but it prevents the most common paper-writing problems: unclear structure, circular argument, and sections that don\'t connect. Once you have a solid outline, Akowe helps you draft faster with AI assistance and citation management built in. Start free.',
+    },
+  },
+
+  {
+    keyword: 'thesis proposal template',
+    title: 'Thesis Proposal Template: What to Include and How to Format It',
+    description: 'Free thesis proposal template covering all required sections: research question, literature review, methodology, timeline, and bibliography. Includes examples for humanities, social sciences, and STEM.',
+    keywords: ['thesis proposal template', 'research proposal template', 'thesis proposal format', 'how to write a thesis proposal', 'dissertation proposal template'],
+    category: 'template',
+    searchVolume: 2200,
+    difficulty: 20,
+    intent: 'transactional',
+    content: {
+      introduction: 'A thesis proposal is your blueprint for the research project your committee must approve before you begin. It demonstrates that your research question is viable, your methodology is appropriate, and you have sufficient grounding in the existing literature. Here\'s what every thesis proposal must include and how to structure it.',
+      sections: [
+        {
+          heading: 'Thesis Proposal Structure',
+          content: 'Standard thesis proposal sections: (1) Title—provisional title that communicates your research question and scope; (2) Abstract (200–300 words)—brief overview of the research problem, approach, and expected contribution; (3) Introduction—research context, problem statement, why this research matters now; (4) Research Questions/Objectives—1–3 clear research questions or hypotheses; (5) Literature Review—summary of relevant work, theoretical framework, identification of the gap your thesis addresses; (6) Methodology—research design, data sources, collection methods, analysis approach, ethical considerations; (7) Significance—original contribution to the field; (8) Limitations—scope boundaries, acknowledged weaknesses; (9) Timeline—realistic schedule for each research phase; (10) Bibliography—all sources cited in the proposal, formatted in your required style.',
+        },
+        {
+          heading: 'Writing a Strong Research Question for Your Proposal',
+          content: 'A good thesis research question is: Specific—not "How does social media affect students?" but "How does Instagram use by undergraduate women correlate with academic self-efficacy in first-generation college students?" Researchable—answerable with the data sources and methods available to you. Significant—addressing a gap in the existing literature, not replicating what\'s already been thoroughly studied. Feasible—answerable within your degree program\'s time and resource constraints. Narrow enough that you can treat it with depth. Common mistakes: research questions that are actually topics ("The effects of climate change"), questions that are too narrow to sustain a thesis ("How many climate scientists cited Hansen 1988?"), and questions that require data you can\'t realistically collect.',
+        },
+        {
+          heading: 'Methodology Section: What Your Committee Needs to See',
+          content: 'Your methodology section must convince your committee that your approach will actually answer your research question. Address: Research design (qualitative, quantitative, mixed methods)—justify why this design fits your question. Data sources—what data will you collect or use? From where? Who are your participants (if applicable)? Sampling strategy—how will you select cases/participants and why? Data collection methods—interviews, surveys, archival analysis, experiments—with enough detail that someone else could replicate. Analysis approach—how will you analyze the data? (thematic analysis, statistical methods, discourse analysis) Ethical considerations—IRB approval, participant consent, data privacy. Validity and reliability—how will you ensure trustworthy findings?',
+        },
+      ],
+      conclusion: 'A strong thesis proposal is the foundation of a successful thesis. Akowe helps you build it—AI-assisted writing grounded in real academic sources, citation generation in your required style, and a structured environment for long-form research writing. Start your proposal free.',
+    },
+  },
+
+  {
+    keyword: 'literature review template',
+    title: 'Literature Review Template: Structure, Format, and Writing Guide',
+    description: 'Free literature review template with step-by-step guidance. Covers thematic, chronological, and methodological organization with examples for thesis and standalone reviews.',
+    keywords: ['literature review template', 'literature review outline', 'literature review structure', 'how to write a literature review', 'academic literature review template'],
+    category: 'template',
+    searchVolume: 1800,
+    difficulty: 22,
+    intent: 'transactional',
+    content: {
+      introduction: 'A literature review is not a summary of sources read one by one—it\'s a synthesis that identifies patterns, gaps, and debates across a body of research. The most common literature review mistake is writing source-by-source summaries rather than organizing by theme. Here\'s how to structure a literature review that demonstrates genuine scholarly engagement.',
+      sections: [
+        {
+          heading: 'Literature Review Structure Options',
+          content: 'Thematic organization (most common for thesis literature reviews): Group sources by theme or concept rather than by author or date. Each paragraph covers one theme across multiple sources. Best for: complex topics with several distinct research threads. Chronological organization: Trace how thinking about a topic has evolved over time. Best for: showing how a field has developed, especially when historical context matters. Methodological organization: Group studies by how they were conducted (experimental, qualitative, meta-analyses). Best for: methodology chapters in dissertations evaluating the state of evidence. Combine approaches: Most literature reviews combine thematic and chronological—organized by theme within a rough chronological arc showing how each theme developed.',
+        },
+        {
+          heading: 'Literature Review Template (Thematic)',
+          content: 'Introduction (10–15% of review): Define scope and boundaries; state your organizing framework; briefly preview the main themes you\'ll cover; identify the research gap your work addresses. Theme 1 section: Topic sentence introducing the theme; synthesis of 3–5 relevant studies (not summaries—what do they collectively show?); discussion of contradictions or debates within this theme; transition to next theme. Theme 2 section: (Same structure). Theme 3 section: (Same structure). Synthesis/Gap section (10–15%): What does the collective literature show? What questions remain unresolved? Where is evidence weakest? What is your research going to contribute? Conclusion: Restate the gap; position your research as filling it.',
+        },
+        {
+          heading: 'How to Synthesize Rather Than Summarize',
+          content: 'Summarizing (wrong): "Smith (2020) found that social media use increases anxiety. Jones (2021) also found that social media increases anxiety. Brown (2022) studied Instagram specifically and found anxiety increased."\n\nSynthesizing (right): "Multiple studies establish a consistent relationship between social media use and anxiety in young adults (Smith, 2020; Jones, 2021; Brown, 2022), though the mechanism is debated: Smith and Jones attribute the effect to social comparison, while Brown\'s Instagram-specific findings suggest passive consumption patterns drive the effect more strongly than active posting."\n\nKey moves: Compare findings across studies; note where researchers agree and where they disagree; explain why contradictions might exist; identify patterns in the methodology that might explain variation in results.',
+        },
+      ],
+      conclusion: 'A strong literature review requires reading widely and synthesizing deeply. Akowe helps—source discovery from academic databases, citation management across your literature, and AI assistance for structuring your synthesis. Start your literature review free.',
+    },
+  },
+
+  {
+    keyword: 'dissertation template',
+    title: 'Dissertation Template: Complete Structure and Formatting Guide',
+    description: 'Free dissertation template covering all chapters: introduction, literature review, methodology, results, discussion, and conclusion. Includes formatting guides for APA, Chicago, and university-specific requirements.',
+    keywords: ['dissertation template', 'dissertation format template', 'dissertation structure template', 'phd dissertation template', 'doctoral dissertation template'],
+    category: 'template',
+    searchVolume: 1900,
+    difficulty: 24,
+    intent: 'transactional',
+    content: {
+      introduction: 'A dissertation is the most complex document most academics will ever write—typically 60,000–100,000 words across five or more chapters, with strict formatting requirements set by your institution. A solid template gives you the structure before you write so you\'re not reorganizing chapters midway through.',
+      sections: [
+        {
+          heading: 'Standard Dissertation Structure',
+          content: 'Five-chapter dissertation model (most common in social sciences and education): Chapter 1 Introduction—background, problem statement, purpose, research questions, significance, definitions, delimitations, overview of study. Chapter 2 Literature Review—theoretical framework, critical synthesis of relevant research, research gap. Chapter 3 Methodology—research design and rationale, participants/data sources, instrumentation, data collection procedures, analysis approach, validity and reliability, ethical considerations. Chapter 4 Results/Findings—presentation of data, organized by research question; tables, figures, and quotes from data (no interpretation here—save that for Chapter 5). Chapter 5 Discussion and Conclusion—interpretation of findings, connection to literature, implications, limitations, recommendations for future research, conclusions.\n\nThree-paper dissertation model (increasingly common in STEM and some social sciences): Introduction chapter + three publishable-length research papers + synthesis chapter. Each paper addresses a different aspect of the broader research problem.',
+        },
+        {
+          heading: 'Dissertation Formatting Requirements',
+          content: 'Institutional requirements vary widely—always obtain your graduate school\'s official formatting guidelines before starting. Common standard requirements: Margins: 1-inch all sides (some schools require 1.5-inch left margin for binding). Font: 12pt Times New Roman or 11pt/12pt Calibri, consistent throughout. Spacing: Double-spaced body text; single-spaced tables, block quotes, footnotes, and reference entries. Page numbers: Roman numerals (i, ii, iii) for front matter (abstract through list of tables); Arabic numerals starting with 1 at Chapter 1. Front matter order: Title page, copyright page, abstract, dedication (optional), acknowledgments, table of contents, list of tables, list of figures. Chapter headings: Use Word heading styles (Heading 1, Heading 2, Heading 3) so your table of contents generates automatically.',
+        },
+        {
+          heading: 'Dissertation Writing Strategy by Chapter',
+          content: 'Most productive writing order for dissertations: Start with Chapter 3 (Methodology)—you know your methods before you start writing, and a concrete chapter helps you see the project clearly. Then write Chapter 2 (Literature Review)—you\'ve done the reading; synthesize it while methodology is fresh. Write Chapter 4 (Results) as data collection completes. Write Chapter 5 (Discussion) after Chapter 4 is complete—your interpretations should respond directly to your findings. Write Chapter 1 (Introduction) last—you\'ll know exactly what you did and found, making the introduction much cleaner. Revise and write the Abstract last of all. Chapter management: Track each chapter as a separate document and merge into a single file for final submission—this prevents document corruption and makes version control manageable.',
+        },
+      ],
+      conclusion: 'A dissertation is a years-long project—the right tools matter from day one. Akowe provides structured writing with citation management in 20+ styles, AI assistance grounded in real academic sources, and a workspace designed for long-form research. Start organizing your dissertation free.',
+    },
+  },
+
+  {
+    keyword: 'grant proposal template',
+    title: 'Grant Proposal Template: Structure, Sections, and Writing Guide',
+    description: 'Free grant proposal template covering all required sections: specific aims, significance, innovation, approach, and budget justification. Includes guidance for NIH, NSF, and general grant proposals.',
+    keywords: ['grant proposal template', 'research grant proposal template', 'grant writing template', 'grant application template', 'how to write a grant proposal'],
+    category: 'template',
+    searchVolume: 1100,
+    difficulty: 18,
+    intent: 'transactional',
+    content: {
+      introduction: 'A grant proposal template gives you the standard section structure used by most funding bodies—NIH, NSF, private foundations—so you can focus on your research narrative rather than figuring out what goes where. While every funder has specific requirements, the core sections are remarkably consistent.',
+      sections: [
+        {
+          heading: 'Core Grant Proposal Sections',
+          content: 'Specific Aims (NIH) / Project Summary (NSF) / Executive Summary: 1-page overview of the entire proposal. The most important page—reviewers read this first and often form lasting impressions here. Must include: what you propose to do, why it matters, your central hypothesis, and 3–4 specific aims or objectives. Significance: Why does this research matter? What problem does it address? What happens if it succeeds? Connects your work to the funder\'s priorities. Innovation: What is new about your approach? How does this advance beyond existing work? What methodological, conceptual, or theoretical contribution are you making? Approach/Research Strategy: The bulk of the proposal. Detailed description of methods, timeline, expected outcomes, and how you\'ll handle potential problems. Budget and Justification: Every budget line justified by the research need. Reviewers look for alignment between the budget and the proposed work. Biographical Sketch (CV): 4–5 page summary of qualifications relevant to this specific grant.',
+        },
+        {
+          heading: 'The Specific Aims Page: Most Critical Section',
+          content: 'The Specific Aims page (NIH standard) or equivalent 1-page summary is the most read and most consequential page in any grant proposal. Structure: Paragraph 1 (Opening hook)—establish the importance of the research area and the gap in current knowledge. Paragraph 2 (Long-term goal + objective)—state your research program\'s long-term goal and the specific objective of this grant. Paragraph 3 (Central hypothesis + rationale)—state your central hypothesis and what preliminary data or published evidence supports it. Specific Aims (numbered list)—typically 2–4 aims; each aim should be independent enough that failure of one doesn\'t doom the others. Paragraph 4 (Innovation + impact)—what is novel about your approach and what impact will success have on the field and/or public health/society?',
+        },
+        {
+          heading: 'Common Grant Proposal Writing Mistakes',
+          content: 'Mistake 1: Not reading the funding opportunity announcement carefully. Every requirement is there—page limits, required sections, formatting rules, review criteria. Missing a required section is grounds for administrative rejection. Mistake 2: Writing about what you want to do instead of what you will do. Proposal language should be confident and specific: "We will collect 200 samples from..." not "We hope to collect samples from..." Mistake 3: Overloading Aim 1 while Aims 2 and 3 are thin. Reviewers notice imbalance. Mistake 4: Ignoring the review criteria. NIH scores on: Significance, Investigators, Innovation, Approach, Environment. NSF scores on: Intellectual Merit and Broader Impacts. Write to these criteria explicitly. Mistake 5: Submitting without a colleague review. Always have someone outside your immediate lab read the Aims page—if they can\'t explain your project back to you, rewrite.',
+        },
+      ],
+      conclusion: 'Grant proposals require precision in both science and writing. Akowe helps researchers draft faster with AI assistance grounded in real academic literature—so your Significance and Innovation sections are built on verified sources, not general claims. Try Akowe free for your research writing.',
+    },
+  },
+
+  {
+    keyword: 'case study template',
+    title: 'Case Study Template: Structure, Format, and Writing Guide',
+    description: 'Free case study templates for academic and business use. Covers problem statement, analysis framework, findings, and recommendations—with examples for Harvard Business School and academic formats.',
+    keywords: ['case study template', 'academic case study template', 'case study format template', 'how to write a case study', 'case study structure template'],
+    category: 'template',
+    searchVolume: 2100,
+    difficulty: 25,
+    intent: 'transactional',
+    content: {
+      introduction: 'A case study is an in-depth examination of a specific instance—a company, individual, event, or phenomenon—to draw broader insights or test a theory. Case study templates differ by discipline: business school case studies emphasize decision-making and recommendations; academic case studies emphasize theoretical framework and generalizability.',
+      sections: [
+        {
+          heading: 'Academic Case Study Structure',
+          content: 'Standard academic case study sections: (1) Title and Abstract—brief overview of the case, research question, key finding; (2) Introduction—context for the case, why this case is significant, research question or analytical focus; (3) Theoretical Framework—the lens through which you\'ll analyze the case (e.g., institutional theory, grounded theory, social learning theory); (4) Case Description—detailed factual account of the case; who, what, when, where; (5) Analysis—applying your theoretical framework to the case data; identifying patterns, themes, anomalies; (6) Discussion—what does this case illuminate? How does it relate to existing theory? What are the limits of generalization? (7) Conclusion—key takeaways, contribution to the literature, recommendations for future research; (8) References.',
+        },
+        {
+          heading: 'Business Case Study Template (HBS Format)',
+          content: 'Harvard Business School case analysis format: (1) Problem Identification—what is the central decision or problem the protagonist faces? State it in one sentence. (2) Situational Analysis—internal factors (SWOT: strengths, weaknesses) and external factors (opportunities, threats, competitive environment, industry dynamics); (3) Alternatives—identify 2–3 realistic courses of action; don\'t include obviously bad options or straw men; (4) Criteria for Evaluation—what factors matter most for evaluating the alternatives? (financial impact, strategic fit, implementation feasibility, risk); (5) Analysis of Alternatives—evaluate each option against your criteria; use evidence from the case; (6) Recommendation—which alternative do you recommend? Why? Be specific and decisive; (7) Implementation Plan—concrete steps to execute the recommendation; timeline, responsibilities, resource requirements.',
+        },
+        {
+          heading: 'Case Study Analysis Tips',
+          content: 'Read the case twice: First pass—understand the situation, characters, and events. Second pass—identify the core problem, supporting data, and analytical opportunities. Distinguish symptoms from problems: A company\'s declining revenue is a symptom; the cause (product-market fit failure, competitive encroachment, operational inefficiency) is the problem. Don\'t ignore quantitative data: Most cases include financial statements, market data, or survey results—use them. Qualitative analysis supported by numbers is much stronger than narrative alone. State your recommendation clearly: The most common case study weakness is wishy-washy recommendations ("the company should consider possibly exploring..."). State what you recommend and defend it. Time management in case exams: Spend 20% of the time reading and planning, 60% writing analysis, 20% reviewing and strengthening recommendations.',
+        },
+      ],
+      conclusion: 'Whether you\'re writing an academic case study or analyzing a business case, clear structure and evidence-based argument are what make the difference. Akowe helps with academic case study writing—AI assistance, real source citations, and a structured writing environment. Try free.',
+    },
+  },
+
+  {
+    keyword: 'printable thesis template',
+    title: 'Printable Thesis Template: Download and Format Your Thesis',
+    description: 'Free printable thesis templates for undergraduate and graduate programs. Covers title page, chapter structure, bibliography formatting, and print-ready layout for APA, MLA, and Chicago styles.',
+    keywords: ['printable thesis template', 'thesis template download', 'thesis writing template', 'free thesis template', 'thesis format template'],
+    category: 'template',
+    searchVolume: 1050,
+    difficulty: 18,
+    intent: 'transactional',
+    content: {
+      introduction: 'A printable thesis template gives you a pre-formatted document ready for writing—with correct margins, fonts, heading styles, and page numbering set up in advance. This guide covers what your thesis template must include and how to prepare it for both digital submission and physical printing.',
+      sections: [
+        {
+          heading: 'Thesis Template: Required Formatting Elements',
+          content: 'Before writing a word of content, set up these formatting elements in your document: Margins: 1-inch all sides minimum; many universities require a 1.5-inch left margin if the thesis will be bound—check your graduate school\'s requirements. Font: 12pt Times New Roman or 11pt/12pt Calibri; consistent throughout, including headings (use heading styles, not just bold text). Spacing: Double-spaced body text; block quotes single-spaced; reference list with double-spacing between entries. Page numbers: Roman numerals (i, ii, iii...) for front matter starting at the abstract page; Arabic numerals (1, 2, 3...) starting at Chapter 1 introduction. Chapter headings: Use Word\'s built-in Heading 1, Heading 2, Heading 3 styles—this makes automatic table of contents generation possible. Figure and table labels: Figures labeled below (Figure 1.1., Figure 1.2.); tables labeled above (Table 1.1., Table 1.2.).',
+        },
+        {
+          heading: 'Front Matter Order for a Printable Thesis',
+          content: 'The front matter appears before Chapter 1 and uses lowercase Roman numeral page numbering: Title page (typically not numbered but counted as page i); Copyright page (optional, counted but not numbered); Abstract (page ii or iii—check your institution); Dedication (optional); Acknowledgments; Table of Contents; List of Tables (if 5+ tables); List of Figures (if 5+ figures); List of Abbreviations (if applicable); Preface (rare). Print tip: Front matter pages are often printed on different paper stock or inserted separately for bound copies—confirm with your graduate school whether the title page requires printing on heavier paper.',
+        },
+        {
+          heading: 'Preparing Your Thesis for Print Submission',
+          content: 'Most universities now accept digital submission (PDF) as primary and bind physical copies optionally. If printing: Use high-quality white bond paper (20 lb minimum; 24 lb preferred for final copies). Print double-sided (recto-verso) for efficiency; some universities require single-sided printing—verify. Check that figures and tables print clearly in grayscale if your university requires grayscale printing. Export to PDF from Word before printing—never print directly from Word, as fonts and margins can shift. Verify PDF/A compliance if required for archival submission. For bound copies: Most university libraries use perfect binding; allow 0.5 inches extra on the left margin for binding gutter.',
+        },
+      ],
+      conclusion: 'Setting up your thesis template correctly from the start saves hours of reformatting later. Akowe provides a structured writing environment built for long-form academic work—citation management, AI assistance, and export to Word or PDF ready for submission. Start your thesis free.',
+    },
+  },
+
+  {
+    keyword: 'academic resume template',
+    title: 'Academic Resume (CV) Template: Format Guide for Students and Researchers',
+    description: 'Free academic resume and CV templates for students, graduate researchers, and faculty job seekers. Covers key sections, ordering, and formatting for academic and research positions.',
+    keywords: ['academic resume template', 'academic cv template', 'cv template for academics', 'researcher resume template', 'graduate student cv template'],
+    category: 'template',
+    searchVolume: 1100,
+    difficulty: 20,
+    intent: 'transactional',
+    content: {
+      introduction: 'An academic resume (called a CV—curriculum vitae—in most academic contexts) follows very different conventions from a standard industry resume. Where a business resume is 1–2 pages maximum, an academic CV grows over a career and may run 10+ pages for senior faculty. Here\'s how to structure yours at each career stage.',
+      sections: [
+        {
+          heading: 'Academic CV vs. Industry Resume: Key Differences',
+          content: 'Length: CV has no page limit—include everything relevant. Industry resume is strictly 1–2 pages. Objective/Summary: CVs typically don\'t use objective statements; your research interests section serves this function. Work experience: On a CV, "experience" means academic appointments, research positions, and teaching—not the service industry jobs common on undergraduate resumes. Publications: Central to an academic CV; listed in full bibliographic format. Industry resumes rarely include publications. Presentations: Conferences and invited talks are listed in full on CVs; irrelevant on most industry resumes. Skills: On a CV, technical research skills (statistical software, lab techniques, languages for research) are listed; soft skills typical on industry resumes are not appropriate. References: Academic CVs list 3–5 references with contact information; industry resumes say "references available upon request."',
+        },
+        {
+          heading: 'Academic CV Section Order by Career Stage',
+          content: 'Graduate student / early career: (1) Education (most important—list first); (2) Research interests; (3) Publications (even if only 1–2); (4) Conference presentations; (5) Teaching experience; (6) Research experience / Lab positions; (7) Awards and fellowships; (8) Technical skills; (9) Professional memberships; (10) References. Mid-career researcher / postdoc: (1) Education; (2) Research interests; (3) Academic positions; (4) Publications (may now be the longest section); (5) Grants and funding; (6) Conference presentations; (7) Teaching; (8) Service; (9) References. Senior faculty: (1) Education; (2) Positions held; (3) Research interests; (4) Publications (books, then articles); (5) Grants; (6) Awards; (7) Teaching; (8) Service and leadership; (9) References.',
+        },
+        {
+          heading: 'Publications Section Formatting',
+          content: 'The publications section is the most scrutinized part of an academic CV—format it carefully. Organize by type: Books, then peer-reviewed journal articles, then book chapters, then conference proceedings, then other publications. Within each category, use reverse chronological order (most recent first). Format each entry in your field\'s preferred citation style (APA for psychology/education; Chicago for humanities; author-year for many sciences). If under review or in press, list with "Under review at [Journal]" or "In press, [Journal], expected [Year]." Bold or underline your own name in multi-author publications so it\'s easy to find. Never pad with submissions still in preparation—only include accepted or published work (and work genuinely under review).',
+        },
+      ],
+      conclusion: 'Building an academic CV takes years of accumulated experience—but your writing matters too. Akowe supports the full academic writing workflow: research papers, thesis chapters, grant proposals, and all the writing that builds your scholarly record. Start using Akowe free and see how it speeds up your research writing.',
+    },
+  },
+
+  {
+    keyword: 'citation machine alternative',
+    title: 'Best Citation Machine Alternatives (Free & More Accurate)',
+    description: 'Looking for a Citation Machine alternative? Compare Akowe, Zotero, EasyBib, and other citation tools—honest coverage of accuracy, free tier limits, and which tools actually verify sources.',
+    keywords: ['citation machine alternative', 'citation machine alternatives', 'alternatives to citation machine', 'better than citation machine', 'citation machine free alternative'],
+    category: 'comparison',
+    searchVolume: 3200,
+    difficulty: 22,
+    intent: 'commercial',
+    content: {
+      introduction: 'Citation Machine (now part of Chegg) was one of the first popular citation generators—but years of ownership changes, increasing paywalls, and accuracy complaints have pushed students to look for alternatives. Here\'s an honest comparison of what\'s available and what each tool actually offers for free.',
+      sections: [
+        {
+          heading: 'Why Students Look for Citation Machine Alternatives',
+          content: 'Citation Machine\'s main friction points: (1) Free tier now shows heavy advertising that clutters the formatting output; (2) Clean export (ad-free copy/paste, bibliography download) requires a Chegg subscription at $20+/month; (3) Grammar checker and plagiarism features are locked behind the paywall; (4) Citation accuracy is inconsistent—particularly for government documents, conference papers, audiovisual sources, and non-standard source types; (5) It\'s citation-only—no writing environment, no source search, no plagiarism checking without paying. Students who started using Citation Machine when it was genuinely free find the current experience significantly degraded.',
+        },
+        {
+          heading: 'Best Free Citation Machine Alternatives',
+          content: 'Zotero: Best free alternative for managing citations across multiple projects. Open source, no subscription, excellent browser extension, Word/Google Docs integration. Steeper learning curve than Citation Machine but significantly more powerful and completely free. Akowe: Best all-in-one alternative—citation generation, source verification against academic databases, AI writing assistance, and plagiarism checking in a single platform. Free tier includes core citation generation without subscription. BibGuru: Cleanest interface among the free alternatives. Genuinely free without account requirements for basic use. Good accuracy for standard source types. KnightCite: No-frills, completely free, no account required. Limited to APA, MLA, and Chicago—no export options, but zero friction for quick citations. Cite This For Me: Another Chegg-owned tool with similar paywalled limitations—not a meaningful improvement over Citation Machine.',
+        },
+        {
+          heading: 'Akowe vs. Citation Machine: Feature Comparison',
+          content: 'Citation generation: Both support APA, MLA, Chicago, and common styles. Akowe verifies sources against Crossref and OpenAlex databases before formatting; Citation Machine formats whatever you input without verification. Free tier: Akowe generates citations free without a subscription; Citation Machine restricts clean output and export behind Chegg paywall. Source accuracy: Akowe catches incorrect metadata by cross-referencing academic databases; Citation Machine relies entirely on user-entered data. Plagiarism checking: Akowe includes plagiarism checking; Citation Machine requires Chegg subscription. Writing integration: Akowe is a full writing workspace; Citation Machine is citation-only. Style support: Akowe supports 20+ styles including IEEE, Vancouver, and Harvard; Citation Machine focuses on APA, MLA, and Chicago.',
+        },
+        {
+          heading: 'Migrating Your Citations from Citation Machine',
+          content: 'If you have existing citations from Citation Machine that need to be reformatted or moved: (1) Copy your bibliography list; (2) Use DOIs or titles to re-look up each source in Akowe—this also catches any errors in the original Citation Machine output; (3) Re-generate citations in your required style with verified metadata. This is worth doing for important papers (dissertations, journal submissions) even if it takes extra time—Citation Machine\'s output frequently contains subtle formatting errors that instructors and editors catch.',
+        },
+      ],
+      conclusion: 'Citation Machine\'s free tier has become more friction than it\'s worth. Akowe offers genuinely free citation generation with source verification—no Chegg subscription required, no ads in your output, and a writing workspace built around it. Try Akowe free and see the difference verified sources make.',
+    },
+  },
+
+  {
+    keyword: 'plagiarism checker free online',
+    title: 'Free Online Plagiarism Checker: What\'s Actually Free (and What\'s Not)',
+    description: 'Compare free online plagiarism checkers for students. Honest breakdown of what\'s genuinely free, what\'s paywalled, how they check against academic sources, and which tools are worth using.',
+    keywords: ['plagiarism checker free online', 'free online plagiarism checker', 'plagiarism checker free', 'online plagiarism checker free', 'check plagiarism free online'],
+    category: 'comparison',
+    searchVolume: 1200,
+    difficulty: 26,
+    intent: 'transactional',
+    content: {
+      introduction: 'Most "free online plagiarism checkers" are not actually free—they offer a brief free preview, then require payment or a subscription for the full similarity report. This guide covers which tools genuinely offer free checking and what their real limitations are.',
+      sections: [
+        {
+          heading: 'What Free Online Plagiarism Checkers Actually Check',
+          content: 'There are two types of plagiarism databases: (1) Web content databases—these check your text against publicly accessible web pages, news sites, and open-access content. Most "free" tools only use this. (2) Academic publication databases—these check against journal articles, conference papers, dissertations, and books behind paywalls. This is what Turnitin and iThenticate check and what academic publishers care about most. The critical gap: a tool that only checks web content will miss plagiarism from paywalled journal articles, which is exactly the type of source most likely to appear in a student paper. Many free tools give you a clean result that would fail a genuine academic plagiarism check.',
+        },
+        {
+          heading: 'Genuinely Free vs. Fake-Free Plagiarism Checkers',
+          content: 'Actually free (with real limitations): Grammarly free tier—checks against web content only; shows a percentage but not the matched sources; 1 document check per session. Duplichecker—completely free, no account needed; web content only; limited accuracy; best for quick sanity checks. SmallSEO Tools plagiarism checker—free, web-based; primarily checks against web content; adequate for blog posts, not academic papers. Paywalled despite "free" marketing: Turnitin—institutional access only; not available to individuals; your university provides access. PlagScan—"free trial" means limited pages/characters then requires payment. PaperRater—free tier has significant word limits and doesn\'t access academic databases. Copyleaks—free tier is 10 pages/month; academic database access requires subscription. Akowe—free tier includes plagiarism checking with academic database access; upgrade for larger documents and detailed source reports.',
+        },
+        {
+          heading: 'How to Interpret a Plagiarism Similarity Report',
+          content: 'A similarity score is not a plagiarism score: 15% similarity is not automatically "15% plagiarized." Common false positives that inflate scores: (1) Your own citations and bibliography—properly cited sources will always match; (2) Common academic phrases ("the results indicate that," "prior research has shown"); (3) Quoted material that is correctly attributed; (4) Statistical results and numerical data. What actually matters: Does the matched text appear in your own words or as unattributed copied text? Is matched text properly quoted and cited? Are there long runs of consecutive matching text (>4–5 words) that aren\'t in quotes? Institutional thresholds vary widely—15% might be acceptable at one university and a failing grade at another. Check your institution\'s policy.',
+        },
+        {
+          heading: 'Plagiarism Checker Limitations to Know',
+          content: 'No free plagiarism checker catches everything. Key limitations: Paraphrased content is hard to detect—rewording sentences to avoid character-level matching is a known weakness of most checkers; only semantic similarity tools (more expensive) catch sophisticated paraphrasing. Language translation plagiarism—translating a source from another language before using it; most English-language checkers miss this entirely. Structural plagiarism—using someone\'s argument structure, outline, or ideas without copying text directly; no automated tool catches this. Your own previous work—self-plagiarism (reusing your own earlier submitted work) requires the checker to have your prior submissions in its database, which free tools don\'t have.',
+        },
+      ],
+      conclusion: 'A free online plagiarism checker is a useful first pass—but understand what it\'s actually checking. Akowe\'s plagiarism checker includes academic database access so your paper is checked against the sources that matter most. Try it free.',
+    },
+  },
+
+  {
+    keyword: 'free plagiarism checker for students',
+    title: 'Free Plagiarism Checker for Students: Best Options Compared',
+    description: 'Compare the best free plagiarism checkers for students. Covers what\'s genuinely free, which tools check academic sources (not just web content), and what similarity scores actually mean for your paper.',
+    keywords: ['free plagiarism checker for students', 'plagiarism checker free students', 'best free plagiarism checker for students', 'student plagiarism checker free', 'plagiarism checker for college students free'],
+    category: 'topic',
+    searchVolume: 1300,
+    difficulty: 20,
+    intent: 'transactional',
+    content: {
+      introduction: 'As a student, you need a plagiarism checker that actually checks the sources your professors and institutions check against—not just the open web. Here\'s a clear-eyed comparison of free options, what they genuinely offer, and where they fall short for academic work.',
+      sections: [
+        {
+          heading: 'What Students Need from a Plagiarism Checker',
+          content: 'A plagiarism checker for student papers needs: (1) Academic database access—checks against journal articles and published papers, not just web pages; (2) Accurate source attribution—shows you which specific source matched, not just a percentage; (3) Sufficient document length on the free tier—most student papers are 1,500–5,000 words; (4) Clear similarity report—distinguishes properly cited content from potentially problematic matches; (5) No subscription required for basic use. The common mistake students make: using a free tool that only checks web content, getting a 2% score, and assuming they\'re fine—then discovering the submission fails Turnitin because the tool never checked the journal articles they cited.',
+        },
+        {
+          heading: 'Free Plagiarism Checkers Compared for Students',
+          content: 'Grammarly (free tier): Checks web content; shows similarity percentage but not matched sources on free tier; 1 check per session; primarily a grammar tool with plagiarism checking added. Good for a quick web content check before submission. Quetext: Free tier offers 500 words per search and 3 searches; DeepSearch technology is more thorough than basic character matching; matched sources shown. Limited by word count for longer papers. Duplichecker: Fully free, no account; web content only; straightforward interface; good for short papers and quick checks. Akowe: Free tier includes plagiarism checking with academic database access—checks against published journal articles and conference papers, not just web content. Particularly valuable for research papers, literature reviews, and theses where academic sources are the primary concern.',
+        },
+        {
+          heading: 'Understanding Your Plagiarism Report',
+          content: 'Similarity score breakdown: 0–10%—generally acceptable; most matches are cited quotes and common academic phrases. 10–20%—review carefully; distinguish between properly cited material and uncited matches. 20–30%—may be concerning depending on the source of matches; could be excessive quoting rather than original plagiarism. 30%+—flag for review; likely contains significant copied content or over-reliance on quoted material. What to do with flagged content: (1) If the match is a properly cited quote, it\'s not plagiarism—but consider whether you\'re over-quoting instead of paraphrasing; (2) If the match is unattributed text, add a citation or rewrite in your own words; (3) If common academic phrases are flagging, most systems allow you to exclude these from the score.',
+        },
+        {
+          heading: 'Running a Plagiarism Check: Step by Step',
+          content: 'Before submitting any academic paper: Step 1—Complete your final draft including all citations and bibliography. Step 2—Run through your free checker of choice; note the similarity score and review flagged sections. Step 3—Address any unintentional matches: add missing citations, rewrite closely paraphrased passages, reduce direct quotation. Step 4—Re-check after edits if the checker allows it. Step 5—If your institution provides Turnitin access, use that for a final check before submission—it\'s the tool your instructor uses and checks against the most comprehensive academic database. Keep a record of your pre-submission scan with a screenshot or download in case questions arise later.',
+        },
+      ],
+      conclusion: 'The best free plagiarism checker for students is one that checks the right databases—not just the open web. Akowe includes plagiarism checking with academic database access as part of its free tier, alongside citation generation and AI writing assistance. Check your paper free before your next submission.',
+    },
+  },
 ];
 
 export function loadKeywords(): KeywordPage[] {

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { Link } from '@/i18n/navigation';
 import { HelpCircle, ArrowRight } from 'lucide-react';
 import { getAllFAQSlugs, getFAQBySlug } from '@/lib/seo/faqs';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Frequently Asked Questions - Akowe',
-  description: 'Find answers to common questions about Akowe, the all-in-one academic writing platform. Learn about features, pricing, citations, and more.',
-  keywords: [
-    'akowe FAQ',
-    'akowe questions',
-    'akowe help',
-    'akowe support',
-    'akowe answers',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Frequently Asked Questions - Akowe',
-    description: 'Find answers to common questions about Akowe, the all-in-one academic writing platform.',
-    url: `${baseUrl}/faq`,
-  },
-};
+    description: 'Find answers to common questions about Akowe, the all-in-one academic writing platform. Learn about features, pricing, citations, and more.',
+    keywords: ['akowe FAQ', 'akowe questions', 'akowe help', 'akowe support', 'akowe answers'],
+    path: '/faq',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default function FAQIndexPage() {
   const faqSlugs = getAllFAQSlugs();

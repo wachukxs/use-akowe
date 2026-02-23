@@ -52,21 +52,21 @@ const validPurposes = [
   'textual-analysis',
 ];
 
-export async function generateMetadata({ params }: { params: Promise<{ style: string; purpose: string }> }): Promise<Metadata> {
-  const { style, purpose } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; style: string; purpose: string }> }): Promise<Metadata> {
+  const { locale, style, purpose } = await params;
   const citationStyle = getCitationStyleBySlug(style);
-  
+
   if (!citationStyle || !validPurposes.includes(purpose)) {
     return {
       title: 'Citation Guide Not Found',
     };
   }
-  
+
   const purposeName = purpose.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const title = `${citationStyle.name} Citation Guide for ${purposeName}: Complete Format Guide`;
   const description = `Complete ${citationStyle.name} citation guide specifically for ${purposeName.toLowerCase()}. Learn how to cite sources correctly in ${citationStyle.name} style for ${purposeName.toLowerCase()}. Includes examples, formats, and best practices.`;
-  
-  return generateSEOMetadata({
+
+  const metadata = generateSEOMetadata({
     title,
     description,
     keywords: [
@@ -79,6 +79,12 @@ export async function generateMetadata({ params }: { params: Promise<{ style: st
     path: `/combinations/${style}/${purpose}`,
     type: 'article',
   });
+
+  if (locale !== 'en') {
+    metadata.robots = { index: false, follow: true };
+  }
+
+  return metadata;
 }
 
 export default async function CombinationPage({ params }: { params: Promise<{ style: string; purpose: string }> }) {

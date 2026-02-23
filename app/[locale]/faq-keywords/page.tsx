@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import { HelpCircle, ArrowRight } from 'lucide-react';
 import { getAllKeywordPages } from '@/lib/seo/keywords';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Academic Writing FAQ - Akowe',
-  description: 'Frequently asked questions about academic writing, citations, plagiarism, and research methods. Clear answers for students and researchers.',
-  keywords: [
-    'academic writing faq',
-    'academic writing questions',
-    'citation questions',
-    'plagiarism faq',
-    'research writing help',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Academic Writing FAQ - Akowe',
-    description: 'Frequently asked questions about academic writing, citations, and research methods.',
-    url: `${baseUrl}/faq-keywords`,
-  },
-};
+    description: 'Frequently asked questions about academic writing, citations, plagiarism, and research methods. Clear answers for students and researchers.',
+    keywords: ['academic writing faq', 'academic writing questions', 'citation questions', 'plagiarism faq', 'research writing help'],
+    path: '/faq-keywords',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default async function FAQKeywordsIndexPage() {
   const pages = await getAllKeywordPages('faq');

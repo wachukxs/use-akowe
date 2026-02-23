@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { getAllKeywordPages } from '@/lib/seo/keywords';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Academic Fields Guide - Akowe',
-  description: 'Explore academic fields and learn about writing conventions, research methods, and publication standards for each discipline.',
-  keywords: [
-    'academic fields',
-    'academic disciplines',
-    'research fields',
-    'academic writing by field',
-    'discipline-specific writing',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Academic Fields Guide - Akowe',
-    description: 'Explore academic fields and their writing conventions.',
-    url: `${baseUrl}/fields`,
-  },
-};
+    description: 'Explore academic fields and learn about writing conventions, research methods, and publication standards for each discipline.',
+    keywords: ['academic fields', 'academic disciplines', 'research fields', 'academic writing by field', 'discipline-specific writing'],
+    path: '/fields',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default async function FieldsIndexPage() {
   const pages = await getAllKeywordPages('field');

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import { GitCompare, ArrowRight } from 'lucide-react';
 import { getAllKeywordPages } from '@/lib/seo/keywords';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Academic Writing Comparisons - Akowe',
-  description: 'Compare citation styles, writing tools, and academic approaches side by side. APA vs MLA, Chicago vs Turabian, and more.',
-  keywords: [
-    'citation style comparison',
-    'apa vs mla',
-    'academic writing comparison',
-    'citation format comparison',
-    'writing tool comparison',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Academic Writing Comparisons - Akowe',
-    description: 'Compare citation styles, writing tools, and academic approaches side by side.',
-    url: `${baseUrl}/compare-keywords`,
-  },
-};
+    description: 'Compare citation styles, writing tools, and academic approaches side by side. APA vs MLA, Chicago vs Turabian, and more.',
+    keywords: ['citation style comparison', 'apa vs mla', 'academic writing comparison', 'citation format comparison', 'writing tool comparison'],
+    path: '/compare-keywords',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default async function CompareKeywordsIndexPage() {
   const pages = await getAllKeywordPages('comparison');

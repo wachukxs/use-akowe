@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { Link } from '@/i18n/navigation';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllTemplateSlugs, getTemplateBySlug } from '@/lib/seo/templates';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Academic Writing Templates - Akowe',
-  description: 'Free academic writing templates for research papers, theses, essays, and more. Download and customize templates for your academic writing needs.',
-  keywords: [
-    'academic writing templates',
-    'research paper templates',
-    'thesis templates',
-    'essay templates',
-    'academic paper templates',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Academic Writing Templates - Akowe',
-    description: 'Free academic writing templates for research papers, theses, essays, and more.',
-    url: `${baseUrl}/templates`,
-  },
-};
+    description: 'Free academic writing templates for research papers, theses, essays, and more. Download and customize templates for your academic writing needs.',
+    keywords: ['academic writing templates', 'research paper templates', 'thesis templates', 'essay templates', 'academic paper templates'],
+    path: '/templates',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default function TemplatesIndexPage() {
   const templateSlugs = getAllTemplateSlugs();
