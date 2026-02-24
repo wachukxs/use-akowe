@@ -8,6 +8,7 @@ interface IUser extends Omit<UserType, '_id'> {
   billingCycle?: 'monthly' | 'annual'; // Add billing cycle field
   subscriptionStartDate?: Date | null; // When subscription started (from Stripe)
   subscriptionEndDate?: Date | null; // When subscription ended (null if active)
+  paymentGraceDeadline?: Date | null; // Deadline before downgrade after payment failure
   signupIp?: string; // IP address at signup for fraud investigation
   // Referral system fields
   referralCode?: string; // Unique code for this user to share
@@ -61,6 +62,10 @@ const UserSchema = new Schema<IUser>(
       default: null,
     },
     subscriptionEndDate: {
+      type: Date,
+      default: null,
+    },
+    paymentGraceDeadline: {
       type: Date,
       default: null,
     },

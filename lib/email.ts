@@ -208,6 +208,56 @@ export async function sendWelcomeEmail(to: string, name: string) {
 }
 
 // ============================================
+// Payment failure email
+// ============================================
+
+export async function sendPaymentFailedEmail(
+  to: string,
+  name: string,
+  graceDeadline: Date
+): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const billingUrl = `${baseUrl}/settings`;
+  const greeting = name || 'there';
+  const deadlineStr = graceDeadline.toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: 'Action needed: Your Akowe payment failed',
+    text: [
+      `Hi ${greeting},`,
+      '',
+      'We were unable to process your latest Akowe Pro payment. Your Pro features will remain active until ' + deadlineStr + ', giving you time to update your payment method.',
+      '',
+      'After that date, your account will be downgraded to the Free plan. You won\'t lose any of your projects or data, but Pro features like unlimited AI words and plagiarism checks will be restricted.',
+      '',
+      `Update your payment method: ${billingUrl}`,
+      '',
+      'If you believe this is an error, please check with your bank or reply to this email.',
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>We were unable to process your latest <strong>Akowe Pro</strong> payment. Your Pro features will remain active until <strong>${deadlineStr}</strong>, giving you time to update your payment method.</p>
+      <p>After that date, your account will be downgraded to the Free plan. You won't lose any of your projects or data, but Pro features like unlimited AI words and plagiarism checks will be restricted.</p>
+      <p style="margin:16px 0;">${ctaButton(billingUrl, 'Update payment method')}</p>
+      <p style="font-size:13px;color:#6b7280;">If you believe this is an error, please check with your bank or reply to this email.</p>
+    `,
+  });
+
+  console.info('[email] Payment failed email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
+// ============================================
 // Engagement email functions (daily cron)
 // ============================================
 

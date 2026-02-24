@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 import { UsageLimits, PlanType } from '@/types';
-import { Check, Crown, Users, X, Info, Copy, Gift } from 'lucide-react';
+import { Check, Crown, Users, X, Info, Copy, Gift, AlertTriangle } from 'lucide-react';
 import { trackFunnel } from '@/lib/gtag';
 import { buildReferralLink } from '@/lib/referral-links';
 import Active37DiscountPopup from '@/components/Active37DiscountPopup';
@@ -413,6 +413,37 @@ alert(t('alerts.failedCheckoutSession'));
                     <X size={20} />
                   </button>
                 )}
+              </div>
+            </Card>
+          )}
+
+          {/* Payment failure warning banner */}
+          {subscriptionStatus?.paymentGraceDeadline && (subscriptionStatus?.status === 'past_due' || subscriptionStatus?.status === 'unpaid') && (
+            <Card className="p-4 md:p-6 mb-6 md:mb-8 border-red-200 bg-red-50/50">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                    Payment failed
+                  </h2>
+                  <p className="text-sm text-gray-700 mb-3">
+                    We couldn&apos;t process your latest payment. Your Pro features will remain active until{' '}
+                    <strong>
+                      {new Date(subscriptionStatus.paymentGraceDeadline).toLocaleDateString(undefined, {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </strong>
+                    . Please update your payment method to avoid losing access.
+                  </p>
+                  <button
+                    onClick={handleManageSubscription}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Update payment method
+                  </button>
+                </div>
               </div>
             </Card>
           )}

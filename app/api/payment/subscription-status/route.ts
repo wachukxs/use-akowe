@@ -33,33 +33,41 @@ export async function GET() {
     try {
       const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
 
-      // Determine user's plan based on subscription status
       let plan = user.plan;
       const status = subscription.status;
       let needsUpdate = false;
 
-      // Handle different subscription statuses
       switch (subscription.status) {
         case 'active':
           if (user.plan !== 'pro') {
             plan = 'pro';
             needsUpdate = true;
           }
+          // Clear grace deadline if payment recovered
+          if (user.paymentGraceDeadline) {
+            user.paymentGraceDeadline = null;
+            needsUpdate = true;
+          }
           break;
         case 'past_due':
         case 'unpaid':
+          // During grace period, keep user on their current plan
+          if (user.paymentGraceDeadline && new Date() < user.paymentGraceDeadline) {
+            // Still in grace period — don't downgrade yet
+          } else if (user.plan !== 'free') {
+            plan = 'free';
+            needsUpdate = true;
+          }
+          break;
         case 'canceled':
           if (user.plan !== 'free') {
             plan = 'free';
             needsUpdate = true;
-            // Clear the subscription ID if cancelled
-            if (subscription.status === 'canceled') {
-              user.stripeSubscriptionId = undefined;
-            }
+            user.stripeSubscriptionId = undefined;
+            user.paymentGraceDeadline = null;
           }
           break;
         case 'trialing':
-          // Keep plan as pro during trial
           if (user.plan !== 'pro') {
             plan = 'pro';
             needsUpdate = true;
@@ -67,7 +75,6 @@ export async function GET() {
           break;
       }
 
-      // Update user in database if needed
       if (needsUpdate) {
         user.plan = plan;
         await user.save();
@@ -83,6 +90,7 @@ export async function GET() {
         needsUpdate,
         billingCycle: user.billingCycle || 'monthly',
         subscriptionEnd: (subscription as StripeSubscription).current_period_end,
+        paymentGraceDeadline: user.paymentGraceDeadline?.toISOString() || null,
       });
     } catch (stripeError) {
       console.error('Error retrieving subscription from Stripe:', stripeError);
