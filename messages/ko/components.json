@@ -183,7 +183,8 @@
     "settings": "설정",
     "signOut": "로그아웃",
     "openMenu": "메뉴 열기",
-    "user": "사용자"
+    "user": "사용자",
+    "feedback": "피드백"
   },
   "inlineImportTool": {
     "title": "Try It: Import Your Document",
