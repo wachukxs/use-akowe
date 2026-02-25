@@ -45,7 +45,13 @@ export async function middleware(request: NextRequest) {
     }
     try {
       const decoded = Buffer.from(sessionCookie.value, 'base64').toString('utf-8');
-      const [prefix, timestamp] = decoded.split(':');
+      const parts = decoded.split(':');
+      const prefix = parts[0];
+      // New format: admin:adminId:role:timestamp:random
+      // Legacy format: admin:timestamp:random
+      const isNewFormat = parts.length >= 4 && ['full_access', 'read_only'].includes(parts[2]);
+      const timestamp = isNewFormat ? parts[3] : parts[1];
+
       if (prefix !== 'admin' || !timestamp) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }

@@ -22,7 +22,7 @@ import PaywallEvent from '@/models/PaywallEvent';
 export async function GET(request: NextRequest) {
   try {
     // Check admin session using cookie-based auth
-    const isAdmin = await verifyAdminSession();
+    const { authenticated: isAdmin } = await verifyAdminSession();
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

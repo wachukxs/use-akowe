@@ -1,15 +1,30 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { LogOut } from 'lucide-react';
 
-// Admin routes are not under [locale], so we avoid useTranslations here to prevent prerender errors.
 const LABELS = {
   verifying: 'Verifying...',
   loggingOut: 'Logging out...',
   logout: 'Log out',
 };
+
+type AdminRole = 'full_access' | 'read_only';
+
+interface AdminAuthContext {
+  role: AdminRole | null;
+  isFullAccess: boolean;
+}
+
+const AdminAuthCtx = createContext<AdminAuthContext>({
+  role: null,
+  isFullAccess: false,
+});
+
+export function useAdminAuth() {
+  return useContext(AdminAuthCtx);
+}
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;
@@ -17,31 +32,31 @@ interface AdminAuthGuardProps {
 
 export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [role, setRole] = useState<AdminRole | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Skip auth check if we're on the login page
     if (pathname === '/admin/login') {
-      setIsAuthenticated(true); // Allow access to login page
+      setIsAuthenticated(true);
       return;
     }
 
-    // Check authentication status
     checkAuth();
   }, [pathname]);
 
   const checkAuth = async () => {
     try {
-      // We can check if the cookie exists and is valid by making a simple request
       const response = await fetch('/api/admin/verify', {
         method: 'GET',
         credentials: 'include',
       });
 
       if (response.ok) {
+        const data = await response.json();
         setIsAuthenticated(true);
+        setRole(data.role ?? 'full_access');
       } else {
         setIsAuthenticated(false);
         router.push('/admin/login');
@@ -69,7 +84,6 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     }
   };
 
-  // Loading state
   if (isAuthenticated === null && pathname !== '/admin/login') {
     return (
       <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center">
@@ -83,32 +97,43 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     );
   }
 
-  // On login page, just render children
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
 
-  // Authenticated - render children with logout button
+  const ctxValue: AdminAuthContext = {
+    role,
+    isFullAccess: role === 'full_access',
+  };
+
   if (isAuthenticated) {
     return (
-      <div className="relative">
-        {/* Floating logout button */}
-        <div className="fixed top-4 right-4 z-50">
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[hsl(var(--destructive))] hover:text-[hsl(var(--destructive-foreground))] hover:border-[hsl(var(--destructive))] transition-colors shadow-[4px_4px_0_rgba(29,41,57,0.12)]"
-          >
-            <LogOut size={14} />
-            {isLoggingOut ? LABELS.loggingOut : LABELS.logout}
-          </button>
+      <AdminAuthCtx.Provider value={ctxValue}>
+        <div className="relative">
+          <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
+            {role && (
+              <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] rounded-(--radius) border-2 ${
+                role === 'full_access'
+                  ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+                  : 'border-[hsl(var(--muted-foreground))] text-[hsl(var(--muted-foreground))]'
+              }`}>
+                {role === 'full_access' ? 'Full Access' : 'Read Only'}
+              </span>
+            )}
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="flex items-center gap-2 px-4 py-2 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.16em] hover:bg-[hsl(var(--destructive))] hover:text-[hsl(var(--destructive-foreground))] hover:border-[hsl(var(--destructive))] transition-colors shadow-[4px_4px_0_rgba(29,41,57,0.12)]"
+            >
+              <LogOut size={14} />
+              {isLoggingOut ? LABELS.loggingOut : LABELS.logout}
+            </button>
+          </div>
+          {children}
         </div>
-        {children}
-      </div>
+      </AdminAuthCtx.Provider>
     );
   }
 
-  // Not authenticated and not on login - show nothing (will redirect)
   return null;
 }
-

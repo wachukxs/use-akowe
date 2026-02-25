@@ -14,6 +14,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { getQualityScoreLabel } from '@/lib/influencer-quality';
+import { useAdminAuth } from '@/components/AdminAuthGuard';
 import FraudTab from './FraudTab';
 
 interface ReferralStats {
@@ -73,6 +74,7 @@ interface ReferralData {
 type ReferralSubSection = 'referrals' | 'fraud';
 
 export default function ReferralsTab() {
+  const { isFullAccess } = useAdminAuth();
   const [activeSection, setActiveSection] = useState<ReferralSubSection>('referrals');
   const [data, setData] = useState<ReferralData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -310,15 +312,16 @@ export default function ReferralsTab() {
             </span>
           </div>
           <button
-            onClick={() => setShowAddInfluencer(!showAddInfluencer)}
-            className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center justify-center gap-2 touch-manipulation"
+            onClick={() => isFullAccess && setShowAddInfluencer(!showAddInfluencer)}
+            disabled={!isFullAccess}
+            title={!isFullAccess ? 'Read-only access' : undefined}
+            className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center justify-center gap-2 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
           >
             <UserPlus size={14} />
             Add Influencer
           </button>
         </div>
 
-        {/* Add Influencer Form */}
         {showAddInfluencer && (
           <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))]/10">
             <form onSubmit={handleAddInfluencer} className="space-y-3 sm:space-y-4">
@@ -478,7 +481,8 @@ export default function ReferralsTab() {
                           <div className="flex items-center gap-1 sm:gap-2 justify-center flex-wrap">
                             <button
                               onClick={() => handleDeleteInfluencer(influencer._id)}
-                              className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs bg-red-500 text-white rounded hover:bg-red-600 touch-manipulation"
+                              disabled={!isFullAccess}
+                              className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs bg-red-500 text-white rounded hover:bg-red-600 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               Confirm
                             </button>
@@ -493,10 +497,10 @@ export default function ReferralsTab() {
                           <div className="flex items-center gap-1 sm:gap-2 justify-center">
                             {influencer.referralCount > 0 && (
                               <button
-                                onClick={() => handleRecalculateQuality(influencer._id)}
-                                disabled={recalculatingQuality === influencer._id}
-                                className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-[hsl(var(--accent))] rounded transition-colors disabled:opacity-50 touch-manipulation flex items-center justify-center"
-                                title="Recalculate quality score"
+                                onClick={() => isFullAccess && handleRecalculateQuality(influencer._id)}
+                                disabled={!isFullAccess || recalculatingQuality === influencer._id}
+                                title={!isFullAccess ? 'Read-only access' : 'Recalculate quality score'}
+                                className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-[hsl(var(--accent))] rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation flex items-center justify-center"
                               >
                                 <RefreshCw
                                   size={14}
@@ -505,9 +509,10 @@ export default function ReferralsTab() {
                               </button>
                             )}
                             <button
-                              onClick={() => setDeleteConfirm(influencer._id)}
-                              className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-red-500/20 rounded transition-colors text-red-500 touch-manipulation flex items-center justify-center"
-                              title="Delete influencer"
+                              onClick={() => isFullAccess && setDeleteConfirm(influencer._id)}
+                              disabled={!isFullAccess}
+                              title={!isFullAccess ? 'Read-only access' : 'Delete influencer'}
+                              className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-red-500/20 rounded transition-colors text-red-500 touch-manipulation flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                             >
                               <Trash2 size={14} />
                             </button>
