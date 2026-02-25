@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed": "MONGODB_URI=mongodb://localhost:27017/akowe NODE_ENV=development npx tsx scripts/seed-database.ts",
-    "seed:admins": "NODE_ENV=development npx tsx scripts/seed-admins.ts"
+    "seed:admins": "npx tsx --env-file=.env scripts/seed-admins.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,7 +1,5 @@
-import { config } from 'dotenv';
-import { resolve } from 'path';
-
-config({ path: resolve(process.cwd(), '.env.local') });
+import connectDB from '../lib/mongodb';
+import Admin from '../models/Admin';
 
 const required = ['MONGODB_URI', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'VIEWER_EMAIL', 'VIEWER_PASSWORD'] as const;
 const missing = required.filter((k) => !process.env[k]);
@@ -9,9 +7,6 @@ if (missing.length) {
   console.error(`❌ Missing environment variables: ${missing.join(', ')}`);
   process.exit(1);
 }
-
-import connectDB from '../lib/mongodb';
-import Admin from '../models/Admin';
 
 const admins = [
   {
