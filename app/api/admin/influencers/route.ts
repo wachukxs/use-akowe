@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Influencer from '@/models/Influencer';
 import { createWithReferralCode } from '@/lib/referral';
+import { requireFullAccess } from '@/lib/admin-auth';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await requireFullAccess();
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Forbidden: full access required' },
+        { status: 403 }
+      );
+    }
+
     const { name, email, notes } = await request.json();
 
     // Validation

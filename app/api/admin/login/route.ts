@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import connectDB from '@/lib/mongodb';
+import Admin from '@/models/Admin';
 
-// Admin credentials - in production, these should be environment variables
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'useakowe';
+const SESSION_DURATION = 24 * 60 * 60; // 24 hours in seconds
 
-// Session duration: 24 hours in seconds
-const SESSION_DURATION = 24 * 60 * 60;
-
-// Simple session token generator
-function generateSessionToken(): string {
+function generateSessionToken(adminId: string, role: string): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 15);
-  return Buffer.from(`admin:${timestamp}:${random}`).toString('base64');
+  return Buffer.from(`admin:${adminId}:${role}:${timestamp}:${random}`).toString('base64');
 }
 
 export async function POST(request: NextRequest) {
@@ -20,7 +16,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { username, password } = body;
 
-    // Validate credentials
     if (!username || !password) {
       return NextResponse.json(
         { error: 'Username and password are required' },
@@ -28,19 +23,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check credentials
-    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    await connectDB();
+
+    const admin = await Admin.findOne({ username: username.toLowerCase() });
+    if (!admin) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
-    // Generate session token
-    const sessionToken = generateSessionToken();
+    const isMatch = await admin.comparePassword(password);
+    if (!isMatch) {
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      );
+    }
+
+    admin.lastLoginAt = new Date();
+    await admin.save();
+
+    const sessionToken = generateSessionToken(admin._id!.toString(), admin.role);
     const expiresAt = new Date(Date.now() + SESSION_DURATION * 1000);
 
-    // Set secure cookie
     const cookieStore = await cookies();
     cookieStore.set('admin_session', sessionToken, {
       httpOnly: true,
@@ -53,6 +59,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Login successful',
+      role: admin.role,
       expiresAt: expiresAt.toISOString(),
     });
   } catch (error) {
@@ -63,4 +70,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

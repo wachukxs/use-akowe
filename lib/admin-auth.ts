@@ -1,44 +1,59 @@
 import { cookies } from 'next/headers';
+import type { AdminRole } from '@/models/Admin';
+
+export interface AdminSession {
+  authenticated: boolean;
+  adminId?: string;
+  role?: AdminRole;
+}
 
 /**
- * Verifies if the current request has a valid admin session
- * @returns boolean indicating if the admin is authenticated
+ * Verifies if the current request has a valid admin session.
+ * Returns session details including the admin's role.
  */
-export async function verifyAdminSession(): Promise<boolean> {
+export async function verifyAdminSession(): Promise<AdminSession> {
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('admin_session');
 
     if (!sessionCookie?.value) {
-      return false;
+      return { authenticated: false };
     }
 
-    // Decode and validate the session token
     try {
       const decoded = Buffer.from(sessionCookie.value, 'base64').toString('utf-8');
-      const [prefix, timestamp] = decoded.split(':');
+      const [prefix, adminId, role, timestamp] = decoded.split(':');
 
-      // Verify the token structure
-      if (prefix !== 'admin' || !timestamp) {
-        return false;
+      if (prefix !== 'admin' || !adminId || !role || !timestamp) {
+        return { authenticated: false };
       }
 
-      // Check if the session is still valid (within 24 hours)
       const sessionTime = parseInt(timestamp, 10);
       const now = Date.now();
       const twentyFourHours = 24 * 60 * 60 * 1000;
 
       if (now - sessionTime > twentyFourHours) {
-        return false;
+        return { authenticated: false };
       }
 
-      return true;
+      return { authenticated: true, adminId, role: role as AdminRole };
     } catch {
-      return false;
+      return { authenticated: false };
     }
   } catch (error) {
     console.error('Error verifying admin session:', error);
-    return false;
+    return { authenticated: false };
   }
 }
 
+/**
+ * Verifies admin session and requires full_access role.
+ * Returns the session if authorized, or null if not.
+ */
+export async function requireFullAccess(): Promise<AdminSession | null> {
+  const session = await verifyAdminSession();
+  if (!session.authenticated || session.role !== 'full_access') {
+    return null;
+  }
+  return session;
+}

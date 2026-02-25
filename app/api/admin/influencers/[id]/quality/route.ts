@@ -2,13 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Influencer from '@/models/Influencer';
 import { calculateInfluencerQuality } from '@/lib/influencer-quality';
+import { requireFullAccess } from '@/lib/admin-auth';
 import mongoose from 'mongoose';
 
-/**
- * API endpoint to calculate and update influencer quality score
- * GET: Retrieve current quality score
- * POST: Recalculate and update quality score
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -56,6 +52,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireFullAccess();
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Forbidden: full access required' },
+        { status: 403 }
+      );
+    }
+
     const resolvedParams = await params;
     const { id } = resolvedParams;
 

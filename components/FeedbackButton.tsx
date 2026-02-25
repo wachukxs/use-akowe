@@ -1,187 +1,41 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { X, Check } from 'lucide-react';
+import { MessageSquarePlus } from 'lucide-react';
+import FeedbackForm from '@/components/FeedbackForm';
 
 export default function FeedbackButton() {
   const t = useTranslations('components.feedbackButton');
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
 
-  // Pre-fill name and email when user is signed in
-  useEffect(() => {
-    if (session?.user) {
-      setFormData((prev) => ({
-        ...prev,
-        name: prev.name || session.user.name || '',
-        email: prev.email || session.user.email || '',
-      }));
-    }
-  }, [session]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-
-    try {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error(t('errorSend'));
-      }
-
-      setSubmitted(true);
-      // Reset form but keep user's info if signed in
-      setFormData({
-        name: session?.user?.name || '',
-        email: session?.user?.email || '',
-        message: '',
-      });
-      
-      // Reset after 3 seconds
-      setTimeout(() => {
-        setSubmitted(false);
-        setIsOpen(false);
-      }, 3000);
-    } catch {
-      setError('Failed to send feedback. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  if (status === 'loading' || session) return null;
 
   return (
     <>
-      {/* Floating Feedback Button - Hidden on mobile */}
+      {/* Desktop: vertical tab on right edge */}
       <button
         onClick={() => setIsOpen(true)}
-        className="hidden md:block fixed right-0 top-1/2 -translate-y-1/2 z-50 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-3 py-4 rounded-l-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-x-1 border-2 border-r-0 border-[hsl(var(--primary))]"
+        className="hidden md:block fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-3 py-4 rounded-l-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-x-1 border-2 border-r-0 border-[hsl(var(--primary))] cursor-pointer"
         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
         aria-label={t('sendFeedbackAria')}
       >
         <span className="text-xs font-semibold uppercase tracking-widest">{t('feedback')}</span>
       </button>
 
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-200"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {/* Mobile: FAB bottom-right */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="md:hidden fixed bottom-6 right-4 z-40 flex items-center gap-2 px-4 py-3 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-2 border-[hsl(var(--border-strong))] rounded-full shadow-[4px_4px_0_rgba(29,41,57,0.12)] cursor-pointer transition-all duration-200 active:translate-y-[2px] active:shadow-[2px_2px_0_rgba(29,41,57,0.12)]"
+        aria-label={t('sendFeedbackAria')}
+      >
+        <MessageSquarePlus size={18} />
+        <span className="text-xs font-semibold uppercase tracking-[0.12em]">{t('feedback')}</span>
+      </button>
 
-      {/* Popup Modal */}
-      {isOpen && (
-        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) shadow-[8px_8px_0_rgba(29,41,57,0.16)] p-6 animate-in slide-in-from-right-4 duration-200">
-          {/* Close Button */}
-          <button
-            onClick={() => setIsOpen(false)}
-            className="absolute top-3 right-3 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors cursor-pointer"
-            aria-label={t('close')}
-          >
-            <X size={20} />
-          </button>
-
-          {submitted ? (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
-                <Check size={24} className="text-[hsl(142,76%,36%)]" />
-              </div>
-              <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">
-                {t('thankYou')}
-              </h3>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
-                {t('sent')}
-              </p>
-            </div>
-          ) : (
-            <>
-              <h2 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-1">
-                {t('heading')}
-              </h2>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4">
-                {t('intro')}
-              </p>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  label={t('nameLabel')}
-                  placeholder={t('namePlaceholder')}
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                />
-
-                <div className="space-y-1">
-                  <Input
-                    label={t('emailLabel')}
-                    type="email"
-                    placeholder={t('emailPlaceholder')}
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                  />
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {t('emailHint')}
-                  </p>
-                </div>
-
-                <div className="w-full space-y-1.5">
-                  <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
-                    {t('messageLabel')}
-                  </label>
-                  <textarea
-                    placeholder={t('messagePlaceholder')}
-                    value={formData.message}
-                    onChange={(e) =>
-                      setFormData({ ...formData, message: e.target.value })
-                    }
-                    required
-                    rows={4}
-                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] rounded-(--radius) transition-transform duration-150 focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 focus:border-[hsl(var(--border-strong))] focus:-translate-y-[0.125rem] focus:-translate-x-[0.125rem] placeholder:text-[hsl(var(--muted-foreground))] resize-none"
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-xs font-medium text-[hsl(var(--destructive))] uppercase tracking-[0.08em]">
-                    {error}
-                  </p>
-                )}
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? t('sending') : t('sendButton')}
-                </Button>
-              </form>
-            </>
-          )}
-        </div>
-      )}
+      <FeedbackForm isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   );
 }

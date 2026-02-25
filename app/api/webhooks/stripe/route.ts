@@ -15,6 +15,9 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { trackPaywallEvent } from '@/lib/paywall-tracking';
 import { sendGA4ServerEvent } from '@/lib/ga4-server';
+import { sendPaymentFailedEmail } from '@/lib/email';
+
+const GRACE_PERIOD_DAYS = 3;
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -195,49 +198,62 @@ export async function POST(request: NextRequest) {
         // Handle different subscription statuses
         switch (subscription.status) {
           case 'active':
-          case 'trialing':
+          case 'trialing': {
             // Keep user on Pro or Team plan (both are paying plans)
             const subscriptionStart = new Date(subscription.created * 1000);
             const isPayingPlan = user.plan === 'pro' || user.plan === 'team';
+            const hadGracePeriod = !!user.paymentGraceDeadline;
             if (!isPayingPlan || !user.subscriptionStartDate) {
-              user.plan = 'pro'; // Default to pro (team plan would need separate handling if needed)
+              user.plan = 'pro';
               user.stripeSubscriptionId = subscription.id;
               user.subscriptionStartDate = subscriptionStart;
-              user.subscriptionEndDate = null; // Active subscription - use null for consistency with schema
+              user.subscriptionEndDate = null;
+              user.paymentGraceDeadline = null;
               await user.save();
               console.log(`✅ Updated user ${user._id} to pro plan (active) with subscription dates`);
-            } else if (user.subscriptionEndDate) {
-              // If user already has a paying plan but subscriptionEndDate is set, clear it (re-activated)
+            } else if (user.subscriptionEndDate || hadGracePeriod) {
               user.subscriptionEndDate = null;
+              user.paymentGraceDeadline = null;
               await user.save();
+              if (hadGracePeriod) {
+                console.log(`✅ Payment recovered for user ${user._id}, grace period cleared`);
+              }
             }
             break;
+          }
           
           case 'past_due':
-          case 'unpaid':
-            // Downgrade user but keep subscription ID for retry
+          case 'unpaid': {
+            // Start grace period — keep user on Pro for GRACE_PERIOD_DAYS before downgrade
             const isPayingPlanPastDue = user.plan === 'pro' || user.plan === 'team';
-            if (isPayingPlanPastDue) {
-              user.plan = 'free';
-              // Don't set end date yet - subscription might recover
+            if (isPayingPlanPastDue && !user.paymentGraceDeadline) {
+              const deadline = new Date();
+              deadline.setDate(deadline.getDate() + GRACE_PERIOD_DAYS);
+              user.paymentGraceDeadline = deadline;
               await user.save();
-              console.log(`⚠️ Downgraded user ${user._id} to free plan (${subscription.status})`);
+              console.log(`⚠️ Grace period started for user ${user._id} until ${deadline.toISOString()} (${subscription.status})`);
+
+              sendPaymentFailedEmail(user.email, user.name, deadline).catch((err) => {
+                console.error(`[email] Failed to send payment failed email to ${user.email}:`, err);
+              });
             }
             break;
+          }
           
           case 'canceled':
           case 'incomplete':
-          case 'incomplete_expired':
-            // Downgrade and clear subscription ID, set end date
+          case 'incomplete_expired': {
             const canceledAt = subscription.canceled_at 
               ? new Date(subscription.canceled_at * 1000)
               : new Date();
             user.plan = 'free';
             user.stripeSubscriptionId = undefined;
             user.subscriptionEndDate = canceledAt;
+            user.paymentGraceDeadline = null;
             await user.save();
             console.log(`⬇️ Downgraded user ${user._id} to free plan (${subscription.status}) with end date`);
             break;
+          }
           
           default:
             console.log(`⚠️ Unhandled subscription status: ${subscription.status} for user ${user._id}`);
@@ -257,8 +273,38 @@ export async function POST(request: NextRequest) {
           user.plan = 'free';
           user.stripeSubscriptionId = undefined;
           user.subscriptionEndDate = canceledAt;
+          user.paymentGraceDeadline = null;
           await user.save();
           console.log(`⬇️ Downgraded user ${user._id} to free plan with end date`);
+        }
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as any;
+        const customerId = invoice.customer;
+        if (!customerId) break;
+
+        // Only act on subscription invoices (not one-off invoices)
+        if (!invoice.subscription) break;
+
+        const user = await User.findOne({ stripeCustomerId: customerId });
+        if (!user) {
+          console.log(`⚠️ User not found for customer ${customerId} (invoice.payment_failed)`);
+          break;
+        }
+
+        const isPayingPlan = user.plan === 'pro' || user.plan === 'team';
+        if (isPayingPlan && !user.paymentGraceDeadline) {
+          const deadline = new Date();
+          deadline.setDate(deadline.getDate() + GRACE_PERIOD_DAYS);
+          user.paymentGraceDeadline = deadline;
+          await user.save();
+          console.log(`⚠️ Invoice payment failed for user ${user._id}, grace period until ${deadline.toISOString()}`);
+
+          sendPaymentFailedEmail(user.email, user.name, deadline).catch((err) => {
+            console.error(`[email] Failed to send payment failed email to ${user.email}:`, err);
+          });
         }
         break;
       }
@@ -280,6 +326,7 @@ export async function POST(request: NextRequest) {
           user.plan = 'free';
           user.stripeSubscriptionId = undefined;
           user.subscriptionEndDate = new Date();
+          user.paymentGraceDeadline = null;
           await user.save();
           console.log(`⬇️ Downgraded user ${user._id} to free plan (charge refunded)`);
         }

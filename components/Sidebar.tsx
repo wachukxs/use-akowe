@@ -4,8 +4,9 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { FileText, Settings, LogOut, PlusCircle, Menu, X, Bot } from 'lucide-react';
+import { FileText, Settings, LogOut, PlusCircle, Menu, X, Bot, MessageSquarePlus } from 'lucide-react';
 import Button from './ui/Button';
+import FeedbackForm from '@/components/FeedbackForm';
 import { useState, useEffect, createContext, useContext } from 'react';
 
 const navigation = [
@@ -256,6 +257,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { isOpen, setIsOpen, isMobile } = useSidebar();
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // Close sidebar when route changes on mobile
   useEffect(() => {
@@ -320,6 +322,20 @@ export default function Sidebar() {
             </Link>
           );
         })}
+
+        <button
+          onClick={() => {
+            setIsFeedbackOpen(true);
+            if (isMobile) setIsOpen(false);
+          }}
+          className="w-full flex items-center justify-between px-4 py-3 border-2 border-transparent rounded-(--radius) transition-transform duration-150 uppercase tracking-[0.28em] text-[11px] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] hover:border-[hsl(var(--border-strong))] cursor-pointer"
+        >
+          <span className="flex items-center gap-3">
+            <MessageSquarePlus size={18} />
+            {t('feedback')}
+          </span>
+          <span>→</span>
+        </button>
       </nav>
 
       <div className="p-4 border-t-[4px] border-[hsl(var(--border-strong))] mt-auto">
@@ -386,6 +402,8 @@ export default function Sidebar() {
           </div>
         </>
       )}
+
+      <FeedbackForm isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </>
   );
 }

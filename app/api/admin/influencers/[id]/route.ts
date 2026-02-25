@@ -3,12 +3,21 @@ import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import Influencer from '@/models/Influencer';
 import User from '@/models/User';
+import { requireFullAccess } from '@/lib/admin-auth';
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await requireFullAccess();
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Forbidden: full access required' },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
 
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {

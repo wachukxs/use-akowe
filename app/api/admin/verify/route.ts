@@ -3,10 +3,13 @@ import { verifyAdminSession } from '@/lib/admin-auth';
 
 export async function GET() {
   try {
-    const isAuthenticated = await verifyAdminSession();
+    const session = await verifyAdminSession();
 
-    if (isAuthenticated) {
-      return NextResponse.json({ authenticated: true });
+    if (session.authenticated) {
+      return NextResponse.json({
+        authenticated: true,
+        role: session.role ?? 'full_access',
+      });
     } else {
       return NextResponse.json(
         { authenticated: false, error: 'Not authenticated' },
@@ -21,4 +24,3 @@ export async function GET() {
     );
   }
 }
-

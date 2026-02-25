@@ -183,7 +183,8 @@
     "settings": "Settings",
     "signOut": "Sign Out",
     "openMenu": "Open menu",
-    "user": "User"
+    "user": "User",
+    "feedback": "Feedback"
   },
   "inlineImportTool": {
     "title": "Try It: Import Your Document",
