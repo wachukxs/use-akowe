@@ -10,6 +10,25 @@
 [build.processing]
   skip_processing = false
 
+# Redirect www and http to canonical https://useakowe.com
+[[redirects]]
+  from = "https://www.useakowe.com/*"
+  to = "https://useakowe.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.useakowe.com/*"
+  to = "https://useakowe.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://useakowe.com/*"
+  to = "https://useakowe.com/:splat"
+  status = 301
+  force = true
+
 # Make sure you don't have a /blog route in your Next.js app (no app/blog/page.tsx)
 # Proxy /blog to external blog subdomain (keeps URL as akowe.com/blog)
 [[redirects]]

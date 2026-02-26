@@ -44,7 +44,7 @@ const nextConfig: NextConfig = {
     return pseoRoutes.map((route) => ({
       source: `/${route}/:path*`,
       destination: `/en/${route}/:path*`,
-      permanent: false,
+      permanent: true,
     }));
   },
 };
