@@ -1100,8 +1100,8 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
+          <div className="flex-1 pr-44 md:pr-0">
+            <h1 className="text-xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-2">Admin Dashboard</h1>
             <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
               Actionable Insights & Product Metrics
             </p>
