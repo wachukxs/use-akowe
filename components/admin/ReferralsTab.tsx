@@ -361,7 +361,7 @@ export default function ReferralsTab() {
             <div>
               <h2 className="text-lg sm:text-xl font-bold uppercase tracking-[0.16em]">Affiliate Commissions</h2>
               <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.24em] mt-1">
-                Track and pay out affiliate commissions (30% of first payment)
+                Track and pay out affiliate commissions (30% recurring per payment for 12 months)
               </p>
             </div>
             <button
@@ -442,7 +442,7 @@ export default function ReferralsTab() {
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referred User</th>
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Plan</th>
                           <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Payment</th>
-                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Commission (30%)</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Commission (30% recurring)</th>
                           <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Month</th>
                           <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Status</th>
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Date</th>
@@ -545,7 +545,7 @@ export default function ReferralsTab() {
                       No commissions recorded yet
                     </p>
                     <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
-                      Commissions are created when a referred user subscribes to a paid plan
+                      A commission is created on every payment from a referred user — monthly renewals generate a new commission each cycle for up to 12 months
                     </p>
                   </div>
                 )}
