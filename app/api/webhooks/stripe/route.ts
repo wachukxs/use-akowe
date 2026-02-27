@@ -377,6 +377,18 @@ export async function POST(request: NextRequest) {
           await user.save();
           console.log(`⬇️ Downgraded user ${user._id} to free plan (charge refunded)`);
         }
+
+        // Cancel the pending affiliate commission tied to this specific charge's invoice.
+        // A refund means the payment was reversed — the commission was not actually earned.
+        if (charge.invoice) {
+          const cancelled = await AffiliateCommission.findOneAndUpdate(
+            { stripeInvoiceId: charge.invoice, status: 'pending' },
+            { status: 'cancelled' }
+          );
+          if (cancelled) {
+            console.log(`❌ Affiliate commission cancelled for refunded invoice ${charge.invoice}`);
+          }
+        }
         break;
       }
 

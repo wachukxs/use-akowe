@@ -33,7 +33,7 @@ export default function AffiliateProgramPage() {
             Affiliate Program
           </h1>
           <p className="text-lg text-[hsl(var(--muted-foreground))] uppercase tracking-[0.2em] max-w-2xl mx-auto">
-            Earn 30% recurring commission for 12 months on every paying user you refer
+            Earn 30% recurring commission — first 12 months or lifetime of subscription, whichever is shorter
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export default function AffiliateProgramPage() {
                     30% Recurring For 12 Months
                   </h3>
                   <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                    Earn 30% of every payment your referred user makes, for up to 12 months after they subscribe
+                    Earn 30% of every payment your referred user makes — for their first 12 months or for as long as they stay subscribed, whichever is shorter
                   </p>
                 </div>
               </div>
@@ -268,7 +268,7 @@ export default function AffiliateProgramPage() {
                 Payment Amount
               </h3>
               <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-2">
-                30% of every payment from each paying subscriber you refer, for up to 12 months. A monthly subscriber ($12/mo) earns you $3.60 every month they stay subscribed, up to $43.20 total. An annual subscriber ($120/yr) earns you $36 on their first payment.
+                30% of every payment from each paying subscriber you refer — for their first 12 months or for as long as they stay subscribed, whichever is shorter. A monthly subscriber ($12/mo) earns you $3.60 per renewal, up to $43.20 if they stay the full 12 months. An annual subscriber ($120/yr) earns you $36 on their first payment.
               </p>
             </div>
 
@@ -277,7 +277,7 @@ export default function AffiliateProgramPage() {
                 Payment Schedule
               </h3>
               <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-2">
-                Payments are processed at the end of each calendar month. Commissions are earned each time your referred user is billed — monthly subscribers generate a new commission every month they stay active, for up to 12 months from their first payment.
+                Payments are processed at the end of each calendar month. You earn a commission each time your referred user is billed — every month they stay subscribed, for their first 12 months or the lifetime of their subscription, whichever is shorter. If they cancel, commissions stop. If they stay the full 12 months, so do your commissions.
               </p>
             </div>
 

@@ -361,7 +361,7 @@ export default function ReferralsTab() {
             <div>
               <h2 className="text-lg sm:text-xl font-bold uppercase tracking-[0.16em]">Affiliate Commissions</h2>
               <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.24em] mt-1">
-                Track and pay out affiliate commissions (30% recurring per payment for 12 months)
+                Track and pay out affiliate commissions (30% per payment — first 12 months or lifetime of subscription, whichever is shorter)
               </p>
             </div>
             <button
@@ -441,6 +441,7 @@ export default function ReferralsTab() {
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Type</th>
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referred User</th>
                           <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Plan</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Subscriber</th>
                           <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Payment</th>
                           <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Commission (30% recurring)</th>
                           <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Month</th>
@@ -481,6 +482,17 @@ export default function ReferralsTab() {
                                 </span>
                                 <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5">{c.billingCycle}</div>
                               </div>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                              {c.referredUserPlan === 'pro' || c.referredUserPlan === 'team' ? (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] sm:text-xs bg-green-500/20 text-green-600 font-semibold">
+                                  Active
+                                </span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] sm:text-xs bg-red-500/20 text-red-500 font-semibold">
+                                  Churned
+                                </span>
+                              )}
                             </td>
                             <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-mono text-[10px] sm:text-xs">
                               ${(c.paymentAmount / 100).toFixed(2)}
@@ -545,7 +557,7 @@ export default function ReferralsTab() {
                       No commissions recorded yet
                     </p>
                     <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
-                      A commission is created on every payment from a referred user — monthly renewals generate a new commission each cycle for up to 12 months
+                      A commission is created on every payment from a referred user — for their first 12 months or lifetime of subscription, whichever is shorter
                     </p>
                   </div>
                 )}
