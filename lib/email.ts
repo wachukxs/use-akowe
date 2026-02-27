@@ -462,3 +462,128 @@ export async function sendWinBackEmail(to: string, name: string): Promise<EmailS
   console.info('[email] Win-back email sent', { to, messageId: info.messageId });
   return { messageId: info.messageId };
 }
+
+// ============================================
+// Affiliate application emails
+// ============================================
+
+export async function sendAffiliateApprovedEmail(
+  to: string,
+  name: string,
+  referralCode: string
+): Promise<void> {
+  if (!transporter) {
+    console.warn('[email] Skipping affiliate approved email - transporter not configured');
+    return;
+  }
+
+  const baseUrl = getBaseUrl();
+  const greeting = name || 'there';
+  const referralLink = `${baseUrl}?ref=${referralCode}&utm_source=affiliate&utm_medium=referral&utm_campaign=affiliate`;
+  const statsUrl = `${baseUrl}/affiliate-stats`;
+  const payoutEmail = 'affiliate@placeholderllc.name.ng';
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: "You're approved — here's your Akowe affiliate code",
+    text: [
+      `Hi ${greeting},`,
+      '',
+      "Great news — your Akowe affiliate application has been approved. You're now set up as an affiliate partner.",
+      '',
+      `Your referral code: ${referralCode}`,
+      '',
+      `Your referral link: ${referralLink}`,
+      '',
+      'Anyone who signs up using your link will be attributed to you. Every time they pay for a subscription, you earn 30% — for their first 12 months or for as long as they stay subscribed, whichever is shorter.',
+      '',
+      'Tracking your stats:',
+      `Visit ${statsUrl} and enter your referral code to see clicks, signups, and paid conversions at any time.`,
+      '',
+      'Getting paid:',
+      `At the end of each month, email ${payoutEmail} with your referral code and your preferred payout method (PayPal, bank transfer, etc.). We verify your balance in our system and process payment within 5–7 business days.`,
+      '',
+      "Welcome aboard — let's build something great together.",
+      '',
+      '— The Akowe Team',
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>Great news — your Akowe affiliate application has been approved. You're now set up as an affiliate partner.</p>
+
+      <table style="margin:24px 0; padding:20px 24px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; width:100%; max-width:480px; border-collapse:collapse;">
+        <tr>
+          <td style="padding:6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em;">Your referral code</td>
+        </tr>
+        <tr>
+          <td style="padding:0 0 12px; font-size:22px; font-weight:700; font-family:monospace; color:#111827; letter-spacing:0.12em;">${referralCode}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0; font-size:13px; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em;">Your referral link</td>
+        </tr>
+        <tr>
+          <td style="padding:0; font-size:13px; font-family:monospace; word-break:break-all;">
+            <a href="${referralLink}" style="color:#111827;">${referralLink}</a>
+          </td>
+        </tr>
+      </table>
+
+      <p>Anyone who signs up using your link will be attributed to you. Every time they pay for a subscription, you earn <strong>30%</strong> — for their first 12 months or for as long as they stay subscribed, whichever is shorter.</p>
+
+      <h3 style="margin:24px 0 8px; font-size:15px;">Tracking your stats</h3>
+      <p>Visit your stats page to see clicks, signups, and paid conversions at any time.</p>
+      <p style="margin:12px 0;">${ctaButton(statsUrl, 'View your stats')}</p>
+
+      <h3 style="margin:24px 0 8px; font-size:15px;">Getting paid</h3>
+      <p>At the end of each month, email <a href="mailto:${payoutEmail}" style="color:#111827;">${payoutEmail}</a> with your referral code and your preferred payout method (PayPal, bank transfer, etc.). We verify your balance in our system and process payment within 5–7 business days.</p>
+
+      <p style="margin-top:24px;">Welcome aboard — let's build something great together.</p>
+      <p>— The Akowe Team</p>
+    `,
+  });
+
+  console.info('[email] Affiliate approved email sent', { to, messageId: info.messageId });
+}
+
+export async function sendAffiliateDeniedEmail(
+  to: string,
+  name: string
+): Promise<void> {
+  if (!transporter) {
+    console.warn('[email] Skipping affiliate denied email - transporter not configured');
+    return;
+  }
+
+  const greeting = name || 'there';
+  const payoutEmail = 'affiliate@placeholderllc.name.ng';
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: 'Your Akowe affiliate application',
+    text: [
+      `Hi ${greeting},`,
+      '',
+      'Thank you for applying to the Akowe affiliate program.',
+      '',
+      "After reviewing your application, we're not able to move forward at this time. This is usually because we're keeping the program small and selective while we're still early-stage.",
+      '',
+      "If you're already an Akowe user, you still have a personal referral link in your Settings page — you can use that to refer friends and earn commissions the same way.",
+      '',
+      `If you think this decision was made in error or you'd like to discuss further, feel free to reply to this email or reach us at ${payoutEmail}.`,
+      '',
+      '— The Akowe Team',
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>Thank you for applying to the Akowe affiliate program.</p>
+      <p>After reviewing your application, we're not able to move forward at this time. This is usually because we're keeping the program small and selective while we're still early-stage.</p>
+      <p>If you're already an Akowe user, you still have a personal referral link in your Settings page — you can use that to refer friends and earn commissions the same way.</p>
+      <p>If you think this decision was made in error or you'd like to discuss further, feel free to reply to this email or reach us at <a href="mailto:${payoutEmail}" style="color:#111827;">${payoutEmail}</a>.</p>
+      <p style="margin-top:24px;">— The Akowe Team</p>
+    `,
+  });
+
+  console.info('[email] Affiliate denied email sent', { to, messageId: info.messageId });
+}

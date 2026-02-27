@@ -2,14 +2,35 @@
 
 import { useRouter } from '@/i18n/navigation';
 import { useSession } from 'next-auth/react';
-import { DollarSign, Link2, BarChart3, Mail, CheckCircle, ArrowRight, Copy, ExternalLink } from 'lucide-react';
+import { DollarSign, Link2, BarChart3, Mail, CheckCircle, ArrowRight, Copy, ExternalLink, Send } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { buildReferralLink } from '@/lib/referral-links';
+
+type ApplicationStatus = 'idle' | 'submitting' | 'success' | 'error';
+
+interface ApplicationForm {
+  name: string;
+  email: string;
+  website: string;
+  promotionMethod: string;
+  audienceSize: string;
+  message: string;
+}
 
 export default function AffiliateProgramPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [copiedLink, setCopiedLink] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus>('idle');
+  const [applicationError, setApplicationError] = useState<string | null>(null);
+  const [applicationForm, setApplicationForm] = useState<ApplicationForm>({
+    name: '',
+    email: '',
+    website: '',
+    promotionMethod: '',
+    audienceSize: '',
+    message: '',
+  });
 
   const referralCode = (session?.user as { referralCode?: string })?.referralCode;
   const referralLink = useMemo(() => {
@@ -21,6 +42,27 @@ export default function AffiliateProgramPage() {
       navigator.clipboard.writeText(referralLink);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleApplicationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setApplicationStatus('submitting');
+    setApplicationError(null);
+    try {
+      const response = await fetch('/api/affiliate/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(applicationForm),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to submit application');
+      }
+      setApplicationStatus('success');
+    } catch (err) {
+      setApplicationError(err instanceof Error ? err.message : 'Failed to submit application');
+      setApplicationStatus('error');
     }
   };
 
@@ -342,6 +384,132 @@ export default function AffiliateProgramPage() {
                 Sign up to get your referral link
               </p>
             </button>
+          )}
+        </div>
+
+        {/* Apply as Affiliate Partner */}
+        <div className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 lg:p-8 rounded-lg mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em] mb-2 text-center">
+            Apply as an Affiliate Partner
+          </h2>
+          <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] text-center mb-6">
+            Already an Akowe user? You already have a referral link above. Apply here if you plan to run dedicated promotions (ads, content, partnerships) and want a dedicated affiliate code.
+          </p>
+
+          {applicationStatus === 'success' ? (
+            <div className="bg-[hsl(var(--background))] border-2 border-[hsl(var(--primary))] p-6 rounded-lg text-center space-y-3">
+              <CheckCircle className="text-[hsl(var(--primary))] mx-auto" size={40} />
+              <p className="text-sm font-semibold uppercase tracking-[0.16em]">Application Submitted!</p>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
+                We&apos;ll review your application and reach out to you at the email you provided.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleApplicationSubmit} className="space-y-4">
+              {applicationStatus === 'error' && applicationError && (
+                <div className="border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--background))] p-3 rounded text-xs text-[hsl(var(--destructive))]">
+                  {applicationError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Name <span className="text-[hsl(var(--destructive))]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={applicationForm.name}
+                    onChange={(e) => setApplicationForm((f) => ({ ...f, name: e.target.value }))}
+                    className="w-full bg-[hsl(var(--background))] border-2 border-[hsl(var(--border-strong))] rounded px-3 py-2 text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
+                    placeholder="Your full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Email <span className="text-[hsl(var(--destructive))]">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={applicationForm.email}
+                    onChange={(e) => setApplicationForm((f) => ({ ...f, email: e.target.value }))}
+                    className="w-full bg-[hsl(var(--background))] border-2 border-[hsl(var(--border-strong))] rounded px-3 py-2 text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Promotion Method <span className="text-[hsl(var(--destructive))]">*</span>
+                  </label>
+                  <select
+                    required
+                    value={applicationForm.promotionMethod}
+                    onChange={(e) => setApplicationForm((f) => ({ ...f, promotionMethod: e.target.value }))}
+                    className="w-full bg-[hsl(var(--background))] border-2 border-[hsl(var(--border-strong))] rounded px-3 py-2 text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
+                  >
+                    <option value="">Select a method</option>
+                    <option value="blog">Blog / Content</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="social_media">Social Media</option>
+                    <option value="paid_ads">Paid Ads</option>
+                    <option value="newsletter">Newsletter</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Audience Size
+                  </label>
+                  <input
+                    type="text"
+                    value={applicationForm.audienceSize}
+                    onChange={(e) => setApplicationForm((f) => ({ ...f, audienceSize: e.target.value }))}
+                    className="w-full bg-[hsl(var(--background))] border-2 border-[hsl(var(--border-strong))] rounded px-3 py-2 text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
+                    placeholder="e.g. 10k–50k"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                  Website / Channel URL
+                </label>
+                <input
+                  type="text"
+                  value={applicationForm.website}
+                  onChange={(e) => setApplicationForm((f) => ({ ...f, website: e.target.value }))}
+                  className="w-full bg-[hsl(var(--background))] border-2 border-[hsl(var(--border-strong))] rounded px-3 py-2 text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
+                  placeholder="youtube.com/yourchannel or yoursite.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
+                  Why do you want to partner with Akowe?
+                </label>
+                <textarea
+                  rows={3}
+                  value={applicationForm.message}
+                  onChange={(e) => setApplicationForm((f) => ({ ...f, message: e.target.value }))}
+                  className="w-full bg-[hsl(var(--background))] border-2 border-[hsl(var(--border-strong))] rounded px-3 py-2 text-sm focus:outline-none focus:border-[hsl(var(--primary))] resize-none"
+                  placeholder="Tell us a bit about your audience and how you plan to promote Akowe..."
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={applicationStatus === 'submitting'}
+                className="w-full sm:w-auto px-6 py-3 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded uppercase tracking-[0.16em] text-xs font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Send size={14} />
+                {applicationStatus === 'submitting' ? 'Submitting...' : 'Submit Application'}
+              </button>
+            </form>
           )}
         </div>
 

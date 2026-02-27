@@ -15,6 +15,8 @@ import {
   DollarSign,
   Clock,
   CheckCircle,
+  ClipboardList,
+  X,
 } from 'lucide-react';
 import { getQualityScoreLabel } from '@/lib/influencer-quality';
 import { useAdminAuth } from '@/components/AdminAuthGuard';
@@ -108,7 +110,32 @@ interface CommissionData {
   commissions: Commission[];
 }
 
-type ReferralSubSection = 'referrals' | 'fraud' | 'commissions';
+interface AffiliateApplicationData {
+  _id: string;
+  name: string;
+  email: string;
+  website?: string;
+  promotionMethod: string;
+  audienceSize?: string;
+  message?: string;
+  status: 'pending' | 'approved' | 'denied';
+  reviewedAt?: string;
+  influencerReferralCode?: string;
+  createdAt: string;
+}
+
+interface ApplicationStats {
+  pending: number;
+  approved: number;
+  denied: number;
+}
+
+interface ApplicationsResponse {
+  stats: ApplicationStats;
+  applications: AffiliateApplicationData[];
+}
+
+type ReferralSubSection = 'referrals' | 'fraud' | 'commissions' | 'applications';
 
 export default function ReferralsTab() {
   const { isFullAccess } = useAdminAuth();
@@ -126,6 +153,11 @@ export default function ReferralsTab() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [recalculatingQuality, setRecalculatingQuality] = useState<string | null>(null);
+  const [applicationData, setApplicationData] = useState<ApplicationsResponse | null>(null);
+  const [isLoadingApplications, setIsLoadingApplications] = useState(false);
+  const [applicationError, setApplicationError] = useState<string | null>(null);
+  const [processingApplication, setProcessingApplication] = useState<string | null>(null);
+  const [copiedAppCode, setCopiedAppCode] = useState<string | null>(null);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -195,6 +227,61 @@ export default function ReferralsTab() {
     }
   };
 
+  const fetchApplicationData = async () => {
+    try {
+      setIsLoadingApplications(true);
+      setApplicationError(null);
+      const response = await fetch('/api/admin/affiliate-applications');
+      if (!response.ok) throw new Error('Failed to fetch applications');
+      const result = await response.json();
+      setApplicationData(result);
+    } catch (err) {
+      setApplicationError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoadingApplications(false);
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    setProcessingApplication(id);
+    try {
+      const response = await fetch('/api/admin/affiliate-applications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'approve' }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to approve application');
+      }
+      fetchApplicationData();
+    } catch (err) {
+      setApplicationError(err instanceof Error ? err.message : 'Failed to approve');
+    } finally {
+      setProcessingApplication(null);
+    }
+  };
+
+  const handleDeny = async (id: string) => {
+    setProcessingApplication(id);
+    try {
+      const response = await fetch('/api/admin/affiliate-applications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'deny' }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to deny application');
+      }
+      fetchApplicationData();
+    } catch (err) {
+      setApplicationError(err instanceof Error ? err.message : 'Failed to deny');
+    } finally {
+      setProcessingApplication(null);
+    }
+  };
+
   useEffect(() => {
     fetchReferralData();
   }, []);
@@ -202,6 +289,9 @@ export default function ReferralsTab() {
   useEffect(() => {
     if (activeSection === 'commissions' && !commissionData && !isLoadingCommissions) {
       fetchCommissionData();
+    }
+    if (activeSection === 'applications' && !applicationData && !isLoadingApplications) {
+      fetchApplicationData();
     }
   }, [activeSection]);
 
@@ -349,11 +439,252 @@ export default function ReferralsTab() {
           <DollarSign size={14} className="sm:w-4 sm:h-4" />
           <span>Commissions</span>
         </button>
+        <button
+          onClick={() => setActiveSection('applications')}
+          className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+            activeSection === 'applications'
+              ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+              : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+          }`}
+        >
+          <ClipboardList size={14} className="sm:w-4 sm:h-4" />
+          <span>Applications</span>
+        </button>
       </div>
 
       {/* Content */}
       {activeSection === 'fraud' ? (
         <FraudTab />
+      ) : activeSection === 'applications' ? (
+        <div className="space-y-6">
+          {/* Applications Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold uppercase tracking-[0.16em]">Affiliate Applications</h2>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.24em] mt-1">
+                Review and approve dedicated affiliate partner applications
+              </p>
+            </div>
+            <button
+              onClick={fetchApplicationData}
+              disabled={isLoadingApplications}
+              className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation"
+            >
+              <RefreshCw size={14} className={isLoadingApplications ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
+
+          {applicationError && (
+            <div className="border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--surface))] p-4 rounded-lg flex items-center gap-3 text-sm text-[hsl(var(--destructive))]">
+              <AlertCircle size={16} />
+              {applicationError}
+            </div>
+          )}
+
+          {isLoadingApplications ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-[hsl(var(--primary))] border-t-transparent mx-auto"></div>
+                <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Loading applications...</p>
+              </div>
+            </div>
+          ) : applicationData ? (
+            <>
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                <div className="border-2 border-yellow-500/40 bg-yellow-500/5 p-3 sm:p-4 rounded-lg">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1 flex items-center gap-1">
+                    <Clock size={10} />
+                    Pending
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-yellow-600">{applicationData.stats.pending}</div>
+                </div>
+                <div className="border-2 border-green-500/40 bg-green-500/5 p-3 sm:p-4 rounded-lg">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1 flex items-center gap-1">
+                    <CheckCircle size={10} />
+                    Approved
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">{applicationData.stats.approved}</div>
+                </div>
+                <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1 flex items-center gap-1">
+                    <X size={10} />
+                    Denied
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-[hsl(var(--muted-foreground))]">{applicationData.stats.denied}</div>
+                </div>
+              </div>
+
+              {/* Applications Table */}
+              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
+                <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-2 sm:gap-3">
+                  <ClipboardList className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
+                  <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">All Applications</h3>
+                  <span className="px-2 py-0.5 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold">
+                    {applicationData.applications.length}
+                  </span>
+                </div>
+
+                {applicationData.applications.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs sm:text-sm min-w-[900px]">
+                      <thead>
+                        <tr className="border-b border-[hsl(var(--border-strong))]">
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Name</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Email</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Method</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Audience</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Website</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Applied</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Status</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {applicationData.applications.map((app) => (
+                          <tr
+                            key={app._id}
+                            className={`border-b border-[hsl(var(--border-strong))] ${
+                              app.status === 'denied' ? 'opacity-50' : 'hover:bg-[hsl(var(--accent))]/5'
+                            }`}
+                          >
+                            <td className="py-2 sm:py-3 px-2 sm:px-4">
+                              <div className="font-medium text-xs sm:text-sm">{app.name}</div>
+                              {app.message && (
+                                <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5 max-w-[180px] truncate" title={app.message}>
+                                  {app.message}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs text-[hsl(var(--muted-foreground))] break-all">
+                              {app.email}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-[hsl(var(--accent))]/20 capitalize">
+                                {app.promotionMethod.replace('_', ' ')}
+                              </span>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs text-[hsl(var(--muted-foreground))]">
+                              {app.audienceSize || '—'}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs">
+                              {app.website ? (
+                                <a
+                                  href={app.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[hsl(var(--primary))] hover:underline max-w-[120px] block truncate"
+                                  title={app.website}
+                                >
+                                  {app.website.replace(/^https?:\/\//, '')}
+                                </a>
+                              ) : '—'}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs text-[hsl(var(--muted-foreground))]">
+                              {new Date(app.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                              {app.status === 'pending' && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600 font-semibold">
+                                  Pending
+                                </span>
+                              )}
+                              {app.status === 'approved' && (
+                                <div className="space-y-1">
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-500/20 text-green-600 font-semibold block">
+                                    Approved
+                                  </span>
+                                  {app.influencerReferralCode && (
+                                    <button
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(app.influencerReferralCode!);
+                                        setCopiedAppCode(app._id);
+                                        setTimeout(() => setCopiedAppCode(null), 2000);
+                                      }}
+                                      className="font-mono text-[10px] bg-[hsl(var(--accent))]/20 px-1.5 py-0.5 rounded hover:bg-[hsl(var(--accent))]/40 transition-colors flex items-center gap-1"
+                                      title="Click to copy referral code"
+                                    >
+                                      {copiedAppCode === app._id ? (
+                                        <>
+                                          <Check size={8} className="text-green-600" />
+                                          <span className="text-green-600">Copied!</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Copy size={8} />
+                                          {app.influencerReferralCode}
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              {app.status === 'denied' && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-gray-500/20 text-gray-500 font-semibold">
+                                  Denied
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                              {app.status === 'pending' && (
+                                <div className="flex items-center gap-1 justify-center">
+                                  <button
+                                    onClick={() => isFullAccess && handleApprove(app._id)}
+                                    disabled={!isFullAccess || processingApplication === app._id}
+                                    title={!isFullAccess ? 'Read-only access' : 'Approve application'}
+                                    className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs bg-green-500 text-white rounded hover:bg-green-600 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                                  >
+                                    {processingApplication === app._id ? (
+                                      <RefreshCw size={10} className="animate-spin" />
+                                    ) : (
+                                      <Check size={10} />
+                                    )}
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => isFullAccess && handleDeny(app._id)}
+                                    disabled={!isFullAccess || processingApplication === app._id}
+                                    title={!isFullAccess ? 'Read-only access' : 'Deny application'}
+                                    className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]/10 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed"
+                                  >
+                                    Deny
+                                  </button>
+                                </div>
+                              )}
+                              {app.status !== 'pending' && (
+                                <span className="text-[10px] text-[hsl(var(--muted-foreground))]">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <ClipboardList className="text-[hsl(var(--muted-foreground))] mx-auto mb-3" size={32} />
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.16em]">
+                      No applications yet
+                    </p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
+                      Applications submitted via the affiliate page will appear here
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center py-12">
+              <button
+                onClick={fetchApplicationData}
+                className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold uppercase tracking-[0.24em] hover:opacity-90 transition-opacity"
+              >
+                Load Applications
+              </button>
+            </div>
+          )}
+        </div>
       ) : activeSection === 'commissions' ? (
         <div className="space-y-6">
           {/* Commissions Header */}
