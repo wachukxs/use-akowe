@@ -1,10 +1,8 @@
 'use client';
 
 import { useRouter } from '@/i18n/navigation';
-import { useSession } from 'next-auth/react';
-import { DollarSign, Link2, BarChart3, Mail, CheckCircle, ArrowRight, Copy, ExternalLink, Send } from 'lucide-react';
-import { useState, useMemo } from 'react';
-import { buildReferralLink } from '@/lib/referral-links';
+import { DollarSign, Link2, BarChart3, Mail, CheckCircle, Send } from 'lucide-react';
+import { useState } from 'react';
 
 type ApplicationStatus = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -19,8 +17,6 @@ interface ApplicationForm {
 
 export default function AffiliateProgramPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [copiedLink, setCopiedLink] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus>('idle');
   const [applicationError, setApplicationError] = useState<string | null>(null);
   const [applicationForm, setApplicationForm] = useState<ApplicationForm>({
@@ -31,19 +27,6 @@ export default function AffiliateProgramPage() {
     audienceSize: '',
     message: '',
   });
-
-  const referralCode = (session?.user as { referralCode?: string })?.referralCode;
-  const referralLink = useMemo(() => {
-    return referralCode ? buildReferralLink(referralCode) : null;
-  }, [referralCode]);
-
-  const handleCopyLink = () => {
-    if (referralLink) {
-      navigator.clipboard.writeText(referralLink);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
-    }
-  };
 
   const handleApplicationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +52,7 @@ export default function AffiliateProgramPage() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-[0.16em] mb-4">
@@ -79,12 +63,12 @@ export default function AffiliateProgramPage() {
           </p>
         </div>
 
-        {/* Benefits Section */}
+        {/* Benefits */}
         <div className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 lg:p-8 rounded-lg mb-6 sm:mb-8">
           <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em] mb-4 sm:mb-6 text-center">
             Program Benefits
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded">
               <div className="flex items-start gap-3 sm:gap-4">
@@ -144,135 +128,65 @@ export default function AffiliateProgramPage() {
           </div>
         </div>
 
-        {/* How It Works Section */}
+        {/* How It Works */}
         <div className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 lg:p-8 rounded-lg mb-6 sm:mb-8">
           <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em] mb-4 sm:mb-6 text-center">
             How It Works
           </h2>
 
           <div className="space-y-4 sm:space-y-6">
-            {/* Step 1 */}
             <div className="flex gap-3 sm:gap-4">
               <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full flex items-center justify-center font-bold text-base sm:text-lg">
                 1
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2">
-                  Get Your Referral Link
+                  Submit Your Application
                 </h3>
-                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-3">
-                  Every user automatically receives a unique referral code when they sign up. Find yours in your Settings page.
+                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
+                  Fill out the form below with your channel, audience size, and how you plan to promote Akowe. No Akowe account required.
                 </p>
-                {status === 'authenticated' && referralCode ? (
-                  <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-3 sm:p-4 rounded">
-                    <div className="mb-2">
-                      <span className="text-xs uppercase tracking-[0.15em] text-[hsl(var(--muted-foreground))]">
-                        Your Referral Link:
-                      </span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                      <code className="flex-1 text-xs sm:text-sm font-mono bg-[hsl(var(--surface-muted))] px-2 sm:px-3 py-2 rounded border border-[hsl(var(--border-strong))] break-all overflow-x-auto">
-                        {referralLink}
-                      </code>
-                      <button
-                        onClick={handleCopyLink}
-                        className="px-3 sm:px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded uppercase tracking-[0.12em] text-xs font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 whitespace-nowrap"
-                      >
-                        {copiedLink ? (
-                          <>
-                            <CheckCircle size={14} />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} />
-                            Copy
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="mt-3">
-                      <button
-                        onClick={() => router.push('/settings')}
-                        className="text-xs text-[hsl(var(--primary))] uppercase tracking-[0.15em] hover:underline flex items-center gap-1"
-                      >
-                        View in Settings
-                        <ExternalLink size={12} />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-3 sm:p-4 rounded">
-                    <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-3">
-                      Sign up or log in to get your referral link
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <button
-                        onClick={() => router.push('/auth/signup')}
-                        className="flex-1 px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded uppercase tracking-[0.12em] text-xs font-semibold hover:opacity-90 transition-opacity"
-                      >
-                        Sign Up
-                      </button>
-                      <button
-                        onClick={() => router.push('/auth/signin')}
-                        className="flex-1 px-4 py-2 border-2 border-[hsl(var(--border-strong))] rounded uppercase tracking-[0.12em] text-xs font-semibold hover:bg-[hsl(var(--surface-muted))] transition-colors"
-                      >
-                        Log In
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Step 2 */}
             <div className="flex gap-3 sm:gap-4">
               <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full flex items-center justify-center font-bold text-base sm:text-lg">
                 2
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2">
-                  Share Your Link
+                  We Review Your Application
                 </h3>
                 <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                  Share your referral link anywhere—social media, email, blog posts, or direct messages. Anyone who clicks and signs up counts toward your earnings.
+                  We keep the program selective — we&apos;re looking for affiliates who reach students, academics, and researchers. You&apos;ll hear back at your email within a few days.
                 </p>
               </div>
             </div>
 
-            {/* Step 3 */}
             <div className="flex gap-3 sm:gap-4">
               <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full flex items-center justify-center font-bold text-base sm:text-lg">
                 3
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2">
-                  Track Your Performance
+                  Get Your Dedicated Code
                 </h3>
-                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-3">
-                  Visit the Affiliate Stats page to see your monthly clicks, signups, paid conversions, and total commission earned. Commissions are tracked per paying user—each subscriber is counted only once.
+                <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
+                  If approved, you&apos;ll receive an email with your unique referral code and a ready-to-use link. That&apos;s your tracking ID — every signup and payment attributed to it is yours.
                 </p>
-                <button
-                  onClick={() => router.push('/affiliate-stats')}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded uppercase tracking-[0.12em] text-xs font-semibold hover:opacity-90 transition-opacity"
-                >
-                  View Stats
-                  <ArrowRight size={14} />
-                </button>
               </div>
             </div>
 
-            {/* Step 4 */}
             <div className="flex gap-3 sm:gap-4">
               <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full flex items-center justify-center font-bold text-base sm:text-lg">
                 4
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2">
-                  Get Paid
+                  Promote and Get Paid
                 </h3>
                 <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-3">
-                  Your commissions are tracked automatically — every time a referred user pays, it&apos;s recorded in our system. At the end of each month, simply email us your referral code and preferred payout method. We verify your balance in our system and process your payment within 5–7 business days. No screenshots needed.
+                  Share your link on any channel — ads, content, newsletters. Every paying subscriber you bring in earns you 30% for their first 12 months. Track your stats anytime at the Affiliate Stats page using your code. At the end of each month, email us to request payout.
                 </p>
                 <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-3 sm:p-4 rounded">
                   <div className="flex items-start gap-2 sm:gap-3">
@@ -298,103 +212,11 @@ export default function AffiliateProgramPage() {
           </div>
         </div>
 
-        {/* Payment Details */}
+        {/* Application Form */}
         <div className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 lg:p-8 rounded-lg mb-6 sm:mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em] mb-4 sm:mb-6 text-center">
-            Payment Details
+          <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em] mb-6 text-center">
+            Apply Now
           </h2>
-          
-          <div className="space-y-3 sm:space-y-4">
-            <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded">
-              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2 sm:mb-3">
-                Payment Amount
-              </h3>
-              <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-2">
-                30% of every payment from each paying subscriber you refer — for their first 12 months or for as long as they stay subscribed, whichever is shorter. A monthly subscriber ($12/mo) earns you $3.60 per renewal, up to $43.20 if they stay the full 12 months. An annual subscriber ($120/yr) earns you $36 on their first payment.
-              </p>
-            </div>
-
-            <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded">
-              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2 sm:mb-3">
-                Payment Schedule
-              </h3>
-              <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-2">
-                Payments are processed at the end of each calendar month. You earn a commission each time your referred user is billed — every month they stay subscribed, for their first 12 months or the lifetime of their subscription, whichever is shorter. If they cancel, commissions stop. If they stay the full 12 months, so do your commissions.
-              </p>
-            </div>
-
-            <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded">
-              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2 sm:mb-3">
-                How to Request Payment
-              </h3>
-              <ol className="list-decimal list-inside space-y-2 text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                <li>At the end of the month, email <a href="mailto:affiliate@placeholderllc.name.ng" className="text-[hsl(var(--primary))] hover:underline font-mono break-all">affiliate@placeholderllc.name.ng</a></li>
-                <li>Include your referral code and your preferred payout method (PayPal, bank transfer, etc.)</li>
-                <li>We verify your commission balance in our system — no screenshots or manual proof required</li>
-                <li>Payment is processed within 5–7 business days</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button
-            onClick={() => router.push('/affiliate-stats')}
-            className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded-lg hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
-          >
-            <div className="flex items-center gap-2 sm:gap-3 mb-2">
-              <BarChart3 className="text-[hsl(var(--primary))] w-5 h-5 sm:w-6 sm:h-6" />
-              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em]">
-                View Your Stats
-              </h3>
-            </div>
-            <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-              Check your clicks, paid conversions, and commissions earned
-            </p>
-          </button>
-
-          {status === 'authenticated' ? (
-            <button
-              onClick={() => router.push('/settings')}
-              className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded-lg hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
-            >
-              <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                <Link2 className="text-[hsl(var(--primary))] w-5 h-5 sm:w-6 sm:h-6" />
-                <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em]">
-                  Get Your Link
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                Find your referral code in Settings
-              </p>
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/auth/signup')}
-              className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded-lg hover:bg-[hsl(var(--surface-muted))] transition-colors text-left"
-            >
-              <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                <CheckCircle className="text-[hsl(var(--primary))] w-5 h-5 sm:w-6 sm:h-6" />
-                <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em]">
-                  Join the Program
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                Sign up to get your referral link
-              </p>
-            </button>
-          )}
-        </div>
-
-        {/* Apply as Affiliate Partner */}
-        <div className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 lg:p-8 rounded-lg mb-6 sm:mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em] mb-2 text-center">
-            Apply as an Affiliate Partner
-          </h2>
-          <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] text-center mb-6">
-            Already an Akowe user? You already have a referral link above. Apply here if you plan to run dedicated promotions (ads, content, partnerships) and want a dedicated affiliate code.
-          </p>
 
           {applicationStatus === 'success' ? (
             <div className="bg-[hsl(var(--background))] border-2 border-[hsl(var(--primary))] p-6 rounded-lg text-center space-y-3">
@@ -513,6 +335,57 @@ export default function AffiliateProgramPage() {
           )}
         </div>
 
+        {/* Payment Details */}
+        <div className="bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] p-4 sm:p-6 lg:p-8 rounded-lg mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em] mb-4 sm:mb-6 text-center">
+            Payment Details
+          </h2>
+
+          <div className="space-y-3 sm:space-y-4">
+            <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded">
+              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2 sm:mb-3">
+                Payment Amount
+              </h3>
+              <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
+                30% of every payment from each paying subscriber you refer — for their first 12 months or for as long as they stay subscribed, whichever is shorter. A monthly subscriber ($12/mo) earns you $3.60 per renewal, up to $43.20 if they stay the full 12 months. An annual subscriber ($120/yr) earns you $36 on their first payment.
+              </p>
+            </div>
+
+            <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded">
+              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2 sm:mb-3">
+                Payment Schedule
+              </h3>
+              <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
+                Payments are processed at the end of each calendar month. You earn a commission each time your referred user is billed — every month they stay subscribed, for their first 12 months or the lifetime of their subscription, whichever is shorter. If they cancel, commissions stop. If they stay the full 12 months, so do your commissions.
+              </p>
+            </div>
+
+            <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-4 sm:p-6 rounded">
+              <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2 sm:mb-3">
+                How to Request Payment
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
+                <li>At the end of the month, email <a href="mailto:affiliate@placeholderllc.name.ng" className="text-[hsl(var(--primary))] hover:underline font-mono break-all">affiliate@placeholderllc.name.ng</a></li>
+                <li>Include your referral code and your preferred payout method (PayPal, bank transfer, etc.)</li>
+                <li>We verify your commission balance in our system — no screenshots or manual proof required</li>
+                <li>Payment is processed within 5–7 business days</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        {/* Existing user note */}
+        <p className="text-center text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.16em] mb-8">
+          Already an Akowe user?{' '}
+          <button
+            onClick={() => router.push('/settings')}
+            className="text-[hsl(var(--primary))] hover:underline"
+          >
+            Your referral link is in Settings
+          </button>
+          {' '}— it works on the same 30% commission terms.
+        </p>
+
         {/* Footer */}
         <div className="text-center">
           <button
@@ -522,6 +395,7 @@ export default function AffiliateProgramPage() {
             ← Back to Home
           </button>
         </div>
+
       </div>
     </div>
   );
