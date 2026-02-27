@@ -230,14 +230,14 @@ export default function AffiliateProgramPage() {
                   Get Paid
                 </h3>
                 <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-3">
-                  At the end of each month, take a screenshot of your monthly stats from the Affiliate Stats page and email it to us. We&apos;ll process your payment based on that month&apos;s paid conversions at 30% commission. Each paying user is counted only once.
+                  Your commissions are tracked automatically — every time a referred user pays, it&apos;s recorded in our system. At the end of each month, simply email us your referral code and preferred payout method. We verify your balance in our system and process your payment within 5–7 business days. No screenshots needed.
                 </p>
                 <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-3 sm:p-4 rounded">
                   <div className="flex items-start gap-2 sm:gap-3">
                     <Mail className="text-[hsl(var(--primary))] flex-shrink-0 mt-0.5 w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                     <div className="min-w-0 flex-1">
                       <p className="text-xs uppercase tracking-[0.15em] text-[hsl(var(--muted-foreground))] mb-1">
-                        Send Payment Request To:
+                        Request Payout:
                       </p>
                       <a
                         href="mailto:affiliate@placeholderllc.name.ng"
@@ -246,7 +246,7 @@ export default function AffiliateProgramPage() {
                         affiliate@placeholderllc.name.ng
                       </a>
                       <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mt-2">
-                        Include your referral code and the screenshot of your stats
+                        Include your referral code and payout details (PayPal, bank transfer, etc.)
                       </p>
                     </div>
                   </div>
@@ -286,13 +286,10 @@ export default function AffiliateProgramPage() {
                 How to Request Payment
               </h3>
               <ol className="list-decimal list-inside space-y-2 text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                <li>Visit the <button onClick={() => router.push('/affiliate-stats')} className="text-[hsl(var(--primary))] hover:underline">Affiliate Stats</button> page</li>
-                <li>Enter your referral code or link to view your monthly stats</li>
-                <li>Select the month you want to request payment for (defaults to current month)</li>
-                <li>Take a screenshot of your stats showing paid conversions and commission earned for that month</li>
-                <li>Email the screenshot to <a href="mailto:affiliate@placeholderllc.name.ng" className="text-[hsl(var(--primary))] hover:underline font-mono break-all">affiliate@placeholderllc.name.ng</a></li>
-                <li>Include your referral code and the month in the email</li>
-                <li>We&apos;ll process your payment within 5-7 business days</li>
+                <li>At the end of the month, email <a href="mailto:affiliate@placeholderllc.name.ng" className="text-[hsl(var(--primary))] hover:underline font-mono break-all">affiliate@placeholderllc.name.ng</a></li>
+                <li>Include your referral code and your preferred payout method (PayPal, bank transfer, etc.)</li>
+                <li>We verify your commission balance in our system — no screenshots or manual proof required</li>
+                <li>Payment is processed within 5–7 business days</li>
               </ol>
             </div>
           </div>
