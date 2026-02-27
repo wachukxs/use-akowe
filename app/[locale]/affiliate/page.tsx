@@ -33,7 +33,7 @@ export default function AffiliateProgramPage() {
             Affiliate Program
           </h1>
           <p className="text-lg text-[hsl(var(--muted-foreground))] uppercase tracking-[0.2em] max-w-2xl mx-auto">
-            Earn $0.20 for every signup you refer
+            Earn 30% recurring commission for 12 months on every paying user you refer
           </p>
         </div>
 
@@ -49,10 +49,10 @@ export default function AffiliateProgramPage() {
                 <DollarSign className="text-[hsl(var(--primary))] flex-shrink-0 mt-1 w-5 h-5 sm:w-6 sm:h-6" />
                 <div className="min-w-0 flex-1">
                   <h3 className="text-base sm:text-lg font-semibold uppercase tracking-[0.14em] mb-2">
-                    $0.20 Per Signup
+                    30% Recurring For 12 Months
                   </h3>
                   <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                    Earn $0.20 for every person who signs up using your referral link
+                    Earn 30% of every payment your referred user makes, for up to 12 months after they subscribe
                   </p>
                 </div>
               </div>
@@ -66,7 +66,7 @@ export default function AffiliateProgramPage() {
                     Real-Time Tracking
                   </h3>
                   <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-                    Monitor clicks, signups, and conversion rates instantly
+                    Monitor clicks, signups, paid conversions, and commissions earned instantly
                   </p>
                 </div>
               </div>
@@ -208,7 +208,7 @@ export default function AffiliateProgramPage() {
                   Track Your Performance
                 </h3>
                 <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-3">
-                  Visit the Affiliate Stats page to see your monthly clicks, signups, and conversion rate. Stats are shown per month, and each signup is counted only once—no double payments.
+                  Visit the Affiliate Stats page to see your monthly clicks, signups, paid conversions, and total commission earned. Commissions are tracked per paying user—each subscriber is counted only once.
                 </p>
                 <button
                   onClick={() => router.push('/affiliate-stats')}
@@ -230,7 +230,7 @@ export default function AffiliateProgramPage() {
                   Get Paid
                 </h3>
                 <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-3">
-                  At the end of each month, take a screenshot of your monthly stats from the Affiliate Stats page and email it to us. We&apos;ll process your payment based on that month&apos;s signups. Each signup is paid only once—you won&apos;t see the same users counted in multiple months.
+                  At the end of each month, take a screenshot of your monthly stats from the Affiliate Stats page and email it to us. We&apos;ll process your payment based on that month&apos;s paid conversions at 30% commission. Each paying user is counted only once.
                 </p>
                 <div className="bg-[hsl(var(--background))] border border-[hsl(var(--border-strong))] p-3 sm:p-4 rounded">
                   <div className="flex items-start gap-2 sm:gap-3">
@@ -268,7 +268,7 @@ export default function AffiliateProgramPage() {
                 Payment Amount
               </h3>
               <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-2">
-                $0.20 USD per successful signup
+                30% of every payment from each paying subscriber you refer, for up to 12 months. A monthly subscriber ($12/mo) earns you $3.60 every month they stay subscribed, up to $43.20 total. An annual subscriber ($120/yr) earns you $36 on their first payment.
               </p>
             </div>
 
@@ -277,7 +277,7 @@ export default function AffiliateProgramPage() {
                 Payment Schedule
               </h3>
               <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] mb-2">
-                Payments are processed at the end of each calendar month. Stats are tracked monthly, and each signup is counted only once—you&apos;ll only see new signups from the current month in your stats.
+                Payments are processed at the end of each calendar month. Commissions are earned each time your referred user is billed — monthly subscribers generate a new commission every month they stay active, for up to 12 months from their first payment.
               </p>
             </div>
 
@@ -289,7 +289,7 @@ export default function AffiliateProgramPage() {
                 <li>Visit the <button onClick={() => router.push('/affiliate-stats')} className="text-[hsl(var(--primary))] hover:underline">Affiliate Stats</button> page</li>
                 <li>Enter your referral code or link to view your monthly stats</li>
                 <li>Select the month you want to request payment for (defaults to current month)</li>
-                <li>Take a screenshot of your stats showing signups for that month</li>
+                <li>Take a screenshot of your stats showing paid conversions and commission earned for that month</li>
                 <li>Email the screenshot to <a href="mailto:affiliate@placeholderllc.name.ng" className="text-[hsl(var(--primary))] hover:underline font-mono break-all">affiliate@placeholderllc.name.ng</a></li>
                 <li>Include your referral code and the month in the email</li>
                 <li>We&apos;ll process your payment within 5-7 business days</li>
@@ -311,7 +311,7 @@ export default function AffiliateProgramPage() {
               </h3>
             </div>
             <p className="text-xs sm:text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em]">
-              Check your clicks, signups, and conversion rate
+              Check your clicks, paid conversions, and commissions earned
             </p>
           </button>
 

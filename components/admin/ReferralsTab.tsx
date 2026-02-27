@@ -12,6 +12,9 @@ import {
   TrendingUp,
   RefreshCw,
   Shield,
+  DollarSign,
+  Clock,
+  CheckCircle,
 } from 'lucide-react';
 import { getQualityScoreLabel } from '@/lib/influencer-quality';
 import { useAdminAuth } from '@/components/AdminAuthGuard';
@@ -71,7 +74,41 @@ interface ReferralData {
   referredUsers: ReferredUser[];
 }
 
-type ReferralSubSection = 'referrals' | 'fraud';
+interface CommissionStats {
+  pendingCount: number;
+  pendingTotal: string;
+  paidCount: number;
+  paidTotal: string;
+  cancelledCount: number;
+  allTimeTotal: string;
+}
+
+interface Commission {
+  _id: string;
+  referralCode: string;
+  referrerType: 'user' | 'influencer';
+  referrerName: string | null;
+  referrerEmail: string | null;
+  referredUserName: string | null;
+  referredUserEmail: string | null;
+  referredUserPlan: string | null;
+  billingCycle: 'monthly' | 'annual';
+  commissionMonth: number;
+  billingReason: 'subscription_create' | 'subscription_cycle';
+  paymentAmount: number;
+  commissionRate: number;
+  commissionAmount: number;
+  status: 'pending' | 'paid' | 'cancelled';
+  paidAt: string | null;
+  createdAt: string;
+}
+
+interface CommissionData {
+  stats: CommissionStats;
+  commissions: Commission[];
+}
+
+type ReferralSubSection = 'referrals' | 'fraud' | 'commissions';
 
 export default function ReferralsTab() {
   const { isFullAccess } = useAdminAuth();
@@ -79,6 +116,10 @@ export default function ReferralsTab() {
   const [data, setData] = useState<ReferralData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [commissionData, setCommissionData] = useState<CommissionData | null>(null);
+  const [isLoadingCommissions, setIsLoadingCommissions] = useState(false);
+  const [commissionError, setCommissionError] = useState<string | null>(null);
+  const [markingPaid, setMarkingPaid] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [showAddInfluencer, setShowAddInfluencer] = useState(false);
   const [newInfluencer, setNewInfluencer] = useState({ name: '', email: '', notes: '' });
@@ -105,9 +146,64 @@ export default function ReferralsTab() {
     }
   };
 
+  const fetchCommissionData = async () => {
+    try {
+      setIsLoadingCommissions(true);
+      setCommissionError(null);
+      const response = await fetch('/api/admin/commissions');
+      if (!response.ok) throw new Error('Failed to fetch commission data');
+      const result = await response.json();
+      setCommissionData(result);
+    } catch (err) {
+      setCommissionError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoadingCommissions(false);
+    }
+  };
+
+  const handleMarkPaid = async (id: string) => {
+    setMarkingPaid(id);
+    try {
+      const response = await fetch('/api/admin/commissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'paid' }),
+      });
+      if (!response.ok) throw new Error('Failed to update commission');
+      fetchCommissionData();
+    } catch (err) {
+      setCommissionError(err instanceof Error ? err.message : 'Failed to update commission');
+    } finally {
+      setMarkingPaid(null);
+    }
+  };
+
+  const handleCancelCommission = async (id: string) => {
+    setMarkingPaid(id);
+    try {
+      const response = await fetch('/api/admin/commissions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'cancelled' }),
+      });
+      if (!response.ok) throw new Error('Failed to update commission');
+      fetchCommissionData();
+    } catch (err) {
+      setCommissionError(err instanceof Error ? err.message : 'Failed to update commission');
+    } finally {
+      setMarkingPaid(null);
+    }
+  };
+
   useEffect(() => {
     fetchReferralData();
   }, []);
+
+  useEffect(() => {
+    if (activeSection === 'commissions' && !commissionData && !isLoadingCommissions) {
+      fetchCommissionData();
+    }
+  }, [activeSection]);
 
   const copyToClipboard = async (code: string) => {
     const { buildSignupLink } = await import('@/lib/referral-links');
@@ -242,11 +338,230 @@ export default function ReferralsTab() {
           <Shield size={14} className="sm:w-4 sm:h-4" />
           <span>Fraud Detection</span>
         </button>
+        <button
+          onClick={() => setActiveSection('commissions')}
+          className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+            activeSection === 'commissions'
+              ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+              : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+          }`}
+        >
+          <DollarSign size={14} className="sm:w-4 sm:h-4" />
+          <span>Commissions</span>
+        </button>
       </div>
 
       {/* Content */}
       {activeSection === 'fraud' ? (
         <FraudTab />
+      ) : activeSection === 'commissions' ? (
+        <div className="space-y-6">
+          {/* Commissions Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold uppercase tracking-[0.16em]">Affiliate Commissions</h2>
+              <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.24em] mt-1">
+                Track and pay out affiliate commissions (30% of first payment)
+              </p>
+            </div>
+            <button
+              onClick={fetchCommissionData}
+              disabled={isLoadingCommissions}
+              className="px-4 py-2.5 min-h-[44px] text-xs border-2 border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation"
+            >
+              <RefreshCw size={14} className={isLoadingCommissions ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
+
+          {commissionError && (
+            <div className="border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--surface))] p-4 rounded-lg flex items-center gap-3 text-sm text-[hsl(var(--destructive))]">
+              <AlertCircle size={16} />
+              {commissionError}
+            </div>
+          )}
+
+          {isLoadingCommissions ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-[hsl(var(--primary))] border-t-transparent mx-auto"></div>
+                <p className="text-sm uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Loading commissions...</p>
+              </div>
+            </div>
+          ) : commissionData ? (
+            <>
+              {/* Commission Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1 flex items-center gap-1">
+                    <Clock size={10} />
+                    Pending
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold">{commissionData.stats.pendingTotal}</div>
+                  <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-1">{commissionData.stats.pendingCount} commission{commissionData.stats.pendingCount !== 1 ? 's' : ''}</div>
+                </div>
+                <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1 flex items-center gap-1">
+                    <CheckCircle size={10} />
+                    Paid Out
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold">{commissionData.stats.paidTotal}</div>
+                  <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-1">{commissionData.stats.paidCount} paid</div>
+                </div>
+                <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
+                    All-Time Earned
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold">{commissionData.stats.allTimeTotal}</div>
+                </div>
+                <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-3 sm:p-4 rounded-lg">
+                  <div className="text-[10px] sm:text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))] mb-1">
+                    Cancelled
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold">{commissionData.stats.cancelledCount}</div>
+                </div>
+              </div>
+
+              {/* Commissions Table */}
+              <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-lg overflow-hidden">
+                <div className="p-3 sm:p-4 border-b border-[hsl(var(--border-strong))] flex items-center gap-2 sm:gap-3">
+                  <DollarSign className="text-[hsl(var(--primary))] sm:w-5 sm:h-5" size={18} />
+                  <h3 className="text-base sm:text-lg font-bold uppercase tracking-[0.16em]">All Commissions</h3>
+                  <span className="px-2 py-0.5 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold">
+                    {commissionData.commissions.length}
+                  </span>
+                </div>
+
+                {commissionData.commissions.length > 0 ? (
+                  <div className="overflow-x-auto -mx-0.5 sm:mx-0">
+                    <table className="w-full text-xs sm:text-sm min-w-[900px]">
+                      <thead>
+                        <tr className="border-b border-[hsl(var(--border-strong))]">
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Affiliate</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Type</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referred User</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Plan</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Payment</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Commission (30%)</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Month</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Status</th>
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Date</th>
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {commissionData.commissions.map((c) => (
+                          <tr key={c._id} className="border-b border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]/5">
+                            <td className="py-2 sm:py-3 px-2 sm:px-4">
+                              <div className="font-medium text-xs sm:text-sm">{c.referrerName ?? '—'}</div>
+                              <div className="text-[10px] text-[hsl(var(--muted-foreground))] break-all">{c.referrerEmail ?? ''}</div>
+                              <code className="text-[10px] bg-[hsl(var(--accent))]/20 px-1 py-0.5 rounded">{c.referralCode}</code>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] sm:text-xs ${
+                                c.referrerType === 'influencer'
+                                  ? 'bg-orange-500/20 text-orange-500'
+                                  : 'bg-blue-500/20 text-blue-500'
+                              }`}>
+                                {c.referrerType === 'influencer' ? 'Influencer' : 'User'}
+                              </span>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4">
+                              <div className="font-medium text-xs sm:text-sm">{c.referredUserName ?? '—'}</div>
+                              <div className="text-[10px] text-[hsl(var(--muted-foreground))] break-all">{c.referredUserEmail ?? ''}</div>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4">
+                              <div>
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] sm:text-xs ${
+                                  c.referredUserPlan === 'pro'
+                                    ? 'bg-blue-500/20 text-blue-500'
+                                    : 'bg-gray-500/20 text-gray-500'
+                                }`}>
+                                  {c.referredUserPlan ?? 'free'}
+                                </span>
+                                <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-0.5">{c.billingCycle}</div>
+                              </div>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-mono text-[10px] sm:text-xs">
+                              ${(c.paymentAmount / 100).toFixed(2)}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-mono font-semibold text-[10px] sm:text-xs">
+                              ${(c.commissionAmount / 100).toFixed(2)}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-[10px] sm:text-xs">
+                              <span className="px-1.5 py-0.5 bg-[hsl(var(--accent))]/20 rounded font-mono">
+                                {c.commissionMonth}/12
+                              </span>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-semibold ${
+                                c.status === 'paid'
+                                  ? 'bg-green-500/20 text-green-600'
+                                  : c.status === 'cancelled'
+                                  ? 'bg-gray-500/20 text-gray-500'
+                                  : 'bg-yellow-500/20 text-yellow-600'
+                              }`}>
+                                {c.status === 'paid' ? `Paid${c.paidAt ? ` ${new Date(c.paidAt).toLocaleDateString()}` : ''}` : c.status}
+                              </span>
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs text-[hsl(var(--muted-foreground))]">
+                              {new Date(c.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                              {c.status === 'pending' && (
+                                <div className="flex items-center gap-1 justify-center">
+                                  <button
+                                    onClick={() => isFullAccess && handleMarkPaid(c._id)}
+                                    disabled={!isFullAccess || markingPaid === c._id}
+                                    title={!isFullAccess ? 'Read-only access' : 'Mark as paid'}
+                                    className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs bg-green-500 text-white rounded hover:bg-green-600 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                                  >
+                                    {markingPaid === c._id ? <RefreshCw size={10} className="animate-spin" /> : <Check size={10} />}
+                                    Mark Paid
+                                  </button>
+                                  <button
+                                    onClick={() => isFullAccess && handleCancelCommission(c._id)}
+                                    disabled={!isFullAccess || markingPaid === c._id}
+                                    title={!isFullAccess ? 'Read-only access' : 'Cancel commission'}
+                                    className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-red-500/10 text-red-500 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              )}
+                              {c.status !== 'pending' && (
+                                <span className="text-[10px] text-[hsl(var(--muted-foreground))]">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <DollarSign className="text-[hsl(var(--muted-foreground))] mx-auto mb-3" size={32} />
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.16em]">
+                      No commissions recorded yet
+                    </p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
+                      Commissions are created when a referred user subscribes to a paid plan
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center py-12">
+              <button
+                onClick={fetchCommissionData}
+                className="px-6 py-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded text-xs font-semibold uppercase tracking-[0.24em] hover:opacity-90 transition-opacity"
+              >
+                Load Commissions
+              </button>
+            </div>
+          )}
+        </div>
       ) : !data ? null : (
         <>
           {/* Header with Refresh */}

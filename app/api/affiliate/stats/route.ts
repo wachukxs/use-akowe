@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import ReferralClick from '@/models/ReferralClick';
 import User from '@/models/User';
+import AffiliateCommission from '@/models/AffiliateCommission';
 import { lookupReferralCode } from '@/lib/referral';
 
 /**
@@ -98,11 +99,53 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Count paid conversions and total commission for this referral code within the selected month
+    const commissionAgg = await AffiliateCommission.aggregate([
+      {
+        $match: {
+          referralCode,
+          status: { $ne: 'cancelled' },
+          createdAt: { $gte: monthStart, $lte: monthEnd },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          paidConversions: { $sum: 1 },
+          totalCommissionCents: { $sum: '$commissionAmount' },
+          totalRevenueCents: { $sum: '$paymentAmount' },
+        },
+      },
+    ]);
+
+    const commissionData = commissionAgg[0] || { paidConversions: 0, totalCommissionCents: 0, totalRevenueCents: 0 };
+    const paidConversions: number = commissionData.paidConversions;
+    const commissionEarnedDollars = (commissionData.totalCommissionCents / 100).toFixed(2);
+    const totalRevenueDollars = (commissionData.totalRevenueCents / 100).toFixed(2);
+
+    // All-time totals (across all months)
+    const allTimeAgg = await AffiliateCommission.aggregate([
+      {
+        $match: {
+          referralCode,
+          status: { $ne: 'cancelled' },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalPaidConversions: { $sum: 1 },
+          totalCommissionCents: { $sum: '$commissionAmount' },
+        },
+      },
+    ]);
+    const allTime = allTimeAgg[0] || { totalPaidConversions: 0, totalCommissionCents: 0 };
+
     // Calculate conversion rate
     const conversionRate = clickCount > 0 ? ((signupCount / clickCount) * 100).toFixed(1) : '0.0';
 
     // Format month name for display
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                         'July', 'August', 'September', 'October', 'November', 'December'];
     const monthName = monthNames[month];
 
@@ -110,7 +153,14 @@ export async function GET(request: NextRequest) {
       referralCode,
       clicks: clickCount,
       signups: signupCount,
+      paidConversions,
       conversionRate: `${conversionRate}%`,
+      commissionEarned: `$${commissionEarnedDollars}`,
+      revenueGenerated: `$${totalRevenueDollars}`,
+      allTime: {
+        paidConversions: allTime.totalPaidConversions,
+        commissionEarned: `$${(allTime.totalCommissionCents / 100).toFixed(2)}`,
+      },
       month: month + 1, // Return 1-12 for consistency
       year,
       monthName,
