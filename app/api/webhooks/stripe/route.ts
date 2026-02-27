@@ -86,8 +86,10 @@ export async function POST(request: NextRequest) {
               try {
                 const referrerId = userBeforeUpdate.referredBy || userBeforeUpdate.referredByInfluencer;
                 const referrerType = userBeforeUpdate.referredBy ? 'user' : 'influencer';
-                const ReferrerModel = referrerType === 'user' ? User : (await import('@/models/Influencer')).default;
-                const referrer = await ReferrerModel.findById(referrerId).lean() as any;
+                const Influencer = (await import('@/models/Influencer')).default;
+                const referrer = referrerType === 'user'
+                  ? await User.findById(referrerId).select('referralCode').lean()
+                  : await Influencer.findById(referrerId).select('referralCode').lean();
                 if (referrer?.referralCode) {
                   const paymentAmount = subscription.items.data[0]?.price?.unit_amount || 0;
                   const commissionAmount = Math.round(paymentAmount * AFFILIATE_COMMISSION_RATE);
@@ -409,8 +411,10 @@ export async function POST(request: NextRequest) {
         try {
           const referrerId = user.referredBy || user.referredByInfluencer;
           const referrerType = user.referredBy ? 'user' : 'influencer';
-          const ReferrerModel = referrerType === 'user' ? User : (await import('@/models/Influencer')).default;
-          const referrer = await ReferrerModel.findById(referrerId).lean() as any;
+          const Influencer = (await import('@/models/Influencer')).default;
+          const referrer = referrerType === 'user'
+            ? await User.findById(referrerId).select('referralCode').lean()
+            : await Influencer.findById(referrerId).select('referralCode').lean();
           if (!referrer?.referralCode) break;
 
           // commissionMonth = how many commissions already exist for this user + 1
