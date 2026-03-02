@@ -71,7 +71,7 @@ import {
 import { insertCitationAtRange } from "@/lib/insert-citation-at-range";
 import { scheduleScrollEditorIntoView } from "@/lib/scroll-editor-into-view";
 import { cn } from "@/lib/utils";
-import { trackFunnel } from "@/lib/gtag";
+import { trackFunnel, trackEditor } from "@/lib/gtag";
 import FirstProjectCompletion from "@/components/FirstProjectCompletion";
 import LitReviewAssistant from "@/components/LitReviewAssistant";
 import { Link as NavLink, useRouter as useLocaleRouter } from "@/i18n/navigation";
@@ -133,6 +133,28 @@ export default function ProjectEditorPage({
   useEffect(() => {
     storedInsertRangeRef.current = null;
   }, [activeSection]);
+
+  // Track copy events from the editor (GA4)
+  useEffect(() => {
+    const el = editorContentEditableRef.current;
+    if (!el) return;
+
+    const handleCopy = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+      const text = selection.toString();
+      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+      if (wordCount === 0) return;
+      const sectionTitle = activeSectionRef.current
+        ? project?.sections?.find((s) => s.id === activeSectionRef.current)?.title
+        : undefined;
+      trackEditor.textCopied(wordCount, sectionTitle);
+    };
+
+    el.addEventListener('copy', handleCopy);
+    return () => el.removeEventListener('copy', handleCopy);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorContentEditableRef.current]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
   const [isLitReviewOpen, setIsLitReviewOpen] = useState(false);
@@ -208,6 +230,7 @@ export default function ProjectEditorPage({
   const [showExportModal, setShowExportModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showReviewComments, setShowReviewComments] = useState(false);
+  const [showAdvisorPrompt, setShowAdvisorPrompt] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   type ExportFormat = "pdf" | "docx" | "txt" | "latex";
@@ -593,6 +616,10 @@ export default function ProjectEditorPage({
   const [rewriteLimitReached, setRewriteLimitReached] = useState(false);
   const [rewriteRemaining, setRewriteRemaining] = useState<number | null>(null);
   const [rewriteLimit, setRewriteLimit] = useState<number | null>(null);
+
+  // AI words usage tracking (for free plan progress indicator)
+  const [aiWordsUsed, setAiWordsUsed] = useState<number>(0);
+  const [aiWordsLimit, setAiWordsLimit] = useState<number>(200);
   const [rewriteHighlightRects, setRewriteHighlightRects] = useState<Array<{top: number; left: number; width: number; height: number}>>([]);
   const [rewriteHighlightType, setRewriteHighlightType] = useState<'loading' | 'success' | null>(null);
 
@@ -746,6 +773,21 @@ export default function ProjectEditorPage({
     setCitationContextLimitReached(false);
   }, []);
 
+  // Fetch initial AI word usage for free plan progress indicator
+  useEffect(() => {
+    if ((session?.user as any)?.plan !== 'free') return;
+    fetch('/api/usage')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return;
+        setAiWordsUsed(data.aiWordsGenerated ?? 0);
+        if (data.limits?.aiWordsPerDay && data.limits.aiWordsPerDay !== Infinity) {
+          setAiWordsLimit(data.limits.aiWordsPerDay);
+        }
+      })
+      .catch(() => {/* non-critical */});
+  }, [session]);
+
   useEffect(() => {
     if (!contextMenuPillVisible) return;
     const isInsidePill = (target: EventTarget | null) => {
@@ -869,8 +911,17 @@ export default function ProjectEditorPage({
                 "✅ Your first AI-generated draft is ready! Use Rewrite to refine it, or ask the AI assistant for help."
               );
               setTimeout(() => setShowSuccessMessage(""), 8000);
+              // Show advisor sharing prompt if not already dismissed
+              if (!localStorage.getItem("akowe_advisor_prompt_dismissed")) {
+                setShowAdvisorPrompt(true);
+              }
             }
           }
+        }
+
+        // Update AI word usage counter for free plan indicator
+        if (data.remaining !== undefined && data.remaining !== Infinity) {
+          setAiWordsUsed(aiWordsLimit - data.remaining);
         }
 
         // Handle preview-only mode (Variant B)
@@ -4844,16 +4895,63 @@ title={t("deleteSection")}
               )}
             </div>
 
+            {showAdvisorPrompt && (
+              <div className="border-t-[3px] border-[hsl(var(--border-strong))] p-4 bg-[hsl(var(--surface))]">
+                <div className="border-2 border-[hsl(var(--primary))] bg-[hsl(var(--accent))] rounded-(--radius) p-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[hsl(var(--foreground))] leading-relaxed">
+                      Share this draft with your advisor for feedback — no account needed for them to view and comment.
+                    </p>
+                    <button
+                      onClick={() => {
+                        localStorage.setItem("akowe_advisor_prompt_dismissed", "true");
+                        setShowAdvisorPrompt(false);
+                      }}
+                      className="flex-shrink-0 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowShareModal(true);
+                      localStorage.setItem("akowe_advisor_prompt_dismissed", "true");
+                      setShowAdvisorPrompt(false);
+                    }}
+                    className="text-[10px] uppercase tracking-[0.2em] font-semibold border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-3 py-1.5 rounded-(--radius) hover:opacity-90 transition-opacity"
+                  >
+                    Share Draft
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="border-t-[3px] border-[hsl(var(--border-strong))] p-4 space-y-3 bg-[hsl(var(--surface))]">
               {(session?.user as any)?.plan === "free" && (
-                <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) text-[10px] uppercase tracking-[0.2em] flex items-center justify-between">
-                  <span>{t("freePlanLimit")}</span>
-                  <button
-                    onClick={() => router.push("/settings")}
-                    className="underline underline-offset-4"
-                  >
-                    {t("upgrade")}
-                  </button>
+                <div className="p-3 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] rounded-(--radius) space-y-2">
+                  <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em]">
+                    <span>
+                      {aiWordsUsed.toLocaleString()} / {aiWordsLimit.toLocaleString()} AI words today
+                    </span>
+                    <button
+                      onClick={() => router.push("/settings")}
+                      className="underline underline-offset-4"
+                    >
+                      {t("upgrade")}
+                    </button>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[hsl(var(--border-strong))] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        aiWordsUsed / aiWordsLimit >= 1
+                          ? 'bg-red-500'
+                          : aiWordsUsed / aiWordsLimit >= 0.8
+                          ? 'bg-yellow-500'
+                          : 'bg-[hsl(var(--primary))]'
+                      }`}
+                      style={{ width: `${Math.min(100, (aiWordsUsed / aiWordsLimit) * 100)}%` }}
+                    />
+                  </div>
                 </div>
               )}
 

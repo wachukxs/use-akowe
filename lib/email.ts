@@ -134,7 +134,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
   }
 
   const baseUrl = getBaseUrl();
-  const newProjectUrl = `${baseUrl}/dashboard`;
+  const newProjectUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=transactional&utm_campaign=welcome`;
 
   const subject = 'Welcome to Akowe — your first project awaits';
 
@@ -221,7 +221,7 @@ export async function sendPaymentFailedEmail(
   }
 
   const baseUrl = getBaseUrl();
-  const billingUrl = `${baseUrl}/settings`;
+  const billingUrl = `${baseUrl}/settings?utm_source=email&utm_medium=transactional&utm_campaign=payment_failed`;
   const greeting = name || 'there';
   const deadlineStr = graceDeadline.toLocaleDateString(undefined, {
     month: 'long',
@@ -267,7 +267,7 @@ export async function sendGhostSignupEmail(to: string, name: string): Promise<Em
   }
 
   const baseUrl = getBaseUrl();
-  const dashboardUrl = `${baseUrl}/dashboard`;
+  const dashboardUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=engagement&utm_campaign=ghost_signup`;
   const greeting = name || 'there';
   const unsubUrl = getUnsubscribeUrl(to);
 
@@ -302,36 +302,40 @@ export async function sendGhostSignupEmail(to: string, name: string): Promise<Em
   return { messageId: info.messageId };
 }
 
-export async function sendStuckStarterEmail(to: string, name: string): Promise<EmailSendResult> {
+export async function sendStuckStarterEmail(to: string, name: string, projectName?: string): Promise<EmailSendResult> {
   if (!transporter) {
     throw new Error('Email transport not configured');
   }
 
   const baseUrl = getBaseUrl();
-  const dashboardUrl = `${baseUrl}/dashboard`;
+  const dashboardUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=engagement&utm_campaign=stuck_starter`;
   const greeting = name || 'there';
   const unsubUrl = getUnsubscribeUrl(to);
+  const projectRef = projectName ? `"${projectName}"` : 'your project';
 
   const info = await transporter.sendMail({
     from: defaultFrom,
     to,
-    subject: 'Your project is waiting for you',
+    subject: `One paragraph. That's all it takes to unstick ${projectRef}.`,
     headers: unsubscribeHeaders(to),
     text: [
       `Hi ${greeting},`,
       '',
-      'You started a project on Akowe — nice first step. But it looks like you haven\'t written much yet.',
+      `${projectRef} is sitting at almost zero words. That's the hardest place to be.`,
       '',
-      'The hardest part of academic writing is the blank page. Here\'s a trick: use the AI writing tools to generate a first draft of any section. You can always edit it, but having something on the page makes everything easier.',
+      `Here's the trick that works: open the AI assistant, type "write an opening paragraph for my introduction," and hit send. You'll have something on the page in 10 seconds. From there, editing is easy.`,
       '',
-      `Continue writing: ${dashboardUrl}`,
+      `This one task takes 5 minutes. That's it.`,
+      '',
+      `Open ${projectRef}: ${dashboardUrl}`,
       emailFooterText(unsubUrl),
     ].join('\n'),
     html: `
       <p>Hi ${greeting},</p>
-      <p>You started a project on Akowe — nice first step. But it looks like you haven't written much yet.</p>
-      <p>The hardest part of academic writing is the blank page. Here's a trick: use the <strong>AI writing tools</strong> to generate a first draft of any section. You can always edit it, but having something on the page makes everything easier.</p>
-      <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Continue writing')}</p>
+      <p>${projectRef} is sitting at almost zero words. That's the hardest place to be.</p>
+      <p>Here's the trick that works: open the <strong>AI assistant</strong>, type <em>"write an opening paragraph for my introduction,"</em> and hit send. You'll have something on the page in 10 seconds. From there, editing is easy.</p>
+      <p>This one task takes 5 minutes. That's it.</p>
+      <p style="margin:16px 0;">${ctaButton(dashboardUrl, `Open ${projectRef}`)}</p>
       ${emailFooter(unsubUrl)}
     `,
   });
@@ -346,7 +350,7 @@ export async function sendAlmostActivatedEmail(to: string, name: string): Promis
   }
 
   const baseUrl = getBaseUrl();
-  const dashboardUrl = `${baseUrl}/dashboard`;
+  const dashboardUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=engagement&utm_campaign=almost_activated`;
   const greeting = name || 'there';
   const unsubUrl = getUnsubscribeUrl(to);
 
@@ -378,36 +382,40 @@ export async function sendAlmostActivatedEmail(to: string, name: string): Promis
   return { messageId: info.messageId };
 }
 
-export async function sendGoingIdleEmail(to: string, name: string): Promise<EmailSendResult> {
+export async function sendGoingIdleEmail(to: string, name: string, projectName?: string): Promise<EmailSendResult> {
   if (!transporter) {
     throw new Error('Email transport not configured');
   }
 
   const baseUrl = getBaseUrl();
-  const dashboardUrl = `${baseUrl}/dashboard`;
+  const dashboardUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=engagement&utm_campaign=going_idle`;
   const greeting = name || 'there';
   const unsubUrl = getUnsubscribeUrl(to);
+  const projectRef = projectName ? `"${projectName}"` : 'your project';
 
   const info = await transporter.sendMail({
     from: defaultFrom,
     to,
-    subject: 'Your research is still here',
+    subject: projectName ? `Stuck on ${projectRef}? Let AI suggest 3 endings.` : 'Your draft is waiting — pick it up in 5 minutes',
     headers: unsubscribeHeaders(to),
     text: [
       `Hi ${greeting},`,
       '',
-      'It\'s been a little while since you opened Akowe. Your projects and all your work are exactly where you left them.',
+      `${projectRef} is still open in Akowe — your draft, your citations, everything exactly where you left it.`,
       '',
-      'If you have a new assignment or want to revisit an old one, everything is ready.',
+      `Here's a 5-minute task to move it forward: open the AI assistant and type "suggest 3 ways to end my conclusion." You'll have three options to choose from in seconds.`,
       '',
-      `Open your projects: ${dashboardUrl}`,
+      `Even picking one and editing it gets you unstuck faster than starting from a blank page.`,
+      '',
+      `Continue ${projectRef}: ${dashboardUrl}`,
       emailFooterText(unsubUrl),
     ].join('\n'),
     html: `
       <p>Hi ${greeting},</p>
-      <p>It's been a little while since you opened Akowe. Your projects and all your work are exactly where you left them.</p>
-      <p>If you have a new assignment or want to revisit an old one, everything is ready.</p>
-      <p style="margin:16px 0;">${ctaButton(dashboardUrl, 'Open your projects')}</p>
+      <p>${projectRef} is still open in Akowe — your draft, your citations, everything exactly where you left it.</p>
+      <p>Here's a 5-minute task to move it forward: open the <strong>AI assistant</strong> and type <em>"suggest 3 ways to end my conclusion."</em> You'll have three options to choose from in seconds.</p>
+      <p>Even picking one and editing it gets you unstuck faster than starting from a blank page.</p>
+      <p style="margin:16px 0;">${ctaButton(dashboardUrl, `Continue ${projectRef}`)}</p>
       ${emailFooter(unsubUrl)}
     `,
   });
@@ -422,7 +430,7 @@ export async function sendWinBackEmail(to: string, name: string): Promise<EmailS
   }
 
   const baseUrl = getBaseUrl();
-  const dashboardUrl = `${baseUrl}/dashboard`;
+  const dashboardUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=engagement&utm_campaign=win_back`;
   const greeting = name || 'there';
   const unsubUrl = getUnsubscribeUrl(to);
 
@@ -480,7 +488,7 @@ export async function sendAffiliateApprovedEmail(
   const baseUrl = getBaseUrl();
   const greeting = name || 'there';
   const referralLink = `${baseUrl}?ref=${referralCode}&utm_source=affiliate&utm_medium=referral&utm_campaign=affiliate`;
-  const statsUrl = `${baseUrl}/affiliate-stats`;
+  const statsUrl = `${baseUrl}/affiliate-stats?utm_source=email&utm_medium=transactional&utm_campaign=affiliate_approved`;
   const payoutEmail = 'affiliate@placeholderllc.name.ng';
 
   const info = await transporter.sendMail({

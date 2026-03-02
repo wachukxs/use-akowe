@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
   // Helper: send emails for a cohort with de-duplication and suppression
   async function processCohort(
     cohort: EngagementCohort,
-    candidates: Array<{ email: string; name: string }>,
-    sendFn: (to: string, name: string) => Promise<{ messageId: string }>
+    candidates: Array<{ email: string; name: string; projectName?: string }>,
+    sendFn: (to: string, name: string, projectName?: string) => Promise<{ messageId: string }>
   ): Promise<CohortResult> {
     const alreadySent = await getAlreadySent(cohort);
     const toSend = candidates.filter(
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        const result = await sendFn(candidate.email, candidate.name);
+        const result = await sendFn(candidate.email, candidate.name, candidate.projectName);
         await EmailLog.create({
           userId: candidate.email,
           cohort,
@@ -190,12 +190,20 @@ export async function POST(request: NextRequest) {
       const wordCountMap = new Map(userWordCounts.map((r: any) => [r._id, r.totalWords]));
       const usersWithProjects = new Set(userWordCounts.map((r: any) => r._id));
 
+      // Fetch most recent project title for each stuck user (for personalised email copy)
+      const stuckMostRecentProjects = await Project.aggregate([
+        { $match: { userId: { $in: stuckEmails } } },
+        { $sort: { createdAt: -1 } },
+        { $group: { _id: '$userId', title: { $first: '$title' } } },
+      ]);
+      const stuckProjectNameMap = new Map(stuckMostRecentProjects.map((r: any) => [r._id, r.title as string]));
+
       const stuckCandidates = stuckUsers
         .filter((u) => {
           if (!usersWithProjects.has(u.email)) return false;
           return (wordCountMap.get(u.email) || 0) < 100;
         })
-        .map((u) => ({ email: u.email, name: u.name }));
+        .map((u) => ({ email: u.email, name: u.name, projectName: stuckProjectNameMap.get(u.email) }));
 
       results.stuck_starter = await processCohort('stuck_starter', stuckCandidates, sendStuckStarterEmail);
     } else {
@@ -279,9 +287,17 @@ export async function POST(request: NextRequest) {
         await Project.distinct('userId', { userId: { $in: idleEmails } })
       );
 
+      // Fetch most recent project title for each idle user (for personalised email copy)
+      const idleMostRecentProjects = await Project.aggregate([
+        { $match: { userId: { $in: idleEmails } } },
+        { $sort: { updatedAt: -1 } },
+        { $group: { _id: '$userId', title: { $first: '$title' } } },
+      ]);
+      const idleProjectNameMap = new Map(idleMostRecentProjects.map((r: any) => [r._id, r.title as string]));
+
       const idleCandidates = idleUsers
         .filter((u) => idleWithProjects.has(u.email))
-        .map((u) => ({ email: u.email, name: u.name }));
+        .map((u) => ({ email: u.email, name: u.name, projectName: idleProjectNameMap.get(u.email) }));
 
       results.going_idle = await processCohort('going_idle', idleCandidates, sendGoingIdleEmail);
     } else {

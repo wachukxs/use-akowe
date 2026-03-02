@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   if (!citationStyle || !validPurposes.includes(purpose)) {
     return {
-      title: 'Citation Guide Not Found',
+      robots: { index: false, follow: false },
     };
   }
 

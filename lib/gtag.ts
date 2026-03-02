@@ -84,6 +84,16 @@ export const trackLeadMagnet = {
   },
 };
 
+// Editor behaviour events
+export const trackEditor = {
+  textCopied: (wordCount: number, sectionTitle?: string) => {
+    trackEvent('editor_text_copied', {
+      word_count: wordCount,
+      section_title: sectionTitle || 'unknown',
+    });
+  },
+};
+
 // Funnel tracking events
 export const trackFunnel = {
   /**

@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!keywordPage || keywordPage.category !== 'citation') {
     return {
-      title: 'Citation Guide Not Found',
+      robots: { index: false, follow: false },
     };
   }
 

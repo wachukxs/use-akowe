@@ -80,7 +80,7 @@ export async function maybeNotifyStudentOfComment(shareLinkId: string) {
     }
 
     const baseUrl = getBaseUrl();
-    const projectUrl = `${baseUrl}/project/${shareLink.projectId}`;
+    const projectUrl = `${baseUrl}/project/${shareLink.projectId}?utm_source=email&utm_medium=transactional&utm_campaign=advisor_comment`;
     const greeting = student.name || 'there';
     const defaultFrom =
       process.env.SMTP_FROM || process.env.EMAIL_FROM || 'no-reply@useakowe.com';
