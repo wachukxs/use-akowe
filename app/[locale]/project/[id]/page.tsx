@@ -90,6 +90,19 @@ export default function ProjectEditorPage({
   const [project, setProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
+  // Debounced section change handler and editor/selection refs
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isTypingRef = useRef<boolean>(false);
+  const activeSectionRef = useRef<string | null>(null);
+  const editorSectionRef = useRef<HTMLDivElement | null>(null);
+  const editorContentEditableRef = useRef<HTMLDivElement | null>(null);
+  const storedInsertRangeRef = useRef<Range | null>(null);
+  const contextMenuPillRef = useRef<HTMLDivElement | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTouchRef = useRef<{ clientX: number; clientY: number } | null>(
+    null
+  );
+
   // Desktop experience note dismissal states
   const [showDesktopNoteTop, setShowDesktopNoteTop] = useState(false);
   const [showDesktopNoteTools, setShowDesktopNoteTools] = useState(false);
@@ -574,19 +587,6 @@ export default function ProjectEditorPage({
       setIsLoading(false);
     }
   };
-
-  // Debounced section change handler
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const isTypingRef = useRef<boolean>(false);
-  const activeSectionRef = useRef<string | null>(null);
-  const editorSectionRef = useRef<HTMLDivElement | null>(null);
-  const editorContentEditableRef = useRef<HTMLDivElement | null>(null);
-  const storedInsertRangeRef = useRef<Range | null>(null);
-  const contextMenuPillRef = useRef<HTMLDivElement | null>(null);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTouchRef = useRef<{ clientX: number; clientY: number } | null>(
-    null
-  );
 
   const [contextMenuPillPosition, setContextMenuPillPosition] = useState<{
     x: number;
