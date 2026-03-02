@@ -321,7 +321,10 @@ function MetricCard({
 }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   
-  const getTrendColor = (trendValue: number) => {
+  const getTrendColor = (trendValue: number | undefined) => {
+    if (trendValue === undefined || Number.isNaN(trendValue)) {
+      return 'text-[hsl(var(--muted-foreground))]';
+    }
     if (trendValue > 0) return 'text-green-500';
     if (trendValue < 0) return 'text-red-500';
     return 'text-[hsl(var(--muted-foreground))]';
@@ -357,7 +360,7 @@ function MetricCard({
             </div>
           )}
         </div>
-        {trend !== undefined && (
+        {trend !== undefined && !Number.isNaN(trend) && (
           <div className={`flex items-center gap-1 ${getTrendColor(trend)}`}>
             {trend > 0 ? <TrendingUp size={14} /> : trend < 0 ? <TrendingDown size={14} /> : null}
             <span className="text-xs font-semibold">
