@@ -27,7 +27,7 @@ export async function generateMetadata({
 
   if (!citationSource || !citationStyle) {
     return {
-      title: 'Citation Guide Not Found',
+      robots: { index: false, follow: false },
     };
   }
 

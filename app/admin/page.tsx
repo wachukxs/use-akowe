@@ -134,6 +134,7 @@ interface AdminMetricsResponse {
   };
   productHealth: {
     completionRate: number;
+    behavioralCompletionRate: number;
     avgProjectsPerUser: number;
     usersWithMultipleProjects: number;
     citationAdoption: number;
@@ -144,6 +145,7 @@ interface AdminMetricsResponse {
       total: number;
       active: number;
       completed: number;
+      behaviorallyCompleted: number;
     };
   };
   reviewMetrics: {
@@ -1523,15 +1525,22 @@ export default function AdminDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard
-              label="Project Completion Rate"
-              value={`${metrics.productHealth.completionRate.toFixed(1)}%`}
-              subtitle={`${formatNumber(metrics.productHealth.projects.completed)} / ${formatNumber(metrics.productHealth.projects.total)} projects`}
+              label="Behavioral Completion Rate"
+              value={`${metrics.productHealth.behavioralCompletionRate.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.productHealth.projects.behaviorallyCompleted)} projects reached 80% of target + no edits 7d`}
               icon={<CheckCircle size={16} />}
               timeContext="all-time"
               benchmark={{
                 value: BENCHMARKS.completionRate.average,
                 label: "Average"
               }}
+            />
+            <MetricCard
+              label="User-Reported Completion"
+              value={`${metrics.productHealth.completionRate.toFixed(1)}%`}
+              subtitle={`${formatNumber(metrics.productHealth.projects.completed)} / ${formatNumber(metrics.productHealth.projects.total)} marked complete`}
+              icon={<CheckCircle size={16} />}
+              timeContext="all-time"
             />
             <MetricCard
               label="Projects per User"

@@ -11,15 +11,19 @@ export async function getPeriodProductMetrics(range: DateRange) {
   const cacheKey = getCacheKey('period:product', range.startStr, range.endStr);
   const cached = metricsCache.get<{
     completionRate: number;
+    behavioralCompletionRate: number;
     avgProjectsPerUser: number;
     usersWithMultipleProjects: number;
     citationAdoption: number;
     pdfAdoption: number;
     plagiarismAdoption: number;
     litReviewAdoption: number;
-    projects: { total: number; active: number; completed: number };
+    projects: { total: number; active: number; completed: number; behaviorallyCompleted: number };
   }>(cacheKey);
   if (cached) return cached;
+
+  // Projects with no edits in the last 7 days (for behavioral completion)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   // Use $facet to combine all aggregations in one query
   const aggregationResult = await Project.aggregate([
@@ -39,6 +43,21 @@ export async function getPeriodProductMetrics(range: DateRange) {
             }
           },
           { $count: 'count' }
+        ],
+        // Behavioral completion: reached ≥80% of target word count + no edits for 7+ days
+        behaviorallyCompleted: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $gt: ['$targetWordCount', 0] },
+                  { $gte: ['$wordCount', { $multiply: ['$targetWordCount', 0.8] }] },
+                  { $lte: ['$lastEditedAt', sevenDaysAgo] },
+                ],
+              },
+            },
+          },
+          { $count: 'count' },
         ],
         projectsPerUser: [
           {
@@ -87,6 +106,7 @@ export async function getPeriodProductMetrics(range: DateRange) {
 
   const projectsInPeriod = aggregationResult[0]?.total[0]?.count || 0;
   const completedInPeriod = aggregationResult[0]?.completed[0]?.count || 0;
+  const behaviorallyCompletedCount = aggregationResult[0]?.behaviorallyCompleted[0]?.count || 0;
   const projectsPerUser = aggregationResult[0]?.projectsPerUser[0] || { avgProjects: 0, usersWithMultiple: 0 };
   const projectsWithCitations = aggregationResult[0]?.withCitations[0]?.count || 0;
   const projectsWithPDFs = aggregationResult[0]?.withPDFs[0]?.count || 0;
@@ -129,9 +149,14 @@ export async function getPeriodProductMetrics(range: DateRange) {
   ], { maxTimeMS: 30000 });
   const totalActiveUsers = activeUsersAgg[0]?.count || 0;
 
-  // Completion rate for period (projects completed / projects created in period)
+  // User-initiated completion rate (status manually set to 'completed')
   const completionRate = projectsInPeriod > 0
     ? ((completedInPeriod / projectsInPeriod) * 100)
+    : 0;
+
+  // Behavioral completion rate: reached ≥80% of target word count + no edits for 7+ days
+  const behavioralCompletionRate = projectsInPeriod > 0
+    ? ((behaviorallyCompletedCount / projectsInPeriod) * 100)
     : 0;
 
   const avgProjectsPerUser = projectsPerUser.avgProjects || 0;
@@ -152,6 +177,7 @@ export async function getPeriodProductMetrics(range: DateRange) {
 
   const result = {
     completionRate,
+    behavioralCompletionRate,
     avgProjectsPerUser,
     usersWithMultipleProjects,
     citationAdoption,
@@ -162,6 +188,7 @@ export async function getPeriodProductMetrics(range: DateRange) {
       total: projectsInPeriod,
       active: 0, // Would need to track active projects separately
       completed: completedInPeriod,
+      behaviorallyCompleted: behaviorallyCompletedCount,
     },
   };
 

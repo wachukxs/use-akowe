@@ -169,11 +169,11 @@ export interface UsageLimits {
 
 export const PLAN_LIMITS: Record<PlanType, UsageLimits> = {
   free: {
-    aiWordsPerDay: 1500,
-    plagiarismChecksPerDay: 3,
+    aiWordsPerDay: 200,
+    plagiarismChecksPerDay: 1,
     paraphrasePerDay: 2,
-    litReviewAnalysesPerDay: 2,
-    maxProjects: 3,
+    litReviewAnalysesPerDay: 1,
+    maxProjects: 2,
   },
   pro: {
     aiWordsPerDay: Infinity,

@@ -762,9 +762,9 @@ function InvestorPageContent() {
                 </h3>
                 <div className="text-4xl font-bold mb-4">$0</div>
                 <ul className="space-y-2 text-sm mb-6">
-                  <li>• 1,500 AI words/day</li>
-                  <li>• 3 plagiarism checks/day</li>
-                  <li>• 3 projects max</li>
+                  <li>• 200 AI words/day</li>
+                  <li>• 1 plagiarism check/day</li>
+                  <li>• 2 projects max</li>
                   <li>• Basic citations</li>
                 </ul>
                 <div className="text-xs text-[hsl(var(--muted-foreground))]">
