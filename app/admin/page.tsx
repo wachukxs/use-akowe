@@ -360,12 +360,14 @@ function MetricCard({
             </div>
           )}
         </div>
-        {trend !== undefined && !Number.isNaN(trend) && (
+        {trend !== undefined && Number.isFinite(trend) && (
           <div className={`flex items-center gap-1 ${getTrendColor(trend)}`}>
             {trend > 0 ? <TrendingUp size={14} /> : trend < 0 ? <TrendingDown size={14} /> : null}
-            <span className="text-xs font-semibold">
-              {trend > 0 ? '+' : ''}{trend.toFixed(1)}%
-            </span>
+            {Number.isFinite(trend) && (
+              <span className="text-xs font-semibold">
+                {trend > 0 ? '+' : ''}{trend.toFixed(1)}%
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -380,7 +382,10 @@ function MetricCard({
         </div>
       )}
       
-      {goal && (
+      {goal &&
+        Number.isFinite(goal.current) &&
+        Number.isFinite(goal.target) &&
+        goal.target !== 0 && (
         <div className="mt-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-[hsl(var(--muted-foreground))]">{goal.label}</span>
@@ -1288,8 +1293,16 @@ export default function AdminDashboard() {
                 <MetricCard
                   label="Weekly Active Users"
                   value={formatNumber(metrics.executiveSummary.wau)}
-                  subtitle={`WoW: ${metrics.executiveSummary.wauChange >= 0 ? '+' : ''}${metrics.executiveSummary.wauChange.toFixed(1)}%`}
-                  trend={metrics.executiveSummary.wauChange}
+                  subtitle={
+                    Number.isFinite(metrics.executiveSummary.wauChange)
+                      ? `WoW: ${metrics.executiveSummary.wauChange >= 0 ? '+' : ''}${metrics.executiveSummary.wauChange.toFixed(1)}%`
+                      : undefined
+                  }
+                  trend={
+                    Number.isFinite(metrics.executiveSummary.wauChange)
+                      ? metrics.executiveSummary.wauChange
+                      : undefined
+                  }
                   icon={<UserCheck size={16} />}
                   timeContext="current"
                 />
@@ -1415,7 +1428,11 @@ export default function AdminDashboard() {
               />
               <MetricCard
                 label="Conversion Rate"
-                value={`${metrics.businessMetrics.users.conversionRate.toFixed(1)}%`}
+                value={
+                  Number.isFinite(metrics.businessMetrics.users.conversionRate)
+                    ? `${metrics.businessMetrics.users.conversionRate.toFixed(1)}%`
+                    : 'N/A'
+                }
                 subtitle={`${formatNumber(metrics.businessMetrics.users.pro)} paid / ${formatNumber(metrics.businessMetrics.users.total)} total`}
                 icon={<Zap size={16} />}
                 timeContext="all-time"
@@ -1454,8 +1471,16 @@ export default function AdminDashboard() {
             <MetricCard
               label="Weekly Active Users"
               value={formatNumber(metrics.coreMetrics.wau)}
-              subtitle={`WoW: ${metrics.coreMetrics.wauChange >= 0 ? '+' : ''}${metrics.coreMetrics.wauChange.toFixed(1)}%`}
-              trend={metrics.coreMetrics.wauChange}
+              subtitle={
+                Number.isFinite(metrics.coreMetrics.wauChange)
+                  ? `WoW: ${metrics.coreMetrics.wauChange >= 0 ? '+' : ''}${metrics.coreMetrics.wauChange.toFixed(1)}%`
+                  : undefined
+              }
+              trend={
+                Number.isFinite(metrics.coreMetrics.wauChange)
+                  ? metrics.coreMetrics.wauChange
+                  : undefined
+              }
               icon={<UserCheck size={16} />}
               timeContext="fixed-window"
               explanation="Distinct users with any activity in the last 7 days. Academic work runs on weekly cycles, making WAU more meaningful than DAU."
@@ -1463,14 +1488,25 @@ export default function AdminDashboard() {
             <MetricCard
               label="Monthly Active Users"
               value={formatNumber(metrics.coreMetrics.mau)}
-              subtitle={`Stickiness: ${metrics.coreMetrics.mau > 0 ? ((metrics.coreMetrics.wau / metrics.coreMetrics.mau) * 100).toFixed(1) : '0'}%`}
+              subtitle={(() => {
+                const { wau, mau } = metrics.coreMetrics;
+                const stickiness =
+                  Number.isFinite(wau) && Number.isFinite(mau) && mau > 0
+                    ? ((wau / mau) * 100).toFixed(1)
+                    : null;
+                return stickiness ? `Stickiness: ${stickiness}%` : 'Stickiness: N/A';
+              })()}
               icon={<Users size={16} />}
               timeContext="fixed-window"
               explanation="Distinct users with any activity in the last 30 days. Stickiness = WAU/MAU — higher means users come back weekly, not just monthly."
             />
             <MetricCard
               label="Activation Rate"
-              value={`${metrics.coreMetrics.activationRate.toFixed(1)}%`}
+              value={
+                Number.isFinite(metrics.coreMetrics.activationRate)
+                  ? `${metrics.coreMetrics.activationRate.toFixed(1)}%`
+                  : 'N/A'
+              }
               subtitle={`${formatNumber(metrics.coreMetrics.activationActivated)} / ${formatNumber(metrics.coreMetrics.activationTotal)} users${metrics.coreMetrics.avgTimeToActivation ? ` · Avg ${Math.round(metrics.coreMetrics.avgTimeToActivation)}min` : ''}`}
               icon={<Zap size={16} />}
               timeContext="period"
@@ -1478,7 +1514,11 @@ export default function AdminDashboard() {
             />
             <MetricCard
               label="Week 1 Retention"
-              value={`${metrics.coreMetrics.week1Retention.toFixed(1)}%`}
+              value={
+                Number.isFinite(metrics.coreMetrics.week1Retention)
+                  ? `${metrics.coreMetrics.week1Retention.toFixed(1)}%`
+                  : 'N/A'
+              }
               subtitle={`${formatNumber(metrics.coreMetrics.week1CohortSize)} users in cohort`}
               icon={<Repeat size={16} />}
               timeContext="fixed-window"
@@ -1486,7 +1526,11 @@ export default function AdminDashboard() {
             />
             <MetricCard
               label="Week 4 Retention"
-              value={`${metrics.coreMetrics.week4Retention.toFixed(1)}%`}
+              value={
+                Number.isFinite(metrics.coreMetrics.week4Retention)
+                  ? `${metrics.coreMetrics.week4Retention.toFixed(1)}%`
+                  : 'N/A'
+              }
               subtitle={`${formatNumber(metrics.coreMetrics.week4CohortSize)} users in cohort`}
               icon={<Repeat size={16} />}
               timeContext="fixed-window"
@@ -1529,7 +1573,11 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MetricCard
               label="Behavioral Completion Rate"
-              value={`${metrics.productHealth.behavioralCompletionRate.toFixed(1)}%`}
+              value={
+                Number.isFinite(metrics.productHealth.behavioralCompletionRate)
+                  ? `${metrics.productHealth.behavioralCompletionRate.toFixed(1)}%`
+                  : 'N/A'
+              }
               subtitle={`${formatNumber(metrics.productHealth.projects.behaviorallyCompleted)} projects reached 80% of target + no edits 7d`}
               icon={<CheckCircle size={16} />}
               timeContext="all-time"
@@ -1540,22 +1588,46 @@ export default function AdminDashboard() {
             />
             <MetricCard
               label="User-Reported Completion"
-              value={`${metrics.productHealth.completionRate.toFixed(1)}%`}
+              value={
+                Number.isFinite(metrics.productHealth.completionRate)
+                  ? `${metrics.productHealth.completionRate.toFixed(1)}%`
+                  : 'N/A'
+              }
               subtitle={`${formatNumber(metrics.productHealth.projects.completed)} / ${formatNumber(metrics.productHealth.projects.total)} marked complete`}
               icon={<CheckCircle size={16} />}
               timeContext="all-time"
             />
             <MetricCard
               label="Projects per User"
-              value={metrics.productHealth.avgProjectsPerUser.toFixed(1)}
+              value={
+                Number.isFinite(metrics.productHealth.avgProjectsPerUser)
+                  ? metrics.productHealth.avgProjectsPerUser.toFixed(1)
+                  : 'N/A'
+              }
               subtitle={`${formatNumber(metrics.productHealth.usersWithMultipleProjects)} users with multiple`}
               icon={<FileText size={16} />}
               timeContext="all-time"
             />
             <MetricCard
               label="Citation Adoption"
-              value={`${metrics.productHealth.citationAdoption.toFixed(1)}%`}
-              subtitle={`PDF: ${metrics.productHealth.pdfAdoption.toFixed(1)}% • Plagiarism: ${metrics.productHealth.plagiarismAdoption.toFixed(1)}% • Lit Review: ${metrics.productHealth.litReviewAdoption.toFixed(1)}%`}
+              value={
+                Number.isFinite(metrics.productHealth.citationAdoption)
+                  ? `${metrics.productHealth.citationAdoption.toFixed(1)}%`
+                  : 'N/A'
+              }
+              subtitle={`PDF: ${
+                Number.isFinite(metrics.productHealth.pdfAdoption)
+                  ? `${metrics.productHealth.pdfAdoption.toFixed(1)}%`
+                  : 'N/A'
+              } • Plagiarism: ${
+                Number.isFinite(metrics.productHealth.plagiarismAdoption)
+                  ? `${metrics.productHealth.plagiarismAdoption.toFixed(1)}%`
+                  : 'N/A'
+              } • Lit Review: ${
+                Number.isFinite(metrics.productHealth.litReviewAdoption)
+                  ? `${metrics.productHealth.litReviewAdoption.toFixed(1)}%`
+                  : 'N/A'
+              }`}
               icon={<Sparkles size={16} />}
               timeContext="all-time"
             />
