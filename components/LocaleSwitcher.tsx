@@ -17,6 +17,7 @@ const localeLabels: Record<string, string> = {
   'pt-PT': 'Português (Portugal)',
   th: 'ไทย',
   vi: 'Tiếng Việt',
+  zh: '中文（简体）',
 };
 
 const localeFlags: Record<string, string> = {
@@ -30,6 +31,7 @@ const localeFlags: Record<string, string> = {
   'pt-PT': '🇵🇹',
   th: '🇹🇭',
   vi: '🇻🇳',
+  zh: '🇨🇳',
 };
 
 function localeDisplay(loc: string) {

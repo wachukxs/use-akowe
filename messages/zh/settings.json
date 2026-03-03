@@ -1,0 +1,124 @@
+{
+  "title": "设置",
+  "subtitle": "管理您的账户和订阅",
+  "loading": "加载中...",
+  "checkoutFeedback": {
+    "title": "我们注意到您未完成付款",
+    "prompt": "能告诉我们原因吗？（可选）您的反馈有助于我们改进。",
+    "thanks": "感谢您的反馈。",
+    "label": "您的反馈",
+    "placeholder": "例如：价格太高、改变主意、技术问题...",
+    "sending": "发送中...",
+    "send": "发送反馈",
+    "skip": "跳过"
+  },
+  "usage": {
+    "title": "当前使用情况",
+    "aiWordsToday": "今日 AI 字数",
+    "plagiarismChecksToday": "今日查重次数",
+    "maxProjects": "最大项目数",
+    "unlimited": "无限制",
+    "paraphraseUsesToday": "今日改写次数"
+  },
+  "plans": {
+    "choosePlan": "选择方案",
+    "monthly": "按月",
+    "annual": "按年",
+    "savePercent": "节省 {percent}",
+    "currentBillingCycle": "当前计费周期：",
+    "renews": "续费日期：{date}",
+    "aiWordsExplainerTitle": "什么算作 AI 字数？",
+    "aiWordsExplainerBody": "AI 字数包括 Akowe 生成的所有内容：AI 助手回复、\"AI 代写\"内容和 AI 生成的提纲。您自己撰写的内容不计入限额。",
+    "mostPopular": "最受欢迎",
+    "billedAnnually": "按年一次性收费（约 $10/月）。",
+    "firstMonthOff": "首月享 85 折优惠",
+    "currentPlan": "当前方案",
+    "comingSoon": "即将推出",
+    "upgrade": "升级",
+    "processing": "处理中...",
+    "free": {
+      "name": "免费版",
+      "price": "$0",
+      "period": "永久免费",
+      "features": [
+        "每日 200 个 AI 字数",
+        "每日 1 次查重",
+        "最多 2 个项目",
+        "智能引用搜索",
+        "基础引用支持"
+      ]
+    },
+    "pro": {
+      "name": "Pro 版",
+      "monthlyPrice": "$12",
+      "monthlyPeriod": "每月",
+      "annualPrice": "$120",
+      "annualPeriod": "每年",
+      "annualSavings": "每年节省 $24",
+      "billedAnnually": "按年一次性收费（约 $10/月）。",
+      "firstMonthOff": "首月享 85 折优惠",
+      "features": [
+        "无限 AI 字数",
+        "无限查重次数",
+        "无限项目数",
+        "高级引用搜索",
+        "GPT-4 访问权限",
+        "优先支持"
+      ]
+    },
+    "team": {
+      "name": "团队版",
+      "price": "即将推出",
+      "period": "",
+      "features": [
+        "包含 Pro 版全部功能",
+        "10 名团队成员",
+        "共享工作区",
+        "管理员控制",
+        "共享引用库",
+        "团队数据分析"
+      ]
+    }
+  },
+  "subscription": {
+    "title": "订阅管理",
+    "active": "有效订阅",
+    "subscribedTo": "您已订阅 Pro 方案，计费周期：{cycle}。",
+    "nextRenewal": "下次续费：",
+    "managePrompt": "需要取消订阅？您可以通过 Stripe 管理您的订阅和账单。",
+    "manageButton": "管理订阅 →"
+  },
+  "referral": {
+    "title": "邀请好友与同事",
+    "subtitle": "将 Akowe 分享给您的人脉",
+    "prompt": "认识有需要的人吗？将您的专属邀请链接分享给他们！",
+    "inviteMessageLabel": "您的邀请内容",
+    "inviteMessageBody": "嗨！我一直在用 Akowe 辅助学术写作，效果非常好。你也来试试吧：",
+    "copyMessage": "复制邀请内容",
+    "copied": "已复制！"
+  },
+  "account": {
+    "title": "账户设置",
+    "email": "邮箱",
+    "name": "姓名",
+    "deleteAccount": "删除账户"
+  },
+  "deleteModal": {
+    "title": "删除账户？",
+    "body": "确定要删除您的账户吗？此操作无法撤销。您的所有项目、引用和数据将被永久删除。",
+    "cancel": "取消",
+    "deleting": "正在删除...",
+    "confirm": "删除账户"
+  },
+  "alerts": {
+    "failedToSend": "发送失败，请重试。",
+    "failedBillingPortal": "无法打开账单管理页面，请重试。",
+    "errorOccurred": "发生错误，请重试。",
+    "failedCheckoutSession": "创建结账会话失败，请重试。",
+    "failedStartCheckout": "启动结账失败：{error}",
+    "errorStartCheckout": "启动结账时发生错误，请重试。",
+    "accountDeleted": "账户已成功删除。您将被重定向至登录页面。",
+    "failedDeleteAccount": "删除账户失败：{error}",
+    "errorDeletingAccount": "删除账户时发生错误，请重试。"
+  }
+}

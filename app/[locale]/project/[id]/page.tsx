@@ -133,28 +133,6 @@ export default function ProjectEditorPage({
   useEffect(() => {
     storedInsertRangeRef.current = null;
   }, [activeSection]);
-
-  // Track copy events from the editor (GA4)
-  useEffect(() => {
-    const el = editorContentEditableRef.current;
-    if (!el) return;
-
-    const handleCopy = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed) return;
-      const text = selection.toString();
-      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-      if (wordCount === 0) return;
-      const sectionTitle = activeSectionRef.current
-        ? project?.sections?.find((s) => s.id === activeSectionRef.current)?.title
-        : undefined;
-      trackEditor.textCopied(wordCount, sectionTitle);
-    };
-
-    el.addEventListener('copy', handleCopy);
-    return () => el.removeEventListener('copy', handleCopy);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorContentEditableRef.current]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
   const [isLitReviewOpen, setIsLitReviewOpen] = useState(false);
@@ -587,6 +565,28 @@ export default function ProjectEditorPage({
   const longPressTouchRef = useRef<{ clientX: number; clientY: number } | null>(
     null
   );
+
+  // Track copy events from the editor (GA4) — declared here after editorContentEditableRef
+  useEffect(() => {
+    const el = editorContentEditableRef.current;
+    if (!el) return;
+
+    const handleCopy = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+      const text = selection.toString();
+      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+      if (wordCount === 0) return;
+      const sectionTitle = activeSectionRef.current
+        ? project?.sections?.find((s) => s.id === activeSectionRef.current)?.title
+        : undefined;
+      trackEditor.textCopied(wordCount, sectionTitle);
+    };
+
+    el.addEventListener('copy', handleCopy);
+    return () => el.removeEventListener('copy', handleCopy);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorContentEditableRef.current]);
 
   const [contextMenuPillPosition, setContextMenuPillPosition] = useState<{
     x: number;

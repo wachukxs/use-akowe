@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
 // Must match i18n/routing.ts locales
-const locales = ['de', 'en', 'es', 'fr', 'ja', 'ko', 'pt-BR', 'pt-PT', 'th', 'vi'] as const;
+const locales = ['de', 'en', 'es', 'fr', 'ja', 'ko', 'pt-BR', 'pt-PT', 'th', 'vi', 'zh'] as const;
 
 export interface SEOMetadataOptions {
   title: string;
@@ -41,7 +41,7 @@ export function generateSEOMetadata(options: SEOMetadataOptions): Metadata {
   // and resolves "Duplicate without user-selected canonical" GSC warnings.
   // Normalize path: strip any existing /en/ or /{locale}/ prefix so we can
   // rebuild locale-specific URLs correctly.
-  const normalisedPath = path.replace(/^\/(de|en|es|fr|ja|ko|pt-BR|pt-PT|th|vi)(\/|$)/, '/').replace(/^(?!\/)/, '/');
+  const normalisedPath = path.replace(/^\/(de|en|es|fr|ja|ko|pt-BR|pt-PT|th|vi|zh)(\/|$)/, '/').replace(/^(?!\/)/, '/');
   const hreflangLanguages: Record<string, string> = {};
   for (const locale of locales) {
     hreflangLanguages[locale] = `${baseUrl}/${locale}${normalisedPath}`;
