@@ -1,0 +1,222 @@
+{
+  "heroControl": {
+    "title": "学术写作，安全无忧、井然有序。",
+    "subtitle": "使用真实来源、查重检测和符合高校政策的 AI，撰写学位论文、研究论文和学术报告。"
+  },
+  "heroVariantA": {
+    "title": "用真实引用，更快完成您的学位论文。",
+    "subtitle": "无需手动搜寻来源，将研究主题转化为带引用的学术草稿。",
+    "tagline": "从主题到带引用草稿，只需数分钟。"
+  },
+  "heroVariantB": {
+    "title": "撰写您信得过的学术作品。",
+    "subtitle": "使用真实来源、精准引用，在提交前完成相似度审查。",
+    "tagline": "专为高校提交标准而生。",
+    "cta": "立即开始您的学位论文"
+  },
+  "trustSignals": {
+    "setup": "设置",
+    "setupSub": "仅需 2 分钟",
+    "citations": "引用",
+    "citationsSub": "秒速生成",
+    "saved": "10+ 小时",
+    "savedSub": "每月节省"
+  },
+  "socialProof": {
+    "title": "深受学生与研究者信赖",
+    "testimonial1Quote": "每个月至少节省 10 个小时。",
+    "testimonial1Author": "—— Fatima Adeoye，欧洲博士生",
+    "testimonial2Quote": "再也不用担心 Turnitin 的意外结果。",
+    "testimonial2Author": "—— Anjali Patel，北美硕士生"
+  },
+  "painA": {
+    "heading": "截止日期不容出错。",
+    "manualResearch": "手动查找资料耗时费力。",
+    "missingCitations": "引用缺失会导致扣分。",
+    "lateFixes": "临时修改让人措手不及。",
+    "mostRush": "大多数学生在最艰难的环节仓促应对。"
+  },
+  "painB": {
+    "heading": "大多数 AI 工具让学生面临风险。",
+    "fakeCitations": "虚假引用无法通过审查。",
+    "plagiarismFlags": "查重问题发现太晚。",
+    "marksDrop": "提交后成绩下滑。",
+    "submitNoTrust": "学生提交的作品自己都不放心。"
+  },
+  "solutionA": {
+    "heading": "Akowe 加速学术写作。",
+    "findsSources": "即时查找学术来源",
+    "insertsCitations": "边写作边插入引用",
+    "preparesDrafts": "生成可供审阅的草稿",
+    "noBacktracking": "无需返工。无需重写。"
+  },
+  "solutionB": {
+    "heading": "Akowe 守护学术诚信。",
+    "supportsResponsible": "Akowe 支持负责任的学术写作。",
+    "realSources": "专注于真实来源和引用准确性。",
+    "submitConfidence": "帮助学生自信地提交作品。"
+  },
+  "valueStrip": {
+    "realSources": "引用真实学术来源的 AI",
+    "similarityChecks": "内置相似度检测，早于 Turnitin",
+    "workspace": "写作、引用、提交，一站完成"
+  },
+  "workflows": {
+    "heading": "专为真实学术流程而设计",
+    "litReview": "通过内置来源搜索开展文献综述",
+    "structureChapters": "在编辑器内直接构建学位论文章节结构",
+    "notesDrafts": "笔记、草稿和引用集中管理",
+    "export": "导出可提交的 DOCX 或 PDF 文件",
+    "tagline": "Akọ̀wé 是专为学位论文写作、毕业论文和研究报告打造的学术写作工具。"
+  },
+  "trustA": {
+    "heading": "专为高校提交而生",
+    "thesesPapers": "专为学位论文和研究报告设计",
+    "verifiableSources": "使用可核实的学术来源",
+    "citationAccuracy": "支持引用准确性"
+  },
+  "trustB": {
+    "heading": "专为学术提交而设计",
+    "thesisFocused": "聚焦学位论文和毕业论文",
+    "citationFirst": "引用准确性优先",
+    "submissionReady": "输出可直接提交的成果"
+  },
+  "ctaMid": {
+    "variantAHeading": "为您的论文节省数小时",
+    "variantAButton": "立即开始写作",
+    "variantANoSetup": "无需设置。无需信用卡。",
+    "variantBHeading": "提交您引以为傲的作品",
+    "variantBButton": "立即开始您的论文",
+    "variantBNoSetup": "无需设置。无需信用卡。"
+  },
+  "faq": {
+    "title": "常见问题",
+    "whoUses": "谁在使用 Akowe",
+    "whoUsesAnswer": "正在撰写学位论文和研究报告的学生。",
+    "citationsIncluded": "是否包含引用功能",
+    "citationsIncludedAnswer": "是的，引用会随写作实时生成。",
+    "doesInvent": "Akowe 是否会编造来源",
+    "doesInventAnswer": "不会。所有来源均可核实。",
+    "similarityChecked": "提交前是否检测相似度",
+    "similarityCheckedAnswer": "是的，审查在导出前完成。"
+  },
+  "whyChoose": {
+    "heading": "研究者选择 Akọ̀wé 的原因",
+    "mostTools": "大多数工具",
+    "akowe": "Akọ̀wé",
+    "onlyOneThing": "功能单一",
+    "forceCopyPaste": "需要在多个应用间来回复制粘贴",
+    "guessingPlagiarism": "让您对查重风险一无所知",
+    "oneWorkspace": "写作、引用与诚信检测，一个工作区搞定",
+    "realSources": "真实学术来源",
+    "preSubmissionSafety": "提交前相似度安全检测"
+  },
+  "howItWorks": {
+    "heading": "使用方法",
+    "step1Title": "输入您的主题",
+    "step1Desc": "用您的论文主题或研究问题开始一个新项目",
+    "step2Title": "使用真实来源写作",
+    "step2Desc": "AI 辅助写作，同时从学术数据库中提取引用",
+    "step3Title": "审阅并提交",
+    "step3Desc": "检查抄袭、核实引用，导出可提交的文档"
+  },
+  "features": {
+    "heading": "严肃学术写作所需的一切",
+    "subheading": "告别工具切换。在一个专注的工作区完成写作。",
+    "feature1Label": "AI 写作辅助",
+    "feature1Title": "写得更快。听起来更学术。保持原创。",
+    "feature1Desc": "在结构化编辑器中构建提纲、起草和打磨内容。获得清晰度建议、学术语气指导和基于真实来源的引用。",
+    "feature2Label": "真实引用",
+    "feature2Title": "真实来源。真实引用。",
+    "feature2Desc": "搜索 Crossref 和 OpenAlex 等权威学术数据库。不离开文档即可插入精准参考文献并管理引用。",
+    "feature2Badge": "无编造参考文献。无盲目 AI 输出。",
+    "feature3Label": "诚信与查重安全",
+    "feature3Title": "避免提交时的意外惊吓。",
+    "feature3Desc": "在上传前检查原创性。查看与高校通行标准一致的相似度分析，及早修正问题。",
+    "ethicalBadgeTitle": "专为学术用途设计的 AI 指导",
+    "ethicalNoFabricated": "无编造参考文献",
+    "ethicalSupportsWriting": "支持诚信写作",
+    "ethicalBuiltForIntegrity": "专为学术诚信而生"
+  },
+  "plans": {
+    "label": "方案",
+    "heading": "简单透明的定价",
+    "subheading": "免费开始，当研究需求增长时再升级。",
+    "aiWordsLabel": "什么是 AI 字数？",
+    "aiWordsDesc": "AI 字数包括助手回复、AI 撰写的内容和提纲。您自己的写作永远不计入限额。",
+    "monthly": "按月",
+    "annual": "按年",
+    "save": "节省",
+    "freePlanLabel": "免费版",
+    "freePlanPrice": "$0",
+    "freePlanDesc": "适合入门使用。",
+    "freePlanAiWords": "每日 200 个 AI 字数",
+    "freePlanPlagiarismChecks": "每日 1 次查重",
+    "freePlanProjects": "最多 2 个项目",
+    "freePlanCitationSearch": "智能引用搜索",
+    "freePlanNoCard": "无需信用卡",
+    "proPlanBadge": "热门",
+    "proPlanLabel": "Pro 版",
+    "proPlanPriceMonthly": "$12",
+    "proPlanPriceAnnual": "$120",
+    "proPlanBilledMonthly": "按月灵活计费。",
+    "proPlanBilledAnnual": "按年一次性收费。",
+    "proPlanEquivalent": "约 $10/月",
+    "proPlanFirstMonthOff": "首月 85 折优惠",
+    "proPlanUnlimitedWords": "无限 AI 字数",
+    "proPlanUnlimitedChecks": "无限查重次数",
+    "proPlanUnlimitedProjects": "无限项目数",
+    "proPlanAdvancedSearch": "高级引用搜索",
+    "proPlanAdvancedAI": "高级 AI 模型访问",
+    "proPlanPrioritySupport": "优先支持",
+    "proPlanTagline": "专为学术诚信而生 · 您拥有自己的作品",
+    "proPlanCta": "升级至 Pro",
+    "teamPlanLabel": "团队版",
+    "teamPlanComingSoon": "即将推出",
+    "teamPlanDesc": "面向研究团队的协作与治理工具。",
+    "teamPlanEverythingInPro": "包含 Pro 版全部功能",
+    "teamPlanSharedWorkspaces": "共享工作区",
+    "teamPlanAdminControls": "管理员控制",
+    "teamPlanCentralBibliography": "中央参考书目库",
+    "teamPlanCta": "即将推出"
+  },
+  "academicAlignment": {
+    "label": "学术对齐",
+    "heading": "专为严谨性、清晰度和学术诚信而生。",
+    "desc": "以单一工作室取代分散的工具，尊重学术规范。深受各高校学生和研究者信赖。",
+    "designTitle": "学术优先设计：",
+    "designDesc": "每项功能专为学术工作而生，而非从通用工具改造而来。",
+    "allInOneTitle": "一体化工作流",
+    "allInOneDesc": "起草、引用、查重和导出集于一处，让工作始终井然有序。",
+    "designedTitle": "为学术人士而设计",
+    "designedDesc": "结构化章节、研究方法提示和引用智能，让研究保持正轨。",
+    "pricingTitle": "可预期的定价",
+    "pricingDesc": "我们的 Pro 方案平均比拼凑多个单一工具节省 50%。"
+  },
+  "stats": {
+    "savings": "50%+",
+    "savingsDesc": "相比分别购买写作、引用和查重工具的节省。",
+    "allInOne": "一站式",
+    "allInOneDesc": "AI 起草、引用、PDF 分析和导出，一个工作区完成。",
+    "tenHours": "10 小时",
+    "tenHoursDesc": "使用 Akọ̀wé 的学者每月平均节省的时间。"
+  },
+  "finalCta": {
+    "controlHeading": "以更少的压力写出更好的研究。",
+    "controlSub": "无需设置烦恼。无风险输出。",
+    "variantAHeading": "更快完成。自信提交。",
+    "variantBHeading": "守护您的学术作品。"
+  },
+  "imageAlt": {
+    "aiAssistant": "Akowe AI 写作助手界面",
+    "citations": "Akowe 引用搜索与管理界面",
+    "plagiarismCheck": "Akowe 查重结果界面"
+  },
+  "footer": {
+    "brand": "Akọ̀wé",
+    "tagline": "学术写作工具 • 学位论文 AI • 引用管理软件 • 研究论文查重",
+    "learnStory": "了解我们的故事",
+    "privacy": "隐私政策",
+    "copyright": "版权所有。"
+  }
+}
