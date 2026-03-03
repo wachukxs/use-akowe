@@ -159,14 +159,36 @@ const KEYWORD_DATA: Array<{
     intent: 'informational',
   },
   {
-    keyword: 'AI citation tool',
-    title: 'AI citation tool: Complete Guide',
-    description: 'Learn how to cite sources in academic writing. Complete guide to AI citation tool with examples, formats, and best practices for students and researchers.',
-    keywords: ['AI citation tool', 'ai citation tool guide', 'ai citation tool example', 'how to ai citation tool', 'ai citation tool for students'],
+    keyword: 'ai citation tool',
+    title: 'AI Citation Tool – Real Sources, Instant Bibliographies',
+    description: 'Generate accurate citations with AI that searches real academic databases. Akowe\'s AI citation tool finds verified sources, formats references in APA, MLA, Chicago, and 20+ styles, and builds your bibliography automatically.',
+    keywords: ['ai citation tool', 'ai citation generator', 'ai bibliography tool', 'ai reference generator', 'smart citation tool'],
     category: 'citation',
-    searchVolume: 1000,
-    difficulty: 20,
-    intent: 'informational',
+    searchVolume: 2100,
+    difficulty: 24,
+    intent: 'commercial',
+    content: {
+      introduction: 'Traditional citation generators just format whatever you paste in—the accuracy depends entirely on the user entering correct information. An AI citation tool goes further: it searches academic databases to find your source, retrieves verified metadata, and generates a correctly formatted citation without you manually entering a single field. Akowe uses AI to power every step of the citation process.',
+      sections: [
+        {
+          heading: 'What Makes a Citation Tool "AI-Powered"',
+          content: 'A genuine AI citation tool does more than apply citation formatting rules. It uses natural language processing to interpret ambiguous source descriptions, machine learning to match partial information (an author name + approximate year) to the correct paper, real-time API queries to academic databases like OpenAlex, Crossref, and PubMed to retrieve complete metadata, and automated formatting that applies the correct rules for your chosen citation style. Akowe combines all four—so you can search by title, author, or topic and get a verified citation in seconds.',
+        },
+        {
+          heading: 'How Akowe\'s AI Citation Tool Works',
+          content: 'Step 1: Search by URL, DOI, ISBN, title, or author name. Step 2: Akowe\'s AI queries multiple academic databases simultaneously and returns matching sources with full metadata. Step 3: Select your source and citation style (APA, MLA, Chicago, Harvard, IEEE, and 20+ more). Step 4: Akowe generates the formatted citation and adds it to your project\'s reference list. Step 5: The in-text citation is inserted at your cursor position in the writing editor. The entire process takes under 10 seconds per source.',
+        },
+        {
+          heading: 'AI Citation Tool vs. Manual Citation Generators',
+          content: 'Manual generators (like CiteThisForMe or EasyBib) format information you enter manually—accuracy depends on you knowing all the required fields. AI-powered tools like Akowe retrieve that information automatically from verified databases. The practical difference: manual tools often produce citations with missing DOIs, wrong author ordering, or incorrect publication years. AI tools pull the correct metadata directly from the source record, eliminating the most common citation errors.',
+        },
+        {
+          heading: 'Supported Citation Styles and Source Types',
+          content: 'Akowe\'s AI citation tool supports APA (6th and 7th edition), MLA (8th and 9th edition), Chicago (Notes-Bibliography and Author-Date), Harvard, IEEE, Vancouver, AMA, ACS, and 15+ additional styles. Source types include journal articles, books, book chapters, conference papers, theses, government reports, websites, podcasts, videos, social media posts, patents, and legal documents. Style switching is instant—change one setting and every citation in your project reformats automatically.',
+        },
+      ],
+      conclusion: 'An AI citation tool that searches real academic databases eliminates citation errors before they reach your paper. Try Akowe free—generate your first 10 citations at no cost, no credit card required.',
+    },
   },
   {
     keyword: 'AI literature review assistant',
@@ -250,13 +272,35 @@ const KEYWORD_DATA: Array<{
   },
   {
     keyword: 'APA citation generator',
-    title: 'APA citation generator: Complete Guide',
-    description: 'Learn how to cite sources in academic writing. Complete guide to APA citation generator with examples, formats, and best practices for students and researchers.',
-    keywords: ['APA citation generator', 'apa citation generator guide', 'apa citation generator example', 'how to apa citation generator', 'apa citation generator for students'],
+    title: 'Free APA Citation Generator – Create Perfect References',
+    description: 'Generate accurate APA 7th edition citations in seconds. Akowe\'s free APA citation generator formats books, journals, websites, and any source automatically—verified against real academic databases.',
+    keywords: ['apa citation generator', 'apa citation maker', 'apa reference generator', 'free apa citation generator', 'apa bibliography generator'],
     category: 'citation',
-    searchVolume: 1000,
-    difficulty: 20,
-    intent: 'informational',
+    searchVolume: 33000,
+    difficulty: 25,
+    intent: 'transactional',
+    content: {
+      introduction: 'An APA citation generator eliminates the guesswork of APA formatting. APA 7th edition has strict rules for punctuation, author display, title capitalization, DOI formatting, and more—and getting any detail wrong can cost you marks. Akowe automatically generates correct APA citations for any source type, verified against real academic databases so you know every reference is accurate.',
+      sections: [
+        {
+          heading: 'APA 7th Edition Citation Format Basics',
+          content: 'APA (American Psychological Association) format is standard in social sciences, psychology, education, and nursing. The core reference format is: Author, A. A., & Author, B. B. (Year). Title of work: Capital letter also for subtitle. Publisher. https://doi.org/xxxxx — Key APA 7th edition rules: use sentence case for article and book titles (only capitalize the first word and proper nouns); always include a DOI when available; for six or more authors, list the first 20 before using an ellipsis; no location needed for publishers.',
+        },
+        {
+          heading: 'How to Cite the Most Common Source Types in APA',
+          content: 'Journal article: Author, A. A. (Year). Title of article. Journal Name, volume(issue), page–page. https://doi.org/xxxxx | Book: Author, A. A. (Year). Title of work: Subtitle. Publisher. | Website: Author, A. A. (Year, Month Day). Title of page. Site Name. URL | Each source type has specific rules for edition, editors, and retrieval dates. Akowe handles every variation automatically—paste a DOI, ISBN, or URL and get a perfectly formatted APA citation instantly.',
+        },
+        {
+          heading: 'Why Akowe\'s APA Generator Is More Accurate',
+          content: 'Most citation generators just format whatever information you manually enter—if you enter wrong data, you get a wrong citation. Akowe searches real academic databases (OpenAlex, Crossref, PubMed) to retrieve verified author names, publication dates, DOIs, volume numbers, and page ranges. This means your citations are built from accurate source metadata, not user-entered guesses. It also flags outdated or retracted papers before you cite them.',
+        },
+        {
+          heading: 'APA In-Text Citations vs. Reference List',
+          content: 'APA uses two components: in-text citations within your paper (Author, Year) or (Author, Year, p. X) for direct quotes, and a full reference list at the end. Akowe generates both simultaneously—when you add a source, it creates the formatted reference entry and inserts the correct in-text citation wherever you\'re writing. Your reference list stays alphabetized and updated automatically as you write.',
+        },
+      ],
+      conclusion: 'Stop second-guessing APA formatting rules. Akowe\'s free APA citation generator creates verified, accurate citations in seconds and builds your reference list automatically. Try Akowe free—no credit card required.',
+    },
   },
   {
     keyword: 'APA format essay example',
@@ -11650,40 +11694,38 @@ const KEYWORD_DATA: Array<{
     },
   },
 
-  // ─── HIGH COMMERCIAL INTENT OVERRIDES & NEW ENTRIES ──────────────────────
-
   {
-    keyword: 'apa citation generator',
-    title: 'APA Citation Generator — Free, Accurate, Verified Sources',
-    description: 'Generate APA 7th edition citations instantly. Free APA citation generator with verified sources from academic databases—no sign-up required for basic citations.',
-    keywords: ['apa citation generator', 'apa citation maker', 'apa reference generator', 'free apa citation generator', 'apa 7th edition citation generator'],
-    category: 'citation',
-    searchVolume: 33000,
-    difficulty: 28,
-    intent: 'transactional',
+    keyword: 'citation machine alternative',
+    title: 'Best Citation Machine Alternatives Compared',
+    description: 'Looking for a Citation Machine alternative? Compare the top free and paid citation tools—covering accuracy, style support, free tier limits, and which one actually works for academic papers.',
+    keywords: ['citation machine alternative', 'citation machine alternatives', 'best citation machine alternative', 'free citation machine alternative', 'citation machine replacement'],
+    category: 'comparison',
+    searchVolume: 3200,
+    difficulty: 18,
+    intent: 'commercial',
     content: {
-      introduction: 'An APA citation generator formats your references in APA 7th edition style automatically—saving you from memorizing dozens of formatting rules for different source types. The best generators don\'t just format what you type; they verify the source exists and pull accurate metadata directly from academic databases.',
+      introduction: 'Citation Machine (now rebranded under Chegg) was once the go-to free citation tool, but students increasingly look for alternatives due to mandatory account creation, ads, and paywalled exports. Here\'s an honest comparison of the best Citation Machine alternatives—what they offer, what they charge, and which one is best for academic writing.',
       sections: [
         {
-          heading: 'How APA Citation Generators Work',
-          content: 'A quality APA citation generator works in three steps: (1) You enter a DOI, ISBN, URL, or source title; (2) The tool queries academic databases (Crossref, OpenAlex, Google Scholar) to pull verified author names, publication dates, journal names, and volume/issue information; (3) It formats the metadata into APA 7th edition format with correct punctuation, italicization, and hanging indent. Generators that rely solely on user input—rather than database lookup—are only as accurate as what you type. Akowe\'s citation generator verifies sources against real academic databases before formatting.',
+          heading: 'Why Students Look for Citation Machine Alternatives',
+          content: 'Common reasons students switch away from Citation Machine: (1) Most export options now require a Chegg subscription ($9.95–$19.95/month); (2) The free tier shows heavy advertising that clutters the citation output; (3) Citation accuracy is inconsistent for government documents, conference papers, and media sources; (4) The tool is citation-only—no writing workspace, no source search, no plagiarism checking; (5) Some users report auto-enrolling in Chegg subscriptions after free trial. Students needing a complete academic writing tool increasingly look elsewhere.',
         },
         {
-          heading: 'APA 7th Edition: What Changed from APA 6th',
-          content: 'APA 7th edition (released 2020) introduced key changes: (1) Running heads removed for student papers (only required for manuscripts submitted for publication); (2) Up to 20 authors listed before an ellipsis (APA 6th cut off at 7); (3) DOIs formatted as hyperlinks (https://doi.org/...) rather than plain text; (4) "Retrieved from" dropped for most URLs—just include the URL itself; (5) Publisher location removed from book citations; (6) New guidance for social media, podcasts, and YouTube citations; (7) Singular "they" accepted as a gender-neutral pronoun. Many free generators still use APA 6th rules—check that yours is explicitly labeled APA 7th.',
+          heading: 'Best Free Citation Machine Alternatives',
+          content: 'Akowe: Best all-in-one alternative—citation generation with real database verification, AI writing assistance, and plagiarism checking without switching apps. Free tier covers core citation needs without subscription. Zotero: Best free standalone reference manager; excellent browser extension; integrates with Word and Google Docs; no artificial citation limits; open-source. BibGuru: Clean, modern interface with genuinely free exports; good APA and MLA accuracy; no account required for basic use. KnightCite: Completely free, no account, no ads; limited to APA, MLA, and Chicago; minimal interface. Purdue OWL: Not a generator, but the definitive free resource for learning correct citation formats in any style.',
         },
         {
-          heading: 'APA Citation Formats by Source Type',
-          content: 'Journal article: Author, A. A., & Author, B. B. (Year). Title of article. Journal Name, volume(issue), page–page. https://doi.org/... | Book: Author, A. A. (Year). Title of work: Capital letter also for subtitle. Publisher. | Website: Author, A. A. (Year, Month Day). Title of page. Site Name. URL | YouTube video: Creator, A. (Year, Month Day). Title of video [Video]. YouTube. URL | Podcast episode: Host, A. (Host). (Year, Month Day). Episode title (No. episode#) [Audio podcast episode]. In Podcast Name. Publisher. URL | Dissertation: Author, A. (Year). Title of dissertation [Doctoral dissertation, University Name]. Database Name. URL',
+          heading: 'Akowe vs. Citation Machine: Feature Comparison',
+          content: 'Source verification: Akowe checks citations against OpenAlex and Crossref databases; Citation Machine relies on user-entered data. Free exports: Akowe exports cleanly without subscription; Citation Machine requires Chegg account for ad-free exports. Citation styles: Both cover APA, MLA, Chicago, and common styles; Akowe supports 20+ styles including IEEE, Harvard, Vancouver. Writing integration: Akowe has a full writing workspace with inline citation insertion; Citation Machine is citation-only. Plagiarism checking: Akowe includes it; Citation Machine does not. AI assistance: Akowe includes AI writing help for academic papers; Citation Machine does not.',
         },
         {
-          heading: 'Why Free APA Generators Often Get It Wrong',
-          content: 'Common APA citation errors from free generators: missing DOIs, incorrect capitalization of article titles (APA uses sentence case, not title case), wrong author formatting for groups/organizations, outdated edition rules, incorrect italicization of journal vs. volume vs. issue numbers, missing "https://doi.org/" prefix for DOIs. Akowe\'s generator cross-checks metadata against academic databases so the raw data is correct before formatting—reducing the most common class of citation errors.',
+          heading: 'Which Citation Machine Alternative Is Right for You?',
+          content: 'If you just need quick citations with no account: BibGuru or KnightCite. If you\'re managing many sources across multiple projects: Zotero (free, powerful reference manager). If you want an all-in-one platform for writing, citing, and checking plagiarism: Akowe—especially for thesis, dissertation, or research paper work where you need verified academic sources and integrated citation management. If you\'re comparing features and pricing in detail: run the comparison across Akowe, Zotero, and BibGuru before committing to any subscription.',
         },
       ],
-      conclusion: 'Stop second-guessing every comma and period in your reference list. Akowe\'s APA citation generator verifies sources automatically and formats them correctly in APA 7th edition. Try it free—generate citations for books, journals, websites, and 30+ other source types without creating an account.',
-    },
-  },
+      conclusion: 'Citation Machine\'s best days as a free tool are behind it. Akowe offers everything Citation Machine does—plus real source verification, AI writing assistance, and plagiarism checking—with a genuinely free tier and no hidden Chegg subscription. Try Akowe free.',
+
+  // ─── HIGH COMMERCIAL INTENT OVERRIDES & NEW ENTRIES ──────────────────────
 
   {
     keyword: 'academic writing tool',
