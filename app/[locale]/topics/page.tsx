@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { getAllKeywordPages } from '@/lib/seo/keywords';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Academic Writing Topics - Akowe',
-  description: 'Browse academic writing topics including AI tools, citation management, plagiarism checking, thesis writing, and more. Expert guides for students and researchers.',
-  keywords: [
-    'academic writing topics',
-    'academic writing help',
-    'research paper topics',
-    'thesis writing help',
-    'academic tools',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Academic Writing Topics - Akowe',
-    description: 'Browse academic writing topics and expert guides for students and researchers.',
-    url: `${baseUrl}/topics`,
-  },
-};
+    description: 'Browse academic writing topics including AI tools, citation management, plagiarism checking, thesis writing, and more. Expert guides for students and researchers.',
+    keywords: ['academic writing topics', 'academic writing help', 'research paper topics', 'thesis writing help', 'academic tools'],
+    path: '/topics',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default async function TopicsIndexPage() {
   const pages = await getAllKeywordPages('topic');

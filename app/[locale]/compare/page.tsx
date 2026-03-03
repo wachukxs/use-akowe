@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { Link } from '@/i18n/navigation';
 import { GitCompare, ArrowRight } from 'lucide-react';
 import { getAllComparisonSlugs, getComparisonBySlug } from '@/lib/seo/comparisons';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Akowe vs Other Tools - Complete Comparison Guide',
-  description: 'Compare Akowe with other academic writing tools, citation managers, and AI assistants. See why Akowe is the best all-in-one solution for academic writing.',
-  keywords: [
-    'akowe comparison',
-    'akowe vs',
-    'academic writing tool comparison',
-    'citation manager comparison',
-    'akowe alternatives',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Akowe vs Other Tools - Complete Comparison Guide',
-    description: 'Compare Akowe with other academic writing tools, citation managers, and AI assistants.',
-    url: `${baseUrl}/compare`,
-  },
-};
+    description: 'Compare Akowe with other academic writing tools, citation managers, and AI assistants. See why Akowe is the best all-in-one solution for academic writing.',
+    keywords: ['akowe comparison', 'akowe vs', 'academic writing tool comparison', 'citation manager comparison', 'akowe alternatives'],
+    path: '/compare',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default function CompareIndexPage() {
   const comparisonSlugs = getAllComparisonSlugs();

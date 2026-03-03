@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllKeywordPages } from '@/lib/seo/keywords';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Citation Guides - Akowe',
-  description: 'Complete guides to citation styles and formatting for academic writing. Learn APA, MLA, Chicago, IEEE, and more citation formats.',
-  keywords: [
-    'citation guides',
-    'citation styles',
-    'APA citation',
-    'MLA citation',
-    'academic citations',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Citation Guides - Akowe',
-    description: 'Complete guides to citation styles and formatting for academic writing.',
-    url: `${baseUrl}/citations`,
-  },
-};
+    description: 'Complete guides to citation styles and formatting for academic writing. Learn APA, MLA, Chicago, IEEE, and more citation formats.',
+    keywords: ['citation guides', 'citation styles', 'APA citation', 'MLA citation', 'academic citations'],
+    path: '/citations',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default async function CitationsIndexPage() {
   const pages = await getAllKeywordPages('citation');

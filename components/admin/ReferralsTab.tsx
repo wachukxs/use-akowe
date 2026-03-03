@@ -826,10 +826,14 @@ export default function ReferralsTab() {
                               )}
                             </td>
                             <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-mono text-[10px] sm:text-xs">
-                              ${(c.paymentAmount / 100).toFixed(2)}
+                              {Number.isFinite(c.paymentAmount)
+                                ? `$${(c.paymentAmount / 100).toFixed(2)}`
+                                : '$0.00'}
                             </td>
                             <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-mono font-semibold text-[10px] sm:text-xs">
-                              ${(c.commissionAmount / 100).toFixed(2)}
+                              {Number.isFinite(c.commissionAmount)
+                                ? `$${(c.commissionAmount / 100).toFixed(2)}`
+                                : '$0.00'}
                             </td>
                             <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-[10px] sm:text-xs">
                               <span className="px-1.5 py-0.5 bg-[hsl(var(--accent))]/20 rounded font-mono">
@@ -1119,12 +1123,16 @@ export default function ReferralsTab() {
                         )}
                       </td>
                       <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-[10px] sm:text-xs">
-                        {influencer.activationRate !== undefined && influencer.activationRate !== null
+                        {influencer.activationRate !== undefined &&
+                        influencer.activationRate !== null &&
+                        Number.isFinite(influencer.activationRate)
                           ? `${influencer.activationRate.toFixed(1)}%`
                           : '—'}
                       </td>
                       <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-[10px] sm:text-xs">
-                        {influencer.paidConversionRate !== undefined && influencer.paidConversionRate !== null
+                        {influencer.paidConversionRate !== undefined &&
+                        influencer.paidConversionRate !== null &&
+                        Number.isFinite(influencer.paidConversionRate)
                           ? `${influencer.paidConversionRate.toFixed(1)}%`
                           : '—'}
                       </td>

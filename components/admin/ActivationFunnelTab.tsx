@@ -223,7 +223,11 @@ export default function ActivationFunnelTab() {
               </thead>
               <tbody>
                 {weeklyTrend.map((row) => {
-                  const convRate = row.signups > 0 ? ((row.subscribed / row.signups) * 100).toFixed(1) : '0.0';
+                  const rawConv =
+                    row.signups > 0 ? (row.subscribed / row.signups) * 100 : 0;
+                  const convRate = Number.isFinite(rawConv)
+                    ? rawConv.toFixed(1)
+                    : '0.0';
                   return (
                     <tr key={row.week} className="border-b border-[hsl(var(--border-strong))]/50 hover:bg-[hsl(var(--muted))]/5">
                       <td className="px-4 py-2.5 font-mono text-xs">{row.week}</td>

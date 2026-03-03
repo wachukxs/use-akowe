@@ -603,13 +603,14 @@ export default function AnalyticsTab() {
                     {formatNumber(paidUserData.conversionPatterns.totalConversions || 0)}
                   </div>
                 </div>
-                {paidUserData.conversionPatterns.averageTimeToConversion && (
+                {paidUserData.conversionPatterns.averageTimeToConversion &&
+                 typeof paidUserData.conversionPatterns.averageTimeToConversion.days === 'number' && (
                   <div>
                     <div className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] mb-1">
                       Avg Time to Convert
                     </div>
                     <div className="text-xl sm:text-2xl font-bold">
-                      {paidUserData.conversionPatterns.averageTimeToConversion.days?.toFixed(1)}d
+                      {paidUserData.conversionPatterns.averageTimeToConversion.days.toFixed(1)}d
                     </div>
                   </div>
                 )}

@@ -1,20 +1,21 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 
-const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
-
-export const metadata: Metadata = {
-  title: 'About Akowe - Academic Writing Platform',
-  description: 'Learn about Akowe, the AI-powered academic writing and research tool designed for students and scholars. Real sources, proper citations, and structured writing—all in one workspace.',
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'About Akowe - Academic Writing Platform',
-    description: 'Learn about Akowe, the AI-powered academic writing and research tool designed for students and scholars.',
-    url: `${baseUrl}/about`,
-  },
-  twitter: {
-    title: 'About Akowe - Academic Writing Platform',
-    description: 'Learn about Akowe, the AI-powered academic writing and research tool designed for students and scholars.',
-  },
-};
+    description: 'Learn about Akowe, the AI-powered academic writing and research tool designed for students and scholars. Real sources, proper citations, and structured writing—all in one workspace.',
+    keywords: ['about akowe', 'akowe platform', 'academic writing tool', 'AI research tool'],
+    path: '/about',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default function AboutLayout({
   children,

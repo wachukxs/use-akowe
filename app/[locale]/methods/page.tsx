@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import { FileText, ArrowRight } from 'lucide-react';
 import { getAllKeywordPages } from '@/lib/seo/keywords';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Research Methods Guide - Akowe',
-  description: 'Explore research methodologies for academic writing. Guides on qualitative, quantitative, and mixed methods research for theses, dissertations, and research papers.',
-  keywords: [
-    'research methods',
-    'research methodology',
-    'qualitative research',
-    'quantitative research',
-    'academic research methods',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Research Methods Guide - Akowe',
-    description: 'Explore research methodologies for academic writing.',
-    url: `${baseUrl}/methods`,
-  },
-};
+    description: 'Explore research methodologies for academic writing. Guides on qualitative, quantitative, and mixed methods research for theses, dissertations, and research papers.',
+    keywords: ['research methods', 'research methodology', 'qualitative research', 'quantitative research', 'academic research methods'],
+    path: '/methods',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default async function MethodsIndexPage() {
   const pages = await getAllKeywordPages('methodology');

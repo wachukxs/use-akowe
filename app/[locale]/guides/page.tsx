@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { Link } from '@/i18n/navigation';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { getAllGuideSlugs, getGuideBySlug } from '@/lib/seo/guides';
@@ -7,22 +8,21 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
-export const metadata: Metadata = {
-  title: 'Academic Writing Guides - Akowe',
-  description: 'Comprehensive guides for academic writing, research methods, and citation formatting. Learn how to write research papers, theses, and academic documents.',
-  keywords: [
-    'academic writing guides',
-    'research paper guides',
-    'thesis writing guides',
-    'academic writing help',
-    'research methodology guides',
-  ],
-  openGraph: {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const metadata = generateSEOMetadata({
     title: 'Academic Writing Guides - Akowe',
-    description: 'Comprehensive guides for academic writing, research methods, and citation formatting.',
-    url: `${baseUrl}/guides`,
-  },
-};
+    description: 'Comprehensive guides for academic writing, research methods, and citation formatting. Learn how to write research papers, theses, and academic documents.',
+    keywords: ['academic writing guides', 'research paper guides', 'thesis writing guides', 'academic writing help', 'research methodology guides'],
+    path: '/guides',
+  });
+  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  return metadata;
+}
 
 export default function GuidesIndexPage() {
   const guideSlugs = getAllGuideSlugs();

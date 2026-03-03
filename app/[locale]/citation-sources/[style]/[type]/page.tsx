@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getCitationSourceByTypeAndStyle, getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
@@ -19,9 +19,9 @@ export const revalidate = 86400;
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ style: string; type: string }>;
+  params: Promise<{ locale: string; style: string; type: string }>;
 }): Promise<Metadata> {
-  const { style, type } = await params;
+  const { locale, style, type } = await params;
   const citationSource = getCitationSourceByTypeAndStyle(type, style);
   const citationStyle = getCitationStyleBySlug(style);
 
@@ -31,12 +31,20 @@ export async function generateMetadata({
     };
   }
 
-  return generateSEOMetadata({
+  const metadata = generateSEOMetadata({
     title: citationSource.title,
     description: citationSource.description,
     keywords: citationSource.keywords,
     path: `/citation-sources/${style}/${type}`,
   });
+
+  // Non-English pages have canonical pointing to /en/..., so explicitly mark
+  // them noindex to prevent GSC "Crawled - not indexed" noise and save crawl budget.
+  if (locale !== 'en') {
+    metadata.robots = { index: false, follow: true };
+  }
+
+  return metadata;
 }
 
 export default async function CitationSourcePage({
@@ -48,8 +56,12 @@ export default async function CitationSourcePage({
   const citationSource = getCitationSourceByTypeAndStyle(type, style);
   const citationStyle = getCitationStyleBySlug(style);
 
-  if (!citationSource || !citationStyle) {
-    notFound();
+  if (!citationStyle) {
+    permanentRedirect('/en/citation-styles');
+  }
+
+  if (!citationSource) {
+    permanentRedirect(`/en/citation-styles/${style}`);
   }
 
   const sourceTypeName = type.charAt(0).toUpperCase() + type.slice(1);

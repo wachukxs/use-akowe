@@ -90,6 +90,19 @@ export default function ProjectEditorPage({
   const [project, setProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
+  // Debounced section change handler and editor/selection refs
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isTypingRef = useRef<boolean>(false);
+  const activeSectionRef = useRef<string | null>(null);
+  const editorSectionRef = useRef<HTMLDivElement | null>(null);
+  const editorContentEditableRef = useRef<HTMLDivElement | null>(null);
+  const storedInsertRangeRef = useRef<Range | null>(null);
+  const contextMenuPillRef = useRef<HTMLDivElement | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTouchRef = useRef<{ clientX: number; clientY: number } | null>(
+    null
+  );
+
   // Desktop experience note dismissal states
   const [showDesktopNoteTop, setShowDesktopNoteTop] = useState(false);
   const [showDesktopNoteTools, setShowDesktopNoteTools] = useState(false);
@@ -133,6 +146,28 @@ export default function ProjectEditorPage({
   useEffect(() => {
     storedInsertRangeRef.current = null;
   }, [activeSection]);
+
+  // Track copy events from the editor (GA4)
+  useEffect(() => {
+    const el = editorContentEditableRef.current;
+    if (!el) return;
+
+    const handleCopy = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+      const text = selection.toString();
+      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+      if (wordCount === 0) return;
+      const sectionTitle = activeSectionRef.current
+        ? project?.sections?.find((s) => s.id === activeSectionRef.current)?.title
+        : undefined;
+      trackEditor.textCopied(wordCount, sectionTitle);
+    };
+
+    el.addEventListener('copy', handleCopy);
+    return () => el.removeEventListener('copy', handleCopy);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorContentEditableRef.current]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
   const [isLitReviewOpen, setIsLitReviewOpen] = useState(false);
@@ -552,41 +587,6 @@ export default function ProjectEditorPage({
       setIsLoading(false);
     }
   };
-
-  // Debounced section change handler
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const isTypingRef = useRef<boolean>(false);
-  const activeSectionRef = useRef<string | null>(null);
-  const editorSectionRef = useRef<HTMLDivElement | null>(null);
-  const editorContentEditableRef = useRef<HTMLDivElement | null>(null);
-  const storedInsertRangeRef = useRef<Range | null>(null);
-  const contextMenuPillRef = useRef<HTMLDivElement | null>(null);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTouchRef = useRef<{ clientX: number; clientY: number } | null>(
-    null
-  );
-
-  // Track copy events from the editor (GA4) — declared here after editorContentEditableRef
-  useEffect(() => {
-    const el = editorContentEditableRef.current;
-    if (!el) return;
-
-    const handleCopy = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed) return;
-      const text = selection.toString();
-      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-      if (wordCount === 0) return;
-      const sectionTitle = activeSectionRef.current
-        ? project?.sections?.find((s) => s.id === activeSectionRef.current)?.title
-        : undefined;
-      trackEditor.textCopied(wordCount, sectionTitle);
-    };
-
-    el.addEventListener('copy', handleCopy);
-    return () => el.removeEventListener('copy', handleCopy);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorContentEditableRef.current]);
 
   const [contextMenuPillPosition, setContextMenuPillPosition] = useState<{
     x: number;
