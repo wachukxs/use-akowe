@@ -98,12 +98,12 @@ export default function UpgradeModal({
       {/* Modal */}
       <div className="relative bg-[hsl(var(--surface))] border-4 border-[hsl(var(--border-strong))] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[8px_8px_0_rgba(29,41,57,0.18)]">
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b-4 border-[hsl(var(--border-strong))]">
+        <div className="flex items-start justify-between p-4 md:p-6 border-b-4 border-[hsl(var(--border-strong))]">
           <div>
             <span className="text-[10px] uppercase tracking-[0.36em] text-[hsl(var(--muted-foreground))]">
               Upgrade Plan
             </span>
-            <h2 className="text-2xl font-bold uppercase tracking-[0.12em] mt-1">
+            <h2 className="text-xl md:text-2xl font-bold uppercase tracking-[0.12em] mt-1">
               {reason ? 'You\'ve hit your limit' : 'Choose a plan'}
             </h2>
             {reason && (
@@ -151,14 +151,14 @@ export default function UpgradeModal({
         </div>
 
         {/* Plans grid */}
-        <div className="grid md:grid-cols-2 gap-0 divide-x-0 md:divide-x-4 divide-[hsl(var(--border-strong))]">
+        <div className="grid md:grid-cols-2 gap-0 divide-y-4 md:divide-y-0 md:divide-x-4 divide-[hsl(var(--border-strong))]">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isHighlighted = plan.type === suggestedPlan;
             return (
               <div
                 key={plan.type}
-                className={`p-6 flex flex-col gap-4 ${isHighlighted ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]' : ''}`}
+                className={`p-4 md:p-6 flex flex-col gap-4 ${isHighlighted ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]' : ''}`}
               >
                 {isHighlighted && (
                   <span className="text-[10px] uppercase tracking-[0.32em] font-semibold">
@@ -173,7 +173,7 @@ export default function UpgradeModal({
                 </div>
 
                 <div>
-                  <span className="text-4xl font-bold">
+                  <span className="text-3xl md:text-4xl font-bold">
                     {isAnnual ? plan.annualPrice : plan.monthlyPrice}
                   </span>
                   <span className="text-sm text-[hsl(var(--muted-foreground))] ml-1">

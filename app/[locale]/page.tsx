@@ -1023,8 +1023,8 @@ function HomePageContent() {
               </button>
               <span
                 className={cn(
-                  "px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))] transition-opacity duration-200 min-w-[110px] text-center",
-                  isAnnual ? "opacity-100" : "opacity-0"
+                  "px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))] transition-all duration-200 text-center",
+                  isAnnual ? "opacity-100 visible" : "opacity-0 invisible w-0 px-0 border-0 overflow-hidden"
                 )}
                 aria-hidden={!isAnnual}
               >
@@ -1036,14 +1036,14 @@ function HomePageContent() {
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-8 md:gap-6 md:grid-cols-3">
             {/* Free Plan */}
-            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 md:p-8 flex flex-col gap-6">
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   {tHome("plans.freePlanLabel")}
                 </span>
-                <span className="text-5xl font-bold">{tHome("plans.freePlanPrice")}</span>
+                <span className="text-4xl md:text-5xl font-bold">{tHome("plans.freePlanPrice")}</span>
                 <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                   {tHome("plans.freePlanDesc")}
                 </p>
@@ -1077,7 +1077,7 @@ function HomePageContent() {
             </div>
 
             {/* Standard Plan — recommended */}
-            <div className="relative border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-8 flex flex-col gap-6">
+            <div className="relative border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-5 md:p-8 pt-8 md:pt-8 flex flex-col gap-6">
               <span className="absolute -top-4 left-4 px-3 py-1 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[10px] font-semibold uppercase tracking-[0.3em] text-[hsl(var(--foreground))]">
                 {tHome("plans.standardPlanBadge")}
               </span>
@@ -1085,7 +1085,7 @@ function HomePageContent() {
                 <span className="text-xs uppercase tracking-[0.32em]">
                   {tHome("plans.standardPlanLabel")}
                 </span>
-                <span className="text-5xl font-bold">
+                <span className="text-4xl md:text-5xl font-bold">
                   {isAnnual ? tHome("plans.standardPlanPriceAnnual") : tHome("plans.standardPlanPriceMonthly")}
                 </span>
                 <p className="text-[10px] uppercase tracking-[0.28em]">
@@ -1132,12 +1132,12 @@ function HomePageContent() {
             </div>
 
             {/* Pro Plan */}
-            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6">
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 md:p-8 flex flex-col gap-6">
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   {tHome("plans.proPlanLabel")}
                 </span>
-                <span className="text-5xl font-bold">
+                <span className="text-4xl md:text-5xl font-bold">
                   {isAnnual ? tHome("plans.proPlanPriceAnnual") : tHome("plans.proPlanPriceMonthly")}
                 </span>
                 <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
