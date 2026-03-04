@@ -160,7 +160,7 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
           <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg mt-8">
             <h2 className="text-2xl font-bold mb-4">Ready to Start Writing?</h2>
             <p className="mb-6 text-lg leading-relaxed">
-              Use Akowe to apply these citation strategies in your own research. Get AI-powered writing assistance, 
+              Use Akowe to apply these citation strategies in your own research. Get AI-powered writing assistance,
               manage citations automatically, and ensure academic integrity—all in one workspace.
             </p>
             <Link
@@ -169,6 +169,16 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
             >
               Start Writing with Akowe
             </Link>
+          </div>
+
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mt-4">
+            <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
+              Are you a blogger, educator, or YouTuber who teaches citation or academic writing?{' '}
+              <Link href="/affiliate" className="text-[hsl(var(--foreground))] font-semibold hover:underline">
+                Join the Akowe affiliate program
+              </Link>
+              {' '}and earn 30% recurring commission for every student or researcher you refer.
+            </p>
           </div>
         </article>
       </main>

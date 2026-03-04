@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import AffiliateApplication from '@/models/AffiliateApplication';
 import Influencer from '@/models/Influencer';
+import User from '@/models/User';
 import { createWithReferralCode } from '@/lib/referral';
 import { verifyAdminSession, requireFullAccess } from '@/lib/admin-auth';
 import { sendAffiliateApprovedEmail, sendAffiliateDeniedEmail } from '@/lib/email';
@@ -38,14 +39,43 @@ export async function GET() {
       influencers.map((i) => [i._id.toString(), i.referralCode])
     );
 
-    const applicationsWithCode = applications.map((a) => ({
-      ...a,
-      _id: a._id.toString(),
-      influencerId: a.influencerId?.toString(),
-      influencerReferralCode: a.influencerId
-        ? influencerMap.get(a.influencerId.toString())
-        : undefined,
-    }));
+    // Cross-check all applicant emails against Influencer and User collections so
+    // admin knows immediately if an applicant is already active in the referral system
+    const allEmails = applications.map((a) => a.email.toLowerCase());
+
+    const [existingInfluencersByEmail, existingUsersByEmail] = await Promise.all([
+      allEmails.length > 0
+        ? Influencer.find({ email: { $in: allEmails } }).select('email referralCode').lean()
+        : [],
+      allEmails.length > 0
+        ? User.find({ email: { $in: allEmails } }).select('email referralCode').lean()
+        : [],
+    ]);
+
+    const existingInfluencerEmailMap = new Map(
+      existingInfluencersByEmail.map((i) => [i.email, i.referralCode])
+    );
+    const existingUserEmailMap = new Map(
+      existingUsersByEmail.map((u) => [u.email, (u as any).referralCode ?? null])
+    );
+
+    const applicationsWithCode = applications.map((a) => {
+      const emailLower = a.email.toLowerCase();
+      const existingInfluencerCode = existingInfluencerEmailMap.get(emailLower);
+      const existingUserCode = existingUserEmailMap.get(emailLower);
+      return {
+        ...a,
+        _id: a._id.toString(),
+        influencerId: a.influencerId?.toString(),
+        influencerReferralCode: a.influencerId
+          ? influencerMap.get(a.influencerId.toString())
+          : undefined,
+        alreadyInfluencer: existingInfluencerCode !== undefined,
+        existingReferralCode: existingInfluencerCode ?? null,
+        alreadyUser: existingUserCode !== undefined,
+        userReferralCode: existingUserCode ?? null,
+      };
+    });
 
     return NextResponse.json({
       stats: { pending, approved, denied },

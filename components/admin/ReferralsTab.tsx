@@ -17,6 +17,7 @@ import {
   CheckCircle,
   ClipboardList,
   X,
+  Mail,
 } from 'lucide-react';
 import { getQualityScoreLabel } from '@/lib/influencer-quality';
 import { useAdminAuth } from '@/components/AdminAuthGuard';
@@ -121,6 +122,10 @@ interface AffiliateApplicationData {
   status: 'pending' | 'approved' | 'denied';
   reviewedAt?: string;
   influencerReferralCode?: string;
+  alreadyInfluencer?: boolean;
+  existingReferralCode?: string | null;
+  alreadyUser?: boolean;
+  userReferralCode?: string | null;
   createdAt: string;
 }
 
@@ -158,6 +163,10 @@ export default function ReferralsTab() {
   const [applicationError, setApplicationError] = useState<string | null>(null);
   const [processingApplication, setProcessingApplication] = useState<string | null>(null);
   const [copiedAppCode, setCopiedAppCode] = useState<string | null>(null);
+  const [sendingAffiliateEmail, setSendingAffiliateEmail] = useState<string | null>(null);
+  const [affiliateEmailSent, setAffiliateEmailSent] = useState<string | null>(null);
+  const [promotingUser, setPromotingUser] = useState<string | null>(null);
+  const [userPromoted, setUserPromoted] = useState<string | null>(null);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -347,6 +356,47 @@ export default function ReferralsTab() {
       setError(err instanceof Error ? err.message : 'Failed to recalculate quality score');
     } finally {
       setRecalculatingQuality(null);
+    }
+  };
+
+  const handlePromoteToInfluencer = async (id: string) => {
+    setPromotingUser(id);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/users/${id}/promote-to-influencer`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to promote user');
+      }
+      setUserPromoted(id);
+      setTimeout(() => setUserPromoted(null), 3000);
+      fetchReferralData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to promote user to influencer');
+    } finally {
+      setPromotingUser(null);
+    }
+  };
+
+  const handleSendAffiliateEmail = async (id: string) => {
+    setSendingAffiliateEmail(id);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/influencers/${id}/send-affiliate-email`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send email');
+      }
+      setAffiliateEmailSent(id);
+      setTimeout(() => setAffiliateEmailSent(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send affiliate email');
+    } finally {
+      setSendingAffiliateEmail(null);
     }
   };
 
@@ -586,9 +636,21 @@ export default function ReferralsTab() {
                             </td>
                             <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
                               {app.status === 'pending' && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600 font-semibold">
-                                  Pending
-                                </span>
+                                <div className="space-y-1">
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/20 text-yellow-600 font-semibold block">
+                                    Pending
+                                  </span>
+                                  {app.alreadyInfluencer && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-orange-500/20 text-orange-600 font-semibold block" title="This email is already active in the Influencer list">
+                                      Active Influencer
+                                    </span>
+                                  )}
+                                  {app.alreadyUser && !app.alreadyInfluencer && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-600 font-semibold block" title="This person is already an Akowe user with a referral code in Settings">
+                                      Akowe User
+                                    </span>
+                                  )}
+                                </div>
                               )}
                               {app.status === 'approved' && (
                                 <div className="space-y-1">
@@ -628,28 +690,52 @@ export default function ReferralsTab() {
                             </td>
                             <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
                               {app.status === 'pending' && (
-                                <div className="flex items-center gap-1 justify-center">
-                                  <button
-                                    onClick={() => isFullAccess && handleApprove(app._id)}
-                                    disabled={!isFullAccess || processingApplication === app._id}
-                                    title={!isFullAccess ? 'Read-only access' : 'Approve application'}
-                                    className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs bg-green-500 text-white rounded hover:bg-green-600 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
-                                  >
-                                    {processingApplication === app._id ? (
-                                      <RefreshCw size={10} className="animate-spin" />
-                                    ) : (
-                                      <Check size={10} />
-                                    )}
-                                    Approve
-                                  </button>
-                                  <button
-                                    onClick={() => isFullAccess && handleDeny(app._id)}
-                                    disabled={!isFullAccess || processingApplication === app._id}
-                                    title={!isFullAccess ? 'Read-only access' : 'Deny application'}
-                                    className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]/10 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed"
-                                  >
-                                    Deny
-                                  </button>
+                                <div className="flex flex-col items-center gap-1">
+                                  {app.alreadyInfluencer && app.existingReferralCode && (
+                                    <div className="text-[10px] text-[hsl(var(--muted-foreground))] mb-0.5">
+                                      Influencer code:{' '}
+                                      <code className="font-mono bg-[hsl(var(--accent))]/20 px-1 rounded">
+                                        {app.existingReferralCode}
+                                      </code>
+                                    </div>
+                                  )}
+                                  {app.alreadyUser && !app.alreadyInfluencer && app.userReferralCode && (
+                                    <div className="text-[10px] text-[hsl(var(--muted-foreground))] mb-0.5">
+                                      User code:{' '}
+                                      <code className="font-mono bg-[hsl(var(--accent))]/20 px-1 rounded">
+                                        {app.userReferralCode}
+                                      </code>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-1 justify-center">
+                                    <button
+                                      onClick={() => isFullAccess && handleApprove(app._id)}
+                                      disabled={!isFullAccess || processingApplication === app._id}
+                                      title={
+                                        !isFullAccess
+                                          ? 'Read-only access'
+                                          : app.alreadyInfluencer
+                                          ? 'Link application to existing influencer record and resend their code'
+                                          : 'Approve application'
+                                      }
+                                      className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs bg-green-500 text-white rounded hover:bg-green-600 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                                    >
+                                      {processingApplication === app._id ? (
+                                        <RefreshCw size={10} className="animate-spin" />
+                                      ) : (
+                                        <Check size={10} />
+                                      )}
+                                      {app.alreadyInfluencer ? 'Link & Resend' : 'Approve'}
+                                    </button>
+                                    <button
+                                      onClick={() => isFullAccess && handleDeny(app._id)}
+                                      disabled={!isFullAccess || processingApplication === app._id}
+                                      title={!isFullAccess ? 'Read-only access' : 'Deny application'}
+                                      className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]/10 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                      Deny
+                                    </button>
+                                  </div>
                                 </div>
                               )}
                               {app.status !== 'pending' && (
@@ -1161,6 +1247,20 @@ export default function ReferralsTab() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-1 sm:gap-2 justify-center">
+                            <button
+                              onClick={() => isFullAccess && handleSendAffiliateEmail(influencer._id)}
+                              disabled={!isFullAccess || sendingAffiliateEmail === influencer._id}
+                              title={!isFullAccess ? 'Read-only access' : 'Send affiliate welcome email with their referral code'}
+                              className="p-1.5 min-w-[32px] min-h-[32px] hover:bg-[hsl(var(--accent))] rounded transition-colors touch-manipulation flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              {affiliateEmailSent === influencer._id ? (
+                                <Check size={14} className="text-green-500" />
+                              ) : sendingAffiliateEmail === influencer._id ? (
+                                <RefreshCw size={14} className="animate-spin" />
+                              ) : (
+                                <Mail size={14} />
+                              )}
+                            </button>
                             {influencer.referralCount > 0 && (
                               <button
                                 onClick={() => isFullAccess && handleRecalculateQuality(influencer._id)}
@@ -1224,6 +1324,7 @@ export default function ReferralsTab() {
                   <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Plan</th>
                   <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referral Link</th>
                   <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Referrals</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1270,6 +1371,28 @@ export default function ReferralsTab() {
                       <span className="px-1.5 sm:px-2 py-0.5 bg-green-500/20 text-green-500 rounded text-[10px] sm:text-xs font-semibold">
                         {user.referralCount}
                       </span>
+                    </td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                      <button
+                        onClick={() => isFullAccess && handlePromoteToInfluencer(user._id)}
+                        disabled={!isFullAccess || promotingUser === user._id}
+                        title={!isFullAccess ? 'Read-only access' : 'Promote to affiliate — creates an Influencer record and sends the affiliate welcome email'}
+                        className="px-2 py-1.5 min-h-[32px] text-[10px] sm:text-xs border border-[hsl(var(--border-strong))] rounded hover:bg-[hsl(var(--accent))]/10 touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 mx-auto"
+                      >
+                        {userPromoted === user._id ? (
+                          <>
+                            <Check size={10} className="text-green-500" />
+                            <span className="text-green-500">Done</span>
+                          </>
+                        ) : promotingUser === user._id ? (
+                          <RefreshCw size={10} className="animate-spin" />
+                        ) : (
+                          <>
+                            <UserPlus size={10} />
+                            Promote
+                          </>
+                        )}
+                      </button>
                     </td>
                   </tr>
                 ))}

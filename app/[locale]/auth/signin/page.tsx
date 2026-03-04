@@ -53,7 +53,7 @@ function SignInForm() {
       // Store referral code in cookie before redirecting to Google
       // This allows new users signing up via Google to be tracked
       if (referralCode) {
-        document.cookie = `pending_referral=${referralCode}; path=/; max-age=3600; samesite=lax`;
+        document.cookie = `pending_referral=${referralCode}; path=/; max-age=2592000; samesite=lax${window.location.protocol === 'https:' ? '; secure' : ''}`;
       }
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error) {
