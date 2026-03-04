@@ -103,7 +103,7 @@ function SignUpForm() {
       // Store referral code in cookie before redirecting to Google
       // This will be read by the auth callback to apply the referral
       if (referralCode) {
-        document.cookie = `pending_referral=${referralCode}; path=/; max-age=3600; samesite=lax`;
+        document.cookie = `pending_referral=${referralCode}; path=/; max-age=2592000; samesite=lax${window.location.protocol === 'https:' ? '; secure' : ''}`;
       }
       
       // Store source for tracking signup_complete after redirect

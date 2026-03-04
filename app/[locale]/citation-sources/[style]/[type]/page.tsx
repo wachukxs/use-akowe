@@ -195,7 +195,7 @@ export default async function CitationSourcePage({
           <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Automate Your Citations</h2>
             <p className="mb-6 text-lg leading-relaxed">
-              Don&apos;t memorize citation formats. Use Akowe to automatically cite {type}s in {citationStyle.name} style. 
+              Don&apos;t memorize citation formats. Use Akowe to automatically cite {type}s in {citationStyle.name} style.
               Search real academic sources, add them to your paper, and Akowe formats them correctly—every time.
             </p>
             <Link
@@ -204,6 +204,16 @@ export default async function CitationSourcePage({
             >
               Try Akowe Free
             </Link>
+          </div>
+
+          <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mt-4">
+            <p className="text-sm text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
+              Are you a blogger, educator, or YouTuber who creates content for students and researchers?{' '}
+              <Link href="/affiliate" className="text-[hsl(var(--foreground))] font-semibold hover:underline">
+                Join the Akowe affiliate program
+              </Link>
+              {' '}and earn 30% recurring commission for every subscriber you refer.
+            </p>
           </div>
 
           {relatedSources.length > 0 && (
