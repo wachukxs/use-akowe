@@ -1,18 +1,18 @@
 {
   "heroControl": {
     "title": "学术写作，安全无忧、井然有序。",
-    "subtitle": "使用真实来源、查重检测和符合高校政策的 AI，撰写学位论文、研究论文和学术报告。"
+    "subtitle": "使用真实来源、查重检测和以学术诚信为先的 AI，撰写学位论文和研究论文，并按时提交。"
   },
   "heroVariantA": {
-    "title": "用真实引用，更快完成您的学位论文。",
-    "subtitle": "无需手动搜寻来源，将研究主题转化为带引用的学术草稿。",
-    "tagline": "从主题到带引用草稿，只需数分钟。"
+    "title": "在一次写作中完成一章带引用的草稿。",
+    "subtitle": "无需再切换标签页搜寻来源。Akowe 在您写作时实时查找真实学术文献，并即时插入。",
+    "tagline": "从空白页到带引用草稿——无需离开编辑器。"
   },
   "heroVariantB": {
-    "title": "撰写您信得过的学术作品。",
-    "subtitle": "使用真实来源、精准引用，在提交前完成相似度审查。",
-    "tagline": "专为高校提交标准而生。",
-    "cta": "立即开始您的学位论文"
+    "title": "满怀信心地提交论文，而不是忐忑不安。",
+    "subtitle": "来源已验证。引用精准。在 Turnitin 检测之前已完成相似度核查。一切集中在一处，确保无一遗漏。",
+    "tagline": "为自信提交而生——而非抱着侥幸心理。",
+    "cta": "免费开始您的学位论文"
   },
   "trustSignals": {
     "setup": "设置",
@@ -23,38 +23,38 @@
     "savedSub": "每月节省"
   },
   "socialProof": {
-    "title": "深受学生与研究者信赖",
-    "testimonial1Quote": "每个月至少节省 10 个小时。",
+    "title": "深受全球学生与研究者信赖",
+    "testimonial1Quote": "每个月至少节省 10 个小时。我第一次真正提前完成了论文。",
     "testimonial1Author": "—— Fatima Adeoye，欧洲博士生",
-    "testimonial2Quote": "再也不用担心 Turnitin 的意外结果。",
+    "testimonial2Quote": "再也不用担心 Turnitin 的意外结果。提交前我就已经知道自己的相似度得分。",
     "testimonial2Author": "—— Anjali Patel，北美硕士生"
   },
   "painA": {
     "heading": "截止日期不容出错。",
-    "manualResearch": "手动查找资料耗时费力。",
-    "missingCitations": "引用缺失会导致扣分。",
-    "lateFixes": "临时修改让人措手不及。",
-    "mostRush": "大多数学生在最艰难的环节仓促应对。"
+    "manualResearch": "切换标签页搜寻来源会打断写作节奏。",
+    "missingCitations": "引用缺失或错误会导致审核不通过——即便论文本身质量不错。",
+    "lateFixes": "临时修改导致决策仓促，输出质量下降。",
+    "mostRush": "大多数学生在最重要的部分匆忙应付。"
   },
   "painB": {
-    "heading": "大多数 AI 工具让学生面临风险。",
-    "fakeCitations": "虚假引用无法通过审查。",
-    "plagiarismFlags": "查重问题发现太晚。",
-    "marksDrop": "提交后成绩下滑。",
-    "submitNoTrust": "学生提交的作品自己都不放心。"
+    "heading": "大多数 AI 工具让您的成绩面临风险。",
+    "fakeCitations": "AI 幻觉引用在第一次核查时就会露馅。",
+    "plagiarismFlags": "查重问题只有在您提交之后才会浮现。",
+    "marksDrop": "成绩下滑。导师对您作品的信任也随之动摇。",
+    "submitNoTrust": "您点击提交，然后祈祷——而不是胸有成竹。"
   },
   "solutionA": {
-    "heading": "Akowe 加速学术写作。",
-    "findsSources": "即时查找学术来源",
-    "insertsCitations": "边写作边插入引用",
-    "preparesDrafts": "生成可供审阅的草稿",
-    "noBacktracking": "无需返工。无需重写。"
+    "heading": "Akowe 专注处理拖慢您进度的环节。",
+    "findsSources": "边输入边搜索真实学术数据库",
+    "insertsCitations": "插入经过验证的引用，不打断写作节奏",
+    "preparesDrafts": "结合您的研究方法构建章节框架",
+    "noBacktracking": "无需返工。无需切换标签页。无需猜测。"
   },
   "solutionB": {
-    "heading": "Akowe 守护学术诚信。",
-    "supportsResponsible": "Akowe 支持负责任的学术写作。",
-    "realSources": "专注于真实来源和引用准确性。",
-    "submitConfidence": "帮助学生自信地提交作品。"
+    "heading": "Akowe 专为学术诚信而生。",
+    "supportsResponsible": "每项功能均支持负责任、可提交的学术工作。",
+    "realSources": "来源真实可信、可核实，且格式规范。",
+    "submitConfidence": "在您的导师或 Turnitin 检测之前，先行核查相似度。"
   },
   "valueStrip": {
     "realSources": "引用真实学术来源的 AI",
@@ -82,34 +82,34 @@
     "submissionReady": "输出可直接提交的成果"
   },
   "ctaMid": {
-    "variantAHeading": "为您的论文节省数小时",
-    "variantAButton": "立即开始写作",
-    "variantANoSetup": "无需设置。无需信用卡。",
-    "variantBHeading": "提交您引以为傲的作品",
-    "variantBButton": "立即开始您的论文",
-    "variantBNoSetup": "无需设置。无需信用卡。"
+    "variantAHeading": "停止搜寻来源，开始完成章节。",
+    "variantAButton": "免费开始写作",
+    "variantANoSetup": "无需设置。无需信用卡。无任何承诺。",
+    "variantBHeading": "提交您能够自信捍卫的学术作品。",
+    "variantBButton": "免费开始您的学位论文",
+    "variantBNoSetup": "无需设置。无需信用卡。无任何承诺。"
   },
   "faq": {
     "title": "常见问题",
     "whoUses": "谁在使用 Akowe",
-    "whoUsesAnswer": "正在撰写学位论文和研究报告的学生。",
+    "whoUsesAnswer": "需要快速获取真实引用的硕博研究生及学术研究者。",
     "citationsIncluded": "是否包含引用功能",
-    "citationsIncludedAnswer": "是的，引用会随写作实时生成。",
+    "citationsIncludedAnswer": "是的——写作过程中实时从 Crossref、OpenAlex 等真实学术数据库中提取。",
     "doesInvent": "Akowe 是否会编造来源",
-    "doesInventAnswer": "不会。所有来源均可核实。",
+    "doesInventAnswer": "绝对不会。每条来源均可核实，不存在幻觉，也不存在虚假 DOI。",
     "similarityChecked": "提交前是否检测相似度",
-    "similarityCheckedAnswer": "是的，审查在导出前完成。"
+    "similarityCheckedAnswer": "是的。导出前先行检查，确保 Turnitin 不会带来任何意外。"
   },
   "whyChoose": {
     "heading": "研究者选择 Akọ̀wé 的原因",
     "mostTools": "大多数工具",
     "akowe": "Akọ̀wé",
-    "onlyOneThing": "功能单一",
-    "forceCopyPaste": "需要在多个应用间来回复制粘贴",
-    "guessingPlagiarism": "让您对查重风险一无所知",
-    "oneWorkspace": "写作、引用与诚信检测，一个工作区搞定",
-    "realSources": "真实学术来源",
-    "preSubmissionSafety": "提交前相似度安全检测"
+    "onlyOneThing": "只覆盖流程中的某一个环节",
+    "forceCopyPaste": "让您在写作、引用和检查应用之间来回复制粘贴",
+    "guessingPlagiarism": "让您在提交之后才知道查重结果",
+    "oneWorkspace": "一个编辑器，一站完成写作、真实引用和诚信检测",
+    "realSources": "来自实时学术数据库的真实来源——从不凭空捏造",
+    "preSubmissionSafety": "提交前进行相似度检测，而非提交后"
   },
   "howItWorks": {
     "heading": "使用方法",
@@ -127,12 +127,12 @@
     "feature1Title": "写得更快。听起来更学术。保持原创。",
     "feature1Desc": "在结构化编辑器中构建提纲、起草和打磨内容。获得清晰度建议、学术语气指导和基于真实来源的引用。",
     "feature2Label": "真实引用",
-    "feature2Title": "真实来源。真实引用。",
+    "feature2Title": "真实来源。真实引用。零幻觉。",
     "feature2Desc": "搜索 Crossref 和 OpenAlex 等权威学术数据库。不离开文档即可插入精准参考文献并管理引用。",
-    "feature2Badge": "无编造参考文献。无盲目 AI 输出。",
+    "feature2Badge": "无编造参考文献。无虚假 DOI。无盲目 AI 输出。",
     "feature3Label": "诚信与查重安全",
-    "feature3Title": "避免提交时的意外惊吓。",
-    "feature3Desc": "在上传前检查原创性。查看与高校通行标准一致的相似度分析，及早修正问题。",
+    "feature3Title": "在 Turnitin 之前，先掌握您的相似度得分。",
+    "feature3Desc": "在上传前检查原创性。查看与高校通行标准一致的相似度分析，及早修正问题——而非在扣分之后。",
     "ethicalBadgeTitle": "专为学术用途设计的 AI 指导",
     "ethicalNoFabricated": "无编造参考文献",
     "ethicalSupportsWriting": "支持诚信写作",
@@ -149,7 +149,7 @@
     "save": "节省",
     "freePlanLabel": "免费版",
     "freePlanPrice": "$0",
-    "freePlanDesc": "适合入门使用。",
+    "freePlanDesc": "探索 Akowe 的能力——无需绑定信用卡。",
     "freePlanAiWords": "每日 200 个 AI 字数",
     "freePlanPlagiarismChecks": "每日 1 次查重",
     "freePlanProjects": "最多 2 个项目",
@@ -162,13 +162,13 @@
     "standardPlanBilledMonthly": "按月计费，随时取消。",
     "standardPlanBilledAnnual": "按年一次性收费。",
     "standardPlanEquivalent": "约 $5.83/月",
-    "standardPlanFirstMonthOff": "常规写作者的最佳选择",
+    "standardPlanFirstMonthOff": "学位论文及毕业论文学生的最优性价比之选",
     "standardPlan2000Words": "每日 2,000 个 AI 字数",
     "standardPlan5Checks": "每日 5 次查重",
     "standardPlan10Projects": "10 个项目",
     "standardPlanGPT4": "GPT-4o mini 访问权限",
     "standardPlan10Rewrites": "每日 10 次改写",
-    "standardPlanTagline": "专为学生和常规研究者设计",
+    "standardPlanTagline": "专为正在撰写学位论文或毕业论文的学生而设",
     "standardPlanCta": "升级到标准版",
     "proPlanBadge": "高级用户",
     "proPlanLabel": "Pro 版",
@@ -184,7 +184,7 @@
     "proPlanAdvancedSearch": "高级引用搜索",
     "proPlanAdvancedAI": "高级 AI 模型访问",
     "proPlanPrioritySupport": "优先支持",
-    "proPlanTagline": "专为学术诚信而生 · 您拥有自己的作品",
+    "proPlanTagline": "专为有发表需求的研究者 · 零妥协",
     "proPlanCta": "升级至 Pro",
     "teamPlanLabel": "团队版",
     "teamPlanComingSoon": "即将推出",
@@ -217,10 +217,10 @@
     "tenHoursDesc": "使用 Akọ̀wé 的学者每月平均节省的时间。"
   },
   "finalCta": {
-    "controlHeading": "以更少的压力写出更好的研究。",
-    "controlSub": "无需设置烦恼。无风险输出。",
-    "variantAHeading": "更快完成。自信提交。",
-    "variantBHeading": "守护您的学术作品。"
+    "controlHeading": "更好的研究。更少的压力。没有捷径。",
+    "controlSub": "无需担心设置。无有风险的 AI 输出。",
+    "variantAHeading": "停止切换标签页，开始完成章节。",
+    "variantBHeading": "停止猜测，开始自信地提交。"
   },
   "imageAlt": {
     "aiAssistant": "Akowe AI 写作助手界面",

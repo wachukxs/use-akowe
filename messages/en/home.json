@@ -1,18 +1,18 @@
 {
   "heroControl": {
     "title": "Academic writing without risk or chaos.",
-    "subtitle": "Write theses, papers, and research with real sources, plagiarism checks, and AI that respects university policies."
+    "subtitle": "Write faster, cite real sources, and check for plagiarism — all before your advisor or Turnitin sees it."
   },
   "heroVariantA": {
-    "title": "Write your thesis faster with real citations.",
-    "subtitle": "Turn your topic into a cited academic draft without manual source hunting.",
-    "tagline": "From topic to cited draft in minutes."
+    "title": "Write a cited chapter draft in one session.",
+    "subtitle": "No more switching tabs to hunt for sources. Akowe finds real academic references as you write and inserts them instantly.",
+    "tagline": "From blank page to cited draft — without leaving your editor."
   },
   "heroVariantB": {
-    "title": "Write academic work you trust.",
-    "subtitle": "Use real sources, accurate citations, and similarity review before submission.",
-    "tagline": "Built for university submission standards.",
-    "cta": "Start your thesis now"
+    "title": "Submit your thesis with confidence, not anxiety.",
+    "subtitle": "Verified sources. Accurate citations. Similarity checked before Turnitin sees it. Everything in one place so nothing slips through.",
+    "tagline": "Built for confident submission — not hopeful guessing.",
+    "cta": "Start your thesis free"
   },
   "trustSignals": {
     "setup": "Setup",
@@ -23,38 +23,38 @@
     "savedSub": "Saved monthly"
   },
   "socialProof": {
-    "title": "Trusted by students & researchers",
-    "testimonial1Quote": "Saved at least 10 hours every month.",
+    "title": "Trusted by students & researchers worldwide",
+    "testimonial1Quote": "Saved at least 10 hours every month. I actually submitted early for the first time.",
     "testimonial1Author": "— Fatima Adeoye, PhD Candidate, Europe",
-    "testimonial2Quote": "No last-minute Turnitin surprises.",
+    "testimonial2Quote": "No last-minute Turnitin surprises. I knew my similarity score before I submitted.",
     "testimonial2Author": "— Anjali Patel, Masters Student, North America"
   },
   "painA": {
     "heading": "Deadlines leave no room for mistakes.",
-    "manualResearch": "Manual research eats time.",
-    "missingCitations": "Missing citations cost marks.",
-    "lateFixes": "Late fixes create panic.",
-    "mostRush": "Most students rush the hardest part."
+    "manualResearch": "Tab-switching to hunt for sources kills your momentum.",
+    "missingCitations": "Missing or wrong citations fail review — even strong work.",
+    "lateFixes": "Last-minute fixes mean rushed decisions and poor output.",
+    "mostRush": "Most students rush the sections that matter most."
   },
   "painB": {
-    "heading": "Most AI tools put students at risk.",
-    "fakeCitations": "Fake citations fail review.",
-    "plagiarismFlags": "Plagiarism flags appear late.",
-    "marksDrop": "Marks drop after submission.",
-    "submitNoTrust": "Students submit work they do not trust."
+    "heading": "Most AI tools put your grade at risk.",
+    "fakeCitations": "AI-hallucinated citations fail on the very first check.",
+    "plagiarismFlags": "Plagiarism flags only appear after you have already submitted.",
+    "marksDrop": "Marks drop. Supervisors lose trust in your work.",
+    "submitNoTrust": "You hit submit and hope — instead of knowing."
   },
   "solutionA": {
-    "heading": "Akowe speeds up academic writing.",
-    "findsSources": "Finds academic sources instantly",
-    "insertsCitations": "Inserts citations while you write",
-    "preparesDrafts": "Prepares drafts ready for review",
-    "noBacktracking": "No backtracking. No rewriting."
+    "heading": "Akowe handles the parts that slow you down.",
+    "findsSources": "Searches real academic databases as you type",
+    "insertsCitations": "Inserts verified citations without breaking your flow",
+    "preparesDrafts": "Structures chapters with your methodology in mind",
+    "noBacktracking": "No backtracking. No tab-switching. No guessing."
   },
   "solutionB": {
-    "heading": "Akowe protects academic integrity.",
-    "supportsResponsible": "Akowe supports responsible academic writing.",
-    "realSources": "It focuses on real sources and citation accuracy.",
-    "submitConfidence": "It helps students submit work with confidence."
+    "heading": "Akowe is built for academic integrity.",
+    "supportsResponsible": "Every feature supports responsible, submittable work.",
+    "realSources": "Sources are real, verifiable, and properly formatted.",
+    "submitConfidence": "Check similarity before your supervisor or Turnitin does."
   },
   "valueStrip": {
     "realSources": "AI that cites real academic sources",
@@ -82,34 +82,34 @@
     "submissionReady": "Submission-ready output"
   },
   "ctaMid": {
-    "variantAHeading": "Save hours on your thesis",
-    "variantAButton": "Start writing now",
-    "variantANoSetup": "No setup. No credit card.",
-    "variantBHeading": "Submit work you stand behind",
-    "variantBButton": "Start your thesis now",
-    "variantBNoSetup": "No setup. No credit card."
+    "variantAHeading": "Stop searching for sources. Start finishing chapters.",
+    "variantAButton": "Start writing free",
+    "variantANoSetup": "No setup. No credit card. No commitment.",
+    "variantBHeading": "Submit work you can confidently stand behind.",
+    "variantBButton": "Start your thesis free",
+    "variantBNoSetup": "No setup. No credit card. No commitment."
   },
   "faq": {
     "title": "FAQ",
     "whoUses": "Who uses Akowe",
-    "whoUsesAnswer": "Students writing theses and research papers.",
+    "whoUsesAnswer": "Graduate students, PhD candidates, and researchers who need real citations fast.",
     "citationsIncluded": "Are citations included",
-    "citationsIncludedAnswer": "Yes. Citations appear as you write.",
+    "citationsIncludedAnswer": "Yes — pulled from real academic databases like Crossref and OpenAlex as you write.",
     "doesInvent": "Does Akowe invent sources",
-    "doesInventAnswer": "No. Sources remain verifiable.",
+    "doesInventAnswer": "Never. Every source is verifiable. No hallucinations, no fake DOIs.",
     "similarityChecked": "Is similarity checked before submission",
-    "similarityCheckedAnswer": "Yes. Review happens before export."
+    "similarityCheckedAnswer": "Yes. Check before export so Turnitin holds no surprises."
   },
   "whyChoose": {
     "heading": "Why researchers choose Akọ̀wé",
     "mostTools": "Most tools",
     "akowe": "Akọ̀wé",
-    "onlyOneThing": "Only do one thing",
-    "forceCopyPaste": "Force you to copy and paste between apps",
-    "guessingPlagiarism": "Leave you guessing about plagiarism risk",
-    "oneWorkspace": "One workspace for writing, citations, and integrity",
-    "realSources": "Real academic sources",
-    "preSubmissionSafety": "Pre-submission similarity safety"
+    "onlyOneThing": "Handle only one part of the process",
+    "forceCopyPaste": "Make you copy-paste between writing, citing, and checking apps",
+    "guessingPlagiarism": "Leave you guessing about plagiarism until after submission",
+    "oneWorkspace": "One editor for writing, real citations, and integrity checks",
+    "realSources": "Real sources from live academic databases — never hallucinated",
+    "preSubmissionSafety": "Similarity check before you submit, not after"
   },
   "howItWorks": {
     "heading": "How it works",
@@ -125,14 +125,14 @@
     "subheading": "Stop switching between tools. Write in one focused workspace.",
     "feature1Label": "AI Writing Support",
     "feature1Title": "Write faster. Sound scholarly. Stay original.",
-    "feature1Desc": "Outline, draft, and refine inside a structured editor. Get clarity suggestions, academic tone guidance, and citations tied to real sources.",
+    "feature1Desc": "Outline, draft, and refine inside a structured editor. Get clarity suggestions, academic tone guidance, and citations tied to real sources — not generic AI output.",
     "feature2Label": "Real Citations",
-    "feature2Title": "Real sources. Real citations.",
-    "feature2Desc": "Search trusted academic databases like Crossref and OpenAlex. Insert accurate references and manage citations without leaving your document.",
-    "feature2Badge": "No fabricated references. No blind AI output.",
+    "feature2Title": "Real sources. Real citations. No hallucinations.",
+    "feature2Desc": "Search Crossref and OpenAlex — trusted academic databases used by universities worldwide. Insert accurate references and manage them without leaving your document.",
+    "feature2Badge": "No fabricated references. No fake DOIs. No blind AI output.",
     "feature3Label": "Integrity & Plagiarism Safety",
-    "feature3Title": "Avoid submission shocks.",
-    "feature3Desc": "Check originality before you upload. See similarity insights aligned with common university standards so you fix issues early.",
+    "feature3Title": "Know your similarity score before Turnitin does.",
+    "feature3Desc": "Check originality before you upload. See similarity insights aligned with common university standards so you fix issues early — not after marks are lost.",
     "ethicalBadgeTitle": "AI guidance built for academic use",
     "ethicalNoFabricated": "No fabricated references",
     "ethicalSupportsWriting": "Supports ethical writing",
@@ -149,7 +149,7 @@
     "save": "Save",
     "freePlanLabel": "Free plan",
     "freePlanPrice": "$0",
-    "freePlanDesc": "Perfect for getting started.",
+    "freePlanDesc": "See what Akowe can do — no card needed.",
     "freePlanAiWords": "200 AI words per day",
     "freePlanPlagiarismChecks": "1 plagiarism check per day",
     "freePlanProjects": "2 projects maximum",
@@ -162,13 +162,13 @@
     "standardPlanBilledMonthly": "Billed monthly. Cancel anytime.",
     "standardPlanBilledAnnual": "Billed once annually.",
     "standardPlanEquivalent": "≈$5.83/mo equivalent",
-    "standardPlanFirstMonthOff": "Best value for regular writers",
+    "standardPlanFirstMonthOff": "Best value for thesis and dissertation students",
     "standardPlan2000Words": "2,000 AI words per day",
     "standardPlan5Checks": "5 plagiarism checks per day",
     "standardPlan10Projects": "10 projects",
     "standardPlanGPT4": "GPT-4o mini access",
     "standardPlan10Rewrites": "10 rewrites per day",
-    "standardPlanTagline": "Perfect for students and regular researchers",
+    "standardPlanTagline": "For students finishing a thesis or dissertation",
     "standardPlanCta": "Upgrade to Standard",
     "proPlanBadge": "Power Users",
     "proPlanLabel": "Pro plan",
@@ -184,7 +184,7 @@
     "proPlanAdvancedSearch": "Advanced citation search",
     "proPlanAdvancedAI": "Advanced AI model access",
     "proPlanPrioritySupport": "Priority support",
-    "proPlanTagline": "Built for academic integrity · You own your work",
+    "proPlanTagline": "For researchers who publish · Zero compromises",
     "proPlanCta": "Upgrade to Pro",
     "teamPlanLabel": "Team plan",
     "teamPlanComingSoon": "Coming Soon",
@@ -217,10 +217,10 @@
     "tenHoursDesc": "Average time saved every month for scholars using Akọ̀wé."
   },
   "finalCta": {
-    "controlHeading": "Write better research with less stress.",
-    "controlSub": "No setup stress. No risky output.",
-    "variantAHeading": "Finish faster. Submit with confidence.",
-    "variantBHeading": "Protect your academic work."
+    "controlHeading": "Better research. Less stress. No shortcuts.",
+    "controlSub": "No setup stress. No risky AI output.",
+    "variantAHeading": "Stop switching tabs. Start finishing chapters.",
+    "variantBHeading": "Stop guessing. Start submitting with confidence."
   },
   "imageAlt": {
     "aiAssistant": "Akowe AI Writing Assistant interface",
