@@ -4,6 +4,8 @@ import { stripe, getStripePriceId } from '@/lib/stripe';
 import User from '@/models/User';
 import connectDB from '@/lib/mongodb';
 
+type PaidPlanType = 'standard' | 'pro';
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -13,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { billingCycle } = body;
+    const { billingCycle, planType = 'pro' } = body;
 
     if (!billingCycle || !['monthly', 'annual'].includes(billingCycle)) {
       return NextResponse.json(
@@ -21,6 +23,15 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (!['standard', 'pro'].includes(planType)) {
+      return NextResponse.json(
+        { error: 'Invalid plan type. Must be "standard" or "pro"' },
+        { status: 400 }
+      );
+    }
+
+    const resolvedPlanType: PaidPlanType = planType as PaidPlanType;
 
     await connectDB();
     
@@ -50,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the appropriate price ID
-    const priceId = getStripePriceId(billingCycle);
+    const priceId = getStripePriceId(billingCycle, resolvedPlanType);
 
     if (!priceId) {
       return NextResponse.json(
@@ -77,6 +88,7 @@ export async function POST(request: NextRequest) {
         userId: user._id.toString(),
         userEmail: session.user.email,
         billingCycle: billingCycle,
+        planType: resolvedPlanType,
       },
     });
 
@@ -88,7 +100,7 @@ export async function POST(request: NextRequest) {
       {
         user_id: user._id.toString(),
         billing_cycle: billingCycle,
-        plan_type: 'pro',
+        plan_type: resolvedPlanType,
       }
     );
 

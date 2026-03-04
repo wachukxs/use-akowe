@@ -4,7 +4,7 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { FileText, Settings, LogOut, PlusCircle, Menu, X, Bot, MessageSquarePlus } from 'lucide-react';
+import { FileText, Settings, LogOut, PlusCircle, Menu, X, Bot, MessageSquarePlus, Zap } from 'lucide-react';
 import Button from './ui/Button';
 import FeedbackForm from '@/components/FeedbackForm';
 import { useState, useEffect, createContext, useContext } from 'react';
@@ -337,6 +337,23 @@ export default function Sidebar() {
           <span>→</span>
         </button>
       </nav>
+
+      {/* Upgrade nudge — only for free users */}
+      {(session?.user as any)?.plan === 'free' && (
+        <div className="px-4 pb-3">
+          <Link href="/settings" onClick={() => isMobile && setIsOpen(false)}>
+            <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-3 hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform duration-150 cursor-pointer">
+              <div className="flex items-center gap-2 mb-1">
+                <Zap size={14} />
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Upgrade Plan</span>
+              </div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--accent-foreground))] opacity-80">
+                From $7/mo · More words, more projects
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
 
       <div className="p-4 border-t-[4px] border-[hsl(var(--border-strong))] mt-auto">
         <div className="flex items-center gap-3 mb-3">

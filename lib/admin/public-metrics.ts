@@ -43,7 +43,7 @@ async function getLocalRevenueMetrics() {
   for (const user of allSubscriptionUsers) {
     const billingCycle = user.billingCycle || 'monthly';
     // Include both 'pro' and 'team' plans as active paying subscriptions
-    const isActive = (user.plan === 'pro' || user.plan === 'team') && !user.subscriptionEndDate;
+    const isActive = (user.plan === 'standard' || user.plan === 'pro' || user.plan === 'team') && !user.subscriptionEndDate;
     
     if (billingCycle === 'monthly') {
       const monthlyPrice = prices.monthly;

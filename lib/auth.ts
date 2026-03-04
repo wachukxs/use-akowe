@@ -151,8 +151,8 @@ export const authOptions: NextAuthConfig = {
             // Upgrade existing VIP users from free to pro
             await User.findByIdAndUpdate(existingUser._id, { plan: 'pro' });
             console.log(`VIP user ${user.email} upgraded to pro plan`);
-          } else if (!isVIPUser(user.email) && existingUser.plan === 'pro' && !existingUser.stripeSubscriptionId) {
-            // Downgrade non-VIP users who are on pro but never paid (removed from VIP list)
+          } else if (!isVIPUser(user.email) && (existingUser.plan === 'pro' || existingUser.plan === 'standard') && !existingUser.stripeSubscriptionId) {
+            // Downgrade non-VIP users who are on a paid plan but never paid (removed from VIP list)
             await User.findByIdAndUpdate(existingUser._id, { plan: 'free' });
             console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
           }
@@ -184,8 +184,8 @@ export const authOptions: NextAuthConfig = {
             // Upgrade VIP users from free to pro
             await User.findByIdAndUpdate(user.id, { plan: 'pro' });
             console.log(`VIP user ${user.email} upgraded to pro plan`);
-          } else if (user.email && !isVIPUser(user.email) && dbUser.plan === 'pro' && !dbUser.stripeSubscriptionId) {
-            // Downgrade non-VIP users who are on pro but never paid (removed from VIP list)
+          } else if (user.email && !isVIPUser(user.email) && (dbUser.plan === 'pro' || dbUser.plan === 'standard') && !dbUser.stripeSubscriptionId) {
+            // Downgrade non-VIP users who are on a paid plan but never paid (removed from VIP list)
             await User.findByIdAndUpdate(user.id, { plan: 'free' });
             console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
           }

@@ -30,10 +30,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // If payment was successful and user is not already on a paying plan, update to pro
-    const isPayingPlan = user.plan === 'pro' || user.plan === 'team';
+    // If payment was successful and user is not already on a paying plan, update accordingly
+    const isPayingPlan = user.plan === 'pro' || user.plan === 'team' || user.plan === 'standard';
     if (checkoutSession.payment_status === 'paid' && !isPayingPlan) {
-      user.plan = 'pro';
+      const planTypeFromMeta = checkoutSession.metadata?.planType;
+      user.plan = planTypeFromMeta === 'standard' ? 'standard' : 'pro';
       // Save billing cycle from metadata
       const billingCycle = checkoutSession.metadata?.billingCycle || 'monthly';
       user.billingCycle = billingCycle as 'monthly' | 'annual';
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
         }
       }
       await user.save();
-      console.log(`✅ Updated user ${user._id} to pro plan (${billingCycle}) via confirmation with subscription dates`);
+      console.log(`✅ Updated user ${user._id} to ${user.plan} plan (${billingCycle}) via confirmation with subscription dates`);
       
       // Get subscription price for tracking
       let priceInDollars = 0;
@@ -73,8 +74,9 @@ export async function POST(request: NextRequest) {
           }
         } catch (error) {
           console.error('Error fetching price for tracking:', error);
-          // Fallback: estimate based on billing cycle
-          priceInDollars = billingCycle === 'annual' ? 120 : 12;
+          // Fallback: estimate based on billing cycle and plan
+          const isSt = user.plan === 'standard';
+          priceInDollars = billingCycle === 'annual' ? (isSt ? 70 : 120) : (isSt ? 7 : 12);
         }
       }
       
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
         {
           user_id: user._id.toString(),
           billing_cycle: billingCycle,
-          plan_type: 'pro',
+          plan_type: user.plan,
           value: priceInDollars,
           currency: 'USD',
         }

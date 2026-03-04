@@ -1,6 +1,6 @@
 export type ProjectType = 'essay' | 'thesis' | 'journal' | 'research';
 export type ProjectStatus = 'draft' | 'in_progress' | 'completed' | 'archived';
-export type PlanType = 'free' | 'pro' | 'team';
+export type PlanType = 'free' | 'standard' | 'pro' | 'team';
 export type SectionType = 'introduction' | 'literature_review' | 'methodology' | 'results' | 'discussion' | 'conclusion' | 'custom';
 
 export interface User {
@@ -174,6 +174,13 @@ export const PLAN_LIMITS: Record<PlanType, UsageLimits> = {
     paraphrasePerDay: 2,
     litReviewAnalysesPerDay: 1,
     maxProjects: 2,
+  },
+  standard: {
+    aiWordsPerDay: 2000,
+    plagiarismChecksPerDay: 5,
+    paraphrasePerDay: 10,
+    litReviewAnalysesPerDay: 5,
+    maxProjects: 10,
   },
   pro: {
     aiWordsPerDay: Infinity,
