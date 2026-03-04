@@ -215,19 +215,19 @@ export default function SettingsPage() {
   };
 
   const handleUpgrade = async (planType: PlanType) => {
-    if (planType === 'free') return;
-    
+    if (planType === 'free' || planType === 'team') return;
+
     setIsUpgrading(true);
-    
+
     try {
       // Determine billing cycle based on toggle state
       const billingCycle = isAnnual ? 'annual' : 'monthly';
-      
+
       // Create checkout session
       const response = await fetch('/api/payment/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ billingCycle }),
+        body: JSON.stringify({ billingCycle, planType }),
       });
 
       if (response.ok) {
@@ -284,11 +284,11 @@ alert(t('alerts.failedCheckoutSession'));
     }
   };
 
-  const planFeatureCounts: Record<PlanType, number> = { free: 5, pro: 6, team: 6 };
+  const planFeatureCounts: Record<PlanType, number> = { free: 5, standard: 6, pro: 6, team: 6 };
   const plans = [
     { type: 'free' as PlanType, icon: Check, color: 'from-gray-400 to-gray-600', popular: false, comingSoon: false },
+    { type: 'standard' as PlanType, icon: Users, color: 'from-blue-500 to-cyan-500', popular: false, comingSoon: false },
     { type: 'pro' as PlanType, icon: Crown, color: 'from-indigo-500 to-purple-500', popular: true, comingSoon: false },
-    { type: 'team' as PlanType, icon: Users, color: 'from-teal-500 to-blue-500', popular: false, comingSoon: true },
   ];
 
   if (isLoading) {
@@ -613,18 +613,18 @@ alert(t('alerts.failedCheckoutSession'));
                     </h3>
                     
                     <div className="mb-4 md:mb-6">
-                      {plan.type === 'pro' ? (
+                      {(plan.type === 'pro' || plan.type === 'standard') ? (
                         <div>
                           <div className="flex items-baseline gap-2 mb-1">
                             <span className="text-3xl md:text-4xl font-bold text-gray-900">
-                              {isAnnual ? t('plans.pro.annualPrice') : t('plans.pro.monthlyPrice')}
+                              {isAnnual ? t(`plans.${plan.type}.annualPrice`) : t(`plans.${plan.type}.monthlyPrice`)}
                             </span>
                             <span className="text-xs text-gray-400 ml-2">
                               ({isAnnual ? t('plans.annual') : t('plans.monthly')})
                             </span>
                           </div>
                           <div className="text-sm text-gray-600">
-                            {isAnnual ? t('plans.pro.annualPeriod') : t('plans.pro.monthlyPeriod')}
+                            {isAnnual ? t(`plans.${plan.type}.annualPeriod`) : t(`plans.${plan.type}.monthlyPeriod`)}
                           </div>
                           <div
                             className={`text-xs text-gray-600 mt-1 min-h-[16px] transition-opacity duration-200 ${
@@ -632,7 +632,7 @@ alert(t('alerts.failedCheckoutSession'));
                             }`}
                             aria-hidden={!isAnnual}
                           >
-                            {t('plans.pro.billedAnnually')}
+                            {t(`plans.${plan.type}.billedAnnually`)}
                           </div>
                           <div
                             className={`text-xs text-blue-600 mt-1 font-medium min-h-[16px] transition-opacity duration-200 ${
@@ -640,7 +640,7 @@ alert(t('alerts.failedCheckoutSession'));
                             }`}
                             aria-hidden={isAnnual}
                           >
-                            {t('plans.pro.firstMonthOff')}
+                            {t(`plans.${plan.type}.firstMonthOff`)}
                           </div>
                           <div
                             className={`text-sm text-green-600 mt-1 font-medium min-h-[20px] transition-opacity duration-200 ${
@@ -648,7 +648,7 @@ alert(t('alerts.failedCheckoutSession'));
                             }`}
                             aria-hidden={!isAnnual}
                           >
-                            {t('plans.pro.annualSavings')}
+                            {t(`plans.${plan.type}.annualSavings`)}
                           </div>
                         </div>
                       ) : (
@@ -691,8 +691,8 @@ alert(t('alerts.failedCheckoutSession'));
             </div>
           </div>
 
-          {/* Subscription Management - Only for Pro users */}
-          {(session?.user as any)?.plan === 'pro' && subscriptionStatus && (
+          {/* Subscription Management - Only for paying users */}
+          {((session?.user as any)?.plan === 'pro' || (session?.user as any)?.plan === 'standard') && subscriptionStatus && (
             <Card className="p-4 md:p-6 mb-6 md:mb-8">
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
                 {t('subscription.title')}
@@ -704,7 +704,7 @@ alert(t('alerts.failedCheckoutSession'));
                     <span className="font-medium text-gray-900">{t('subscription.active')}</span>
                   </div>
                   <p className="text-sm text-gray-600">
-                    {t('subscription.subscribedTo', { cycle: subscriptionStatus.billingCycle === 'annual' ? t('plans.annual') : t('plans.monthly') })}
+                    {t('subscription.subscribedTo', { plan: (session?.user as any)?.plan === 'standard' ? 'Standard' : 'Pro', cycle: subscriptionStatus.billingCycle === 'annual' ? t('plans.annual') : t('plans.monthly') })}
                   </p>
                   {subscriptionStatus.subscriptionEnd && (
                     <p className="text-sm text-gray-600 mt-2">

@@ -1023,8 +1023,8 @@ function HomePageContent() {
               </button>
               <span
                 className={cn(
-                  "px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))] transition-opacity duration-200 min-w-[110px] text-center",
-                  isAnnual ? "opacity-100" : "opacity-0"
+                  "px-3 py-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))] transition-all duration-200 text-center",
+                  isAnnual ? "opacity-100 visible" : "opacity-0 invisible w-0 px-0 border-0 overflow-hidden"
                 )}
                 aria-hidden={!isAnnual}
               >
@@ -1036,13 +1036,14 @@ function HomePageContent() {
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6">
+          <div className="grid gap-8 md:gap-6 md:grid-cols-3">
+            {/* Free Plan */}
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 md:p-8 flex flex-col gap-6">
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
                   {tHome("plans.freePlanLabel")}
                 </span>
-                <span className="text-5xl font-bold">{tHome("plans.freePlanPrice")}</span>
+                <span className="text-4xl md:text-5xl font-bold">{tHome("plans.freePlanPrice")}</span>
                 <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                   {tHome("plans.freePlanDesc")}
                 </p>
@@ -1075,27 +1076,76 @@ function HomePageContent() {
               </p>
             </div>
 
-            <div className="relative border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-8 flex flex-col gap-6">
+            {/* Standard Plan — recommended */}
+            <div className="relative border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-5 md:p-8 pt-8 md:pt-8 flex flex-col gap-6">
               <span className="absolute -top-4 left-4 px-3 py-1 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[10px] font-semibold uppercase tracking-[0.3em] text-[hsl(var(--foreground))]">
-                {tHome("plans.proPlanBadge")}
+                {tHome("plans.standardPlanBadge")}
               </span>
               <div className="space-y-2">
                 <span className="text-xs uppercase tracking-[0.32em]">
-                  {tHome("plans.proPlanLabel")}
+                  {tHome("plans.standardPlanLabel")}
                 </span>
-                <span className="text-5xl font-bold">
-                  {isAnnual ? tHome("plans.proPlanPriceAnnual") : tHome("plans.proPlanPriceMonthly")}
+                <span className="text-4xl md:text-5xl font-bold">
+                  {isAnnual ? tHome("plans.standardPlanPriceAnnual") : tHome("plans.standardPlanPriceMonthly")}
                 </span>
                 <p className="text-[10px] uppercase tracking-[0.28em]">
+                  {isAnnual
+                    ? tHome("plans.standardPlanBilledAnnual")
+                    : tHome("plans.standardPlanBilledMonthly")}
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] min-h-[14px]">
+                  {isAnnual ? (
+                    tHome("plans.standardPlanEquivalent")
+                  ) : (
+                    <span className="font-semibold">{tHome("plans.standardPlanFirstMonthOff")}</span>
+                  )}
+                </p>
+              </div>
+              <ul className="space-y-3 text-xs uppercase tracking-[0.24em]">
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.standardPlan2000Words")}
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.standardPlan5Checks")}
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.standardPlan10Projects")}
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.standardPlanGPT4")}
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.standardPlan10Rewrites")}
+                </li>
+              </ul>
+              <Link href="/auth/signin">
+                <Button className="w-full py-4">{tHome("plans.standardPlanCta")}</Button>
+              </Link>
+              <p className="text-[10px] uppercase tracking-[0.24em] text-center">
+                {tHome("plans.standardPlanTagline")}
+              </p>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 md:p-8 flex flex-col gap-6">
+              <div className="space-y-2">
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                  {tHome("plans.proPlanLabel")}
+                </span>
+                <span className="text-4xl md:text-5xl font-bold">
+                  {isAnnual ? tHome("plans.proPlanPriceAnnual") : tHome("plans.proPlanPriceMonthly")}
+                </span>
+                <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                   {isAnnual
                     ? tHome("plans.proPlanBilledAnnual")
                     : tHome("plans.proPlanBilledMonthly")}
                 </p>
-                <p
-                  className={cn(
-                    "text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--foreground))] min-h-[14px]"
-                  )}
-                >
+                <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] min-h-[14px]">
                   {isAnnual ? (
                     tHome("plans.proPlanEquivalent")
                   ) : (
@@ -1103,7 +1153,7 @@ function HomePageContent() {
                   )}
                 </p>
               </div>
-              <ul className="space-y-3 text-xs uppercase tracking-[0.24em]">
+              <ul className="space-y-3 text-xs uppercase tracking-[0.24em] text-[hsl(var(--foreground))]">
                 <li className="flex items-center gap-3">
                   <Check size={16} />
                   {tHome("plans.proPlanUnlimitedWords")}
@@ -1130,44 +1180,11 @@ function HomePageContent() {
                 </li>
               </ul>
               <Link href="/auth/signin">
-                <Button className="w-full py-4">{tHome("plans.proPlanCta")}</Button>
+                <Button variant="outline" className="w-full py-4">{tHome("plans.proPlanCta")}</Button>
               </Link>
-              <p className="text-[10px] uppercase tracking-[0.24em] text-center">
+              <p className="text-[10px] uppercase tracking-[0.24em] text-center text-[hsl(var(--muted-foreground))]">
                 {tHome("plans.proPlanTagline")}
               </p>
-            </div>
-
-            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 flex flex-col gap-6 opacity-80">
-              <div className="space-y-2">
-                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
-                  {tHome("plans.teamPlanLabel")}
-                </span>
-                <span className="text-4xl font-bold">{tHome("plans.teamPlanComingSoon")}</span>
-                <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
-                  {tHome("plans.teamPlanDesc")}
-                </p>
-              </div>
-              <ul className="space-y-3 text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-                <li className="flex items-center gap-3">
-                  <Check size={16} />
-                  {tHome("plans.teamPlanEverythingInPro")}
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check size={16} />
-                  {tHome("plans.teamPlanSharedWorkspaces")}
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check size={16} />
-                  {tHome("plans.teamPlanAdminControls")}
-                </li>
-                <li className="flex items-center gap-3">
-                  <Check size={16} />
-                  {tHome("plans.teamPlanCentralBibliography")}
-                </li>
-              </ul>
-              <Button variant="ghost" className="w-full py-4" disabled>
-                {tHome("plans.teamPlanCta")}
-              </Button>
             </div>
           </div>
         </div>

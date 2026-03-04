@@ -1341,6 +1341,8 @@ export default function ReferralsTab() {
                         className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs ${
                           user.plan === 'pro'
                             ? 'bg-blue-500/20 text-blue-500'
+                            : user.plan === 'standard'
+                            ? 'bg-cyan-500/20 text-cyan-600'
                             : user.plan === 'team'
                             ? 'bg-purple-500/20 text-purple-500'
                             : 'bg-gray-500/20 text-gray-500'
@@ -1444,6 +1446,8 @@ export default function ReferralsTab() {
                         className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs ${
                           user.plan === 'pro'
                             ? 'bg-blue-500/20 text-blue-500'
+                            : user.plan === 'standard'
+                            ? 'bg-cyan-500/20 text-cyan-600'
                             : user.plan === 'team'
                             ? 'bg-purple-500/20 text-purple-500'
                             : 'bg-gray-500/20 text-gray-500'

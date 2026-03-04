@@ -13,13 +13,25 @@
  * customer.subscription.deleted, invoice.payment_failed, charge.refunded
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { stripe, getPlanTypeFromProductId } from '@/lib/stripe';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import AffiliateCommission from '@/models/AffiliateCommission';
 import { trackPaywallEvent } from '@/lib/paywall-tracking';
 import { sendGA4ServerEvent } from '@/lib/ga4-server';
 import { sendPaymentFailedEmail } from '@/lib/email';
+
+async function getPlanTypeFromSubscription(subscription: any): Promise<'standard' | 'pro'> {
+  try {
+    const productId = subscription.items?.data[0]?.price?.product;
+    if (productId && typeof productId === 'string') {
+      return getPlanTypeFromProductId(productId);
+    }
+  } catch {
+    // fall through to default
+  }
+  return 'pro';
+}
 
 const GRACE_PERIOD_DAYS = 3;
 // Commission rate: 30% of each payment for up to 12 months after the referred user's first payment
@@ -61,25 +73,31 @@ export async function POST(request: NextRequest) {
         const session = event.data.object as any;
         const userId = session.metadata?.userId;
         const billingCycle = session.metadata?.billingCycle || 'monthly';
-        
+        const planTypeFromMeta = session.metadata?.planType;
+
         if (userId && session.subscription) {
           // Fetch subscription to get creation date
           try {
             const subscription = await stripe.subscriptions.retrieve(
               typeof session.subscription === 'string' ? session.subscription : session.subscription.id
             );
-            
+
+            // Determine plan type: prefer metadata, fall back to product ID lookup
+            const resolvedPlanType = planTypeFromMeta === 'standard'
+              ? 'standard'
+              : await getPlanTypeFromSubscription(subscription);
+
             const userBeforeUpdate = await User.findById(userId).lean();
             const wasFreeUser = userBeforeUpdate && userBeforeUpdate.plan === 'free';
-            
+
             await User.findByIdAndUpdate(userId, {
-              plan: 'pro',
+              plan: resolvedPlanType,
               stripeSubscriptionId: subscription.id,
               billingCycle: billingCycle,
               subscriptionStartDate: new Date(subscription.created * 1000),
               subscriptionEndDate: null, // Active subscription
             });
-            console.log(`✅ Updated user ${userId} to pro plan (${billingCycle}) with subscription start date`);
+            console.log(`✅ Updated user ${userId} to ${resolvedPlanType} plan (${billingCycle}) with subscription start date`);
 
             // Record first-payment affiliate commission if this user was referred
             if (wasFreeUser && (userBeforeUpdate.referredBy || userBeforeUpdate.referredByInfluencer)) {
@@ -150,7 +168,7 @@ export async function POST(request: NextRequest) {
                   params: {
                     user_id: userId,
                     billing_cycle: billingCycle,
-                    plan_type: 'pro',
+                    plan_type: resolvedPlanType,
                     value: priceInDollars,
                     currency: 'USD',
                     timestamp: Date.now(),
@@ -166,7 +184,7 @@ export async function POST(request: NextRequest) {
                 name: 'subscription_started',
                 params: {
                   billing_cycle: billingCycle,
-                  plan_type: 'pro',
+                  plan_type: resolvedPlanType,
                   value: priceInDollars,
                   currency: 'USD',
                   subscription_id: subscription.id,
@@ -176,7 +194,7 @@ export async function POST(request: NextRequest) {
                 name: 'purchase',
                 params: {
                   billing_cycle: billingCycle,
-                  plan_type: 'pro',
+                  plan_type: resolvedPlanType,
                   value: priceInDollars,
                   currency: 'USD',
                 },
@@ -185,11 +203,12 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             console.error('Error fetching subscription in webhook:', error);
             // Fallback: use current date as start and clear end date (user is re-subscribing)
+            const fallbackPlanType = planTypeFromMeta === 'standard' ? 'standard' : 'pro';
             const userBeforeUpdate = await User.findById(userId).lean();
             const wasFreeUser = userBeforeUpdate && userBeforeUpdate.plan === 'free';
-            
+
             await User.findByIdAndUpdate(userId, {
-              plan: 'pro',
+              plan: fallbackPlanType,
               stripeSubscriptionId: typeof session.subscription === 'string' ? session.subscription : session.subscription.id,
               billingCycle: billingCycle,
               subscriptionStartDate: new Date(), // Fallback to current date
@@ -246,12 +265,13 @@ export async function POST(request: NextRequest) {
         switch (subscription.status) {
           case 'active':
           case 'trialing': {
-            // Keep user on Pro or Team plan (both are paying plans)
+            // Keep user on Pro, Standard, or Team plan (all are paying plans)
             const subscriptionStart = new Date(subscription.created * 1000);
-            const isPayingPlan = user.plan === 'pro' || user.plan === 'team';
+            const isPayingPlan = user.plan === 'pro' || user.plan === 'team' || user.plan === 'standard';
             const hadGracePeriod = !!user.paymentGraceDeadline;
             if (!isPayingPlan || !user.subscriptionStartDate) {
-              user.plan = 'pro';
+              // Detect plan from product ID when activating
+              user.plan = await getPlanTypeFromSubscription(subscription);
               user.stripeSubscriptionId = subscription.id;
               user.subscriptionStartDate = subscriptionStart;
               user.subscriptionEndDate = null;
@@ -271,8 +291,8 @@ export async function POST(request: NextRequest) {
           
           case 'past_due':
           case 'unpaid': {
-            // Start grace period — keep user on Pro for GRACE_PERIOD_DAYS before downgrade
-            const isPayingPlanPastDue = user.plan === 'pro' || user.plan === 'team';
+            // Start grace period — keep user on their plan for GRACE_PERIOD_DAYS before downgrade
+            const isPayingPlanPastDue = user.plan === 'pro' || user.plan === 'team' || user.plan === 'standard';
             if (isPayingPlanPastDue && !user.paymentGraceDeadline) {
               const deadline = new Date();
               deadline.setDate(deadline.getDate() + GRACE_PERIOD_DAYS);
@@ -341,7 +361,7 @@ export async function POST(request: NextRequest) {
           break;
         }
 
-        const isPayingPlan = user.plan === 'pro' || user.plan === 'team';
+        const isPayingPlan = user.plan === 'pro' || user.plan === 'team' || user.plan === 'standard';
         if (isPayingPlan && !user.paymentGraceDeadline) {
           const deadline = new Date();
           deadline.setDate(deadline.getDate() + GRACE_PERIOD_DAYS);
@@ -369,7 +389,7 @@ export async function POST(request: NextRequest) {
           break;
         }
 
-        if (user.plan === 'pro' || user.plan === 'team') {
+        if (user.plan === 'pro' || user.plan === 'team' || user.plan === 'standard') {
           user.plan = 'free';
           user.stripeSubscriptionId = undefined;
           user.subscriptionEndDate = new Date();

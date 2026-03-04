@@ -56,7 +56,7 @@ export async function calculateInfluencerQuality(
 
   // Count paid users (users on pro or team plan)
   const paidUsers = referredUsers.filter(
-    (u) => u.plan === 'pro' || u.plan === 'team'
+    (u) => u.plan === 'standard' || u.plan === 'pro' || u.plan === 'team'
   ).length;
 
   // Calculate activation rate (users with projects / total referrals)

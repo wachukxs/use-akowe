@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Find users whose grace period has expired and are still on a paying plan
     const expiredUsers = await User.find({
       paymentGraceDeadline: { $lte: now },
-      plan: { $in: ['pro', 'team'] },
+      plan: { $in: ['standard', 'pro', 'team'] },
     });
 
     let downgraded = 0;

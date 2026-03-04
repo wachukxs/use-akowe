@@ -48,6 +48,24 @@
         "基础引用支持"
       ]
     },
+    "standard": {
+      "name": "标准版",
+      "monthlyPrice": "$7",
+      "monthlyPeriod": "每月",
+      "annualPrice": "$70",
+      "annualPeriod": "每年",
+      "annualSavings": "每年节省 $14",
+      "billedAnnually": "按年一次性收费（约 $5.83/月）。",
+      "firstMonthOff": "学位论文及毕业论文学生的最优性价比之选",
+      "features": [
+        "每日 2,000 个 AI 字数",
+        "每日 5 次查重",
+        "10 个项目",
+        "GPT-4o mini 访问权限",
+        "高级引用搜索",
+        "每日 10 次改写"
+      ]
+    },
     "pro": {
       "name": "Pro 版",
       "monthlyPrice": "$12",
@@ -65,25 +83,12 @@
         "GPT-4 访问权限",
         "优先支持"
       ]
-    },
-    "team": {
-      "name": "团队版",
-      "price": "即将推出",
-      "period": "",
-      "features": [
-        "包含 Pro 版全部功能",
-        "10 名团队成员",
-        "共享工作区",
-        "管理员控制",
-        "共享引用库",
-        "团队数据分析"
-      ]
     }
   },
   "subscription": {
     "title": "订阅管理",
     "active": "有效订阅",
-    "subscribedTo": "您已订阅 Pro 方案，计费周期：{cycle}。",
+    "subscribedTo": "您已订阅 {plan} 方案，计费周期：{cycle}。",
     "nextRenewal": "下次续费：",
     "managePrompt": "需要取消订阅？您可以通过 Stripe 管理您的订阅和账单。",
     "manageButton": "管理订阅 →"

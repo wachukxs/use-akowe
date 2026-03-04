@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { X, Search, Sparkles, AlertCircle, CheckCircle2, Lightbulb, Lock, ArrowRight, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
+import UpgradeModal from '@/components/UpgradeModal';
 import { cn } from '@/lib/utils';
-import { Link } from '@/i18n/navigation';
 import { trackFunnel } from '@/lib/gtag';
 
 interface ResearchGap {
@@ -49,7 +49,7 @@ interface TopicFinderModalProps {
   initialTopic?: string;
   projectType?: 'essay' | 'thesis' | 'research' | 'journal';
   methodology?: string;
-  userPlan?: 'free' | 'pro' | 'team';
+  userPlan?: 'free' | 'standard' | 'pro' | 'team';
 }
 
 export default function TopicFinderModal({
@@ -68,10 +68,11 @@ export default function TopicFinderModal({
   const [result, setResult] = useState<TopicResult | null>(null);
   const [error, setError] = useState('');
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<TopicSuggestion | null>(null);
   const t = useTranslations('components.topicFinderModal');
 
-  const isPro = userPlan === 'pro' || userPlan === 'team';
+  const isPro = userPlan === 'pro' || userPlan === 'team' || userPlan === 'standard';
 
   useEffect(() => {
     if (isOpen && initialTopic) {
@@ -216,6 +217,13 @@ export default function TopicFinderModal({
   if (!isOpen) return null;
 
   return (
+    <>
+    <UpgradeModal
+      isOpen={showUpgradeModal}
+      onClose={() => setShowUpgradeModal(false)}
+      reason="Unlock more topic suggestions and AI insights."
+      suggestedPlan="standard"
+    />
     <div className="fixed inset-0 bg-[hsl(var(--foreground))]/70 z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)] flex flex-col">
         {/* Header */}
@@ -475,12 +483,10 @@ export default function TopicFinderModal({
                       <p className="text-xs uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))] mb-3">
                         {t('upgradeBody')}
                       </p>
-                      <Link href="/settings">
-                        <Button className="w-full py-2 text-xs">
-                          {t('upgradeCta')}
-                          <ArrowRight size={14} className="ml-2" />
-                        </Button>
-                      </Link>
+                      <Button className="w-full py-2 text-xs" onClick={() => setShowUpgradeModal(true)}>
+                        {t('upgradeCta')}
+                        <ArrowRight size={14} className="ml-2" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -536,5 +542,6 @@ export default function TopicFinderModal({
         </div>
       </div>
     </div>
+    </>
   );
 }

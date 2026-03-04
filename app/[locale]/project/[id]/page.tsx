@@ -44,6 +44,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import UpgradeModal from "@/components/UpgradeModal";
 import ShareReviewModal from "@/components/ShareReviewModal";
 import ReviewCommentsPanel from "@/components/ReviewCommentsPanel";
 import Input from "@/components/ui/Input";
@@ -614,6 +615,8 @@ export default function ProjectEditorPage({
   const [rewriteNewWordCount, setRewriteNewWordCount] = useState(0);
   const rewritePanelRef = useRef<HTMLDivElement | null>(null);
   const [rewriteLimitReached, setRewriteLimitReached] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeModalReason, setUpgradeModalReason] = useState<string | undefined>();
   const [rewriteRemaining, setRewriteRemaining] = useState<number | null>(null);
   const [rewriteLimit, setRewriteLimit] = useState<number | null>(null);
 
@@ -966,13 +969,10 @@ export default function ProjectEditorPage({
           // The response should still contain the preview content
           console.warn("Variant B: Preview mode - export will require upgrade");
         } else {
-          // Variant A: Block completely
+          // Variant A: Block completely — show upgrade modal
           console.error("AI Assistant error:", errorData);
-          setShowSuccessMessage(
-            errorData.error ||
-              "Daily word limit reached. Upgrade to Pro for unlimited AI assistance!"
-          );
-          setTimeout(() => setShowSuccessMessage(""), 6000);
+          setUpgradeModalReason("Daily AI word limit reached.");
+          setShowUpgradeModal(true);
         }
       } else {
         const errorData = await response.json();
@@ -2810,6 +2810,12 @@ export default function ProjectEditorPage({
 
   return (
     <>
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason={upgradeModalReason}
+        suggestedPlan="standard"
+      />
       <FirstProjectCompletion />
       <style jsx>{`
         .prose ul {
@@ -5174,12 +5180,13 @@ title={t("deleteSection")}
                     </div>
                     <p className="text-sm font-semibold mb-1">{t("rewriteUpgradeTitle")}</p>
                     <p className="text-xs text-[hsl(var(--muted-foreground))] mb-4">{t("rewriteUpgradeBody")}</p>
-                    <NavLink
-                      href="/settings"
-                      className="block w-full px-3 py-2.5 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity text-center"
+                    <button
+                      type="button"
+                      onClick={() => { setUpgradeModalReason("Daily rewrite limit reached."); setShowUpgradeModal(true); }}
+                      className="block w-full px-3 py-2.5 rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-sm font-semibold hover:opacity-90 transition-opacity text-center cursor-pointer"
                     >
                       {t("rewriteUpgradeCta")}
-                    </NavLink>
+                    </button>
                   </div>
                 ) : (
                   <>

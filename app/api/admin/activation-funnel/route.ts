@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       const data = weeklyData.get(week)!;
       data.emails.push(u.email);
       data.signups++;
-      if (u.plan === 'pro' || u.plan === 'team') data.subscribers++;
+      if (u.plan === 'standard' || u.plan === 'pro' || u.plan === 'team') data.subscribers++;
     }
 
     // Get all Activation records for these users
