@@ -188,48 +188,26 @@ export async function getFixedWindowRetentionMetrics(periodDays: number) {
       ? (churnedUsers / usersActiveInCohort.length) * 100
       : 0;
 
-  // --- Week 1 Retention (cohort-based) ---
-  // Cohort: ALL users who signed up at least 14 days ago (so their week 1 window has fully passed).
-  // For each user, check if they had activity 7-14 days after their signup.
+  // --- Week 1 & Week 4 Retention (cohort-based, same cohort) ---
+  // Use users who signed up at least 35 days ago so both their week 1 (days 7-14)
+  // and week 4 (days 21-28) windows have fully elapsed.
+  // Both metrics must use the SAME cohort so they form a meaningful retention curve.
   const now = new Date();
-  const w1CohortCutoff = new Date(now);
-  w1CohortCutoff.setUTCDate(now.getUTCDate() - 14);
-  w1CohortCutoff.setUTCHours(0, 0, 0, 0);
+  const cohortCutoff = new Date(now);
+  cohortCutoff.setUTCDate(now.getUTCDate() - 35);
+  cohortCutoff.setUTCHours(0, 0, 0, 0);
 
-  // --- Week 4 Retention (cohort-based) ---
-  // Cohort: ALL users who signed up at least 35 days ago (so their week 4 window has fully passed).
-  // For each user, check if they had activity 21-28 days after their signup.
-  const w4CohortCutoff = new Date(now);
-  w4CohortCutoff.setUTCDate(now.getUTCDate() - 35);
-  w4CohortCutoff.setUTCHours(0, 0, 0, 0);
+  const cohortUsers = await User.find({
+    createdAt: { $lt: cohortCutoff },
+  })
+    .select('_id createdAt')
+    .lean();
 
-  // Fetch both cohorts in parallel
-  const [w1CohortUsers, w4CohortUsers] = await Promise.all([
-    User.find({
-      createdAt: { $lt: w1CohortCutoff },
-    })
-      .select('_id createdAt')
-      .lean(),
-    User.find({
-      createdAt: { $lt: w4CohortCutoff },
-    })
-      .select('_id createdAt')
-      .lean(),
+  // Calculate both retention windows against the same cohort
+  const [week1Retention, week4Retention] = await Promise.all([
+    calculateCohortRetention(cohortUsers, 7, 14),
+    calculateCohortRetention(cohortUsers, 21, 28),
   ]);
-
-  // Calculate Week 1 retention using batch query
-  const week1Retention = await calculateCohortRetention(
-    w1CohortUsers,
-    7,
-    14
-  );
-
-  // Calculate Week 4 retention using batch query
-  const week4Retention = await calculateCohortRetention(
-    w4CohortUsers,
-    21,
-    28
-  );
 
   return {
     churnRate,
