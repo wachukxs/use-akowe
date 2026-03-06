@@ -15,27 +15,30 @@ export async function getFixedWindowCoreMetrics(dateRange: DateRange) {
   const now = new Date();
   now.setUTCHours(23, 59, 59, 999);
 
-  // --- WAU: always last 7 days (fixed) ---
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
-  sevenDaysAgo.setUTCHours(0, 0, 0, 0);
-  const wauStartStr = toDateStr(sevenDaysAgo);
+  // --- WAU: exactly last 7 days (fixed) ---
+  // [today - 6, today] inclusive = 7 days
+  const sixDaysAgo = new Date();
+  sixDaysAgo.setUTCDate(sixDaysAgo.getUTCDate() - 6);
+  sixDaysAgo.setUTCHours(0, 0, 0, 0);
+  const wauStartStr = toDateStr(sixDaysAgo);
   const wauEndStr = toDateStr(now);
 
   // --- Previous week for WoW comparison (fixed) ---
-  const fourteenDaysAgo = new Date();
-  fourteenDaysAgo.setUTCDate(fourteenDaysAgo.getUTCDate() - 14);
-  fourteenDaysAgo.setUTCHours(0, 0, 0, 0);
-  const prevEnd = new Date(sevenDaysAgo);
+  // [today - 13, today - 7] inclusive = 7 days (symmetric with current WAU)
+  const thirteenDaysAgo = new Date();
+  thirteenDaysAgo.setUTCDate(thirteenDaysAgo.getUTCDate() - 13);
+  thirteenDaysAgo.setUTCHours(0, 0, 0, 0);
+  const prevEnd = new Date(sixDaysAgo);
   prevEnd.setUTCDate(prevEnd.getUTCDate() - 1);
-  const prevWauStartStr = toDateStr(fourteenDaysAgo);
+  const prevWauStartStr = toDateStr(thirteenDaysAgo);
   const prevWauEndStr = toDateStr(prevEnd);
 
-  // --- MAU: always last 30 days (fixed) ---
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
-  thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
-  const mauStartStr = toDateStr(thirtyDaysAgo);
+  // --- MAU: exactly last 30 days (fixed) ---
+  // [today - 29, today] inclusive = 30 days
+  const twentyNineDaysAgo = new Date();
+  twentyNineDaysAgo.setUTCDate(twentyNineDaysAgo.getUTCDate() - 29);
+  twentyNineDaysAgo.setUTCHours(0, 0, 0, 0);
+  const mauStartStr = toDateStr(twentyNineDaysAgo);
   const mauEndStr = toDateStr(now);
 
   // --- Date-filtered metrics use the selected period ---
@@ -67,7 +70,7 @@ export async function getFixedWindowCoreMetrics(dateRange: DateRange) {
     DailyUsage.distinct('userId', {
       date: { $gte: prevWauStartStr, $lte: prevWauEndStr },
     }),
-    // MAU (fixed)
+    // MAU (fixed - exactly 30 days)
     DailyUsage.distinct('userId', {
       date: { $gte: mauStartStr, $lte: mauEndStr },
     }),
@@ -193,12 +196,18 @@ export async function getFixedWindowRetentionMetrics(periodDays: number) {
   // and week 4 (days 21-28) windows have fully elapsed.
   // Both metrics must use the SAME cohort so they form a meaningful retention curve.
   const now = new Date();
+  // cohortCutoff: at least 35 days old so week 1 (days 7-14) and week 4 (days 21-28) windows have elapsed
+  // cohortStart: cap at 180 days old — avoids old churned users permanently dragging retention down
   const cohortCutoff = new Date(now);
   cohortCutoff.setUTCDate(now.getUTCDate() - 35);
   cohortCutoff.setUTCHours(0, 0, 0, 0);
 
+  const cohortStart = new Date(now);
+  cohortStart.setUTCDate(now.getUTCDate() - 180);
+  cohortStart.setUTCHours(0, 0, 0, 0);
+
   const cohortUsers = await User.find({
-    createdAt: { $lt: cohortCutoff },
+    createdAt: { $gte: cohortStart, $lt: cohortCutoff },
   })
     .select('_id createdAt')
     .lean();

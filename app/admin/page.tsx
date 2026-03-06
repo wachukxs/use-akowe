@@ -104,6 +104,7 @@ interface AdminMetricsResponse {
     users: {
       total: number;
       free: number;
+      standard: number;
       pro: number;
       team: number;
       withSubscriptions: number;
@@ -1433,7 +1434,7 @@ export default function AdminDashboard() {
                     ? `${metrics.businessMetrics.users.conversionRate.toFixed(1)}%`
                     : 'N/A'
                 }
-                subtitle={`${formatNumber(metrics.businessMetrics.users.pro)} paid / ${formatNumber(metrics.businessMetrics.users.total)} total`}
+                subtitle={`${formatNumber((metrics.businessMetrics.users.standard ?? 0) + metrics.businessMetrics.users.pro + metrics.businessMetrics.users.team)} paid / ${formatNumber(metrics.businessMetrics.users.total)} total`}
                 icon={<Zap size={16} />}
                 timeContext="all-time"
                 benchmark={{

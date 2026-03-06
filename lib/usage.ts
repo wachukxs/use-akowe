@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import DailyUsage from '@/models/DailyUsage';
 import User from '@/models/User';
 import { PLAN_LIMITS, UsageLimits, PlanType } from '@/types';
@@ -126,24 +126,34 @@ export async function incrementAIWords(userId: string, words: number) {
 
 export async function checkPlagiarismLimit(userEmail: string): Promise<{ allowed: boolean; remaining: number; limit: number }> {
   await connectDB();
-  
-  // Get user by email to get their ID and plan
+
   const user = await User.findOne({ email: userEmail });
   if (!user) {
     throw new Error('User not found');
   }
-  
+
   const limits = PLAN_LIMITS[user.plan as PlanType];
-  
-  // Pro and Team plans have unlimited checks
+
+  // Weekly limit (free plan)
+  if (limits.plagiarismChecksPerWeek !== undefined) {
+    const userId = user._id.toString();
+    const weeklyLimit = limits.plagiarismChecksPerWeek;
+    const sevenDaysAgo = format(subDays(new Date(), 6), 'yyyy-MM-dd');
+    const weeklyDocs = await DailyUsage.find({ userId, date: { $gte: sevenDaysAgo } });
+    const weeklyTotal = weeklyDocs.reduce((sum, doc) => sum + (doc.plagiarismChecks || 0), 0);
+    const remaining = weeklyLimit - weeklyTotal;
+    return { allowed: remaining > 0, remaining: Math.max(0, remaining), limit: weeklyLimit };
+  }
+
+  // Unlimited plans
   if (limits.plagiarismChecksPerDay === Infinity) {
     return { allowed: true, remaining: Infinity, limit: Infinity };
   }
-  
-  // Get today's usage
+
+  // Daily limit
   const usage = await getUserUsageToday(userEmail);
   const remaining = limits.plagiarismChecksPerDay - usage.plagiarismChecks;
-  
+
   return {
     allowed: remaining > 0,
     remaining,
@@ -158,23 +168,48 @@ export async function checkPlagiarismLimit(userEmail: string): Promise<{ allowed
  * @param userEmail - User's email address
  * @returns Object with success status, remaining checks, and limit, or null if limit reached
  */
-export async function tryIncrementPlagiarismChecks(userEmail: string): Promise<{ 
-  success: boolean; 
-  remaining: number; 
+export async function tryIncrementPlagiarismChecks(userEmail: string): Promise<{
+  success: boolean;
+  remaining: number;
   limit: number;
   newCount: number;
 } | null> {
   await connectDB();
-  
-  // Get user by email to get their ID and plan
+
   const user = await User.findOne({ email: userEmail });
   if (!user) {
     throw new Error('User not found');
   }
-  
+
   const userId = user._id.toString();
   const limits = PLAN_LIMITS[user.plan as PlanType];
-  
+
+  // Weekly limit (free plan) — checked before the Infinity gate below
+  if (limits.plagiarismChecksPerWeek !== undefined) {
+    const weeklyLimit = limits.plagiarismChecksPerWeek;
+    const sevenDaysAgo = format(subDays(new Date(), 6), 'yyyy-MM-dd');
+    const weeklyDocs = await DailyUsage.find({ userId, date: { $gte: sevenDaysAgo } });
+    const weeklyTotal = weeklyDocs.reduce((sum, doc) => sum + (doc.plagiarismChecks || 0), 0);
+
+    if (weeklyTotal >= weeklyLimit) {
+      return { success: false, remaining: 0, limit: weeklyLimit, newCount: weeklyTotal };
+    }
+
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const updated = await DailyUsage.findOneAndUpdate(
+      { userId, date: today },
+      { $inc: { plagiarismChecks: 1 } },
+      { upsert: true, new: true }
+    );
+    const newWeeklyTotal = weeklyTotal + 1;
+    return {
+      success: true,
+      remaining: Math.max(0, weeklyLimit - newWeeklyTotal),
+      limit: weeklyLimit,
+      newCount: updated.plagiarismChecks,
+    };
+  }
+
   // Pro and Team plans have unlimited checks - increment without limit check
   if (limits.plagiarismChecksPerDay === Infinity) {
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -190,45 +225,39 @@ export async function tryIncrementPlagiarismChecks(userEmail: string): Promise<{
       newCount: updated.plagiarismChecks,
     };
   }
-  
+
+  // Daily limit (standard plan)
   const today = format(new Date(), 'yyyy-MM-dd');
   const limit = limits.plagiarismChecksPerDay;
-  
-  // Atomically check and increment: only increment if current count is less than limit
-  // This prevents race conditions where multiple requests check the limit simultaneously
-  // Strategy: Try to increment, but only if count is below limit OR document doesn't exist
-  // MongoDB's $lt operator returns false for non-existent fields, so we need to handle that
-  
+
   // First, ensure the document exists (create if needed with 0 count)
   await DailyUsage.findOneAndUpdate(
     { userId, date: today },
     { $setOnInsert: { userId, date: today, aiWordsGenerated: 0, plagiarismChecks: 0 } },
     { upsert: true }
   );
-  
-  // Now atomically increment only if count is below limit
+
+  // Atomically increment only if count is below limit
   const updated = await DailyUsage.findOneAndUpdate(
     {
       userId,
       date: today,
-      plagiarismChecks: { $lt: limit }, // Only match if current count is below limit
+      plagiarismChecks: { $lt: limit },
     },
     { $inc: { plagiarismChecks: 1 } },
     { new: true }
   );
-  
-  // If update succeeded, we got a document back and the increment happened
+
   if (updated) {
     const remaining = limit - updated.plagiarismChecks;
     return {
       success: true,
-      remaining: Math.max(0, remaining), // Ensure non-negative
+      remaining: Math.max(0, remaining),
       limit,
       newCount: updated.plagiarismChecks,
     };
   }
-  
-  // Update failed because limit was reached - get current usage for error message
+
   const currentUsage = await getUserUsageToday(userEmail);
   return {
     success: false,

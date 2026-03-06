@@ -1,12 +1,20 @@
 [build]
-  command = "npm run build"
-  # Publish directory is managed automatically by Netlify's Next.js adapter.
+  command = "yarn build"
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--legacy-peer-deps"
+  YARN_FLAGS = "--frozen-lockfile"
 
-# Force clear cache on every build to avoid stale dependency issues
+# Cache node_modules and Next.js compiler output between builds.
+# This is the primary lever for reducing build minutes (credits).
+# Only do "Clear cache and deploy" in the Netlify UI when you actually
+# change dependencies — not on every push.
+[build.cache]
+  paths = [
+    "node_modules",
+    ".next/cache"
+  ]
+
 [build.processing]
   skip_processing = false
 

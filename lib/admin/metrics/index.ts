@@ -186,9 +186,10 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
     ),
   ]);
 
-  // Calculate conversion rate
+  // Calculate conversion rate (any paid plan: standard, pro, team)
+  const paidUsers = allTimeUserMetrics.standard + allTimeUserMetrics.pro + allTimeUserMetrics.team;
   const conversionRate = allTimeUserMetrics.total > 0
-    ? ((allTimeUserMetrics.pro / allTimeUserMetrics.total) * 100)
+    ? ((paidUsers / allTimeUserMetrics.total) * 100)
     : 0;
 
   const result: AdminMetricsResponse = {
@@ -219,6 +220,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
       users: {
         total: allTimeUserMetrics.total,
         free: allTimeUserMetrics.free,
+        standard: allTimeUserMetrics.standard,
         pro: allTimeUserMetrics.pro,
         team: allTimeUserMetrics.team,
         withSubscriptions: allTimeUserMetrics.withSubscriptions,

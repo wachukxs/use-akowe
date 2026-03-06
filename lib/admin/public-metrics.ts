@@ -134,6 +134,7 @@ export async function getPublicMetrics() {
     (async () => {
       const totalUsers = await User.countDocuments();
       const freeUsers = await User.countDocuments({ plan: 'free' });
+      const standardUsers = await User.countDocuments({ plan: 'standard' });
       const proUsers = await User.countDocuments({ plan: 'pro' });
       const teamUsers = await User.countDocuments({ plan: 'team' });
       const usersWithSubscriptions = await User.countDocuments({
@@ -142,6 +143,7 @@ export async function getPublicMetrics() {
       return {
         total: totalUsers,
         free: freeUsers,
+        standard: standardUsers,
         pro: proUsers,
         team: teamUsers,
         withSubscriptions: usersWithSubscriptions,

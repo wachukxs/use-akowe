@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     // Step 4: Users who subscribed (pro or team)
     const subscribers = await User.countDocuments({
       ...userDateFilter,
-      plan: { $in: ['pro', 'team'] },
+      plan: { $in: ['standard', 'pro', 'team'] },
     });
 
     // Build funnel steps with drop-off rates

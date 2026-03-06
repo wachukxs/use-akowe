@@ -162,6 +162,7 @@ export interface LitReviewSynthesis {
 export interface UsageLimits {
   aiWordsPerDay: number;
   plagiarismChecksPerDay: number;
+  plagiarismChecksPerWeek?: number;
   paraphrasePerDay: number;
   litReviewAnalysesPerDay: number;
   maxProjects?: number;
@@ -169,11 +170,12 @@ export interface UsageLimits {
 
 export const PLAN_LIMITS: Record<PlanType, UsageLimits> = {
   free: {
-    aiWordsPerDay: 200,
-    plagiarismChecksPerDay: 1,
+    aiWordsPerDay: 500,
+    plagiarismChecksPerDay: Infinity,
+    plagiarismChecksPerWeek: 1,
     paraphrasePerDay: 2,
     litReviewAnalysesPerDay: 1,
-    maxProjects: 2,
+    maxProjects: 1,
   },
   standard: {
     aiWordsPerDay: 2000,

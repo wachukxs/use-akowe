@@ -53,11 +53,12 @@ function getValidPriceIds(): string[] {
 export async function getAllTimeUserMetrics() {
   const totalUsers = await User.countDocuments();
   const freeUsers = await User.countDocuments({ plan: 'free' });
+  const standardUsers = await User.countDocuments({ plan: 'standard' });
   const proUsers = await User.countDocuments({ plan: 'pro' });
   const teamUsers = await User.countDocuments({ plan: 'team' });
-  
-  const usersWithSubscriptions = await User.countDocuments({ 
-    stripeSubscriptionId: { $exists: true, $ne: null } 
+
+  const usersWithSubscriptions = await User.countDocuments({
+    stripeSubscriptionId: { $exists: true, $ne: null }
   });
 
   const recentUsers = await User.find()
@@ -105,6 +106,7 @@ export async function getAllTimeUserMetrics() {
   return {
     total: totalUsers,
     free: freeUsers,
+    standard: standardUsers,
     pro: proUsers,
     team: teamUsers,
     withSubscriptions: usersWithSubscriptions,
@@ -443,7 +445,7 @@ export async function getAllTimeMonetizationMetrics(totalUsers: number, totalRev
   // Time to conversion
   const User = (await import('@/models/User')).default;
   const convertedUsers = await User.find({
-    plan: { $in: ['pro', 'team'] },
+    plan: { $in: ['standard', 'pro', 'team'] },
     createdAt: { $exists: true },
     stripeSubscriptionId: { $exists: true, $ne: null }
   })

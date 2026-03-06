@@ -80,6 +80,7 @@ export interface BusinessMetrics {
   users: {
     total: number; // All-time
     free: number; // All-time
+    standard: number; // All-time
     pro: number; // All-time
     team: number; // All-time
     withSubscriptions: number; // All-time

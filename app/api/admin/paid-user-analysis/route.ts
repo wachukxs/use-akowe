@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     // Get user counts
     const freeUsers = await User.find({ plan: 'free', ...dateFilter }).lean();
-    const paidUsers = await User.find({ plan: { $in: ['pro', 'pro_annual'] }, ...dateFilter }).lean();
+    const paidUsers = await User.find({ plan: { $in: ['standard', 'pro', 'team'] }, ...dateFilter }).lean();
     
     const freeUserIds = freeUsers.map(u => u._id.toString());
     const paidUserIds = paidUsers.map(u => u._id.toString());
@@ -446,7 +446,7 @@ async function analyzeEngagement(
 async function analyzeConversionPatterns(dateFilter: DateFilter) {
   // Get users who converted (have subscriptionStartDate)
   const convertedUsers = await User.find({
-    plan: { $in: ['pro', 'pro_annual'] },
+    plan: { $in: ['standard', 'pro', 'team'] },
     subscriptionStartDate: { $exists: true, $ne: null },
     ...dateFilter,
   }).lean();

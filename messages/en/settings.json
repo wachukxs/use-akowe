@@ -41,9 +41,9 @@
       "price": "$0",
       "period": "forever",
       "features": [
-        "200 AI words per day",
-        "1 plagiarism check per day",
-        "2 projects maximum",
+        "500 AI words per day",
+        "1 plagiarism check per week",
+        "1 project",
         "Smart citation search",
         "Basic citation support"
       ]

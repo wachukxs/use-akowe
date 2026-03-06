@@ -23,6 +23,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
     users: {
       total: response.businessMetrics.users.total,
       free: response.businessMetrics.users.free,
+      standard: response.businessMetrics.users.standard,
       pro: response.businessMetrics.users.pro,
       team: response.businessMetrics.users.team,
       withSubscriptions: response.businessMetrics.users.withSubscriptions,
@@ -69,6 +70,7 @@ export function adaptMetricsForFrontend(response: AdminMetricsResponse) {
       citationAdoption: response.productHealth.citationAdoption,
       pdfAdoption: response.productHealth.pdfAdoption,
       plagiarismAdoption: response.productHealth.plagiarismAdoption,
+      litReviewAdoption: response.productHealth.litReviewAdoption,
     },
     monetization: {
       arpu: response.businessMetrics.monetization.arpu,

@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
 
     // Get basic summary metrics
     const upgradedUsers = await User.find({
-      plan: { $in: ['pro', 'pro_annual'] },
+      plan: { $in: ['standard', 'pro', 'team'] },
       ...dateFilter,
     }).lean();
 

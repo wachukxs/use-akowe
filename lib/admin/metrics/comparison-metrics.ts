@@ -146,24 +146,37 @@ export async function getComparisonMetrics(
         }
       }
 
-      // Get invoices for previous period
-      const previousInvoices = await stripe.invoices.list({
-        limit: 100,
-        status: 'paid',
-        created: {
-          gte: previousRange.startTimestamp,
-          lt: previousRange.endTimestamp
+      // Get invoices for previous period (paginated)
+      const subscriptionIds = new Set(allSubscriptions.map((sub: any) => sub.id));
+      let invoiceStartingAfter: string | undefined = undefined;
+      let invoiceHasMore = true;
+
+      while (invoiceHasMore) {
+        const invoiceParams: any = {
+          limit: 100,
+          status: 'paid',
+          created: {
+            gte: previousRange.startTimestamp,
+            lt: previousRange.endTimestamp,
+          },
+        };
+        if (invoiceStartingAfter) invoiceParams.starting_after = invoiceStartingAfter;
+
+        const previousInvoices = await stripe.invoices.list(invoiceParams);
+
+        for (const invoice of previousInvoices.data) {
+          const inv = invoice as any;
+          if (inv.subscription && subscriptionIds.has(inv.subscription)) {
+            previousRevenue += inv.amount_paid / 100;
+          }
         }
-      });
-      
-      const previousProductInvoices = previousInvoices.data.filter((inv: any) => {
-        return inv.subscription && 
-               allSubscriptions.some(sub => sub.id === inv.subscription);
-      });
-      
-      for (const invoice of previousProductInvoices) {
-        const inv = invoice as any;
-        previousRevenue += inv.amount_paid / 100;
+
+        invoiceHasMore = previousInvoices.has_more;
+        if (invoiceHasMore && previousInvoices.data.length > 0) {
+          invoiceStartingAfter = previousInvoices.data[previousInvoices.data.length - 1].id;
+        } else {
+          invoiceHasMore = false;
+        }
       }
     } catch (error) {
       console.warn('Error fetching previous period revenue:', error);

@@ -637,8 +637,8 @@ export async function POST(request: NextRequest) {
     
     if (!usageCheck || !usageCheck.success) {
       return NextResponse.json(
-        { 
-          error: 'Daily plagiarism check limit reached',
+        {
+          error: 'Plagiarism check limit reached',
           remaining: usageCheck?.remaining ?? 0,
           limit: usageCheck?.limit ?? 3,
         },
