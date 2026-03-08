@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Also check shared AI word limit
-    const usageCheck = await checkAIWordLimit(session.user.id, 500);
+    const usageCheck = await checkAIWordLimit(session.user.id, 1);
 
     if (!usageCheck.allowed) {
       return NextResponse.json(

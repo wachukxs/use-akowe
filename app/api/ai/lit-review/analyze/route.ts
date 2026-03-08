@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check shared AI word limit (estimate ~800 words for analysis)
-    const usageCheck = await checkAIWordLimit(session.user.id, 800);
+    // Check shared AI word limit
+    const usageCheck = await checkAIWordLimit(session.user.id, 1);
     if (!usageCheck.allowed) {
       return NextResponse.json(
         {

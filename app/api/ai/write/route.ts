@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const paywallVariant: PaywallVariant = (paywallVariantCookie?.value === 'variant_b' ? 'variant_b' : 'variant_a');
 
     // Check usage limits for free users
-    const usageCheck = await checkAIWordLimit(session.user.id, 500);
+    const usageCheck = await checkAIWordLimit(session.user.id, 1);
     
     // Variant A: Block before output generation
     // Variant B: Allow preview (check happens at export)

@@ -51,3 +51,177 @@
   status = 200
   force = true
 
+# Redirect locale-less pSEO URLs (from old Google index / external links) to
+# canonical /en/... versions. These routes are excluded from next-intl
+# middleware (to reduce serverless invocations on Netlify), so without these
+# Netlify-level rules they would 404 instead of redirecting.
+[[redirects]]
+  from = "/guides"
+  to = "/en/guides"
+  status = 301
+
+[[redirects]]
+  from = "/guides/:splat"
+  to = "/en/guides/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/guides-keywords"
+  to = "/en/guides-keywords"
+  status = 301
+
+[[redirects]]
+  from = "/guides-keywords/:splat"
+  to = "/en/guides-keywords/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/citations"
+  to = "/en/citations"
+  status = 301
+
+[[redirects]]
+  from = "/citations/:splat"
+  to = "/en/citations/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/citation-styles"
+  to = "/en/citation-styles"
+  status = 301
+
+[[redirects]]
+  from = "/citation-styles/:splat"
+  to = "/en/citation-styles/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/citation-sources"
+  to = "/en/citation-sources"
+  status = 301
+
+[[redirects]]
+  from = "/citation-sources/:splat"
+  to = "/en/citation-sources/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/templates"
+  to = "/en/templates"
+  status = 301
+
+[[redirects]]
+  from = "/templates/:splat"
+  to = "/en/templates/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/templates-keywords"
+  to = "/en/templates-keywords"
+  status = 301
+
+[[redirects]]
+  from = "/templates-keywords/:splat"
+  to = "/en/templates-keywords/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/topics"
+  to = "/en/topics"
+  status = 301
+
+[[redirects]]
+  from = "/topics/:splat"
+  to = "/en/topics/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/methods"
+  to = "/en/methods"
+  status = 301
+
+[[redirects]]
+  from = "/methods/:splat"
+  to = "/en/methods/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/fields"
+  to = "/en/fields"
+  status = 301
+
+[[redirects]]
+  from = "/fields/:splat"
+  to = "/en/fields/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/faq"
+  to = "/en/faq"
+  status = 301
+
+[[redirects]]
+  from = "/faq/:splat"
+  to = "/en/faq/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/faq-keywords"
+  to = "/en/faq-keywords"
+  status = 301
+
+[[redirects]]
+  from = "/faq-keywords/:splat"
+  to = "/en/faq-keywords/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/compare"
+  to = "/en/compare"
+  status = 301
+
+[[redirects]]
+  from = "/compare/:splat"
+  to = "/en/compare/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/compare-keywords"
+  to = "/en/compare-keywords"
+  status = 301
+
+[[redirects]]
+  from = "/compare-keywords/:splat"
+  to = "/en/compare-keywords/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/combinations"
+  to = "/en/combinations"
+  status = 301
+
+[[redirects]]
+  from = "/combinations/:splat"
+  to = "/en/combinations/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/latex-guide"
+  to = "/en/latex-guide"
+  status = 301
+
+[[redirects]]
+  from = "/about"
+  to = "/en/about"
+  status = 301
+
+[[redirects]]
+  from = "/terms"
+  to = "/en/terms"
+  status = 301
+
+[[redirects]]
+  from = "/privacy"
+  to = "/en/privacy"
+  status = 301
+

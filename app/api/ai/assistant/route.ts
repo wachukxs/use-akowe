@@ -231,9 +231,7 @@ export async function POST(request: NextRequest) {
     const paywallVariant: PaywallVariant = (paywallVariantCookie?.value === 'variant_b' ? 'variant_b' : 'variant_a');
 
     // Check usage limits for free users
-    // Estimate ~300 words per AI response
-    const estimatedWordsToGenerate = 300;
-    const usageCheck = await checkAIWordLimit(user._id.toString(), estimatedWordsToGenerate);
+    const usageCheck = await checkAIWordLimit(user._id.toString(), 1);
     
     // Variant A: Block before output generation
     // Variant B: Allow preview (check happens at export)
@@ -446,8 +444,10 @@ Avoid AI-sounding phrases like "delve", "explore", "furthermore", "it is importa
       // Check if this is first output (before incrementing)
       const isFirstOutput = usageCheck.remaining === usageCheck.limit;
 
-      // Track usage
-      await incrementAIWords(user._id.toString(), wordCount);
+      // Track usage (skip for preview-only variant_b users, consistent with integrate path)
+      if (!isPreviewOnly) {
+        await incrementAIWords(user._id.toString(), wordCount);
+      }
 
       // Track activation if this is first output
       if (isFirstOutput) {
