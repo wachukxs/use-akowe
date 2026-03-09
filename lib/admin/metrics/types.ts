@@ -115,6 +115,7 @@ export interface CoreMetrics {
 // Product Health - Period metrics (respects date filter)
 export interface ProductHealth {
   completionRate: number;
+  behavioralCompletionRate: number; // % of projects that reached ≥80% word count + no edits for 7d
   avgProjectsPerUser: number;
   usersWithMultipleProjects: number;
   citationAdoption: number;
@@ -125,6 +126,7 @@ export interface ProductHealth {
     total: number;
     active: number;
     completed: number;
+    behaviorallyCompleted: number; // Projects meeting behavioral completion criteria
   };
 }
 

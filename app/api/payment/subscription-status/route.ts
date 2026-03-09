@@ -37,9 +37,12 @@ export async function GET() {
       const status = subscription.status;
       let needsUpdate = false;
 
+      const isPaidPlan = (p: string) => p === 'standard' || p === 'pro' || p === 'team';
+
       switch (subscription.status) {
         case 'active':
-          if (user.plan !== 'pro') {
+          // Only upgrade free users to pro — don't override existing paid plans (standard, team, etc.)
+          if (!isPaidPlan(user.plan)) {
             plan = 'pro';
             needsUpdate = true;
           }
@@ -68,7 +71,8 @@ export async function GET() {
           }
           break;
         case 'trialing':
-          if (user.plan !== 'pro') {
+          // Only upgrade free users to pro — don't override existing paid plans
+          if (!isPaidPlan(user.plan)) {
             plan = 'pro';
             needsUpdate = true;
           }

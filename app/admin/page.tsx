@@ -1907,6 +1907,7 @@ export default function AdminDashboard() {
                           <td className="py-2 px-3">
                             <span className={`px-2 py-0.5 rounded text-xs ${
                               user.plan === 'pro' ? 'bg-blue-500/20 text-blue-500' :
+                              user.plan === 'standard' ? 'bg-cyan-500/20 text-cyan-600' :
                               user.plan === 'team' ? 'bg-purple-500/20 text-purple-500' :
                               'bg-gray-500/20 text-gray-500'
                             }`}>

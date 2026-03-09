@@ -38,15 +38,19 @@ function getStripeClient(): Stripe | null {
 function getValidPriceIds(): string[] {
   const isProduction = process.env.NODE_ENV === 'production';
   const priceIds: string[] = [];
-  
+
   if (isProduction) {
     if (process.env.STRIPE_PRICE_MONTHLY_PROD) priceIds.push(process.env.STRIPE_PRICE_MONTHLY_PROD);
     if (process.env.STRIPE_PRICE_ANNUAL_PROD) priceIds.push(process.env.STRIPE_PRICE_ANNUAL_PROD);
+    if (process.env.STRIPE_PRICE_STANDARD_MONTHLY_PROD) priceIds.push(process.env.STRIPE_PRICE_STANDARD_MONTHLY_PROD);
+    if (process.env.STRIPE_PRICE_STANDARD_ANNUAL_PROD) priceIds.push(process.env.STRIPE_PRICE_STANDARD_ANNUAL_PROD);
   } else {
     if (process.env.STRIPE_PRICE_MONTHLY_TEST) priceIds.push(process.env.STRIPE_PRICE_MONTHLY_TEST);
     if (process.env.STRIPE_PRICE_ANNUAL_TEST) priceIds.push(process.env.STRIPE_PRICE_ANNUAL_TEST);
+    if (process.env.STRIPE_PRICE_STANDARD_MONTHLY_TEST) priceIds.push(process.env.STRIPE_PRICE_STANDARD_MONTHLY_TEST);
+    if (process.env.STRIPE_PRICE_STANDARD_ANNUAL_TEST) priceIds.push(process.env.STRIPE_PRICE_STANDARD_ANNUAL_TEST);
   }
-  
+
   return priceIds;
 }
 
