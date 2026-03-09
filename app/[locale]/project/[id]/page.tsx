@@ -1307,10 +1307,15 @@ export default function ProjectEditorPage({
           if (hasSelection && !rewritePanelVisible) {
             const rect = range.getBoundingClientRect();
             if (rect.width > 0) {
-              const barX = rect.left + rect.width / 2 - 60;
-              const barY = rect.top - 48;
-              const safeX = Math.max(8, Math.min(barX, window.innerWidth - 130));
-              const safeY = barY < 8 ? rect.bottom + 8 : barY;
+              // Bar is ~220px wide (two buttons + divider)
+              const BAR_WIDTH = 220;
+              const barX = rect.left + rect.width / 2 - BAR_WIDTH / 2;
+              const safeX = Math.max(8, Math.min(barX, window.innerWidth - BAR_WIDTH - 8));
+              // On mobile, position below the selection to avoid clashing with
+              // the iOS native Copy/Paste toolbar which also sits above the selection
+              const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+              const barY = isMobile ? rect.bottom + 8 : rect.top - 52;
+              const safeY = (!isMobile && barY < 8) ? rect.bottom + 8 : barY;
               setSelectionBarPosition({ x: safeX, y: safeY });
               setSelectionBarVisible(true);
 
@@ -2752,13 +2757,23 @@ export default function ProjectEditorPage({
 
   // Add selection change listener for better formatting detection
   useEffect(() => {
+    let selectionChangeTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handleSelectionChange = () => {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const editor = document.querySelector('[contenteditable="true"]');
         if (editor && editor.contains(range.commonAncestorContainer)) {
-          checkFormattingState();
+          // On touch devices the selection geometry isn't stable until the
+          // user lifts their finger, so debounce to let it settle first.
+          const isMobile = 'ontouchstart' in window;
+          if (isMobile) {
+            if (selectionChangeTimer) clearTimeout(selectionChangeTimer);
+            selectionChangeTimer = setTimeout(() => checkFormattingState(), 120);
+          } else {
+            checkFormattingState();
+          }
         }
       }
     };
@@ -2766,6 +2781,7 @@ export default function ProjectEditorPage({
     document.addEventListener("selectionchange", handleSelectionChange);
     return () => {
       document.removeEventListener("selectionchange", handleSelectionChange);
+      if (selectionChangeTimer) clearTimeout(selectionChangeTimer);
     };
   }, []);
 
@@ -4043,6 +4059,9 @@ title={t("deleteSection")}
                               longPressTimerRef.current = null;
                             }
                             longPressTouchRef.current = null;
+                            // Give iOS time to finalise the selection before
+                            // measuring its geometry for the floating bar
+                            setTimeout(() => checkFormattingState(), 150);
                           }}
                           onMouseUp={checkFormattingState}
                           onMouseDown={checkFormattingState}
@@ -5053,7 +5072,7 @@ title={t("deleteSection")}
         {selectionBarVisible && selectionBarPosition && !rewritePanelVisible && !contextMenuPillVisible && (
           <div
             ref={selectionBarRef}
-            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[40px] flex items-center animate-in fade-in duration-150"
+            className="fixed z-[60] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] shadow-lg p-1 min-h-[44px] flex items-center animate-in fade-in duration-150"
             style={{
               left: selectionBarPosition.x,
               top: selectionBarPosition.y,
@@ -5061,8 +5080,20 @@ title={t("deleteSection")}
           >
             <button
               type="button"
+              onClick={() => {
+                setSelectionBarVisible(false);
+                discoverCitations(0, false);
+              }}
+              className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation flex items-center gap-1.5"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+              {CONTEXT_MENU_FIND_CITATION_LABEL}
+            </button>
+            <div className="w-px h-6 bg-[hsl(var(--border-strong))]" />
+            <button
+              type="button"
               onClick={() => openRewritePanel(false)}
-              className="min-h-[36px] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation flex items-center gap-1.5"
+              className="min-h-[44px] min-w-[44px] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) transition-colors touch-manipulation flex items-center gap-1.5"
             >
               <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
               {t("rewrite")}

@@ -893,6 +893,10 @@ export default function ReferralsTab() {
                                 <span className={`px-1.5 py-0.5 rounded text-[10px] sm:text-xs ${
                                   c.referredUserPlan === 'pro'
                                     ? 'bg-blue-500/20 text-blue-500'
+                                    : c.referredUserPlan === 'standard'
+                                    ? 'bg-cyan-500/20 text-cyan-600'
+                                    : c.referredUserPlan === 'team'
+                                    ? 'bg-purple-500/20 text-purple-500'
                                     : 'bg-gray-500/20 text-gray-500'
                                 }`}>
                                   {c.referredUserPlan ?? 'free'}
@@ -901,7 +905,7 @@ export default function ReferralsTab() {
                               </div>
                             </td>
                             <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
-                              {c.referredUserPlan === 'pro' || c.referredUserPlan === 'team' ? (
+                              {c.referredUserPlan === 'pro' || c.referredUserPlan === 'team' || c.referredUserPlan === 'standard' ? (
                                 <span className="px-1.5 py-0.5 rounded text-[10px] sm:text-xs bg-green-500/20 text-green-600 font-semibold">
                                   Active
                                 </span>

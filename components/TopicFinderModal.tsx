@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Search, Sparkles, AlertCircle, CheckCircle2, Lightbulb, Lock, ArrowRight, Zap } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Search, Sparkles, AlertCircle, CheckCircle2, Lightbulb, Lock, ArrowRight, Zap, BookOpen, ExternalLink, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Button from '@/components/ui/Button';
 import UpgradeModal from '@/components/UpgradeModal';
@@ -31,6 +31,8 @@ interface TopicResult {
     title: string;
     year?: number;
     authors: string;
+    journal?: string;
+    url?: string;
     similarity: number;
   }>;
   suggestions: TopicSuggestion[];
@@ -64,15 +66,31 @@ export default function TopicFinderModal({
   const [topic, setTopic] = useState(initialTopic);
   const [selectedProjectType, setSelectedProjectType] = useState<'essay' | 'thesis' | 'research' | 'journal'>(projectType);
   const [selectedMethodology, setSelectedMethodology] = useState<string>(methodology);
+  const [areasOfInterest, setAreasOfInterest] = useState<string[]>([]);
+  const [areaInput, setAreaInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<TopicResult | null>(null);
   const [error, setError] = useState('');
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<TopicSuggestion | null>(null);
+  const [showPapers, setShowPapers] = useState(false);
+  const areaInputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations('components.topicFinderModal');
 
   const isPro = userPlan === 'pro' || userPlan === 'team' || userPlan === 'standard';
+
+  const addArea = () => {
+    const trimmed = areaInput.trim();
+    if (trimmed && !areasOfInterest.includes(trimmed) && areasOfInterest.length < 5) {
+      setAreasOfInterest(prev => [...prev, trimmed]);
+      setAreaInput('');
+    }
+  };
+
+  const removeArea = (area: string) => {
+    setAreasOfInterest(prev => prev.filter(a => a !== area));
+  };
 
   useEffect(() => {
     if (isOpen && initialTopic) {
@@ -111,6 +129,7 @@ export default function TopicFinderModal({
           topic: topic.trim(),
           projectType: selectedProjectType,
           methodology: selectedMethodology || undefined,
+          areasOfInterest: areasOfInterest.length > 0 ? areasOfInterest : undefined,
         }),
       });
 
@@ -251,6 +270,7 @@ export default function TopicFinderModal({
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {!result ? (
             <div className="space-y-4">
+              {/* Research topic */}
               <div className="space-y-2">
                 <label className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] block">
                   {t('researchTopicLabel')}
@@ -260,12 +280,61 @@ export default function TopicFinderModal({
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder={t('placeholder')}
-                  className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                  className="w-full px-4 py-3 border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
                   onKeyDown={(e) => e.key === 'Enter' && !isAnalyzing && handleAnalyze()}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Areas of interest */}
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] block">
+                  Areas of Interest <span className="normal-case tracking-normal text-[hsl(var(--muted-foreground))]">(optional — mix disciplines)</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    ref={areaInputRef}
+                    type="text"
+                    value={areaInput}
+                    onChange={(e) => setAreaInput(e.target.value)}
+                    placeholder="e.g. consumer behaviour, social media..."
+                    className="flex-1 px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); addArea(); }
+                    }}
+                    disabled={areasOfInterest.length >= 5}
+                  />
+                  <button
+                    type="button"
+                    onClick={addArea}
+                    disabled={!areaInput.trim() || areasOfInterest.length >= 5}
+                    className="px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) hover:bg-[hsl(var(--surface-muted))] disabled:opacity-40 transition-colors"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                {areasOfInterest.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {areasOfInterest.map(area => (
+                      <span
+                        key={area}
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-[hsl(var(--primary))]/10 border-[2px] border-[hsl(var(--primary))] rounded-full text-xs font-medium"
+                      >
+                        {area}
+                        <button
+                          type="button"
+                          onClick={() => removeArea(area)}
+                          className="hover:text-red-500 transition-colors ml-0.5"
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Project type + Methodology — stack on mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] block">
                     {t('projectTypeLabel')}
@@ -273,7 +342,7 @@ export default function TopicFinderModal({
                   <select
                     value={selectedProjectType}
                     onChange={(e) => setSelectedProjectType(e.target.value as any)}
-                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
                   >
                     <option value="thesis">{t('projectTypeThesis')}</option>
                     <option value="essay">{t('projectTypeEssay')}</option>
@@ -289,7 +358,7 @@ export default function TopicFinderModal({
                   <select
                     value={selectedMethodology}
                     onChange={(e) => setSelectedMethodology(e.target.value)}
-                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-xs uppercase tracking-[0.1em] focus:outline-none focus:border-[hsl(var(--primary))]"
+                    className="w-full px-3 py-2 border-[2px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
                   >
                     <option value="">{t('methodologyAny')}</option>
                     <option value="qualitative">{t('methodologyQualitative')}</option>
@@ -302,7 +371,7 @@ export default function TopicFinderModal({
               {error && (
                 <div className="border-[2px] border-red-300 bg-red-50 rounded p-3 flex items-start gap-2">
                   <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
-                  <p className="text-xs uppercase tracking-[0.14em] text-red-700">{error}</p>
+                  <p className="text-sm text-red-700">{error}</p>
                 </div>
               )}
 
@@ -319,10 +388,10 @@ export default function TopicFinderModal({
                 <div className="border-[2px] border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10 rounded p-3 flex items-start gap-2">
                   <Lock className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={16} />
                   <div className="flex-1">
-                    <p className="text-xs uppercase tracking-[0.14em] font-semibold mb-1">
+                    <p className="text-xs font-semibold mb-1 uppercase tracking-[0.12em]">
                       {t('freeLimit')}
                     </p>
-                    <p className="text-[10px] uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
                       {t('upgradeHint')}
                     </p>
                   </div>
@@ -385,19 +454,19 @@ export default function TopicFinderModal({
                       onClick={() => handleSelectSuggestion(suggestion)}
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex items-start gap-2 flex-1">
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
                           {isSelected && (
                             <CheckCircle2 className="text-[hsl(var(--primary))] flex-shrink-0 mt-0.5" size={18} />
                           )}
                           <h4 className={cn(
-                            "text-sm font-semibold uppercase tracking-[0.12em] flex-1",
+                            "text-sm font-semibold flex-1",
                             isSelected && "text-[hsl(var(--primary))]"
                           )}>
                             {suggestion.title}
                           </h4>
                         </div>
                         <div className={cn(
-                          'px-2 py-1 rounded text-xs font-bold uppercase tracking-[0.1em]',
+                          'px-2 py-1 rounded text-xs font-bold flex-shrink-0',
                           suggestion.uniquenessScore >= 80 ? 'bg-green-500 text-white' :
                           suggestion.uniquenessScore >= 60 ? 'bg-yellow-500 text-white' :
                           'bg-red-500 text-white'
@@ -405,12 +474,12 @@ export default function TopicFinderModal({
                           {suggestion.uniquenessScore}%
                         </div>
                       </div>
-                      <p className="text-xs uppercase tracking-[0.1em] text-[hsl(var(--muted-foreground))] mb-2">
+                      <p className="text-sm text-[hsl(var(--muted-foreground))] mb-2 italic">
                         {suggestion.researchQuestion}
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <CheckCircle2 className="text-green-600 flex-shrink-0" size={14} />
-                        <span className="text-[10px] uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
+                      <div className="flex items-start gap-2 mt-2">
+                        <CheckCircle2 className="text-green-600 flex-shrink-0 mt-0.5" size={14} />
+                        <span className="text-xs text-[hsl(var(--muted-foreground))]">
                           {suggestion.whyUnique}
                         </span>
                       </div>
@@ -418,7 +487,7 @@ export default function TopicFinderModal({
                         <div className="mt-3 pt-3 border-t-[2px] border-[hsl(var(--border-strong))]">
                           <div className="flex items-start gap-2">
                             <Zap className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
-                            <p className="text-[10px] uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
+                            <p className="text-xs text-[hsl(var(--muted-foreground))]">
                               {suggestion.aiInsights}
                             </p>
                           </div>
@@ -433,7 +502,7 @@ export default function TopicFinderModal({
               {/* Research Gaps */}
               {result.gaps.length > 0 && (
                 <div className="space-y-3">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.16em] flex items-center gap-2">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.16em] flex items-center gap-2">
                     <AlertCircle className="text-[hsl(var(--primary))]" size={18} />
                     {t('researchGapsFound')}
                   </h3>
@@ -452,22 +521,77 @@ export default function TopicFinderModal({
                           'flex-shrink-0 mt-0.5',
                           gap.severity === 'high' ? 'text-[hsl(var(--primary))]' : 'text-[hsl(var(--muted-foreground))]'
                         )} size={16} />
-                        <div className="flex-1">
-                          <p className="text-xs uppercase tracking-[0.12em] font-semibold mb-1">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold mb-1 uppercase tracking-[0.1em]">
                             {t('gapType', { type: gap.type.charAt(0).toUpperCase() + gap.type.slice(1) })}
                           </p>
-                          <p className="text-[10px] uppercase tracking-[0.1em] text-[hsl(var(--muted-foreground))]">
+                          <p className="text-sm text-[hsl(var(--muted-foreground))]">
                             {gap.description}
                           </p>
                           {gap.aiAnalysis && (
-                            <p className="text-[10px] uppercase tracking-[0.1em] text-[hsl(var(--muted-foreground))] mt-2 italic">
-                              AI Analysis: {gap.aiAnalysis}
+                            <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2 italic">
+                              {gap.aiAnalysis}
                             </p>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Similar Papers / Journal Articles */}
+              {result.similarPapers.length > 0 && (
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowPapers(v => !v)}
+                    className="flex items-center gap-2 w-full text-left group"
+                  >
+                    <BookOpen className="text-[hsl(var(--primary))] flex-shrink-0" size={18} />
+                    <h3 className="text-sm font-semibold uppercase tracking-[0.16em] flex-1">
+                      Related Journal Articles ({result.similarPapers.length})
+                    </h3>
+                    <span className="text-xs text-[hsl(var(--muted-foreground))] group-hover:underline">
+                      {showPapers ? 'Hide' : 'Show'}
+                    </span>
+                  </button>
+                  {showPapers && (
+                    <div className="space-y-2">
+                      {result.similarPapers.map((paper, index) => (
+                        <div
+                          key={index}
+                          className="border-[2px] border-[hsl(var(--border-strong))] rounded p-3 bg-[hsl(var(--surface-muted))]"
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <p className="text-sm font-medium leading-snug flex-1">
+                              {paper.title}
+                            </p>
+                            {paper.url && (
+                              <a
+                                href={paper.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={e => e.stopPropagation()}
+                                className="text-[hsl(var(--primary))] flex-shrink-0 hover:opacity-70 transition-opacity mt-0.5"
+                              >
+                                <ExternalLink size={14} />
+                              </a>
+                            )}
+                          </div>
+                          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                            {paper.authors}
+                            {paper.year && ` · ${paper.year}`}
+                          </p>
+                          {paper.journal && (
+                            <p className="text-xs text-[hsl(var(--primary))]/80 mt-0.5 italic">
+                              {paper.journal}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -35,7 +35,12 @@ export async function POST(request: NextRequest) {
     const isAuthenticated = !!session?.user?.email;
     
     const body = await request.json();
-    const { topic, projectType = 'thesis', methodology } = body;
+    const { topic, projectType = 'thesis', methodology, areasOfInterest } = body;
+
+    // Validate areasOfInterest if provided
+    const validatedAreas: string[] = Array.isArray(areasOfInterest)
+      ? areasOfInterest.filter((a: any) => typeof a === 'string' && a.trim()).map((a: string) => a.trim()).slice(0, 5)
+      : [];
 
     // Validate topic
     const trimmedTopic = typeof topic === 'string' ? topic.trim() : '';
@@ -72,7 +77,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let userPlan: 'free' | 'pro' | 'team' = 'free';
+    let userPlan: 'free' | 'standard' | 'pro' | 'team' = 'free';
     let usageCount = 0;
     let limit = 3; // Free tier: 3 searches per day
 
@@ -80,7 +85,7 @@ export async function POST(request: NextRequest) {
       await connectDB();
       const user = await User.findOne({ email: session.user.email });
       if (user) {
-        userPlan = (user.plan as 'free' | 'pro' | 'team') || 'free';
+        userPlan = (user.plan as 'free' | 'standard' | 'pro' | 'team') || 'free';
         
         // Track usage for free users with atomic operation to prevent race conditions
         if (userPlan === 'free') {
@@ -153,13 +158,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const isPro = userPlan === 'pro' || userPlan === 'team';
+    const isPro = userPlan === 'pro' || userPlan === 'team' || userPlan === 'standard';
 
-    // Search for similar papers
-    const similarPapers = await searchOpenAlex(trimmedTopic);
-    
-    // Use more papers for Pro users
-    const papersToAnalyze = isPro ? similarPapers.slice(0, 20) : similarPapers.slice(0, 5);
+    // Search for similar papers — include area-of-interest queries if provided
+    const primarySearch = searchOpenAlex(trimmedTopic);
+    const areaSearches = validatedAreas.slice(0, 2).map(area =>
+      searchOpenAlex(`${trimmedTopic} ${area}`)
+    );
+    const [primaryPapers, ...areaPaperSets] = await Promise.all([primarySearch, ...areaSearches]);
+
+    // Merge and deduplicate by title
+    const allPapers = [...primaryPapers];
+    for (const set of areaPaperSets) {
+      for (const paper of set) {
+        if (!allPapers.some(p => p.title === paper.title)) {
+          allPapers.push(paper);
+        }
+      }
+    }
+    const similarPapers = allPapers;
+
+    // Show up to 10 papers for all users
+    const papersToAnalyze = isPro ? similarPapers.slice(0, 20) : similarPapers.slice(0, 10);
     
     // Calculate uniqueness score based on similarity
     // More similar papers = lower uniqueness score
@@ -182,7 +202,8 @@ export async function POST(request: NextRequest) {
       methodology,
       papersToAnalyze,
       gaps,
-      isPro
+      isPro,
+      validatedAreas
     );
 
     // Track usage in DailyUsage for authenticated users
@@ -212,7 +233,9 @@ export async function POST(request: NextRequest) {
         title: paper.title,
         year: paper.year,
         authors: paper.authors.slice(0, 2).join(', ') + (paper.authors.length > 2 ? ' et al.' : ''),
-        similarity: Math.max(30, 100 - (index * 10)), // Simulated similarity scores
+        journal: paper.journal,
+        url: paper.url,
+        similarity: Math.max(30, 100 - (index * 10)),
       })),
       suggestions: isPro ? suggestions : suggestions.slice(0, 1), // Pro: all, Free: 1
       gaps: isPro ? gaps : gaps.slice(0, 2), // Pro: all, Free: 2
@@ -402,7 +425,8 @@ async function generateTopicSuggestions(
   methodology: string | undefined,
   similarPapers: any[],
   gaps: ResearchGap[],
-  useAI: boolean = false
+  useAI: boolean = false,
+  areasOfInterest: string[] = []
 ): Promise<TopicSuggestion[]> {
   const suggestions: TopicSuggestion[] = [];
   
@@ -466,16 +490,19 @@ async function generateTopicSuggestions(
   // AI-powered topic generation for Pro users
   if (useAI && process.env.OPENAI_API_KEY && suggestions.length > 0) {
     try {
+      const areasContext = areasOfInterest.length > 0
+        ? `\nAreas of interest to blend: ${areasOfInterest.join(', ')} — generate cross-disciplinary topics that combine these fields with the main topic.`
+        : '';
+
       const aiPrompt = `Generate 2-3 additional unique research topic suggestions for "${topic}" that:
 - Address identified research gaps: ${gaps.map(g => g.type).join(', ')}
-- Are specific and researchable
-- Have clear research questions
-- Explain why they're unique
+- Are specific and researchable for a ${projectType}
+- Have clear, actionable research questions
+- Explain concisely why each is unique${areasContext}
 
-Project type: ${projectType}
 Methodology: ${methodology || 'any'}
 
-Format as JSON array with {title, researchQuestion, uniquenessScore, whyUnique, aiInsights}.`;
+Respond ONLY with a valid JSON array. Each item: {title, researchQuestion, uniquenessScore (50-95), whyUnique, aiInsights}.`;
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
