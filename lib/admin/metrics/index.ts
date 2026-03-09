@@ -247,6 +247,7 @@ export async function getAllMetrics(days: number, startDate?: string, endDate?: 
     },
     productHealth: {
       completionRate: periodProductMetricsData.completionRate,
+      behavioralCompletionRate: periodProductMetricsData.behavioralCompletionRate,
       avgProjectsPerUser: periodProductMetricsData.avgProjectsPerUser,
       usersWithMultipleProjects: periodProductMetricsData.usersWithMultipleProjects,
       citationAdoption: periodProductMetricsData.citationAdoption,
