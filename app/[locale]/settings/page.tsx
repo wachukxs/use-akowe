@@ -284,7 +284,7 @@ alert(t('alerts.failedCheckoutSession'));
     }
   };
 
-  const planFeatureCounts: Record<PlanType, number> = { free: 5, standard: 6, pro: 6, team: 6 };
+  const planFeatureCounts: Record<PlanType, number> = { free: 6, standard: 7, pro: 7, team: 6 };
   const plans = [
     { type: 'free' as PlanType, icon: Check, color: 'from-gray-400 to-gray-600', popular: false, comingSoon: false },
     { type: 'standard' as PlanType, icon: Users, color: 'from-blue-500 to-cyan-500', popular: false, comingSoon: false },

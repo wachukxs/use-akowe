@@ -45,7 +45,8 @@
         "1 plagiarism check per week",
         "1 project",
         "Smart citation search",
-        "Basic citation support"
+        "Basic citation support",
+        "1 topic finder search per day"
       ]
     },
     "standard": {
@@ -63,7 +64,8 @@
         "10 projects",
         "GPT-4o mini access",
         "Advanced citation search",
-        "10 rewrites per day"
+        "10 rewrites per day",
+        "Unlimited topic finder searches"
       ]
     },
     "pro": {
@@ -81,7 +83,8 @@
         "Unlimited projects",
         "Advanced citation search",
         "GPT-4 access",
-        "Priority support"
+        "Priority support",
+        "Unlimited topic finder + AI research gap analysis"
       ]
     },
     "team": {

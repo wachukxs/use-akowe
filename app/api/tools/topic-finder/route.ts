@@ -89,21 +89,18 @@ export async function POST(request: NextRequest) {
         
         // Track usage for free users with atomic operation to prevent race conditions
         if (userPlan === 'free') {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          // Determine if it's a new day by comparing stored date (normalised to midnight)
+          // Use UTC date strings for timezone-safe day comparison
+          const todayStr = new Date().toISOString().split('T')[0];
           const storedDate = user.topicFinderUsage?.date;
-          const storedMidnight = storedDate ? new Date(storedDate) : null;
-          if (storedMidnight) storedMidnight.setHours(0, 0, 0, 0);
-          const isNewDay = !storedMidnight || storedMidnight.getTime() !== today.getTime();
+          const storedStr = storedDate ? new Date(storedDate).toISOString().split('T')[0] : null;
+          const isNewDay = storedStr !== todayStr;
+          const currentCount = isNewDay ? 0 : (user.topicFinderUsage?.count ?? 0);
 
-          // Only enforce limit on same-day requests
-          if (!isNewDay && (user.topicFinderUsage?.count ?? 0) >= limit) {
+          if (currentCount >= limit) {
             return NextResponse.json(
               {
                 error: 'Daily limit reached',
-                usageCount: user.topicFinderUsage?.count ?? limit,
+                usageCount: currentCount,
                 limit,
                 message: 'Upgrade to Standard or Pro for unlimited topic suggestions',
               },
@@ -111,36 +108,13 @@ export async function POST(request: NextRequest) {
             );
           }
 
-          let updatedUser;
-          if (isNewDay) {
-            // Reset counter for the new day and record this as the first use
-            updatedUser = await User.findOneAndUpdate(
-              { _id: user._id },
-              { $set: { 'topicFinderUsage.date': today, 'topicFinderUsage.count': 1 } },
-              { new: true }
-            );
-          } else {
-            // Same day — atomically increment only if still under limit
-            updatedUser = await User.findOneAndUpdate(
-              { _id: user._id, 'topicFinderUsage.count': { $lt: limit } },
-              { $inc: { 'topicFinderUsage.count': 1 } },
-              { new: true }
-            );
-
-            if (!updatedUser) {
-              const currentUser = await User.findById(user._id);
-              const currentCount = currentUser?.topicFinderUsage?.count ?? limit;
-              return NextResponse.json(
-                {
-                  error: 'Daily limit reached',
-                  usageCount: currentCount,
-                  limit,
-                  message: 'Upgrade to Standard or Pro for unlimited topic suggestions',
-                },
-                { status: 429 }
-              );
-            }
-          }
+          const updatedUser = await User.findOneAndUpdate(
+            { _id: user._id },
+            isNewDay
+              ? { $set: { 'topicFinderUsage.date': new Date(), 'topicFinderUsage.count': 1 } }
+              : { $inc: { 'topicFinderUsage.count': 1 } },
+            { new: true }
+          );
 
           usageCount = updatedUser?.topicFinderUsage?.count ?? 1;
         } else {
