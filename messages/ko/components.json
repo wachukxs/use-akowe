@@ -342,6 +342,39 @@
     "ariaLabel": "Breadcrumb"
   },
   "relatedContent": {
-    "defaultTitle": "Related Content"
+    "defaultTitle": "관련 콘텐츠"
+  },
+  "upgradeModal": {
+    "label": "플랜 업그레이드",
+    "titleLimit": "한도에 도달했습니다",
+    "titleChoose": "플랜 선택",
+    "close": "닫기",
+    "monthly": "월간",
+    "annual": "연간",
+    "savePercent": "최대 17% 절약",
+    "recommended": "★ 추천",
+    "perYear": "년",
+    "perMonth": "월",
+    "processing": "처리 중...",
+    "upgradeTo": "{plan}으로 업그레이드",
+    "footer": "언제든 취소 가능 · Stripe 안전 결제 · 가격은 USD 기준",
+    "standard": {
+      "feature1": "하루 AI 단어 2,000개",
+      "feature2": "하루 표절 검사 5회",
+      "feature3": "프로젝트 10개",
+      "feature4": "GPT-4o mini (고품질)",
+      "feature5": "하루 재작성 10회",
+      "feature6": "하루 문헌 검토 분석 5회",
+      "feature7": "주제 검색 무제한"
+    },
+    "pro": {
+      "feature1": "AI 단어 무제한",
+      "feature2": "표절 검사 무제한",
+      "feature3": "프로젝트 무제한",
+      "feature4": "GPT-4o mini (최고 품질)",
+      "feature5": "재작성 무제한",
+      "feature6": "주제 검색 무제한",
+      "feature7": "우선 지원"
+    }
   }
 }

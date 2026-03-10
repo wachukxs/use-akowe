@@ -342,6 +342,39 @@
     "ariaLabel": "Breadcrumb"
   },
   "relatedContent": {
-    "defaultTitle": "Related Content"
+    "defaultTitle": "関連コンテンツ"
+  },
+  "upgradeModal": {
+    "label": "プランをアップグレード",
+    "titleLimit": "制限に達しました",
+    "titleChoose": "プランを選択",
+    "close": "閉じる",
+    "monthly": "月払い",
+    "annual": "年払い",
+    "savePercent": "最大17%お得",
+    "recommended": "★ おすすめ",
+    "perYear": "年",
+    "perMonth": "月",
+    "processing": "処理中...",
+    "upgradeTo": "{plan}にアップグレード",
+    "footer": "いつでもキャンセル可 · Stripeで安全に支払い · 価格はUSD",
+    "standard": {
+      "feature1": "1日2,000 AI単語",
+      "feature2": "1日5回の盗用チェック",
+      "feature3": "プロジェクト10件",
+      "feature4": "GPT-4o mini（高品質）",
+      "feature5": "1日10回の書き換え",
+      "feature6": "1日5回の文献レビュー分析",
+      "feature7": "トピック検索無制限"
+    },
+    "pro": {
+      "feature1": "AI単語数無制限",
+      "feature2": "盗用チェック無制限",
+      "feature3": "プロジェクト数無制限",
+      "feature4": "GPT-4o mini（最高品質）",
+      "feature5": "書き換え無制限",
+      "feature6": "トピック検索無制限",
+      "feature7": "優先サポート"
+    }
   }
 }

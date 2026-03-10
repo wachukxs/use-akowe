@@ -343,5 +343,38 @@
   },
   "relatedContent": {
     "defaultTitle": "Related Content"
+  },
+  "upgradeModal": {
+    "label": "Upgrade Plan",
+    "titleLimit": "You've hit your limit",
+    "titleChoose": "Choose a plan",
+    "close": "Close",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "savePercent": "Save up to 17%",
+    "recommended": "★ Recommended",
+    "perYear": "yr",
+    "perMonth": "mo",
+    "processing": "Processing...",
+    "upgradeTo": "Upgrade to {plan}",
+    "footer": "Cancel anytime · Secure payment via Stripe · All prices in USD",
+    "standard": {
+      "feature1": "2,000 AI words per day",
+      "feature2": "5 plagiarism checks per day",
+      "feature3": "10 projects",
+      "feature4": "GPT-4o mini (better quality)",
+      "feature5": "10 rewrites per day",
+      "feature6": "5 lit review analyses per day",
+      "feature7": "Unlimited topic finder searches"
+    },
+    "pro": {
+      "feature1": "Unlimited AI words",
+      "feature2": "Unlimited plagiarism checks",
+      "feature3": "Unlimited projects",
+      "feature4": "GPT-4o mini (best quality)",
+      "feature5": "Unlimited rewrites",
+      "feature6": "Unlimited topic finder searches",
+      "feature7": "Priority support"
+    }
   }
 }

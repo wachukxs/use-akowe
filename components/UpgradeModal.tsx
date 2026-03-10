@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Check, Zap, Crown } from 'lucide-react';
 import { useRouter } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -13,7 +14,7 @@ interface UpgradeModalProps {
   suggestedPlan?: 'standard' | 'pro';
 }
 
-const PLANS = [
+const PLAN_META = [
   {
     type: 'standard' as const,
     name: 'Standard',
@@ -22,14 +23,6 @@ const PLANS = [
     annualEquiv: '$5.83/mo',
     icon: Zap,
     color: 'from-blue-500 to-cyan-500',
-    features: [
-      '2,000 AI words per day',
-      '5 plagiarism checks per day',
-      '10 projects',
-      'GPT-4o mini (better quality)',
-      '10 rewrites per day',
-      '5 lit review analyses per day',
-    ],
   },
   {
     type: 'pro' as const,
@@ -39,14 +32,6 @@ const PLANS = [
     annualEquiv: '$10/mo',
     icon: Crown,
     color: 'from-indigo-500 to-purple-500',
-    features: [
-      'Unlimited AI words',
-      'Unlimited plagiarism checks',
-      'Unlimited projects',
-      'GPT-4o mini (best quality)',
-      'Unlimited rewrites',
-      'Priority support',
-    ],
   },
 ];
 
@@ -57,8 +42,14 @@ export default function UpgradeModal({
   suggestedPlan = 'standard',
 }: UpgradeModalProps) {
   const router = useRouter();
+  const t = useTranslations('components.upgradeModal');
   const [isAnnual, setIsAnnual] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState<'standard' | 'pro' | null>(null);
+
+  const PLANS = PLAN_META.map((plan) => ({
+    ...plan,
+    features: [1, 2, 3, 4, 5, 6, 7].map((i) => t(`${plan.type}.feature${i}` as Parameters<typeof t>[0])),
+  }));
 
   if (!isOpen) return null;
 
@@ -101,10 +92,10 @@ export default function UpgradeModal({
         <div className="flex items-start justify-between p-4 md:p-6 border-b-4 border-[hsl(var(--border-strong))]">
           <div>
             <span className="text-[10px] uppercase tracking-[0.36em] text-[hsl(var(--muted-foreground))]">
-              Upgrade Plan
+              {t('label')}
             </span>
             <h2 className="text-xl md:text-2xl font-bold uppercase tracking-[0.12em] mt-1">
-              {reason ? 'You\'ve hit your limit' : 'Choose a plan'}
+              {reason ? t('titleLimit') : t('titleChoose')}
             </h2>
             {reason && (
               <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1 uppercase tracking-[0.12em]">
@@ -115,7 +106,7 @@ export default function UpgradeModal({
           <button
             onClick={onClose}
             className="p-2 hover:bg-[hsl(var(--surface-muted))] border-2 border-transparent hover:border-[hsl(var(--border-strong))] cursor-pointer"
-            aria-label="Close"
+            aria-label={t('close')}
           >
             <X size={20} />
           </button>
@@ -131,7 +122,7 @@ export default function UpgradeModal({
                 : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))]'
             }`}
           >
-            Monthly
+            {t('monthly')}
           </button>
           <button
             onClick={() => setIsAnnual(true)}
@@ -141,11 +132,11 @@ export default function UpgradeModal({
                 : 'bg-[hsl(var(--surface))] text-[hsl(var(--muted-foreground))]'
             }`}
           >
-            Annual
+            {t('annual')}
           </button>
           {isAnnual && (
             <span className="px-3 py-1.5 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[10px] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--accent-foreground))]">
-              Save up to 17%
+              {t('savePercent')}
             </span>
           )}
         </div>
@@ -162,7 +153,7 @@ export default function UpgradeModal({
               >
                 {isHighlighted && (
                   <span className="text-[10px] uppercase tracking-[0.32em] font-semibold">
-                    ★ Recommended
+                    {t('recommended')}
                   </span>
                 )}
                 <div className="flex items-center gap-3">
@@ -177,7 +168,7 @@ export default function UpgradeModal({
                     {isAnnual ? plan.annualPrice : plan.monthlyPrice}
                   </span>
                   <span className="text-sm text-[hsl(var(--muted-foreground))] ml-1">
-                    /{isAnnual ? 'yr' : 'mo'}
+                    /{isAnnual ? t('perYear') : t('perMonth')}
                   </span>
                   {isAnnual && (
                     <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">
@@ -207,10 +198,10 @@ export default function UpgradeModal({
                   {isUpgrading === plan.type ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent" />
-                      Processing...
+                      {t('processing')}
                     </span>
                   ) : (
-                    `Upgrade to ${plan.name}`
+                    t('upgradeTo', { plan: plan.name })
                   )}
                 </button>
               </div>
@@ -220,7 +211,7 @@ export default function UpgradeModal({
 
         <div className="p-4 border-t-2 border-[hsl(var(--border))] text-center">
           <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-            Cancel anytime · Secure payment via Stripe · All prices in USD
+            {t('footer')}
           </p>
         </div>
       </div>

@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     let userPlan: 'free' | 'standard' | 'pro' | 'team' = 'free';
     let usageCount = 0;
-    let limit = 3; // Free tier: 3 searches per day
+    let limit = 1; // Free tier: 1 search per day
 
     if (isAuthenticated) {
       await connectDB();
@@ -91,67 +91,58 @@ export async function POST(request: NextRequest) {
         if (userPlan === 'free') {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
-          const todayTime = today.getTime();
-          
-          // Initialize usage tracking if needed
-          if (!user.topicFinderUsage) {
-            user.topicFinderUsage = { date: today, count: 0 };
-          }
-          
-          // Reset if new day (compare timestamps)
-          const lastUsageDate = user.topicFinderUsage.date instanceof Date 
-            ? user.topicFinderUsage.date.getTime()
-            : new Date(user.topicFinderUsage.date).getTime();
-          
-          if (lastUsageDate !== todayTime) {
-            user.topicFinderUsage = { date: today, count: 0 };
-          }
-          
-          // Check limit BEFORE incrementing (first check)
-          if (user.topicFinderUsage.count >= limit) {
+
+          // Determine if it's a new day by comparing stored date (normalised to midnight)
+          const storedDate = user.topicFinderUsage?.date;
+          const storedMidnight = storedDate ? new Date(storedDate) : null;
+          if (storedMidnight) storedMidnight.setHours(0, 0, 0, 0);
+          const isNewDay = !storedMidnight || storedMidnight.getTime() !== today.getTime();
+
+          // Only enforce limit on same-day requests
+          if (!isNewDay && (user.topicFinderUsage?.count ?? 0) >= limit) {
             return NextResponse.json(
               {
                 error: 'Daily limit reached',
-                usageCount: user.topicFinderUsage.count,
+                usageCount: user.topicFinderUsage?.count ?? limit,
                 limit,
-                message: 'Upgrade to Pro for unlimited topic suggestions',
+                message: 'Upgrade to Standard or Pro for unlimited topic suggestions',
               },
               { status: 429 }
             );
           }
-          
-          // Atomically increment only if count is below limit
-          // This prevents race conditions where multiple requests could exceed the limit
-          const updatedUser = await User.findOneAndUpdate(
-            {
-              _id: user._id,
-              'topicFinderUsage.count': { $lt: limit }, // Only match if count is below limit
-            },
-            {
-              $inc: { 'topicFinderUsage.count': 1 },
-              $set: { 'topicFinderUsage.date': today }, // Ensure date is set
-            },
-            { new: true }
-          );
-          
-          // If update failed (null returned), it means count was already at or above limit
-          if (!updatedUser) {
-            // Re-fetch to get current count
-            const currentUser = await User.findById(user._id);
-            const currentCount = currentUser?.topicFinderUsage?.count || limit;
-            
-            return NextResponse.json(
-              {
-                error: 'Daily limit reached',
-                usageCount: currentCount,
-                limit,
-                message: 'Upgrade to Pro for unlimited topic suggestions',
-              },
-              { status: 429 }
+
+          let updatedUser;
+          if (isNewDay) {
+            // Reset counter for the new day and record this as the first use
+            updatedUser = await User.findOneAndUpdate(
+              { _id: user._id },
+              { $set: { 'topicFinderUsage.date': today, 'topicFinderUsage.count': 1 } },
+              { new: true }
             );
+          } else {
+            // Same day — atomically increment only if still under limit
+            updatedUser = await User.findOneAndUpdate(
+              { _id: user._id, 'topicFinderUsage.count': { $lt: limit } },
+              { $inc: { 'topicFinderUsage.count': 1 } },
+              { new: true }
+            );
+
+            if (!updatedUser) {
+              const currentUser = await User.findById(user._id);
+              const currentCount = currentUser?.topicFinderUsage?.count ?? limit;
+              return NextResponse.json(
+                {
+                  error: 'Daily limit reached',
+                  usageCount: currentCount,
+                  limit,
+                  message: 'Upgrade to Standard or Pro for unlimited topic suggestions',
+                },
+                { status: 429 }
+              );
+            }
           }
-          
-          usageCount = updatedUser.topicFinderUsage?.count || 0;
+
+          usageCount = updatedUser?.topicFinderUsage?.count ?? 1;
         } else {
           limit = Infinity; // Pro users have unlimited
         }
@@ -246,7 +237,7 @@ export async function POST(request: NextRequest) {
       limit: isPro ? undefined : limit,
       message: isPro 
         ? undefined 
-        : 'Upgrade to Pro for unlimited suggestions + AI-powered research gap analysis',
+        : 'Upgrade to Standard or Pro for unlimited suggestions + AI-powered research gap analysis',
     });
   } catch (error: any) {
     console.error('Error in topic finder:', error);
@@ -545,6 +536,6 @@ Respond ONLY with a valid JSON array. Each item: {title, researchQuestion, uniqu
       // Continue without AI suggestions
     }
   }
-  
+
   return suggestions;
 }

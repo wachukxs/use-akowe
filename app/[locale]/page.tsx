@@ -1065,6 +1065,10 @@ function HomePageContent() {
                   <Check size={16} />
                   {tHome("plans.freePlanCitationSearch")}
                 </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.freePlanTopicFinder")}
+                </li>
               </ul>
               <Link href="/auth/signin">
                 <Button variant="outline" className="w-full py-4">
@@ -1122,6 +1126,10 @@ function HomePageContent() {
                   <Check size={16} />
                   {tHome("plans.standardPlan10Rewrites")}
                 </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.standardPlanTopicFinder")}
+                </li>
               </ul>
               <Link href="/auth/signin">
                 <Button className="w-full py-4">{tHome("plans.standardPlanCta")}</Button>
@@ -1173,6 +1181,10 @@ function HomePageContent() {
                 <li className="flex items-center gap-3">
                   <Check size={16} />
                   {tHome("plans.proPlanAdvancedAI")}
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  {tHome("plans.proPlanTopicFinder")}
                 </li>
                 <li className="flex items-center gap-3">
                   <Check size={16} />

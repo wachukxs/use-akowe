@@ -343,5 +343,38 @@
   },
   "relatedContent": {
     "defaultTitle": "相关内容"
+  },
+  "upgradeModal": {
+    "label": "升级计划",
+    "titleLimit": "您已达到使用限制",
+    "titleChoose": "选择计划",
+    "close": "关闭",
+    "monthly": "按月",
+    "annual": "按年",
+    "savePercent": "最高节省17%",
+    "recommended": "★ 推荐",
+    "perYear": "年",
+    "perMonth": "月",
+    "processing": "处理中...",
+    "upgradeTo": "升级到{plan}",
+    "footer": "随时取消 · 通过Stripe安全付款 · 价格以美元计",
+    "standard": {
+      "feature1": "每天2,000个AI字词",
+      "feature2": "每天5次查重检测",
+      "feature3": "10个项目",
+      "feature4": "GPT-4o mini（更好的质量）",
+      "feature5": "每天10次改写",
+      "feature6": "每天5次文献综述分析",
+      "feature7": "无限主题搜索"
+    },
+    "pro": {
+      "feature1": "无限AI字词",
+      "feature2": "无限查重检测",
+      "feature3": "无限项目",
+      "feature4": "GPT-4o mini（最佳质量）",
+      "feature5": "无限改写",
+      "feature6": "无限主题搜索",
+      "feature7": "优先支持"
+    }
   }
 }
