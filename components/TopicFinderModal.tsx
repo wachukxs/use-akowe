@@ -21,7 +21,9 @@ interface TopicSuggestion {
   uniquenessScore: number;
   whyUnique: string;
   gaps: ResearchGap[];
-  aiInsights?: string; // Pro feature
+  aiInsights?: string;
+  feasibilityNote?: string;
+  isLocked?: boolean;
 }
 
 interface TopicResult {
@@ -71,7 +73,6 @@ export default function TopicFinderModal({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<TopicResult | null>(null);
   const [error, setError] = useState('');
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<TopicSuggestion | null>(null);
   const [showPapers, setShowPapers] = useState(false);
@@ -119,7 +120,6 @@ export default function TopicFinderModal({
     setError('');
     setIsAnalyzing(true);
     setResult(null);
-    setShowUpgradePrompt(false);
 
     try {
       const response = await fetch('/api/tools/topic-finder', {
@@ -172,11 +172,9 @@ export default function TopicFinderModal({
 
       setResult(data);
       
-      // Show upgrade prompt if free user and limited results
-      if (!isPro && data.isLimited && data.suggestions.length === 1) {
-        // Track paywall view for feature upgrade
+      // Track paywall view if free user sees locked suggestions
+      if (!isPro && data.isLimited) {
         trackFunnel.paywallView('feature_upgrade', 'topic_finder');
-        setShowUpgradePrompt(true);
       }
     } catch (err: any) {
       // Handle network errors
@@ -442,31 +440,38 @@ export default function TopicFinderModal({
                 <div className="space-y-3">
                   {result.suggestions.map((suggestion, index) => {
                     const isSelected = selectedSuggestion === suggestion;
+                    const isLocked = suggestion.isLocked;
                     return (
                     <div
                       key={index}
                       className={cn(
-                        "border-[3px] rounded-(--radius) p-4 transition-colors cursor-pointer",
-                        isSelected
-                          ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10"
-                          : "border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] hover:border-[hsl(var(--primary))]"
+                        "border-[3px] rounded-(--radius) p-4 transition-colors",
+                        isLocked
+                          ? "border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] cursor-default"
+                          : isSelected
+                            ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10 cursor-pointer"
+                            : "border-[hsl(var(--border-strong))] bg-[hsl(var(--surface-muted))] hover:border-[hsl(var(--primary))] cursor-pointer"
                       )}
-                      onClick={() => handleSelectSuggestion(suggestion)}
+                      onClick={() => !isLocked && handleSelectSuggestion(suggestion)}
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex items-start gap-2 flex-1 min-w-0">
-                          {isSelected && (
+                          {isLocked ? (
+                            <Lock className="text-[hsl(var(--muted-foreground))] flex-shrink-0 mt-0.5" size={18} />
+                          ) : isSelected ? (
                             <CheckCircle2 className="text-[hsl(var(--primary))] flex-shrink-0 mt-0.5" size={18} />
-                          )}
+                          ) : null}
                           <h4 className={cn(
                             "text-sm font-semibold flex-1",
-                            isSelected && "text-[hsl(var(--primary))]"
+                            isSelected && !isLocked && "text-[hsl(var(--primary))]",
+                            isLocked && "text-[hsl(var(--muted-foreground))]"
                           )}>
                             {suggestion.title}
                           </h4>
                         </div>
                         <div className={cn(
                           'px-2 py-1 rounded text-xs font-bold flex-shrink-0',
+                          isLocked ? 'bg-[hsl(var(--border-strong))] text-[hsl(var(--muted-foreground))]' :
                           suggestion.uniquenessScore >= 80 ? 'bg-green-500 text-white' :
                           suggestion.uniquenessScore >= 60 ? 'bg-yellow-500 text-white' :
                           'bg-red-500 text-white'
@@ -474,24 +479,49 @@ export default function TopicFinderModal({
                           {suggestion.uniquenessScore}%
                         </div>
                       </div>
-                      <p className="text-sm text-[hsl(var(--muted-foreground))] mb-2 italic">
-                        {suggestion.researchQuestion}
-                      </p>
-                      <div className="flex items-start gap-2 mt-2">
-                        <CheckCircle2 className="text-green-600 flex-shrink-0 mt-0.5" size={14} />
-                        <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                          {suggestion.whyUnique}
-                        </span>
-                      </div>
-                      {suggestion.aiInsights && (
-                        <div className="mt-3 pt-3 border-t-[2px] border-[hsl(var(--border-strong))]">
-                          <div className="flex items-start gap-2">
-                            <Zap className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
-                            <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                              {suggestion.aiInsights}
-                            </p>
-                          </div>
+
+                      {isLocked ? (
+                        <div className="mt-2 space-y-2">
+                          <div className="h-3 bg-[hsl(var(--border-strong))]/50 rounded w-full blur-[2px]" />
+                          <div className="h-3 bg-[hsl(var(--border-strong))]/50 rounded w-4/5 blur-[2px]" />
+                          <div className="h-3 bg-[hsl(var(--border-strong))]/50 rounded w-3/5 blur-[2px]" />
+                          <button
+                            className="mt-3 w-full text-xs uppercase tracking-[0.12em] py-2 px-3 border-[2px] border-[hsl(var(--accent))] text-[hsl(var(--accent))] rounded hover:bg-[hsl(var(--accent))]/10 transition-colors flex items-center justify-center gap-2"
+                            onClick={(e) => { e.stopPropagation(); setShowUpgradeModal(true); }}
+                          >
+                            <Lock size={12} /> Unlock research question &amp; insights
+                          </button>
                         </div>
+                      ) : (
+                        <>
+                          <p className="text-sm text-[hsl(var(--muted-foreground))] mb-2 italic">
+                            {suggestion.researchQuestion}
+                          </p>
+                          <div className="flex items-start gap-2 mt-2">
+                            <CheckCircle2 className="text-green-600 flex-shrink-0 mt-0.5" size={14} />
+                            <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                              {suggestion.whyUnique}
+                            </span>
+                          </div>
+                          {suggestion.feasibilityNote && (
+                            <div className="flex items-start gap-2 mt-2">
+                              <BookOpen className="text-blue-500 flex-shrink-0 mt-0.5" size={14} />
+                              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                                {suggestion.feasibilityNote}
+                              </span>
+                            </div>
+                          )}
+                          {suggestion.aiInsights && (
+                            <div className="mt-3 pt-3 border-t-[2px] border-[hsl(var(--border-strong))]">
+                              <div className="flex items-start gap-2">
+                                <Zap className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={14} />
+                                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                                  {suggestion.aiInsights}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   );
@@ -592,27 +622,6 @@ export default function TopicFinderModal({
                       ))}
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* Pro Upgrade Prompt */}
-              {showUpgradePrompt && !isPro && (
-                <div className="border-[3px] border-[hsl(var(--accent))] bg-[hsl(var(--accent))]/10 rounded-(--radius) p-4 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <Lock className="text-[hsl(var(--accent))] flex-shrink-0 mt-0.5" size={18} />
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold uppercase tracking-[0.14em] mb-2">
-                        {t('upgradeTitle')}
-                      </h4>
-                      <p className="text-xs uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))] mb-3">
-                        {t('upgradeBody')}
-                      </p>
-                      <Button className="w-full py-2 text-xs" onClick={() => setShowUpgradeModal(true)}>
-                        {t('upgradeCta')}
-                        <ArrowRight size={14} className="ml-2" />
-                      </Button>
-                    </div>
-                  </div>
                 </div>
               )}
 

@@ -24,7 +24,9 @@ interface TopicSuggestion {
   uniquenessScore: number;
   whyUnique: string;
   gaps: ResearchGap[];
-  aiInsights?: string; // Pro feature
+  aiInsights?: string;
+  feasibilityNote?: string;
+  isLocked?: boolean;
 }
 
 // Free tier: Return limited results to encourage signup
@@ -146,10 +148,11 @@ export async function POST(request: NextRequest) {
     // Show up to 10 papers for all users
     const papersToAnalyze = isPro ? similarPapers.slice(0, 20) : similarPapers.slice(0, 10);
     
-    // Calculate uniqueness score based on similarity
-    // More similar papers = lower uniqueness score
+    // Calculate uniqueness score — logarithmic curve so 0 papers → 85, 50 papers → ~51
     const totalSimilar = similarPapers.length;
-    const uniquenessScore = Math.max(0, Math.min(100, 100 - (totalSimilar * 2)));
+    const uniquenessScore = totalSimilar === 0
+      ? 85
+      : Math.max(20, Math.round(85 - Math.log10(totalSimilar + 1) * 20));
     
     // Identify research gaps
     const gaps: ResearchGap[] = await identifyGaps(
@@ -160,14 +163,13 @@ export async function POST(request: NextRequest) {
       isPro
     );
     
-    // Generate topic suggestions
+    // Generate topic suggestions — always AI-powered, always 3 suggestions
     const suggestions: TopicSuggestion[] = await generateTopicSuggestions(
       trimmedTopic,
       projectType,
       methodology,
       papersToAnalyze,
       gaps,
-      isPro,
       validatedAreas
     );
 
@@ -202,7 +204,14 @@ export async function POST(request: NextRequest) {
         url: paper.url,
         similarity: Math.max(30, 100 - (index * 10)),
       })),
-      suggestions: isPro ? suggestions : suggestions.slice(0, 1), // Pro: all, Free: 1
+      // All users get 3 suggestions; free users have suggestions[1+] locked (titles visible, details hidden)
+      suggestions: isPro
+        ? suggestions
+        : suggestions.map((s, i) =>
+            i === 0
+              ? s
+              : { ...s, isLocked: true, researchQuestion: '', whyUnique: '', aiInsights: undefined, feasibilityNote: undefined }
+          ),
       gaps: isPro ? gaps : gaps.slice(0, 2), // Pro: all, Free: 2
       totalSimilarPapers: totalSimilar,
       isLimited: !isPro,
@@ -390,126 +399,136 @@ async function generateTopicSuggestions(
   methodology: string | undefined,
   similarPapers: any[],
   gaps: ResearchGap[],
-  useAI: boolean = false,
   areasOfInterest: string[] = []
 ): Promise<TopicSuggestion[]> {
+  const papersContext = similarPapers.slice(0, 10)
+    .map(p => `- "${p.title}"${p.year ? ` (${p.year})` : ''}${p.journal ? `, ${p.journal}` : ''}`)
+    .join('\n') || 'No similar papers found — this may be a relatively unexplored area.';
+
+  const gapsContext = gaps.length > 0
+    ? gaps.map(g => `- ${g.type}: ${g.description}`).join('\n')
+    : 'No specific gaps detected — broad opportunity for original research.';
+
+  const areasContext = areasOfInterest.length > 0
+    ? `\nAreas to blend in: ${areasOfInterest.join(', ')} — at least one suggestion should take an interdisciplinary angle combining these with the main topic.`
+    : '';
+
+  const prompt = `You are an expert academic advisor helping a student find a unique, researchable topic.
+
+Student topic area: "${topic}"
+Project type: ${projectType}
+Methodology: ${methodology || 'any'}${areasContext}
+
+Existing literature found (${similarPapers.length} papers):
+${papersContext}
+
+Identified research gaps:
+${gapsContext}
+
+Generate exactly 3 specific, unique research topic suggestions. Requirements:
+1. Each topic must NOT duplicate what the papers above already cover
+2. Research questions must be specific and supervisor-approvable — use precise framing like "To what extent does [X] affect [Y] among [specific population] in [context]?" rather than vague questions
+3. whyUnique MUST reference the actual papers found above by author/year where possible — e.g. "While Smith (2019) examined X, no study has addressed Y"
+4. Vary the angles across the 3 suggestions: e.g. one methodological, one geographic/demographic, one theoretical or interdisciplinary
+5. feasibilityNote should guide the student on scope and data availability — e.g. "Strong literature base of ${similarPapers.length} papers to build on" or "Emerging area — original data collection will likely be needed"
+
+Respond ONLY with this JSON structure:
+{"suggestions": [{"title": "", "researchQuestion": "", "uniquenessScore": 70, "whyUnique": "", "aiInsights": "", "feasibilityNote": ""}]}`;
+
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are an expert academic advisor. Always respond with valid JSON only, no extra text.' },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.8,
+        max_tokens: 1000,
+        response_format: { type: 'json_object' },
+      });
+
+      const raw = completion.choices[0]?.message?.content || '{}';
+      const parsed = JSON.parse(raw);
+      const items: any[] = Array.isArray(parsed)
+        ? parsed
+        : (parsed.suggestions || parsed.topics || Object.values(parsed).find(Array.isArray) || []);
+
+      if (Array.isArray(items) && items.length > 0) {
+        return items.slice(0, 3).map((s: any) => ({
+          title: String(s.title || topic),
+          researchQuestion: String(s.researchQuestion || ''),
+          uniquenessScore: Math.min(95, Math.max(50, Number(s.uniquenessScore) || 70)),
+          whyUnique: String(s.whyUnique || ''),
+          aiInsights: s.aiInsights ? String(s.aiInsights) : undefined,
+          feasibilityNote: s.feasibilityNote ? String(s.feasibilityNote) : undefined,
+          gaps: [],
+        }));
+      }
+    } catch (aiError) {
+      console.error('AI topic generation error:', aiError);
+    }
+  }
+
+  // Fallback to templates if AI fails or API key missing
+  return buildFallbackSuggestions(topic, methodology, gaps);
+}
+
+function buildFallbackSuggestions(
+  topic: string,
+  methodology: string | undefined,
+  gaps: ResearchGap[]
+): TopicSuggestion[] {
   const suggestions: TopicSuggestion[] = [];
-  
-  // Generate suggestions based on gaps
+  const year = new Date().getFullYear();
+
   if (gaps.length > 0) {
-    // Generate multiple suggestions for Pro users
-    const gapsToUse = useAI ? gaps : gaps.slice(0, 1);
-    
-    gapsToUse.forEach((gap, index) => {
+    gaps.slice(0, 3).forEach((gap, index) => {
       let title = topic;
       let researchQuestion = '';
       let whyUnique = '';
-      
+
       switch (gap.type) {
         case 'temporal':
-          title = `${topic}: A Contemporary Analysis (${new Date().getFullYear() - 4}-${new Date().getFullYear()})`;
-          researchQuestion = `How has ${topic} evolved in recent years, and what are the current trends?`;
-          whyUnique = 'Focuses on recent developments not covered in older research';
+          title = `${topic}: A Contemporary Analysis (${year - 4}–${year})`;
+          researchQuestion = `How has ${topic} changed over the last five years, and what are the emerging trends?`;
+          whyUnique = 'Focuses on recent developments with limited coverage in older literature';
           break;
         case 'methodology':
-          const methodLabel = methodology || 'qualitative';
-          title = `${topic}: A ${methodLabel.charAt(0).toUpperCase() + methodLabel.slice(1)} Approach`;
-          researchQuestion = `What insights can ${methodLabel} research methods provide about ${topic}?`;
-          whyUnique = `Uses ${methodology || methodLabel} methodology not commonly applied to this topic`;
+          const methodLabel = (methodology || 'qualitative');
+          title = `${topic}: A ${methodLabel.charAt(0).toUpperCase() + methodLabel.slice(1)} Study`;
+          researchQuestion = `What does a ${methodLabel} approach reveal about ${topic} that quantitative studies have not captured?`;
+          whyUnique = `Applies ${methodLabel} methodology rarely used in this area`;
           break;
         case 'geographic':
           title = `${topic}: A Regional Perspective`;
-          researchQuestion = `How does ${topic} manifest in different geographic contexts?`;
-          whyUnique = 'Addresses geographic gap in existing research';
+          researchQuestion = `How does ${topic} manifest differently across regional contexts?`;
+          whyUnique = 'Addresses geographic gap in the existing literature';
           break;
         case 'demographic':
-          title = `${topic}: A Demographic-Specific Analysis`;
-          researchQuestion = `How does ${topic} affect specific demographic groups?`;
-          whyUnique = 'Addresses demographic gap in existing research';
+          title = `${topic}: A Population-Specific Analysis`;
+          researchQuestion = `How does ${topic} affect a specific demographic group compared to the general population?`;
+          whyUnique = 'Targets a demographic underrepresented in current research';
           break;
         default:
-          title = `${topic}: An Integrated Analysis`;
-          researchQuestion = `What are the key factors influencing ${topic}?`;
-          whyUnique = 'Synthesizes multiple perspectives not found in existing research';
+          title = `${topic}: An Integrated Perspective`;
+          researchQuestion = `What are the key factors driving ${topic} and how do they interact?`;
+          whyUnique = 'Synthesises multiple perspectives absent from existing single-focus studies';
       }
-      
-      suggestions.push({
-        title,
-        researchQuestion,
-        uniquenessScore: Math.max(70 - (index * 5), 60),
-        whyUnique,
-        gaps: [gap],
-      });
+
+      suggestions.push({ title, researchQuestion, uniquenessScore: Math.max(65 - index * 5, 55), whyUnique, gaps: [gap] });
     });
-  } else {
-    // Default suggestion if no gaps found
+  }
+
+  while (suggestions.length < 3) {
     suggestions.push({
       title: `${topic}: A Comprehensive Analysis`,
-      researchQuestion: `What are the current state and future directions of ${topic}?`,
-      uniquenessScore: Math.max(60, 100 - (similarPapers.length * 3)),
-      whyUnique: 'Provides comprehensive analysis combining multiple research perspectives',
+      researchQuestion: `What are the current state and future directions of research on ${topic}?`,
+      uniquenessScore: 60,
+      whyUnique: 'Provides a broad synthesis not available in narrower existing studies',
       gaps: [],
     });
   }
 
-  // AI-powered topic generation for Pro users
-  if (useAI && process.env.OPENAI_API_KEY && suggestions.length > 0) {
-    try {
-      const areasContext = areasOfInterest.length > 0
-        ? `\nAreas of interest to blend: ${areasOfInterest.join(', ')} — generate cross-disciplinary topics that combine these fields with the main topic.`
-        : '';
-
-      const aiPrompt = `Generate 2-3 additional unique research topic suggestions for "${topic}" that:
-- Address identified research gaps: ${gaps.map(g => g.type).join(', ')}
-- Are specific and researchable for a ${projectType}
-- Have clear, actionable research questions
-- Explain concisely why each is unique${areasContext}
-
-Methodology: ${methodology || 'any'}
-
-Respond ONLY with a valid JSON array. Each item: {title, researchQuestion, uniquenessScore (50-95), whyUnique, aiInsights}.`;
-
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are an expert academic advisor helping researchers find unique, impactful topics.' },
-          { role: 'user', content: aiPrompt },
-        ],
-        temperature: 0.8,
-        max_tokens: 600,
-      });
-
-      const aiResponse = completion.choices[0]?.message?.content || '';
-      
-      try {
-        const aiSuggestions = JSON.parse(aiResponse);
-        if (Array.isArray(aiSuggestions)) {
-          suggestions.push(...aiSuggestions.map((s: any) => ({
-            ...s,
-            gaps: gaps.slice(0, 1), // Associate with primary gap
-          })));
-        }
-      } catch {
-        // If not JSON, extract insights and add to existing suggestions
-        suggestions.forEach(suggestion => {
-          if (!suggestion.aiInsights && aiResponse.toLowerCase().includes(suggestion.title.toLowerCase().substring(0, 20))) {
-            const lines = aiResponse.split('\n');
-            const relevantLine = lines.find(l => 
-              l.toLowerCase().includes('insight') || 
-              l.toLowerCase().includes('unique') ||
-              l.toLowerCase().includes('opportunity')
-            );
-            if (relevantLine) {
-              suggestion.aiInsights = relevantLine.replace(/^[-•*]\s*/, '').trim();
-            }
-          }
-        });
-      }
-    } catch (aiError) {
-      console.error('AI topic generation error:', aiError);
-      // Continue without AI suggestions
-    }
-  }
-
-  return suggestions;
+  return suggestions.slice(0, 3);
 }
