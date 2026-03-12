@@ -94,6 +94,29 @@ export const trackEditor = {
   },
 };
 
+// pSEO page tracking events
+export const trackPseo = {
+  pageView: (pageType: string, slug: string) => {
+    trackEvent('pseo_page_view', { page_type: pageType, slug });
+  },
+  ctaClicked: (pageType: string, slug: string, position: 'header' | 'inline' | 'bottom') => {
+    trackEvent('pseo_cta_clicked', { page_type: pageType, slug, position });
+  },
+};
+
+// Feedback nudge tracking events
+export const trackFeedback = {
+  nudgeShown: () => {
+    trackEvent('feedback_nudge_shown');
+  },
+  nudgeClicked: () => {
+    trackEvent('feedback_nudge_clicked');
+  },
+  nudgeDismissed: () => {
+    trackEvent('feedback_nudge_dismissed');
+  },
+};
+
 // Funnel tracking events
 export const trackFunnel = {
   /**

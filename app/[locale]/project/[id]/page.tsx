@@ -44,6 +44,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import FeedbackNudge from "@/components/FeedbackNudge";
 import UpgradeModal from "@/components/UpgradeModal";
 import ShareReviewModal from "@/components/ShareReviewModal";
 import ReviewCommentsPanel from "@/components/ReviewCommentsPanel";
@@ -2833,6 +2834,7 @@ export default function ProjectEditorPage({
         suggestedPlan="standard"
       />
       <FirstProjectCompletion />
+      <FeedbackNudge />
       <style jsx>{`
         .prose ul {
           list-style-type: disc;

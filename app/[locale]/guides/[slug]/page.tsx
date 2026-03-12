@@ -9,6 +9,8 @@ import { RelatedContent } from '@/components/seo/RelatedContent';
 import InlinePlagiarismTool from '@/components/InlinePlagiarismTool';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema, generateHowToSchema } from '@/lib/seo/schema';
+import PseoCta from '@/components/PseoCta';
+import PseoPageTracker from '@/components/PseoPageTracker';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -66,6 +68,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <PseoPageTracker pageType="guide" slug={slug} />
       <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
@@ -82,12 +85,14 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
                 </span>
               </div>
             </Link>
-            <Link
+            <PseoCta
               href="/auth/signin"
+              label="Get Started"
+              pageType="guide"
+              slug={slug}
+              position="header"
               className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-5 py-2.5 font-semibold uppercase tracking-[0.18em] text-sm"
-            >
-              Get Started
-            </Link>
+            />
           </div>
         </div>
       </header>
@@ -194,17 +199,18 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           </div>
 
           <div className="mt-12 border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Ready to Start Writing?</h2>
+            <h2 className="text-2xl font-bold mb-4">Ready to put this into practice?</h2>
             <p className="mb-6">
-              Use Akowe to apply these strategies in your own research. Get AI-powered writing assistance,
-              manage citations automatically, and ensure academic integrity—all in one workspace.
+              Apply everything in this guide inside Akowe. AI-assisted writing, automatic citations, plagiarism checks — all in one place, built for exactly this kind of work.
             </p>
-            <Link
+            <PseoCta
               href="/auth/signin"
+              label="Start writing — it's free"
+              pageType="guide"
+              slug={slug}
+              position="bottom"
               className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-6 py-3 font-semibold uppercase tracking-[0.18em]"
-            >
-              Start Writing with Akowe
-            </Link>
+            />
           </div>
 
           <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 rounded-lg mt-4">

@@ -11,6 +11,7 @@ import {
   sendAlmostActivatedEmail,
   sendGoingIdleEmail,
   sendWinBackEmail,
+  sendFeedbackRequestEmail,
 } from '@/lib/email';
 import { getSuppressedEmails, suppressEmail } from '@/lib/email-suppression';
 
@@ -325,6 +326,27 @@ export async function POST(request: NextRequest) {
       results.win_back = await processCohort('win_back', winBackCandidates, sendWinBackEmail);
     } else {
       results.win_back = { sent: 0, skipped: 0, failed: 0 };
+    }
+
+    // ============================================
+    // COHORT 6: paid_feedback
+    // standard/pro users, subscriptionStartDate 7-14 days ago, never received feedback email
+    // ============================================
+    if (Date.now() - startTime > MAX_RUNTIME_MS) {
+      console.warn('[cron] Approaching timeout before paid_feedback, stopping');
+      return NextResponse.json({ success: true, results, partial: true }, { status: 200 });
+    }
+
+    const paidFeedbackUsers = await User.find({
+      plan: { $in: ['standard', 'pro'] },
+      subscriptionStartDate: { $gte: fourteenDaysAgo, $lte: sevenDaysAgo },
+    }).select('email name').lean();
+
+    if (paidFeedbackUsers.length > 0) {
+      const paidFeedbackCandidates = paidFeedbackUsers.map((u) => ({ email: u.email, name: u.name }));
+      results.paid_feedback = await processCohort('paid_feedback', paidFeedbackCandidates, sendFeedbackRequestEmail);
+    } else {
+      results.paid_feedback = { sent: 0, skipped: 0, failed: 0 };
     }
 
     const duration = Date.now() - startTime;

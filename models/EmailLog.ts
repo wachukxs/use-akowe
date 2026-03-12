@@ -5,7 +5,8 @@ export type EngagementCohort =
   | 'stuck_starter'
   | 'almost_activated'
   | 'going_idle'
-  | 'win_back';
+  | 'win_back'
+  | 'paid_feedback';
 
 export interface IEmailLog {
   _id?: mongoose.Types.ObjectId;
@@ -28,7 +29,7 @@ const EmailLogSchema = new Schema<IEmailLog>(
     },
     cohort: {
       type: String,
-      enum: ['ghost_signup', 'stuck_starter', 'almost_activated', 'going_idle', 'win_back'],
+      enum: ['ghost_signup', 'stuck_starter', 'almost_activated', 'going_idle', 'win_back', 'paid_feedback'],
       required: true,
     },
     sentAt: {

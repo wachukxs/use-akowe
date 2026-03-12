@@ -472,6 +472,64 @@ export async function sendWinBackEmail(to: string, name: string): Promise<EmailS
 }
 
 // ============================================
+// Paid user feedback email
+// ============================================
+
+export async function sendFeedbackRequestEmail(to: string, name: string): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const dashboardUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=engagement&utm_campaign=paid_feedback`;
+  const formUrl = 'https://forms.gle/f2jeLXbnXeu1PVJc7';
+  const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: "Quick question about your experience",
+    headers: unsubscribeHeaders(to),
+    text: [
+      `Hi ${greeting},`,
+      '',
+      "It's Olamide from Akowe. You've been on a paid plan for a little while now, and I wanted to check in personally.",
+      '',
+      "Is it doing what you expected? Are there things you wished it did that it doesn't? Is there anything getting in your way?",
+      '',
+      "I read every response myself. It takes about 60 seconds, and it genuinely shapes what we build next.",
+      '',
+      `Share your feedback: ${formUrl}`,
+      '',
+      `Or if you'd rather just reply to this email directly, that works too.`,
+      '',
+      `Either way — thank you for trusting us with your work.`,
+      '',
+      '— Olamide',
+      '',
+      `P.S. Your dashboard is always here when you need it: ${dashboardUrl}`,
+      emailFooterText(unsubUrl),
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>It's Olamide from Akowe. You've been on a paid plan for a little while now, and I wanted to check in personally.</p>
+      <p>Is it doing what you expected? Are there things you wished it did that it doesn't? Is there anything getting in your way?</p>
+      <p>I read every response myself. It takes about 60 seconds, and it genuinely shapes what we build next.</p>
+      <p style="margin:20px 0;">${ctaButton(formUrl, 'Share your feedback')}</p>
+      <p style="font-size:13px; color:#6b7280;">Or if you'd rather just reply to this email directly, that works too.</p>
+      <p>Either way — thank you for trusting us with your work.</p>
+      <p>— Olamide</p>
+      <p style="font-size:13px; color:#6b7280;">P.S. Your dashboard is always here when you need it: <a href="${dashboardUrl}" style="color:#6b7280;">${dashboardUrl}</a></p>
+      ${emailFooter(unsubUrl)}
+    `,
+  });
+
+  console.info('[email] Feedback request email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
+// ============================================
 // Affiliate application emails
 // ============================================
 

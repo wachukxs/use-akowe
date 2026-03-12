@@ -8,6 +8,8 @@ import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-dat
 import { RelatedContent } from '@/components/seo/RelatedContent';
 import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
+import PseoCta from '@/components/PseoCta';
+import PseoPageTracker from '@/components/PseoPageTracker';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -62,6 +64,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <PseoPageTracker pageType="template" slug={type} />
       <header className="sticky top-0 z-50 border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
@@ -78,12 +81,14 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
                 </span>
               </div>
             </Link>
-            <Link
+            <PseoCta
               href="/auth/signin"
+              label="Get Started"
+              pageType="template"
+              slug={type}
+              position="header"
               className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] px-5 py-2.5 font-semibold uppercase tracking-[0.18em] text-sm"
-            >
-              Get Started
-            </Link>
+            />
           </div>
         </div>
       </header>
@@ -141,16 +146,16 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
           <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-6 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Use This Template in Akowe</h2>
             <p className="mb-6 text-lg leading-relaxed">
-              Create a new project in Akowe and use this structure to organize your {template.type.toLowerCase()}. 
-              Akowe&apos;s section-based editor makes it easy to follow this template, and you can add citations, 
-              check for plagiarism, and export your finished work—all in one place.
+              Open Akowe, create a project, and this structure is already waiting for you. Add citations, run a plagiarism check, and export when you&apos;re done — all without switching tools.
             </p>
-            <Link
+            <PseoCta
               href="/auth/signin"
+              label={`Start your ${template.type} — free`}
+              pageType="template"
+              slug={type}
+              position="bottom"
               className="inline-flex items-center justify-center border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] px-6 py-3 font-semibold uppercase tracking-[0.18em]"
-            >
-              Start Your {template.type}
-            </Link>
+            />
           </div>
 
           <RelatedContent
