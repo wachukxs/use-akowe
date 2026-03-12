@@ -14,23 +14,29 @@ const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 
 export const dynamicParams = true;
 export const revalidate = 86400;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
   const keywordPage = await getKeywordPageBySlug(slug);
-  
+
   if (!keywordPage || keywordPage.category !== 'comparison') {
     return {
       title: 'Comparison Not Found',
     };
   }
-  
-  return generateSEOMetadata({
+
+  const metadata = generateSEOMetadata({
     title: keywordPage.title,
     description: keywordPage.description,
     keywords: keywordPage.keywords,
     path: `/compare-keywords/${slug}`,
     type: 'article',
   });
+
+  if (locale !== 'en') {
+    metadata.robots = { index: false, follow: true };
+  }
+
+  return metadata;
 }
 
 export default async function ComparisonKeywordPage({ params }: { params: Promise<{ slug: string }> }) {

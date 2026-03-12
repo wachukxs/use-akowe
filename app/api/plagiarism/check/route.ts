@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
-import { tryIncrementPlagiarismChecks } from '@/lib/usage';
+import { tryIncrementPlagiarismChecks, checkPlagiarismLimit } from '@/lib/usage';
 import { Section } from '@/types';
+
+export const maxDuration = 45; // Vercel Pro allows up to 60s; keep headroom
 
 // Enhanced similarity calculation using multiple methods
 function calculateSimilarity(text1: string, text2: string): number {
@@ -79,143 +81,150 @@ function detectParaphrasing(text: string, sourceText: string): { similarity: num
 }
 
 // Enhanced CrossRef API integration with better matching
-async function checkCrossRef(text: string): Promise<Array<{ 
-  text: string; 
-  source: string; 
-  url?: string; 
+async function checkCrossRef(text: string): Promise<Array<{
+  text: string;
+  source: string;
+  url?: string;
   similarity?: number;
   section?: string;
   suggestion?: string;
 }>> {
   const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
-  
+
   try {
-    // Extract key phrases using n-grams for better matching
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    const keyPhrases = sentences.slice(0, 5); // Check more sentences
-    
+    // Limit to 3 phrases with 2 queries each — keeps total fetches to 6
+    const keyPhrases = sentences.slice(0, 3);
+
     for (const phrase of keyPhrases) {
       const cleanPhrase = phrase.trim().substring(0, 100);
-      
-      // Try multiple search strategies
+
       const searchQueries = [
-        cleanPhrase, // Full phrase
-        cleanPhrase.split(' ').slice(0, 5).join(' '), // First 5 words
-        cleanPhrase.split(' ').slice(0, 3).join(' '), // First 3 words
+        cleanPhrase,
+        cleanPhrase.split(' ').slice(0, 5).join(' '),
       ];
-      
+
       for (const query of searchQueries) {
-        const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=5`, {
-          headers: {
-            'User-Agent': 'Akowe Research Tool (mailto:ola@placeholderllc.name.ng)'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const works = data.message?.items || [];
-          
-          for (const work of works) {
-            const title = work.title?.[0] || '';
-            const abstract = work.abstract || '';
-            const fullText = `${title} ${abstract}`;
-            
-            // Check similarity with title
-            const titleSimilarity = calculateSimilarity(cleanPhrase, title);
-            
-            // Check paraphrasing
-            const paraphrase = detectParaphrasing(cleanPhrase, fullText);
-            
-            if (titleSimilarity > 25 || paraphrase.similarity > 40) {
-              const similarity = Math.max(titleSimilarity, paraphrase.similarity);
-              
-              matches.push({
-                text: `Similar to: "${title}"`,
-                source: 'CrossRef Database',
-                url: work.URL || (work.DOI ? `https://doi.org/${work.DOI}` : undefined),
-                similarity: Math.round(similarity),
-                section: cleanPhrase.substring(0, 50) + '...',
-                suggestion: paraphrase.similarity > 40 
-                  ? `This appears to be paraphrased from the source. Consider adding a citation: (${work.author?.[0]?.family || 'Author'}, ${work.published?.['date-parts']?.[0]?.[0] || 'Year'})`
-                  : `Consider citing this source: ${title}`
-              });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+
+        try {
+          const response = await fetch(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=5`, {
+            headers: { 'User-Agent': 'Akowe Research Tool (mailto:ola@placeholderllc.name.ng)' },
+            signal: controller.signal,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const works = data.message?.items || [];
+
+            for (const work of works) {
+              const title = work.title?.[0] || '';
+              const abstract = work.abstract || '';
+              const fullText = `${title} ${abstract}`;
+
+              const titleSimilarity = calculateSimilarity(cleanPhrase, title);
+              const paraphrase = detectParaphrasing(cleanPhrase, fullText);
+
+              if (titleSimilarity > 25 || paraphrase.similarity > 40) {
+                const similarity = Math.max(titleSimilarity, paraphrase.similarity);
+                matches.push({
+                  text: `Similar to: "${title}"`,
+                  source: 'CrossRef Database',
+                  url: work.URL || (work.DOI ? `https://doi.org/${work.DOI}` : undefined),
+                  similarity: Math.round(similarity),
+                  section: cleanPhrase.substring(0, 50) + '...',
+                  suggestion: paraphrase.similarity > 40
+                    ? `This appears to be paraphrased from the source. Consider adding a citation: (${work.author?.[0]?.family || 'Author'}, ${work.published?.['date-parts']?.[0]?.[0] || 'Year'})`
+                    : `Consider citing this source: ${title}`
+                });
+              }
             }
           }
+        } catch {
+          // Ignore per-query errors (timeout or network) — continue with next query
+        } finally {
+          clearTimeout(timeout);
         }
-        
-        // Rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
   } catch (error) {
     console.error('CrossRef API error:', error);
   }
-  
-  return matches.slice(0, 5); // Return top 5 matches
+
+  return matches.slice(0, 5);
 }
 
 // Enhanced arXiv API integration
-async function checkArxiv(text: string): Promise<Array<{ 
-  text: string; 
-  source: string; 
-  url?: string; 
+async function checkArxiv(text: string): Promise<Array<{
+  text: string;
+  source: string;
+  url?: string;
   similarity?: number;
   section?: string;
   suggestion?: string;
 }>> {
   const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
-  
+
   try {
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    const keyPhrases = sentences.slice(0, 4); // Check more sentences
-    
+    // Limit to 3 phrases to keep total time bounded
+    const keyPhrases = sentences.slice(0, 3);
+
     for (const phrase of keyPhrases) {
       const cleanPhrase = phrase.trim().substring(0, 80);
-      
-      const response = await fetch(`http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(cleanPhrase)}&start=0&max_results=5`);
-      
-      if (response.ok) {
-        const xmlText = await response.text();
-        const entries = xmlText.match(/<entry>[\s\S]*?<\/entry>/g) || [];
-        
-        for (const entry of entries) {
-          const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
-          const summaryMatch = entry.match(/<summary>([^<]+)<\/summary>/);
-          const idMatch = entry.match(/<id>([^<]+)<\/id>/);
-          
-          if (titleMatch) {
-            const title = titleMatch[1].replace(/\s+/g, ' ').trim();
-            const summary = summaryMatch ? summaryMatch[1].replace(/\s+/g, ' ').trim() : '';
-            const fullText = `${title} ${summary}`;
-            
-            const titleSimilarity = calculateSimilarity(cleanPhrase, title);
-            const paraphrase = detectParaphrasing(cleanPhrase, fullText);
-            
-            if (titleSimilarity > 20 || paraphrase.similarity > 35) {
-              const similarity = Math.max(titleSimilarity, paraphrase.similarity);
-              const arxivId = idMatch ? idMatch[1].split('/').pop() : '';
-              
-              matches.push({
-                text: `Similar to: "${title}"`,
-                source: 'arXiv Preprints',
-                url: arxivId ? `https://arxiv.org/abs/${arxivId}` : 'https://arxiv.org',
-                similarity: Math.round(similarity),
-                section: cleanPhrase.substring(0, 50) + '...',
-                suggestion: `This preprint may be relevant. Consider citing if used: ${title}`
-              });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const response = await fetch(`https://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(cleanPhrase)}&start=0&max_results=5`, {
+          signal: controller.signal,
+        });
+
+        if (response.ok) {
+          const xmlText = await response.text();
+          const entries = xmlText.match(/<entry>[\s\S]*?<\/entry>/g) || [];
+
+          for (const entry of entries) {
+            const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
+            const summaryMatch = entry.match(/<summary>([^<]+)<\/summary>/);
+            const idMatch = entry.match(/<id>([^<]+)<\/id>/);
+
+            if (titleMatch) {
+              const title = titleMatch[1].replace(/\s+/g, ' ').trim();
+              const summary = summaryMatch ? summaryMatch[1].replace(/\s+/g, ' ').trim() : '';
+              const fullText = `${title} ${summary}`;
+
+              const titleSimilarity = calculateSimilarity(cleanPhrase, title);
+              const paraphrase = detectParaphrasing(cleanPhrase, fullText);
+
+              if (titleSimilarity > 20 || paraphrase.similarity > 35) {
+                const similarity = Math.max(titleSimilarity, paraphrase.similarity);
+                const arxivId = idMatch ? idMatch[1].split('/').pop() : '';
+
+                matches.push({
+                  text: `Similar to: "${title}"`,
+                  source: 'arXiv Preprints',
+                  url: arxivId ? `https://arxiv.org/abs/${arxivId}` : 'https://arxiv.org',
+                  similarity: Math.round(similarity),
+                  section: cleanPhrase.substring(0, 50) + '...',
+                  suggestion: `This preprint may be relevant. Consider citing if used: ${title}`
+                });
+              }
             }
           }
         }
+      } catch {
+        // Ignore per-phrase errors (timeout or network) — continue with next phrase
+      } finally {
+        clearTimeout(timeout);
       }
-      
-      // Rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1500));
     }
   } catch (error) {
     console.error('arXiv API error:', error);
   }
-  
-  return matches.slice(0, 4); // Return top 4 matches
+
+  return matches.slice(0, 4);
 }
 
 // Citation intelligence: detect uncited claims and suggest citations
@@ -631,32 +640,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Atomically check and increment usage limits BEFORE doing expensive work
-    // This prevents race conditions where multiple concurrent requests could exceed the limit
-    const usageCheck = await tryIncrementPlagiarismChecks(session.user.email);
-    
-    if (!usageCheck || !usageCheck.success) {
+    // Check limit WITHOUT incrementing yet — we only charge after a successful check
+    await connectDB();
+
+    // Check limit (read-only) before doing expensive work
+    const limitCheck = await checkPlagiarismLimit(session.user.email);
+    if (!limitCheck.allowed) {
       return NextResponse.json(
         {
           error: 'Plagiarism check limit reached',
-          remaining: usageCheck?.remaining ?? 0,
-          limit: usageCheck?.limit ?? 3,
+          remaining: 0,
+          limit: limitCheck.limit,
         },
         { status: 429 }
       );
     }
 
-    // Get project to access sections and citations
-    await connectDB();
-    const project = await Project.findOne({ 
-      _id: projectId, 
-      userId: session.user.email 
+    const project = await Project.findOne({
+      _id: projectId,
+      userId: session.user.email,
     }).lean();
 
     if (!project) {
-      // If project not found, we need to rollback the increment
-      // However, since this is rare and the user already consumed a check, we'll let it slide
-      // The check was already counted, which is acceptable UX-wise
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
@@ -675,10 +680,11 @@ export async function POST(request: NextRequest) {
       }));
     const existingCitations = project.citations || [];
 
-    // Perform enhanced plagiarism check
-    // Note: If this fails, the check was already counted - this is acceptable UX
-    // as the user initiated the check and it consumed resources
+    // Perform plagiarism check BEFORE incrementing usage — only charge on success
     const result = await checkPlagiarism(text, sectionsToAnalyze, existingCitations);
+
+    // Check succeeded — now atomically increment usage
+    const usageCheck = await tryIncrementPlagiarismChecks(session.user.email);
 
     // Store result in project
     const plagiarismCheck = {
@@ -691,7 +697,7 @@ export async function POST(request: NextRequest) {
 
     await Project.findOneAndUpdate(
       { _id: projectId, userId: session.user.email },
-      { 
+      {
         $push: { plagiarismChecks: plagiarismCheck },
         lastEditedAt: new Date(),
       },
@@ -706,14 +712,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Usage was already incremented atomically above, so we don't need to increment again
     return NextResponse.json({
       matchPercentage: result.matchPercentage,
       matches: result.matches,
       sectionAnalysis: result.sectionAnalysis,
       analysis: result.analysis,
       sources: result.sources,
-      remaining: usageCheck.remaining,
+      remaining: usageCheck?.remaining ?? 0,
     });
   } catch (error) {
     console.error('Error checking plagiarism:', error);

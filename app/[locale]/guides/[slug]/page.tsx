@@ -17,8 +17,8 @@ const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 
 export const dynamicParams = true;
 export const revalidate = 86400;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
   const guide = getGuideBySlug(slug);
 
   if (!guide) {
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
-  return generateSEOMetadata({
+  const metadata = generateSEOMetadata({
     title: guide.title,
     description: guide.description,
     keywords: guide.keywords,
@@ -36,6 +36,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     publishedTime: new Date().toISOString(),
     modifiedTime: new Date().toISOString(),
   });
+
+  if (locale !== 'en') {
+    metadata.robots = { index: false, follow: true };
+  }
+
+  return metadata;
 }
 
 export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {

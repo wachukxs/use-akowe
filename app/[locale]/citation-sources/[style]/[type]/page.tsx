@@ -50,18 +50,18 @@ export async function generateMetadata({
 export default async function CitationSourcePage({
   params,
 }: {
-  params: Promise<{ style: string; type: string }>;
+  params: Promise<{ locale: string; style: string; type: string }>;
 }) {
-  const { style, type } = await params;
+  const { locale, style, type } = await params;
   const citationSource = getCitationSourceByTypeAndStyle(type, style);
   const citationStyle = getCitationStyleBySlug(style);
 
   if (!citationStyle) {
-    permanentRedirect('/en/citation-styles');
+    permanentRedirect(`/${locale}/citation-styles`);
   }
 
   if (!citationSource) {
-    permanentRedirect(`/en/citation-styles/${style}`);
+    permanentRedirect(`/${locale}/citation-styles/${style}`);
   }
 
   const sourceTypeName = type.charAt(0).toUpperCase() + type.slice(1);

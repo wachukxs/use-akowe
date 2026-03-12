@@ -15,8 +15,8 @@ const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 
 
 export const revalidate = 86400;
 
-export async function generateMetadata({ params }: { params: Promise<{ style: string }> }): Promise<Metadata> {
-  const { style } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; style: string }> }): Promise<Metadata> {
+  const { locale, style } = await params;
   const citationStyle = getCitationStyleBySlug(style);
 
   if (!citationStyle) {
@@ -25,12 +25,18 @@ export async function generateMetadata({ params }: { params: Promise<{ style: st
     };
   }
 
-  return generateSEOMetadata({
+  const metadata = generateSEOMetadata({
     title: `${citationStyle.name} Citation Guide`,
     description: `Complete ${citationStyle.name} citation guide with examples for books, journals, websites, and in-text citations. Learn how to cite in ${citationStyle.name} style.`,
     keywords: citationStyle.keywords,
     path: `/citation-styles/${style}`,
   });
+
+  if (locale !== 'en') {
+    metadata.robots = { index: false, follow: true };
+  }
+
+  return metadata;
 }
 
 export default async function CitationStylePage({ params }: { params: Promise<{ style: string }> }) {

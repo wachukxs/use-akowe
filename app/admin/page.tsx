@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   Users, 
   DollarSign, 
@@ -37,7 +37,7 @@ import EngagementEmailsTab from '@/components/admin/EngagementEmailsTab';
 import ActivationFunnelTab from '@/components/admin/ActivationFunnelTab';
 import TimeSeriesChart from '@/components/admin/TimeSeriesChart';
 
-type AdminTab = 'dashboard' | 'marketing' | 'referrals' | 'analytics' | 'engagement' | 'funnel';
+type AdminTab = 'dashboard' | 'marketing' | 'referrals' | 'analytics' | 'engagement' | 'funnel' | 'support';
 
 // Updated interface to match new structure
 interface AdminMetricsResponse {
@@ -450,6 +450,190 @@ function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge
           {children}
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Support Tab — usage reset tools
+// ---------------------------------------------------------------------------
+function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element }) {
+  const [bulkDays, setBulkDays] = useState(3);
+  const [userEmail, setUserEmail] = useState('');
+  const [preview, setPreview] = useState<{ uniqueUsers: number; totalDocs: number; breakdown: Array<{ email: string; plan: string; date: string; plagiarismChecks: number }> } | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [loadingReset, setLoadingReset] = useState<'bulk' | 'user' | null>(null);
+  const [result, setResult] = useState<{ message: string; success: boolean } | null>(null);
+
+  async function fetchPreview() {
+    setLoadingPreview(true);
+    setResult(null);
+    try {
+      const res = await fetch(`/api/admin/reset-plagiarism?days=${bulkDays}`);
+      const data = await res.json();
+      setPreview(data);
+    } catch {
+      setResult({ success: false, message: 'Failed to load preview.' });
+    } finally {
+      setLoadingPreview(false);
+    }
+  }
+
+  async function handleBulkReset() {
+    if (!confirm(`Reset plagiarism checks for ALL users in the last ${bulkDays} day(s)? This cannot be undone.`)) return;
+    setLoadingReset('bulk');
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/reset-plagiarism', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'bulk', days: bulkDays }),
+      });
+      const data = await res.json();
+      setResult({ success: data.success, message: data.message || data.error });
+      setPreview(null);
+    } catch {
+      setResult({ success: false, message: 'Reset failed. Check console.' });
+    } finally {
+      setLoadingReset(null);
+    }
+  }
+
+  async function handleUserReset() {
+    if (!userEmail.trim()) return;
+    if (!confirm(`Reset ALL plagiarism check counts for ${userEmail}?`)) return;
+    setLoadingReset('user');
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/reset-plagiarism', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'user', email: userEmail.trim() }),
+      });
+      const data = await res.json();
+      setResult({ success: data.success, message: data.message || data.error });
+    } catch {
+      setResult({ success: false, message: 'Reset failed. Check console.' });
+    } finally {
+      setLoadingReset(null);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[hsl(var(--background))] p-3 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+          <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.16em] mb-1">Admin Dashboard</h1>
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Support Tools</p>
+        </div>
+
+        <TabNavigation />
+
+        {/* Result banner */}
+        {result && (
+          <div className={`p-4 border-2 rounded text-sm font-medium ${result.success ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800'}`}>
+            {result.message}
+          </div>
+        )}
+
+        {/* ── Bulk reset ── */}
+        <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <RefreshCw size={16} />
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">Bulk Reset — Last N Days</h2>
+          </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
+            Zeroes out plagiarism check counts for every user who has usage records in the selected window.
+            Use this to compensate users affected by the timeout bug.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <label className="text-xs uppercase tracking-[0.18em] font-semibold whitespace-nowrap">Window (days)</label>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={bulkDays}
+              onChange={(e) => { setBulkDays(Number(e.target.value)); setPreview(null); }}
+              className="w-20 border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-sm"
+            />
+            <button
+              onClick={fetchPreview}
+              disabled={loadingPreview}
+              className="px-4 py-1.5 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+            >
+              {loadingPreview ? 'Loading…' : 'Preview'}
+            </button>
+            <button
+              onClick={handleBulkReset}
+              disabled={!!loadingReset}
+              className="px-4 py-1.5 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+            >
+              {loadingReset === 'bulk' ? 'Resetting…' : 'Reset All'}
+            </button>
+          </div>
+
+          {preview && (
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.16em] font-semibold">
+                Preview — {preview.uniqueUsers} user(s), {preview.totalDocs} day record(s) affected
+              </p>
+              {preview.breakdown.length > 0 && (
+                <div className="border-2 border-[hsl(var(--border))] rounded overflow-auto max-h-64">
+                  <table className="w-full text-xs">
+                    <thead className="bg-[hsl(var(--surface-muted))] uppercase tracking-[0.14em]">
+                      <tr>
+                        <th className="text-left p-2">Email</th>
+                        <th className="text-left p-2">Plan</th>
+                        <th className="text-left p-2">Date</th>
+                        <th className="text-right p-2">Checks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {preview.breakdown.map((row, i) => (
+                        <tr key={i} className="border-t border-[hsl(var(--border))]">
+                          <td className="p-2">{row.email}</td>
+                          <td className="p-2 uppercase">{row.plan}</td>
+                          <td className="p-2">{row.date}</td>
+                          <td className="p-2 text-right font-semibold">{row.plagiarismChecks}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Single user reset ── */}
+        <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <UserCheck size={16} />
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">Reset Single User</h2>
+          </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
+            Clears all plagiarism check counts (across all dates) for one specific user. Works for free, standard, and pro plans.
+          </p>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <input
+              type="email"
+              placeholder="user@example.com"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              className="flex-1 min-w-48 border-2 border-[hsl(var(--border-strong))] px-3 py-1.5 text-sm"
+            />
+            <button
+              onClick={handleUserReset}
+              disabled={!!loadingReset || !userEmail.trim()}
+              className="px-4 py-1.5 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+            >
+              {loadingReset === 'user' ? 'Resetting…' : 'Reset User'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1006,6 +1190,17 @@ export default function AdminDashboard() {
         <Target size={14} className="sm:w-4 sm:h-4" />
         <span>Funnel</span>
       </button>
+      <button
+        onClick={() => setActiveTab('support')}
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+          activeTab === 'support'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <Shield size={14} className="sm:w-4 sm:h-4" />
+        <span>Support</span>
+      </button>
     </div>
   );
 
@@ -1102,6 +1297,11 @@ export default function AdminDashboard() {
         </div>
       </div>
     );
+  }
+
+  // Render support tab
+  if (activeTab === 'support') {
+    return <SupportTab TabNavigation={TabNavigation} />;
   }
 
   if (!metrics) return null;

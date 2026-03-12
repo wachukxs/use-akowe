@@ -461,18 +461,18 @@ alert(t('alerts.failedCheckoutSession'));
                     <p className="text-2xl md:text-3xl font-bold text-gray-900">
                       {usage.aiWordsGenerated}
                     </p>
-                    {usage.limits.aiWordsPerDay !== Infinity && (
+                    {usage.limits.aiWordsPerDay != null && (
                       <p className="text-sm text-gray-500">
                         / {usage.limits.aiWordsPerDay}
                       </p>
                     )}
                   </div>
                   <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-blue-600 transition-all duration-300"
                       style={{
-                        width: usage.limits.aiWordsPerDay === Infinity 
-                          ? '100%' 
+                        width: usage.limits.aiWordsPerDay == null
+                          ? '100%'
                           : `${Math.min((usage.aiWordsGenerated / usage.limits.aiWordsPerDay) * 100, 100)}%`
                       }}
                     />
@@ -485,11 +485,15 @@ alert(t('alerts.failedCheckoutSession'));
                         <p className="text-2xl md:text-3xl font-bold text-gray-900">
                           {usage.plagiarismChecks}
                         </p>
-                        {usage.limits.plagiarismChecksPerDay !== Infinity && (
+                        {usage.limits.plagiarismChecksPerWeek != null ? (
+                          <p className="text-sm text-gray-500">
+                            / {usage.limits.plagiarismChecksPerWeek}
+                          </p>
+                        ) : usage.limits.plagiarismChecksPerDay !== Infinity && usage.limits.plagiarismChecksPerDay != null ? (
                           <p className="text-sm text-gray-500">
                             / {usage.limits.plagiarismChecksPerDay}
                           </p>
-                        )}
+                        ) : null}
                       </div>
                     </div>
 
@@ -503,8 +507,8 @@ alert(t('alerts.failedCheckoutSession'));
                     <div>
                       <p className="text-sm text-gray-600 mb-1">{t('usage.maxProjects')}</p>
                       <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                        {usage.limits.maxProjects === Infinity 
-                          ? '∞' 
+                        {usage.limits.maxProjects == null
+                          ? '∞'
                           : usage.limits.maxProjects ?? t('usage.unlimited')}
                       </p>
                     </div>

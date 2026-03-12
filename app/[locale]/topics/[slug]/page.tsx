@@ -13,21 +13,27 @@ const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 
 export const dynamicParams = true;
 export const revalidate = 86400;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
   const keywordPage = await getKeywordPageBySlug(slug);
-  
+
   if (!keywordPage) {
     return { title: 'Not Found' };
   }
-  
-  return generateSEOMetadata({
+
+  const metadata = generateSEOMetadata({
     title: keywordPage.title,
     description: keywordPage.description,
     keywords: keywordPage.keywords,
     path: `/topics/${slug}`,
     type: 'article',
   });
+
+  if (locale !== 'en') {
+    metadata.robots = { index: false, follow: true };
+  }
+
+  return metadata;
 }
 
 export default async function TopicPage({ params }: { params: Promise<{ slug: string }> }) {
