@@ -457,6 +457,121 @@ function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge
 // ---------------------------------------------------------------------------
 // Support Tab — usage reset tools
 // ---------------------------------------------------------------------------
+function SendPlagiarismFixPanel() {
+  const [days, setDays] = useState(3);
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<{ uniqueUsers: number; users: Array<{ email: string; name: string; plan: string }> } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  async function fetchEmailPreview() {
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch(`/api/admin/send-plagiarism-fix?days=${days}`);
+      const data = await res.json();
+      setPreview(data);
+    } catch {
+      setResult({ success: false, message: 'Failed to load preview.' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSendEmails() {
+    if (!confirm(`Send plagiarism fix email to ${preview?.uniqueUsers ?? '?'} user(s)? Each will receive one email.`)) return;
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/send-plagiarism-fix', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days }),
+      });
+      const data = await res.json();
+      setResult({ success: data.success, message: data.message || data.error });
+      setPreview(null);
+    } catch {
+      setResult({ success: false, message: 'Send failed. Check console.' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <Mail size={16} />
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em]">Send Plagiarism Fix Email</h2>
+      </div>
+      <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
+        Sends a personal email from Olamide to users who had plagiarism activity in the last N days, letting them know the bug is fixed and their count has been reset.
+      </p>
+
+      {result && (
+        <div className={`p-3 border-2 rounded text-xs font-medium ${result.success ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800'}`}>
+          {result.message}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="text-xs uppercase tracking-[0.18em] font-semibold whitespace-nowrap">Window (days)</label>
+        <input
+          type="number"
+          min={1}
+          max={30}
+          value={days}
+          onChange={(e) => { setDays(Number(e.target.value)); setPreview(null); }}
+          className="w-20 border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-sm"
+        />
+        <button
+          onClick={fetchEmailPreview}
+          disabled={loading}
+          className="px-4 py-1.5 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+        >
+          {loading && !preview ? 'Loading…' : 'Preview Recipients'}
+        </button>
+        {preview && (
+          <button
+            onClick={handleSendEmails}
+            disabled={loading || preview.uniqueUsers === 0}
+            className="px-4 py-1.5 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--foreground))] text-[hsl(var(--background))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+          >
+            {loading ? 'Sending…' : `Send to ${preview.uniqueUsers} User(s)`}
+          </button>
+        )}
+      </div>
+
+      {preview && (
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.16em] font-semibold">{preview.uniqueUsers} recipient(s)</p>
+          {preview.users.length > 0 && (
+            <div className="border-2 border-[hsl(var(--border))] rounded overflow-auto max-h-48">
+              <table className="w-full text-xs">
+                <thead className="bg-[hsl(var(--surface-muted))] uppercase tracking-[0.14em]">
+                  <tr>
+                    <th className="text-left p-2">Email</th>
+                    <th className="text-left p-2">Name</th>
+                    <th className="text-left p-2">Plan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.users.map((u, i) => (
+                    <tr key={i} className="border-t border-[hsl(var(--border))]">
+                      <td className="p-2">{u.email}</td>
+                      <td className="p-2">{u.name || '—'}</td>
+                      <td className="p-2 uppercase">{u.plan}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element }) {
   const [bulkDays, setBulkDays] = useState(3);
   const [userEmail, setUserEmail] = useState('');
@@ -633,6 +748,9 @@ function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element 
             </button>
           </div>
         </div>
+
+        {/* ── Send plagiarism fix email ── */}
+        <SendPlagiarismFixPanel />
       </div>
     </div>
   );

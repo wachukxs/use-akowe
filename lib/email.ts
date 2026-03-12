@@ -612,6 +612,66 @@ export async function sendAffiliateApprovedEmail(
   console.info('[email] Affiliate approved email sent', { to, messageId: info.messageId });
 }
 
+// ============================================
+// Plagiarism check fix notification email
+// ============================================
+
+export async function sendPlagiarismFixEmail(to: string, name: string): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const projectUrl = `${baseUrl}/dashboard?utm_source=email&utm_medium=transactional&utm_campaign=plagiarism_fix`;
+  const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: 'Your plagiarism check is ready — we fixed the issue',
+    headers: unsubscribeHeaders(to),
+    text: [
+      `Hi ${greeting},`,
+      '',
+      "It's Olamide from Akowe. I'm writing to let you know about a bug we identified and fixed with the plagiarism checker.",
+      '',
+      'Over the past few days, some plagiarism checks were failing due to a timeout issue on our end. If you tried to run a check and saw an error, that was entirely our fault — not yours.',
+      '',
+      "Here's what we fixed:",
+      '- The plagiarism checker now completes reliably without timing out.',
+      '- We have reset your plagiarism check count so you are not penalized for the failed attempts.',
+      '',
+      'Your check is ready to use again right now. Open any of your projects and run the plagiarism check — it should work smoothly.',
+      '',
+      `Try the plagiarism check: ${projectUrl}`,
+      '',
+      "I'm sorry for the disruption. If you run into any issues, just reply to this email and I'll sort it out personally.",
+      '',
+      '— Olamide',
+      emailFooterText(unsubUrl),
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>It's Olamide from Akowe. I'm writing to let you know about a bug we identified and fixed with the plagiarism checker.</p>
+      <p>Over the past few days, some plagiarism checks were failing due to a timeout issue on our end. If you tried to run a check and saw an error, that was entirely our fault — not yours.</p>
+      <h4 style="margin:20px 0 8px;">Here's what we fixed:</h4>
+      <ul>
+        <li>The plagiarism checker now completes reliably without timing out.</li>
+        <li>We have reset your plagiarism check count so you are not penalized for the failed attempts.</li>
+      </ul>
+      <p>Your check is ready to use again right now. Open any of your projects and run the plagiarism check — it should work smoothly.</p>
+      <p style="margin:20px 0;">${ctaButton(projectUrl, 'Try the plagiarism check')}</p>
+      <p style="font-size:13px; color:#6b7280;">I'm sorry for the disruption. If you run into any issues, just reply to this email and I'll sort it out personally.</p>
+      <p>— Olamide</p>
+      ${emailFooter(unsubUrl)}
+    `,
+  });
+
+  console.info('[email] Plagiarism fix email sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
 export async function sendAffiliateDeniedEmail(
   to: string,
   name: string

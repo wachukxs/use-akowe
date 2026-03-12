@@ -6763,7 +6763,7 @@ title={t("deleteSection")}
               setShowCitationDiscovery(true);
             }
           }}
-          userPlan={((session?.user as any)?.plan || "free") as "free" | "pro" | "team"}
+          userPlan={((session?.user as any)?.plan || "free") as "free" | "standard" | "pro" | "team"}
           t={t}
         />
 
