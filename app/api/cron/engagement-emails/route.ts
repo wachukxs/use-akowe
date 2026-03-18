@@ -19,8 +19,9 @@ const MAX_PER_COHORT = 15;
 const DELAY_BETWEEN_SENDS_MS = 2_000; // 2 seconds between emails to avoid SMTP rate limits
 const MAX_RUNTIME_MS = 55_000; // 55 seconds, leaving buffer for Netlify 60s timeout
 
+// Recipient-level bounces (don't match SMTP auth/server errors like 535)
 const HARD_BOUNCE_PATTERNS = [
-  /^5\d{2}\b/,           // 5xx SMTP status codes
+  /^5\d{2}\b/,           // 5xx SMTP status codes (except auth - see isSmtpAuthError)
   /mailbox not found/i,
   /user unknown/i,
   /no such user/i,
@@ -30,7 +31,17 @@ const HARD_BOUNCE_PATTERNS = [
   /recipient rejected/i,
 ];
 
+function isSmtpAuthError(errorMessage: string): boolean {
+  return (
+    /535\b/i.test(errorMessage) ||
+    /incorrect authentication/i.test(errorMessage) ||
+    /invalid login/i.test(errorMessage) ||
+    /EAUTH/i.test(errorMessage)
+  );
+}
+
 function isHardBounce(errorMessage: string): boolean {
+  if (isSmtpAuthError(errorMessage)) return false; // our credentials, not recipient
   return HARD_BOUNCE_PATTERNS.some((p) => p.test(errorMessage));
 }
 
