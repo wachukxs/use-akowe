@@ -22,17 +22,6 @@ function buildTransporter(): TransporterOrNull {
       user,
       pass,
     },
-    verify: () => {
-      return new Promise((resolve, reject) => {
-        transporter.verify((error, success) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(success);
-          }
-        });
-      });
-    },
   });
 
   console.info('[email] Transporter created', {
@@ -40,14 +29,19 @@ function buildTransporter(): TransporterOrNull {
     port,
     secure: port === 465,
     from: process.env.SMTP_FROM || process.env.EMAIL_FROM,
-    verified: transporter.verify(),
   });
+
+  // Verify connection in background; log only (never reject) to avoid unhandled promise rejection
+  transporter.verify().then(
+    () => console.info('[email] SMTP connection verified'),
+    (err) => console.warn('[email] SMTP verify failed (sends may still work):', err?.message ?? err)
+  );
 
   return transporter;
 }
 
 const transporter = buildTransporter();
-const defaultFrom = process.env.SMTP_FROM || process.env.EMAIL_FROM || 'no-reply@useakowe.come';
+const defaultFrom = process.env.SMTP_FROM || process.env.EMAIL_FROM || 'no-reply@useakowe.com';
 
 function getBaseUrl() {
   const base =

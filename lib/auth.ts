@@ -248,33 +248,44 @@ export const authOptions: NextAuthConfig = {
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // Guard against invalid URL/baseUrl (can cause "Failed to construct 'URL': Invalid URL")
+      let safeBase =
+        baseUrl && typeof baseUrl === 'string' && baseUrl.startsWith('http')
+          ? baseUrl
+          : process.env.NEXTAUTH_URL ||
+            process.env.NEXT_PUBLIC_SITE_URL ||
+            'https://useakowe.com';
+      safeBase = safeBase.replace(/\/$/, '');
+      const candidate =
+        url && typeof url === 'string' && url.trim() !== '' ? url : '/dashboard';
+
       // Normalize auth-path callbacks to prevent loops
-      const normalize = (candidate: string) => {
+      const normalize = (c: string) => {
         // Only allow same-origin relative paths
-        if (candidate.startsWith('/') && !candidate.startsWith('//') && !candidate.includes('://')) {
-          if (candidate.startsWith('/auth')) {
-            return `${baseUrl}/dashboard`;
+        if (c.startsWith('/') && !c.startsWith('//') && !c.includes('://')) {
+          if (c.startsWith('/auth')) {
+            return `${safeBase}/dashboard`;
           }
-          return `${baseUrl}${candidate}`;
+          return `${safeBase}${c}`;
         }
 
         // Absolute URL on same origin
         try {
-          const urlObj = new URL(candidate);
-          if (urlObj.origin === baseUrl) {
+          const urlObj = new URL(c);
+          if (urlObj.origin === safeBase) {
             if (urlObj.pathname.startsWith('/auth')) {
-              return `${baseUrl}/dashboard`;
+              return `${safeBase}/dashboard`;
             }
-            return candidate;
+            return c;
           }
         } catch {
           // fall through
         }
 
-        return `${baseUrl}/dashboard`;
+        return `${safeBase}/dashboard`;
       };
 
-      return normalize(url);
+      return normalize(candidate);
     },
   },
   pages: {
