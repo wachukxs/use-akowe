@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
   const publicKey = getWiseWebhookPublicKeyPem();
   if (!verifyWiseWebhookSignature(body, signature, publicKey)) {
     console.error('[wise webhook] signature verification failed');
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 200 }); // 401
   }
 
   let payload: {
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
   try {
     payload = JSON.parse(body) as typeof payload;
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 200 }); // 400
   }
 
   const eventType = payload.event_type || '';
