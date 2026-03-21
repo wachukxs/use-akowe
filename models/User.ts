@@ -108,6 +108,7 @@ const UserSchema = new Schema<IUser>(
     },
     wisePaymentReference: {
       type: String,
+      unique: true,
       sparse: true,
     },
     wisePendingPlan: {
@@ -155,7 +156,7 @@ UserSchema.index({ plan: 1, createdAt: -1 }); // Optimizes queries like: User.fi
 UserSchema.index({ referredBy: 1 }); // For counting referrals per user
 UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer
 UserSchema.index({ lastActiveAt: 1 }); // For idle-user queries in engagement emails
-UserSchema.index({ wisePaymentReference: 1 }, { unique: true, sparse: true });
+// Note: wisePaymentReference index is declared on the field (unique + sparse), like referralCode
 
 const User: Model<IUser> = (mongoose.models && mongoose.models.User) || mongoose.model<IUser>('User', UserSchema);
 
