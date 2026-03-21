@@ -20,6 +20,11 @@ interface IUser extends Omit<UserType, '_id'> {
     count: number;
   };
   lastActiveAt?: Date | null;
+  /** Remittance reference the customer must use on SWIFT / Wise inbound (India bank transfer). */
+  wisePaymentReference?: string;
+  /** Plan to grant when a matching `swift-in#credit` is received. */
+  wisePendingPlan?: 'standard' | 'pro';
+  wisePendingBillingCycle?: 'monthly' | 'annual';
 }
 
 const UserSchema = new Schema<IUser>(
@@ -101,6 +106,19 @@ const UserSchema = new Schema<IUser>(
       type: Date,
       default: null,
     },
+    wisePaymentReference: {
+      type: String,
+      sparse: true,
+    },
+    wisePendingPlan: {
+      type: String,
+      enum: ['standard', 'pro'],
+    },
+    wisePendingBillingCycle: {
+      type: String,
+      enum: ['monthly', 'annual'],
+      default: 'monthly',
+    },
   },
   {
     timestamps: true,
@@ -137,6 +155,7 @@ UserSchema.index({ plan: 1, createdAt: -1 }); // Optimizes queries like: User.fi
 UserSchema.index({ referredBy: 1 }); // For counting referrals per user
 UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer
 UserSchema.index({ lastActiveAt: 1 }); // For idle-user queries in engagement emails
+UserSchema.index({ wisePaymentReference: 1 }, { unique: true, sparse: true });
 
 const User: Model<IUser> = (mongoose.models && mongoose.models.User) || mongoose.model<IUser>('User', UserSchema);
 

@@ -11,6 +11,9 @@ export interface User {
   plan: PlanType;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
+  wisePaymentReference?: string;
+  wisePendingPlan?: 'standard' | 'pro';
+  wisePendingBillingCycle?: 'monthly' | 'annual';
   signupIp?: string;
   createdAt: Date;
   updatedAt: Date;
