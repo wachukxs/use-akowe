@@ -60,3 +60,5 @@ vitest.setup.ts
 
 # temporary files
 draft.md
+# Local Netlify folder
+.netlify
