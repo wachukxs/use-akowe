@@ -252,6 +252,53 @@ export async function sendPaymentFailedEmail(
 }
 
 // ============================================
+// Wise term renewal (non-recurring): remind 3 days before period ends
+// ============================================
+
+export async function sendWiseRenewalReminderEmail(
+  to: string,
+  name: string,
+  renewalDate: Date
+): Promise<EmailSendResult> {
+  if (!transporter) {
+    throw new Error('Email transport not configured');
+  }
+
+  const baseUrl = getBaseUrl();
+  const settingsUrl = `${baseUrl}/settings?utm_source=email&utm_medium=transactional&utm_campaign=wise_renewal_reminder`;
+  const greeting = name || 'there';
+  const renewStr = renewalDate.toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: 'Your Akowe plan renews in 3 days',
+    text: [
+      `Hi ${greeting},`,
+      '',
+      `Your Akowe paid plan period ends on ${renewStr} (in about 3 days). Wise payments are not automatic — please pay before that date to keep uninterrupted access to your plan.`,
+      '',
+      `Renew from settings: ${settingsUrl}`,
+      '',
+      'If you have already paid for the next period, you can ignore this email.',
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>Your <strong>Akowe</strong> paid plan period ends on <strong>${renewStr}</strong> (in about 3 days). Wise payments are not automatic — please complete payment before that date to keep uninterrupted access.</p>
+      <p style="margin:16px 0;">${ctaButton(settingsUrl, 'Open billing & renew')}</p>
+      <p style="font-size:13px;color:#6b7280;">If you have already paid for the next period, you can ignore this email.</p>
+    `,
+  });
+
+  console.info('[email] Wise renewal reminder sent', { to, messageId: info.messageId });
+  return { messageId: info.messageId };
+}
+
+// ============================================
 // Engagement email functions (daily cron)
 // ============================================
 

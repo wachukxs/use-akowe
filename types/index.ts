@@ -14,6 +14,16 @@ export interface User {
   wisePaymentReference?: string;
   wisePendingPlan?: 'standard' | 'pro';
   wisePendingBillingCycle?: 'monthly' | 'annual';
+  wisePendingSku?:
+    | 'annual_pro'
+    | 'annual_standard'
+    | 'monthly_standard'
+    | 'monthly_pro';
+  paymentProvider?: 'stripe' | 'wise';
+  wisePurchaseTransferId?: number;
+  wiseRenewalReminderSentAt?: Date | null;
+  subscriptionStartDate?: Date | null;
+  subscriptionEndDate?: Date | null;
   signupIp?: string;
   createdAt: Date;
   updatedAt: Date;

@@ -3,13 +3,20 @@ import { auth } from '@/lib/auth-server';
 import { stripe, getStripePriceId } from '@/lib/stripe';
 import User from '@/models/User';
 import connectDB from '@/lib/mongodb';
+import { shouldUseWisePaymentLinks } from '@/lib/payment-region';
+import {
+  appendAkoweRefToPaymentUrl,
+  generateUniqueWisePaymentReference,
+  getWisePaymentLinkUrl,
+  wiseSkuFromPlan,
+} from '@/lib/wise-payment-links';
 
 type PaidPlanType = 'standard' | 'pro';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -34,16 +41,53 @@ export async function POST(request: NextRequest) {
     const resolvedPlanType: PaidPlanType = planType as PaidPlanType;
 
     await connectDB();
-    
-    // Get or create Stripe customer
+
     const user = await User.findOne({ email: session.user.email });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // India (geo) / env: Wise payment links instead of Stripe
+    if (shouldUseWisePaymentLinks(request)) {
+      const sku = wiseSkuFromPlan(billingCycle, resolvedPlanType);
+      const paymentUrl = getWisePaymentLinkUrl(sku);
+      if (!paymentUrl) {
+        return NextResponse.json(
+          { error: 'Wise payment link not configured for this plan. Set the matching env URL.' },
+          { status: 500 }
+        );
+      }
+
+      const ref = await generateUniqueWisePaymentReference(async (r) => {
+        const exists = await User.exists({ wisePaymentReference: r });
+        return !!exists;
+      });
+
+      user.wisePaymentReference = ref;
+      user.wisePendingPlan = resolvedPlanType;
+      user.wisePendingBillingCycle = billingCycle;
+      user.wisePendingSku = sku;
+      await user.save();
+
+      const url = appendAkoweRefToPaymentUrl(paymentUrl, ref);
+
+      const { createTrackingMetadata } = await import('@/lib/gtag-server');
+      const tracking = createTrackingMetadata(true, 'checkout_start', {
+        user_id: user._id.toString(),
+        billing_cycle: billingCycle,
+        plan_type: resolvedPlanType,
+      });
+
+      return NextResponse.json({
+        provider: 'wise' as const,
+        url,
+        wisePaymentReference: ref,
+        tracking,
+      });
+    }
+
     let customerId = user.stripeCustomerId;
 
-    // Create Stripe customer if doesn't exist
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: session.user.email,
@@ -54,23 +98,17 @@ export async function POST(request: NextRequest) {
       });
 
       customerId = customer.id;
-      
-      // Save customer ID to user
+
       user.stripeCustomerId = customerId;
       await user.save();
     }
 
-    // Get the appropriate price ID
     const priceId = getStripePriceId(billingCycle, resolvedPlanType);
 
     if (!priceId) {
-      return NextResponse.json(
-        { error: 'Price ID not configured' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Price ID not configured' }, { status: 500 });
     }
 
-    // Create checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       allow_promotion_codes: true,
@@ -92,28 +130,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Return tracking metadata for checkout_start
     const { createTrackingMetadata } = await import('@/lib/gtag-server');
-    const tracking = createTrackingMetadata(
-      true, // Always track checkout_start
-      'checkout_start',
-      {
-        user_id: user._id.toString(),
-        billing_cycle: billingCycle,
-        plan_type: resolvedPlanType,
-      }
-    );
+    const tracking = createTrackingMetadata(true, 'checkout_start', {
+      user_id: user._id.toString(),
+      billing_cycle: billingCycle,
+      plan_type: resolvedPlanType,
+    });
 
     return NextResponse.json({
+      provider: 'stripe' as const,
       sessionId: checkoutSession.id,
       url: checkoutSession.url,
       tracking,
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    return NextResponse.json(
-      { error: 'Failed to create checkout session' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
   }
 }
