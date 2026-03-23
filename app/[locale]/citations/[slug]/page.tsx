@@ -7,7 +7,7 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
-import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
+import { getAllKeywordSlugs, getKeywordPageBySlugAndCategory } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -16,9 +16,9 @@ export const revalidate = 86400;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'citation');
 
-  if (!keywordPage || keywordPage.category !== 'citation') {
+  if (!keywordPage) {
     return {
       robots: { index: false, follow: false },
     };
@@ -41,9 +41,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function CitationKeywordPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'citation');
 
-  if (!keywordPage || keywordPage.category !== 'citation') {
+  if (!keywordPage) {
     notFound();
   }
 
@@ -58,7 +58,7 @@ export default async function CitationKeywordPage({ params }: { params: Promise<
   );
 
   const citationSlugs = await getAllKeywordSlugs('citation');
-  const citationPages = await Promise.all(citationSlugs.map((s) => getKeywordPageBySlug(s)));
+  const citationPages = await Promise.all(citationSlugs.map((s) => getKeywordPageBySlugAndCategory(s, 'citation')));
   const allCitationKeywords = citationPages
     .filter((k): k is NonNullable<typeof k> => k != null && k.slug !== slug)
     .slice(0, 6) as Array<{ slug: string; title: string; description: string }>;

@@ -7,7 +7,7 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
-import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
+import { getAllKeywordSlugs, getKeywordPageBySlugAndCategory } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -16,9 +16,9 @@ export const revalidate = 86400;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'faq');
 
-  if (!keywordPage || keywordPage.category !== 'faq') {
+  if (!keywordPage) {
     return {
       title: 'FAQ Not Found',
     };
@@ -41,9 +41,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function FAQKeywordPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
-  
-  if (!keywordPage || keywordPage.category !== 'faq') {
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'faq');
+
+  if (!keywordPage) {
     notFound();
   }
   
@@ -58,7 +58,7 @@ export default async function FAQKeywordPage({ params }: { params: Promise<{ slu
   );
 
   const faqSlugs = await getAllKeywordSlugs('faq');
-  const faqPages = await Promise.all(faqSlugs.map((s) => getKeywordPageBySlug(s)));
+  const faqPages = await Promise.all(faqSlugs.map((s) => getKeywordPageBySlugAndCategory(s, 'faq')));
   const allFAQKeywords = faqPages
     .filter((k): k is NonNullable<typeof k> => k != null && k.slug !== slug)
     .slice(0, 6) as Array<{ slug: string; title: string; description: string }>;

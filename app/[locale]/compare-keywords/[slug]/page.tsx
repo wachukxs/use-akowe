@@ -7,7 +7,7 @@ import { generateWebPageSchema } from '@/lib/seo/schema';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
 import { RelatedContent } from '@/components/seo/RelatedContent';
-import { getAllKeywordSlugs, getKeywordPageBySlug } from '@/lib/seo/keywords';
+import { getAllKeywordSlugs, getKeywordPageBySlugAndCategory } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -16,9 +16,9 @@ export const revalidate = 86400;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'comparison');
 
-  if (!keywordPage || keywordPage.category !== 'comparison') {
+  if (!keywordPage) {
     return {
       title: 'Comparison Not Found',
     };
@@ -41,9 +41,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function ComparisonKeywordPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
-  
-  if (!keywordPage || keywordPage.category !== 'comparison') {
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'comparison');
+
+  if (!keywordPage) {
     notFound();
   }
   
@@ -58,7 +58,7 @@ export default async function ComparisonKeywordPage({ params }: { params: Promis
   );
 
   const comparisonSlugs = await getAllKeywordSlugs('comparison');
-  const comparisonPages = await Promise.all(comparisonSlugs.map((s) => getKeywordPageBySlug(s)));
+  const comparisonPages = await Promise.all(comparisonSlugs.map((s) => getKeywordPageBySlugAndCategory(s, 'comparison')));
   const allComparisonKeywords = comparisonPages
     .filter((k): k is NonNullable<typeof k> => k != null && k.slug !== slug)
     .slice(0, 6) as Array<{ slug: string; title: string; description: string }>;

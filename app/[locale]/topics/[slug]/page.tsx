@@ -6,7 +6,7 @@ import { generateSEOMetadata } from '@/lib/seo/metadata';
 import { generateWebPageSchema } from '@/lib/seo/schema';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { getBreadcrumbStructuredData } from '@/lib/seo/breadcrumb-structured-data';
-import { getKeywordPageBySlug } from '@/lib/seo/keywords';
+import { getKeywordPageBySlugAndCategory } from '@/lib/seo/keywords';
 
 const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://useakowe.com';
 
@@ -15,7 +15,7 @@ export const revalidate = 86400;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'topic');
 
   if (!keywordPage) {
     return { title: 'Not Found' };
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function TopicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const keywordPage = await getKeywordPageBySlug(slug);
+  const keywordPage = await getKeywordPageBySlugAndCategory(slug, 'topic');
   
   if (!keywordPage) {
     notFound();

@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { permanentRedirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import { getCitationSourceByTypeAndStyle, getAllCitationSourceCombinationsScaled } from '@/lib/seo/citation-sources';
@@ -56,12 +56,8 @@ export default async function CitationSourcePage({
   const citationSource = getCitationSourceByTypeAndStyle(type, style);
   const citationStyle = getCitationStyleBySlug(style);
 
-  if (!citationStyle) {
-    permanentRedirect(`/${locale}/citation-styles`);
-  }
-
-  if (!citationSource) {
-    permanentRedirect(`/${locale}/citation-styles/${style}`);
+  if (!citationStyle || !citationSource) {
+    notFound();
   }
 
   const sourceTypeName = type.charAt(0).toUpperCase() + type.slice(1);
