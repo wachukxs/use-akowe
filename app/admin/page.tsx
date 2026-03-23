@@ -457,6 +457,296 @@ function CollapsibleSection({ title, icon, isExpanded, onToggle, children, badge
 // ---------------------------------------------------------------------------
 // Support Tab — usage reset tools
 // ---------------------------------------------------------------------------
+// ── Types for User Lookup ──────────────────────────────────────────────────
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  plan: string;
+  billingCycle?: string;
+  subscriptionStartDate?: string | null;
+  subscriptionEndDate?: string | null;
+  paymentGraceDeadline?: string | null;
+  lastActiveAt?: string | null;
+  createdAt?: string;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
+}
+interface TodayUsage {
+  date: string;
+  aiWordsGenerated: number;
+  plagiarismChecks: number;
+  paraphraseUses: number;
+  topicFinderSearches: number;
+  litReviewAnalyses: number;
+}
+interface SuppressionInfo { suppressed: boolean; reason?: string; suppressedAt?: string; }
+interface LookupResult {
+  user: UserProfile;
+  todayUsage: TodayUsage;
+  projectCount: number;
+  suppression: SuppressionInfo;
+}
+
+const PLAN_COLORS: Record<string, string> = {
+  free: 'bg-gray-100 text-gray-700',
+  standard: 'bg-blue-100 text-blue-700',
+  pro: 'bg-purple-100 text-purple-700',
+  team: 'bg-green-100 text-green-700',
+};
+
+function UserLookupPanel() {
+  const [searchEmail, setSearchEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<LookupResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [actionResult, setActionResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [newPlan, setNewPlan] = useState('');
+
+  async function handleLookup() {
+    if (!searchEmail.trim()) return;
+    setLoading(true);
+    setError(null);
+    setData(null);
+    setActionResult(null);
+    try {
+      const res = await fetch(`/api/admin/user-lookup?email=${encodeURIComponent(searchEmail.trim())}`);
+      const json = await res.json();
+      if (!res.ok) { setError(json.error); return; }
+      setData(json);
+      setNewPlan(json.user.plan);
+    } catch {
+      setError('Lookup failed. Check console.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetUsage(field: string) {
+    if (!data) return;
+    const label = field === 'all' ? 'ALL usage fields' : field;
+    if (!confirm(`Reset ${label} for ${data.user.email} today?`)) return;
+    setActionLoading(`reset_${field}`);
+    setActionResult(null);
+    try {
+      const res = await fetch('/api/admin/reset-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.user.email, field }),
+      });
+      const json = await res.json();
+      setActionResult({ success: json.success, message: json.message || json.error });
+      if (json.success) {
+        // Refresh the lookup to show updated counts
+        const refreshed = await fetch(`/api/admin/user-lookup?email=${encodeURIComponent(data.user.email)}`);
+        const refreshedJson = await refreshed.json();
+        if (refreshed.ok) setData(refreshedJson);
+      }
+    } catch {
+      setActionResult({ success: false, message: 'Action failed.' });
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleChangePlan() {
+    if (!data || !newPlan || newPlan === data.user.plan) return;
+    if (!confirm(`Change ${data.user.email} from ${data.user.plan} → ${newPlan}?`)) return;
+    setActionLoading('change_plan');
+    setActionResult(null);
+    try {
+      const res = await fetch('/api/admin/change-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.user.email, plan: newPlan }),
+      });
+      const json = await res.json();
+      setActionResult({ success: json.success, message: json.message || json.error });
+      if (json.success) setData((d) => d ? { ...d, user: { ...d.user, plan: newPlan } } : d);
+    } catch {
+      setActionResult({ success: false, message: 'Action failed.' });
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleRemoveSuppression() {
+    if (!data) return;
+    if (!confirm(`Remove ${data.user.email} from the email suppression list?`)) return;
+    setActionLoading('suppression');
+    setActionResult(null);
+    try {
+      const res = await fetch('/api/admin/email-suppression', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: data.user.email }),
+      });
+      const json = await res.json();
+      setActionResult({ success: json.success, message: json.message || json.error });
+      if (json.success) setData((d) => d ? { ...d, suppression: { suppressed: false } } : d);
+    } catch {
+      setActionResult({ success: false, message: 'Action failed.' });
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  function fmt(dateStr?: string | null) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  return (
+    <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-5">
+      <div className="flex items-center gap-2">
+        <Search size={16} />
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em]">User Lookup</h2>
+      </div>
+      <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
+        Search any user by email to view their account state and take action.
+      </p>
+
+      {/* Search */}
+      <div className="flex gap-3">
+        <input
+          type="email"
+          placeholder="user@example.com"
+          value={searchEmail}
+          onChange={(e) => setSearchEmail(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
+          className="flex-1 border-2 border-[hsl(var(--border-strong))] px-3 py-1.5 text-sm"
+        />
+        <button
+          onClick={handleLookup}
+          disabled={loading || !searchEmail.trim()}
+          className="px-5 py-1.5 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+        >
+          {loading ? 'Searching…' : 'Look Up'}
+        </button>
+      </div>
+
+      {error && (
+        <div className="p-3 border-2 border-red-400 bg-red-50 text-red-800 text-xs rounded">{error}</div>
+      )}
+
+      {actionResult && (
+        <div className={`p-3 border-2 rounded text-xs font-medium ${actionResult.success ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-400 bg-red-50 text-red-800'}`}>
+          {actionResult.message}
+        </div>
+      )}
+
+      {data && (
+        <div className="space-y-5">
+          {/* Profile */}
+          <div className="border-2 border-[hsl(var(--border))] rounded p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <p className="font-bold text-sm">{data.user.name || '—'}</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">{data.user.email}</p>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded font-semibold uppercase tracking-wider ${PLAN_COLORS[data.user.plan] ?? 'bg-gray-100 text-gray-700'}`}>
+                {data.user.plan}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div><p className="uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))] mb-0.5">Joined</p><p className="font-medium">{fmt(data.user.createdAt)}</p></div>
+              <div><p className="uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))] mb-0.5">Last Active</p><p className="font-medium">{fmt(data.user.lastActiveAt)}</p></div>
+              <div><p className="uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))] mb-0.5">Projects</p><p className="font-semibold">{data.projectCount}</p></div>
+              <div><p className="uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))] mb-0.5">Billing</p><p className="font-medium capitalize">{data.user.billingCycle || '—'}</p></div>
+            </div>
+            {data.user.paymentGraceDeadline && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-300 px-3 py-1.5 rounded">
+                ⚠ Payment grace deadline: {fmt(data.user.paymentGraceDeadline)}
+              </p>
+            )}
+            {data.suppression.suppressed && (
+              <p className="text-xs text-red-700 bg-red-50 border border-red-300 px-3 py-1.5 rounded">
+                ✕ Email suppressed — reason: {data.suppression.reason} since {fmt(data.suppression.suppressedAt)}
+              </p>
+            )}
+          </div>
+
+          {/* Today's usage */}
+          <div className="border-2 border-[hsl(var(--border))] rounded p-4 space-y-2">
+            <p className="text-xs uppercase tracking-[0.16em] font-semibold mb-3">Today&apos;s Usage ({data.todayUsage.date})</p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+              {[
+                { label: 'AI Words', value: data.todayUsage.aiWordsGenerated },
+                { label: 'Plagiarism', value: data.todayUsage.plagiarismChecks },
+                { label: 'Paraphrase', value: data.todayUsage.paraphraseUses },
+                { label: 'Topic Finder', value: data.todayUsage.topicFinderSearches },
+                { label: 'Lit Review', value: data.todayUsage.litReviewAnalyses },
+              ].map(({ label, value }) => (
+                <div key={label} className="text-center bg-[hsl(var(--surface-muted))] rounded p-2">
+                  <p className="text-lg font-bold">{value}</p>
+                  <p className="text-[hsl(var(--muted-foreground))] uppercase tracking-[0.12em] text-[10px]">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-3">
+            <p className="text-xs uppercase tracking-[0.16em] font-semibold">Actions</p>
+
+            {/* Reset usage */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { field: 'aiWordsGenerated', label: 'Reset AI Words' },
+                { field: 'plagiarismChecks', label: 'Reset Plagiarism' },
+                { field: 'paraphraseUses', label: 'Reset Paraphrase' },
+                { field: 'all', label: 'Reset All Today' },
+              ].map(({ field, label }) => (
+                <button
+                  key={field}
+                  onClick={() => handleResetUsage(field)}
+                  disabled={!!actionLoading}
+                  className={`px-3 py-1.5 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.14em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50 ${field === 'all' ? 'bg-amber-50 border-amber-400 text-amber-800' : ''}`}
+                >
+                  {actionLoading === `reset_${field}` ? 'Resetting…' : label}
+                </button>
+              ))}
+            </div>
+
+            {/* Change plan */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="text-xs uppercase tracking-[0.16em] font-semibold whitespace-nowrap">Change Plan</label>
+              <select
+                value={newPlan}
+                onChange={(e) => setNewPlan(e.target.value)}
+                className="border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-sm"
+              >
+                {['free', 'standard', 'pro', 'team'].map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleChangePlan}
+                disabled={!!actionLoading || newPlan === data.user.plan}
+                className="px-4 py-1.5 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--foreground))] text-[hsl(var(--background))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+              >
+                {actionLoading === 'change_plan' ? 'Saving…' : 'Apply'}
+              </button>
+            </div>
+
+            {/* Email suppression */}
+            {data.suppression.suppressed && (
+              <button
+                onClick={handleRemoveSuppression}
+                disabled={!!actionLoading}
+                className="px-4 py-1.5 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+              >
+                {actionLoading === 'suppression' ? 'Removing…' : 'Remove Email Suppression'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SendPlagiarismFixPanel() {
   const [days, setDays] = useState(3);
   const [loading, setLoading] = useState(false);
@@ -644,9 +934,16 @@ function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element 
 
         <TabNavigation />
 
-        {/* Result banner */}
+        <UserLookupPanel />
+
+        {/* ── Section divider: Bulk Tools ── */}
+        <div className="pt-2 border-t-2 border-[hsl(var(--border))]">
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-6">Bulk Tools</p>
+        </div>
+
+        {/* Result banner for bulk/user reset actions */}
         {result && (
-          <div className={`p-4 border-2 rounded text-sm font-medium ${result.success ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800'}`}>
+          <div className={`-mt-2 p-4 border-2 rounded text-sm font-medium ${result.success ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-500 bg-red-50 text-red-800'}`}>
             {result.message}
           </div>
         )}
@@ -659,7 +956,6 @@ function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element 
           </div>
           <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
             Zeroes out plagiarism check counts for every user who has usage records in the selected window.
-            Use this to compensate users affected by the timeout bug.
           </p>
 
           <div className="flex items-center gap-3">
@@ -725,10 +1021,11 @@ function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element 
         <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-4">
           <div className="flex items-center gap-2">
             <UserCheck size={16} />
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">Reset Single User</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em]">Reset Plagiarism — All History</h2>
           </div>
           <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
-            Clears all plagiarism check counts (across all dates) for one specific user. Works for free, standard, and pro plans.
+            Clears plagiarism check counts across <strong>all dates</strong> for one user — not just today.
+            Use this when a user has accumulated counts from multiple days that need a full wipe.
           </p>
 
           <div className="flex items-center gap-3 flex-wrap">
@@ -747,6 +1044,11 @@ function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element 
               {loadingReset === 'user' ? 'Resetting…' : 'Reset User'}
             </button>
           </div>
+        </div>
+
+        {/* ── Section divider: Broadcast Emails ── */}
+        <div className="pt-2 border-t-2 border-[hsl(var(--border))]">
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-6">Broadcast Emails</p>
         </div>
 
         {/* ── Send plagiarism fix email ── */}
