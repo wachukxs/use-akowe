@@ -54,11 +54,11 @@
     "heading": "Akowe is built for academic integrity.",
     "supportsResponsible": "Every feature supports responsible, submittable work.",
     "realSources": "Sources are real, verifiable, and properly formatted.",
-    "submitConfidence": "Check your text against academic databases before your supervisor sees it."
+    "submitConfidence": "Check your text against 250M+ academic papers from Crossref, arXiv, and Semantic Scholar before your supervisor sees it."
   },
   "valueStrip": {
     "realSources": "AI that cites real academic sources",
-    "similarityChecks": "Academic source matching against Crossref and arXiv",
+    "similarityChecks": "Academic source matching across Crossref, arXiv, and Semantic Scholar",
     "workspace": "Write, cite, and submit in one workspace"
   },
   "workflows": {
@@ -94,11 +94,11 @@
     "whoUses": "Who uses Akowe",
     "whoUsesAnswer": "Graduate students, PhD candidates, and researchers who need real citations fast.",
     "citationsIncluded": "Are citations included",
-    "citationsIncludedAnswer": "Yes — pulled from real academic databases like Crossref and OpenAlex as you write.",
+    "citationsIncludedAnswer": "Yes — pulled from real academic databases including Crossref, OpenAlex, and Semantic Scholar as you write.",
     "doesInvent": "Does Akowe invent sources",
     "doesInventAnswer": "Never. Every source is verifiable. No hallucinations, no fake DOIs.",
     "similarityChecked": "Does Akowe check for plagiarism",
-    "similarityCheckedAnswer": "Akowe checks your text against Crossref and arXiv academic databases to surface uncited sources, flag suspicious phrases, and verify your DOIs. It is not a replacement for tools like Turnitin, which compare against a repository of submitted student papers — but it catches issues early so you can fix them before submission."
+    "similarityCheckedAnswer": "Akowe checks your text against Crossref, arXiv, and Semantic Scholar — over 250 million published academic papers — to surface uncited sources, flag suspicious phrases, and verify your DOIs. It covers the published academic literature your examiners will check. It does not compare against a repository of submitted student papers like Turnitin does — but it catches the most common citation and originality issues before you submit."
   },
   "whyChoose": {
     "heading": "Why researchers choose Akọ̀wé",
@@ -128,11 +128,11 @@
     "feature1Desc": "Outline, draft, and refine inside a structured editor. Get clarity suggestions, academic tone guidance, and citations tied to real sources — not generic AI output.",
     "feature2Label": "Real Citations",
     "feature2Title": "Real sources. Real citations. No hallucinations.",
-    "feature2Desc": "Search Crossref and OpenAlex — trusted academic databases used by universities worldwide. Insert accurate references and manage them without leaving your document.",
+    "feature2Desc": "Search Crossref, OpenAlex, and Semantic Scholar — trusted academic databases used by universities worldwide. Insert accurate references and manage them without leaving your document.",
     "feature2Badge": "No fabricated references. No fake DOIs. No blind AI output.",
     "feature3Label": "Academic Source Matching",
     "feature3Title": "Catch citation and originality issues before submission.",
-    "feature3Desc": "Check your writing against Crossref and arXiv academic databases. Surface uncited claims, find related papers you may have missed, and verify your DOIs resolve correctly — before your examiner sees the work.",
+    "feature3Desc": "Check your writing against Crossref, arXiv, and Semantic Scholar — over 250 million academic papers. Surface uncited claims, find related papers you may have missed, and verify your DOIs resolve correctly — before your examiner sees the work.",
     "ethicalBadgeTitle": "AI guidance built for academic use",
     "ethicalNoFabricated": "No fabricated references",
     "ethicalSupportsWriting": "Supports ethical writing",

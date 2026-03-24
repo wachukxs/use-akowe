@@ -42,6 +42,8 @@ import {
   Loader2,
   Share2,
   MessageSquare,
+  History,
+  Upload,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import FeedbackNudge from "@/components/FeedbackNudge";
@@ -76,6 +78,8 @@ import { cn } from "@/lib/utils";
 import { trackFunnel, trackEditor } from "@/lib/gtag";
 import FirstProjectCompletion from "@/components/FirstProjectCompletion";
 import LitReviewAssistant from "@/components/LitReviewAssistant";
+import AuthorshipTrail from "@/components/AuthorshipTrail";
+import { detectAndParse } from "@/lib/reference-parsers";
 import { Link as NavLink, useRouter as useLocaleRouter } from "@/i18n/navigation";
 
 export default function ProjectEditorPage({
@@ -271,6 +275,11 @@ export default function ProjectEditorPage({
   const [hasContentToScan, setHasContentToScan] = useState(false);
   const [showPlagiarismModal, setShowPlagiarismModal] = useState(false);
   const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
+  const [showAuthorshipTrail, setShowAuthorshipTrail] = useState(false);
+  const [showImportReferences, setShowImportReferences] = useState(false);
+  const [importReferencesText, setImportReferencesText] = useState('');
+  const [isImportingReferences, setIsImportingReferences] = useState(false);
+  const [importReferencesResult, setImportReferencesResult] = useState<{ imported: number; skipped: number } | null>(null);
   const plagiarismScrollRef = useRef<HTMLDivElement>(null);
   const [plagiarismScrollHint, setPlagiarismScrollHint] = useState(true);
   const [plagiarismResult, setPlagiarismResult] = useState<{
@@ -310,6 +319,7 @@ export default function ProjectEditorPage({
     sources?: {
       crossref: number;
       arxiv: number;
+      semanticScholar?: number;
     };
   } | null>(null);
   // Math and Chart modal states
@@ -2536,6 +2546,50 @@ export default function ProjectEditorPage({
     }
   };
 
+  // Import references from RIS / BibTeX
+  const importReferences = () => {
+    if (!project || !importReferencesText.trim()) return;
+    setIsImportingReferences(true);
+
+    const parsed = detectAndParse(importReferencesText);
+    if (parsed.length === 0) {
+      setShowSuccessMessage(
+        'No valid references detected. Paste RIS (starts with "TY  -") or BibTeX (starts with "@").'
+      );
+      setTimeout(() => setShowSuccessMessage(''), 5000);
+      setIsImportingReferences(false);
+      return;
+    }
+
+    const existing = project.citations || [];
+    const added: typeof parsed = [];
+    for (const nc of parsed) {
+      const isDupe = existing.some(
+        (e) =>
+          (e.title ?? '').toLowerCase().trim() ===
+            (nc.title ?? '').toLowerCase().trim() &&
+          (e.year ?? 0) === (nc.year ?? 0)
+      );
+      if (!isDupe) added.push(nc);
+    }
+
+    const updatedCitations = [...existing, ...added] as NonNullable<typeof project.citations>;
+    setProject({ ...project, citations: updatedCitations });
+    setImportReferencesResult({
+      imported: added.length,
+      skipped: parsed.length - added.length,
+    });
+    setImportReferencesText('');
+
+    fetch(`/api/projects/${resolvedParams.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ citations: updatedCitations }),
+    }).catch((e) => console.error('Error saving imported references:', e));
+
+    setIsImportingReferences(false);
+  };
+
   // Citation detection function
   const detectCitations = async () => {
     if (!project) return;
@@ -3328,6 +3382,16 @@ export default function ProjectEditorPage({
                     </div>
 
                     <div
+                      onClick={() => setShowImportReferences(true)}
+                      className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        <span className="font-semibold">Import References</span>
+                      </div>
+                    </div>
+
+                    <div
                       onClick={detectCitations}
                       className={cn(
                         "flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
@@ -3358,11 +3422,21 @@ export default function ProjectEditorPage({
                     >
                       <div className="flex items-center gap-2">
                         <Shield className="h-4 w-4" />
-                        <span className="font-semibold">Check Plagiarism</span>
+                        <span className="font-semibold">Academic Source Check</span>
                       </div>
                       {isCheckingPlagiarism && (
                         <div className="w-2 h-2 bg-[hsl(var(--secondary))] rounded-full animate-pulse"></div>
                       )}
+                    </div>
+
+                    <div
+                      onClick={() => setShowAuthorshipTrail(true)}
+                      className="flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                    >
+                      <div className="flex items-center gap-2">
+                        <History className="h-4 w-4" />
+                        <span className="font-semibold">Edit History</span>
+                      </div>
                     </div>
 
                     <div className="border-t-2 border-[hsl(var(--border-strong))] my-4"></div>
@@ -3674,6 +3748,19 @@ title={t("deleteSection")}
                       </button>
 
                       <button
+                        onClick={() => {
+                          setShowProjectTools(false);
+                          setShowImportReferences(true);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          <span className="font-semibold">Import References</span>
+                        </div>
+                      </button>
+
+                      <button
                         onClick={detectCitations}
                         className={cn(
                           "w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]",
@@ -3699,9 +3786,20 @@ title={t("deleteSection")}
                       >
                         <div className="flex items-center gap-2">
                           <Shield className="h-4 w-4" />
-                          <span className="font-semibold">
-                            Check Plagiarism
-                          </span>
+                          <span className="font-semibold">Academic Source Check</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setShowProjectTools(false);
+                          setShowAuthorshipTrail(true);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
+                      >
+                        <div className="flex items-center gap-2">
+                          <History className="h-4 w-4" />
+                          <span className="font-semibold">Edit History</span>
                         </div>
                       </button>
 
@@ -6364,6 +6462,12 @@ title={t("deleteSection")}
                             {plagiarismResult.sources?.arxiv ?? 0}
                           </span>
                         </div>
+                        <div className="flex items-center justify-between">
+                          <span>Semantic Scholar</span>
+                          <span className="font-semibold">
+                            {plagiarismResult.sources?.semanticScholar ?? 0}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -6839,6 +6943,86 @@ title={t("deleteSection")}
           </div>
         )}
       </div>
+
+      {/* Authorship Trail Modal */}
+      {showAuthorshipTrail && project && (
+        <AuthorshipTrail
+          projectId={resolvedParams.id}
+          projectName={project.name || 'Untitled project'}
+          onClose={() => setShowAuthorshipTrail(false)}
+        />
+      )}
+
+      {/* Import References Modal */}
+      {showImportReferences && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--foreground))]/40 p-4">
+          <div className="w-full max-w-xl bg-[hsl(var(--background))] border-4 border-[hsl(var(--border-strong))] rounded-(--radius) shadow-[6px_6px_0_rgba(29,41,57,0.12)]">
+            <div className="flex items-center justify-between p-4 border-b-2 border-[hsl(var(--border-strong))]">
+              <h2 className="text-sm font-bold uppercase tracking-[0.18em]">
+                Import References
+              </h2>
+              <button
+                onClick={() => { setShowImportReferences(false); setImportReferencesText(''); setImportReferencesResult(null); }}
+                className="p-1.5 rounded-(--radius) hover:bg-[hsl(var(--muted))]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Paste your references in <strong>RIS</strong> or <strong>BibTeX</strong> format. Export from Zotero, Mendeley, or any reference manager.
+              </p>
+
+              <div className="text-[10px] uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))] space-y-1">
+                <p>• <strong>RIS:</strong> starts with <code className="bg-[hsl(var(--muted))] px-1 py-0.5 rounded">TY  - JOUR</code></p>
+                <p>• <strong>BibTeX:</strong> starts with <code className="bg-[hsl(var(--muted))] px-1 py-0.5 rounded">@article&#123;</code></p>
+              </div>
+
+              <textarea
+                value={importReferencesText}
+                onChange={(e) => setImportReferencesText(e.target.value)}
+                placeholder={'Paste RIS or BibTeX here…\n\nExample RIS:\nTY  - JOUR\nAU  - Smith, J.\nTI  - My Paper Title\nPY  - 2023\nJO  - Journal Name\nDO  - 10.1000/xyz123\nER  -\n\nExample BibTeX:\n@article{smith2023,\n  author = {Smith, J.},\n  title = {My Paper Title},\n  year = {2023},\n  journal = {Journal Name},\n  doi = {10.1000/xyz123}\n}'}
+                className="w-full h-48 p-3 text-xs font-mono border-2 border-[hsl(var(--border))] rounded-(--radius) bg-[hsl(var(--surface))] resize-none focus:outline-none focus:border-[hsl(var(--border-strong))]"
+              />
+
+              {importReferencesResult && (
+                <div className="border-2 border-[hsl(var(--border))] rounded-(--radius) p-3 text-xs space-y-1">
+                  <p className="font-semibold text-green-600 uppercase tracking-[0.14em]">
+                    ✓ {importReferencesResult.imported} reference{importReferencesResult.imported !== 1 ? 's' : ''} imported
+                  </p>
+                  {importReferencesResult.skipped > 0 && (
+                    <p className="text-[hsl(var(--muted-foreground))]">
+                      {importReferencesResult.skipped} skipped (duplicates)
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={importReferences}
+                  disabled={isImportingReferences || !importReferencesText.trim()}
+                  className={cn(
+                    "flex-1 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] transition-transform duration-150",
+                    isImportingReferences || !importReferencesText.trim()
+                      ? "opacity-60 cursor-not-allowed"
+                      : "hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  )}
+                >
+                  {isImportingReferences ? 'Importing…' : 'Import References'}
+                </button>
+                <button
+                  onClick={() => { setShowImportReferences(false); setImportReferencesText(''); setImportReferencesResult(null); }}
+                  className="px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] border-2 border-[hsl(var(--border))] rounded-(--radius) hover:border-[hsl(var(--border-strong))] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
