@@ -81,11 +81,17 @@ export async function POST(request: NextRequest) {
   const suppressedEmails = await getSuppressedEmails();
 
   // Helper: send emails for a cohort with de-duplication and suppression
+  // Set to true if an SMTP auth error is detected; skips remaining cohorts.
+  let smtpAuthFailed = false;
+
   async function processCohort(
     cohort: EngagementCohort,
     candidates: Array<{ email: string; name: string; projectName?: string }>,
     sendFn: (to: string, name: string, projectName?: string) => Promise<{ messageId: string }>
   ): Promise<CohortResult> {
+    if (smtpAuthFailed) {
+      return { sent: 0, skipped: 0, failed: 0 };
+    }
     const alreadySent = await getAlreadySent(cohort);
     const toSend = candidates.filter(
       (c) => !alreadySent.has(c.email) && !suppressedEmails.has(c.email.toLowerCase())
@@ -94,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     let sent = 0;
     let failed = 0;
+    let lastSendSucceeded = false;
 
     for (let i = 0; i < batch.length; i++) {
       const candidate = batch[i];
@@ -104,11 +111,13 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      // Delay between sends to avoid SMTP rate limits (skip before first)
-      if (i > 0) {
+      // Only delay after a successful send — no point rate-limiting failed sends,
+      // and the 2s delay was causing the cron job to timeout when SMTP is down.
+      if (i > 0 && lastSendSucceeded) {
         await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_SENDS_MS));
       }
 
+      lastSendSucceeded = false;
       try {
         const result = await sendFn(candidate.email, candidate.name, candidate.projectName);
         await EmailLog.create({
@@ -119,8 +128,17 @@ export async function POST(request: NextRequest) {
           messageId: result.messageId,
         });
         sent++;
+        lastSendSucceeded = true;
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : String(err);
+
+        // If SMTP auth is broken, abort remaining sends for all cohorts
+        if (isSmtpAuthError(errorMsg)) {
+          console.error('[cron] SMTP auth failure detected — aborting all cohorts:', errorMsg);
+          smtpAuthFailed = true;
+          failed++;
+          break;
+        }
 
         // Auto-suppress on hard bounces (5xx SMTP codes, mailbox not found)
         if (isHardBounce(errorMsg)) {
@@ -361,8 +379,8 @@ export async function POST(request: NextRequest) {
     }
 
     const duration = Date.now() - startTime;
-    console.info('[cron] Engagement emails complete', { duration: `${duration}ms`, results });
-    return NextResponse.json({ success: true, results, duration: `${duration}ms` }, { status: 200 });
+    console.info('[cron] Engagement emails complete', { duration: `${duration}ms`, results, smtpAuthFailed });
+    return NextResponse.json({ success: true, results, duration: `${duration}ms`, smtpAuthFailed }, { status: 200 });
   } catch (error) {
     console.error('[cron] Engagement emails failed:', error);
     return NextResponse.json(

@@ -22,6 +22,8 @@ function buildTransporter(): TransporterOrNull {
       user,
       pass,
     },
+    connectionTimeout: 8_000,  // 8s: fail fast instead of hanging the cron function
+    socketTimeout: 10_000,     // 10s: cap per-send time
   });
 
   console.info('[email] Transporter created', {
