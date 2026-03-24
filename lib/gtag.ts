@@ -55,31 +55,31 @@ export const trackEvent = (eventName: string, params: Record<string, any> = {}) 
 
 // Lead magnet specific events
 export const trackLeadMagnet = {
-  view: (magnetType: 'plagiarism' | 'import' | 'topic', variant: string) => {
+  view: (magnetType: 'plagiarism' | 'import' | 'topic' | 'reference_checker', variant: string) => {
     trackEvent('lead_magnet_view', { magnet_type: magnetType, variant });
   },
   
-  textPasted: (magnetType: 'plagiarism' | 'import' | 'topic', charCount: number) => {
+  textPasted: (magnetType: 'plagiarism' | 'import' | 'topic' | 'reference_checker', charCount: number) => {
     trackEvent('text_pasted', { magnet_type: magnetType, char_count: charCount });
   },
   
-  fileUploaded: (magnetType: 'plagiarism' | 'import' | 'topic', fileType: string) => {
+  fileUploaded: (magnetType: 'plagiarism' | 'import' | 'topic' | 'reference_checker', fileType: string) => {
     trackEvent('file_uploaded', { magnet_type: magnetType, file_type: fileType });
   },
   
-  scanStarted: (magnetType: 'plagiarism' | 'import' | 'topic') => {
+  scanStarted: (magnetType: 'plagiarism' | 'import' | 'topic' | 'reference_checker') => {
     trackEvent('scan_started', { magnet_type: magnetType });
   },
   
-  emailCaptured: (magnetType: 'plagiarism' | 'import' | 'topic') => {
+  emailCaptured: (magnetType: 'plagiarism' | 'import' | 'topic' | 'reference_checker') => {
     trackEvent('email_captured', { magnet_type: magnetType });
   },
   
-  resultViewed: (magnetType: 'plagiarism' | 'import' | 'topic', score?: number) => {
+  resultViewed: (magnetType: 'plagiarism' | 'import' | 'topic' | 'reference_checker', score?: number) => {
     trackEvent('result_viewed', { magnet_type: magnetType, risk_score: score, uniqueness_score: score });
   },
   
-  signupClicked: (magnetType: 'plagiarism' | 'import' | 'topic') => {
+  signupClicked: (magnetType: 'plagiarism' | 'import' | 'topic' | 'reference_checker') => {
     trackEvent('signup_clicked', { magnet_type: magnetType });
   },
 };

@@ -2,8 +2,56 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
+import EditEvent from '@/models/EditEvent';
 import mongoose from 'mongoose';
 import { extractCitationsFromProject, mergeCitations } from '@/lib/citation-parser';
+import crypto from 'crypto';
+
+/** Simple content hash so we only record events when content actually changed. */
+function hashSections(sections: Array<{ id: string; content?: string }>): string {
+  const raw = sections.map(s => `${s.id}:${(s.content || '').length}`).join('|');
+  return crypto.createHash('md5').update(raw).digest('hex').slice(0, 12);
+}
+
+/** Record an edit event asynchronously — does not block the PUT response. */
+async function recordEditEvent(
+  projectId: string,
+  userId: string,
+  sections: Array<{ id: string; title: string; content?: string }>,
+  citationCount: number,
+  contentHash: string
+) {
+  try {
+    const totalWordCount = sections.reduce((sum, s) => {
+      return sum + (s.content || '').split(/\s+/).filter(Boolean).length;
+    }, 0);
+
+    const sectionSnapshots = sections.map(s => ({
+      sectionId: s.id,
+      title: s.title,
+      wordCount: (s.content || '').split(/\s+/).filter(Boolean).length,
+    }));
+
+    // Only record if content hash differs from the last event
+    const lastEvent = await EditEvent.findOne({ projectId })
+      .sort({ createdAt: -1 })
+      .select('contentHash')
+      .lean();
+
+    if (lastEvent?.contentHash === contentHash) return; // No real change
+
+    await EditEvent.create({
+      projectId: new mongoose.Types.ObjectId(projectId),
+      userId,
+      totalWordCount,
+      citationCount,
+      sectionSnapshots,
+      contentHash,
+    });
+  } catch {
+    // Silent fail — authorship trail is non-critical
+  }
+}
 
 export async function GET(
   request: NextRequest,
@@ -103,6 +151,13 @@ export async function PUT(
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+
+    // Fire-and-forget authorship trail recording
+    if (body.sections && body.sections.length > 0) {
+      const hash = hashSections(body.sections);
+      const citationCount = (project.citations || []).length;
+      recordEditEvent(id, session.user.email, body.sections, citationCount, hash);
     }
 
     return NextResponse.json({ project });

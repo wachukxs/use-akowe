@@ -1,10 +1,8 @@
-'use client';
-
 import { Link } from '@/i18n/navigation';
-import { Shield, ArrowLeft, CheckCircle, FileText, Sparkles } from 'lucide-react';
-import HeroPlagiarismTool from '@/components/HeroPlagiarismTool';
+import { BookOpen, ArrowLeft, CheckCircle, ExternalLink } from 'lucide-react';
+import HeroReferenceChecker from '@/components/HeroReferenceChecker';
 
-export default function PlagiarismCheckPage() {
+export default function ReferenceCheckerPage() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <header className="border-b-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]">
@@ -29,90 +27,94 @@ export default function PlagiarismCheckPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-        {/* Hero Section */}
+        {/* Hero */}
         <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] px-4 py-2 text-xs uppercase tracking-[0.2em]">
-              <Shield size={14} />
-              Free Plagiarism Checker
+              <BookOpen size={14} />
+              Free Reference Checker
             </div>
-            
+
             <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-[0.06em] leading-tight">
-              Check Your Academic Work for Plagiarism
+              Check your reference list before you submit
             </h1>
-            
+
             <p className="text-lg text-[hsl(var(--muted-foreground))]">
-              Paste your text or upload a document to instantly detect potential plagiarism issues, 
-              citation problems, and AI-generated content patterns.
+              Paste your bibliography and we will verify each entry against Crossref, flag broken DOIs,
+              and identify formatting issues — in seconds, no login needed.
             </p>
 
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
-                <span>Searches OpenAlex (250M+ academic papers) for matching sources</span>
+                <span>Verifies DOIs against Crossref (100M+ records)</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
-                <span>Verifies cited DOIs against Crossref</span>
+                <span>Flags unresolvable or hallucinated citations</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
-                <span>Detects AI-generated writing patterns & missing citations</span>
+                <span>Detects missing years, authors, and source types</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
-                <span>Supports DOCX, PDF, and TXT files</span>
+                <span>Works with APA, MLA, Chicago, IEEE, and Harvard</span>
               </div>
+            </div>
+
+            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-4">
+              <p className="text-xs uppercase tracking-[0.2em] font-semibold">
+                Inside Akowe you can fix every issue in one click — auto-reformat, find the real DOI, and insert the corrected reference back into your thesis.
+              </p>
             </div>
           </div>
 
-          {/* Plagiarism Tool */}
           <div>
-            <HeroPlagiarismTool variant="control" />
+            <HeroReferenceChecker />
           </div>
         </div>
 
-        {/* Features Section */}
+        {/* What we check */}
         <div className="border-t-[4px] border-[hsl(var(--border-strong))] pt-12">
           <h2 className="text-2xl font-bold uppercase tracking-[0.1em] mb-8 text-center">
             What We Check For
           </h2>
-          
+
           <div className="grid md:grid-cols-3 gap-6">
             <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 space-y-3">
-              <FileText size={24} className="text-[hsl(var(--primary))]" />
-              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Source Matching</h3>
+              <ExternalLink size={24} className="text-[hsl(var(--primary))]" />
+              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">DOI Verification</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Searches OpenAlex (250M+ academic papers) for sources that match uncited claims in your text. Verifies existing DOIs against Crossref.
+                Each DOI is resolved against Crossref in real time. If it returns a 404, the source may be wrong, retracted, or hallucinated by an AI tool.
               </p>
             </div>
 
             <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 space-y-3">
-              <Sparkles size={24} className="text-[hsl(var(--primary))]" />
-              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Citation & AI Analysis</h3>
+              <BookOpen size={24} className="text-[hsl(var(--primary))]" />
+              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Format Issues</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Detects uncited claims, missing in-text references, and patterns commonly found in AI-generated academic text.
+                Missing year, unclear author format, or unidentifiable source type — common errors that examiners spot immediately.
               </p>
             </div>
 
             <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 space-y-3">
-              <Shield size={24} className="text-[hsl(var(--primary))]" />
-              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Writing Quality</h3>
+              <CheckCircle size={24} className="text-[hsl(var(--primary))]" />
+              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Metadata Confirm</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Flags word repetition, academic clichés, and weak writing patterns that undermine your argument.
+                For verified DOIs we confirm the title, year, and authors match what Crossref holds — so you know the citation is attributed correctly.
               </p>
             </div>
           </div>
         </div>
 
-        {/* CTA Section */}
+        {/* CTA */}
         <div className="mt-16 border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] p-8 text-center">
           <h2 className="text-2xl font-bold uppercase tracking-[0.1em] mb-4">
-            Need Full Plagiarism Reports?
+            Fix every reference inside Akowe
           </h2>
           <p className="mb-6 max-w-2xl mx-auto">
-            Sign up for Akọ̀wé to get detailed plagiarism reports, AI writing assistance, 
-            automatic citation management, and more.
+            Sign up free and import your reference list. Akowe auto-formats citations in APA, MLA, Chicago, IEEE, or Harvard — and searches OpenAlex and Crossref to fill in missing details.
           </p>
           <Link
             href="/auth/signup"
@@ -122,11 +124,10 @@ export default function PlagiarismCheckPage() {
           </Link>
         </div>
 
-        {/* Share Section */}
         <div className="mt-12 text-center text-sm text-[hsl(var(--muted-foreground))]">
           <p className="mb-2">Share this tool with classmates:</p>
           <code className="bg-[hsl(var(--surface))] border border-[hsl(var(--border-strong))] px-4 py-2 rounded text-xs">
-            https://useakowe.com/tools/plagiarism-check
+            https://useakowe.com/tools/reference-checker
           </code>
         </div>
       </main>
