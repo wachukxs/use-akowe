@@ -1,68 +1,108 @@
-# Wise Business webhooks (India / SWIFT inbound)
+# Wise (India / payment links + webhooks)
 
-This app exposes a single webhook URL that works for both **sandbox** and **production**. Which Wise **signing key** your server uses is controlled by environment variables—not by separate routes.
+Use this when **Stripe checkout is not available** (e.g. India). Checkout is redirected to **Wise payment links**; access is granted when Wise notifies your app via **webhooks**.
+
+References: [Webhook API](https://docs.wise.com/api-reference/webhook), [event types](https://docs.wise.com/guides/developer/webhooks/event-types), [event handling & signatures](https://docs.wise.com/guides/developer/webhooks/event-handling), [transfer tracking](https://docs.wise.com/guides/product/send-money/tracking-transfers).
 
 ## Endpoint
 
-| Environment | URL |
-|-------------|-----|
-| Local / staging | `https://<your-host>/api/webhooks/wise` |
-| Production | `https://<your-domain>/api/webhooks/wise` |
-
-Use the same path in the Wise sandbox and production APIs; point each Wise **application** subscription at the deployment that has the matching env vars.
+`POST /api/webhooks/wise` — same path in every deployment; use env vars to pick **sandbox vs production signing keys** and API hosts.
 
 ## Environment variables
 
+### Webhook verification
+
 | Variable | Description |
 |----------|-------------|
-| `WISE_WEBHOOK_ENV` | `sandbox` or `production` — selects Wise’s published public key for `X-Signature-SHA256` verification. If omitted, sandbox is used except when `VERCEL_ENV=production` or `NODE_ENV=production` (then production key). |
-| `WISE_WEBHOOK_PUBLIC_KEY` | Optional. Full PEM or raw base64 body to override the built-in sandbox/production keys (e.g. key rotation). |
-| `WISE_PROFILE_ID` | Optional. If set, `swift-in#credit` events whose `data.action.profile_id` does not match are ignored. |
+| `WISE_WEBHOOK_ENV` | `sandbox` or `production` — which **public key** verifies `X-Signature-SHA256`. If unset: production when `VERCEL_ENV`/`NODE_ENV` is production, else sandbox. |
+| `WISE_WEBHOOK_PUBLIC_KEY` | Optional PEM override. |
+| `WISE_PROFILE_ID` | Optional. If set, events whose profile id does not match are ignored. |
 
-MongoDB: same as the rest of the app (`MONGODB_URI` / `MONGODB_URI_PROD` per `lib/mongodb.ts`).
+### Payment link URLs (checkout)
 
-## Wise: create subscriptions
+Production (required for live India checkout):
 
-Use Wise’s **Applications** API (or dashboard, if available for your account) to register webhooks.
+- `PROD_WISE_PAYMENT_LINK_120_USD_ANNUAL_PRO`
+- `PROD_WISE_PAYMENT_LINK_70_USD_ANNUAL_STANDARD`
+- `PROD_WISE_PAYMENT_LINK_7_USD_MONTHLY_STANDARD`
+- `PROD_WISE_PAYMENT_LINK_12_USD_MONTHLY_PRO`
 
-- **Sandbox** API host: `https://api.wise-sandbox.com`
-- **Production** API host: `https://api.wise.com`
+Optional sandbox URLs (same amounts, `SANDBOX_WISE_PAYMENT_LINK_*`). If sandbox mode is on and a sandbox URL is missing, the code falls back to the `PROD_*` value.
 
-Example (sandbox):
+| Variable | Description |
+|----------|-------------|
+| `WISE_PAYMENT_LINKS_ENV` | `sandbox` or `production` — which URL set to use. Defaults from `WISE_WEBHOOK_ENV`. |
+
+### Transfer API (webhook matching)
+
+Webhooks only include **transfer id** (and balance references). To load payer/reference fields, configure:
+
+| Variable | Description |
+|----------|-------------|
+| `WISE_SANDBOX_TOKEN_KEY` | Bearer token for `GET /v1/transfers/{id}` when using sandbox API. |
+| `WISE_PROD_TOKEN_KEY` | Bearer token for production API. |
+| `WISE_API_BASE` | Optional override (default: live `https://api.wise.com`, sandbox `https://api.sandbox.transferwise.com`). |
+| `WISE_API_ENV` | Optional: `sandbox` or `production` — picks token + host with `WISE_WEBHOOK_ENV` and deploy context. |
+
+### Who gets Wise checkout vs Stripe
+
+| Variable | Description |
+|----------|-------------|
+| `PAYMENT_USE_WISE` | `true` — always use Wise links (for local testing). `false` — never. |
+| `PAYMENT_WISE_TEST_COUNTRY` | Optional ISO country code to treat like India (e.g. match edge `x-vercel-ip-country`). |
+
+By default, users with edge country **`IN`** use Wise; everyone else uses Stripe.
+
+## Webhook subscriptions (Wise dashboard / API)
+
+Create subscriptions pointing at your public URL, with schema version **`4.0.0`** where applicable.
+
+Recommended event types for this app:
+
+| Event | Purpose |
+|-------|---------|
+| `transfers#state-change` | Final success `outgoing_payment_sent` ([tracking](https://docs.wise.com/guides/product/send-money/tracking-transfers)); failures `cancelled`, `funds_refunded`, `charged_back`. |
+| `balances#update` | Credits when `transfers#state-change` does not fire for some top-ups ([Wise note](https://docs.wise.com/guides/developer/webhooks/event-types#transfer-state-change)). |
+| `transfers#payout-failure` | Payout failure details ([docs](https://docs.wise.com/guides/developer/webhooks/event-types#transfer-payout-failure)). |
+| `transfers#refund` | Funds refunded — we downgrade users on **Wise term** billing tied to that transfer ([refund event](https://docs.wise.com/guides/developer/webhooks/event-types#transfer-refund)). |
+| `swift-in#credit` | Optional: SWIFT inbound deposits (reference-based). |
+
+Use `POST /v3/applications/{{clientKey}}/subscriptions` on sandbox vs production hosts as in the [webhook reference](https://docs.wise.com/api-reference/webhook).
+
+## Term billing (non-recurring)
+
+Wise payments are **one-time per checkout**. On successful payment we set:
+
+- `paymentProvider: 'wise'`
+- `subscriptionStartDate` / `subscriptionEndDate` — monthly = +1 month, annual = +1 year from the paid period (early renewal extends from the current end date if still active).
+- `wisePurchaseTransferId` — Wise transfer id (for **refund** matching).
+
+## Refunds
+
+Subscribe to **`transfers#refund`**. We match the user by **`wisePurchaseTransferId`** or by transfer details (same as pay-in), then **downgrade to free** and clear Wise billing fields.
+
+## Renewal reminder + expiry (cron)
+
+Schedule a **daily** job (same pattern as `/api/cron/payment-grace`):
 
 ```bash
-curl -X POST \
-  "https://api.wise-sandbox.com/v3/applications/{{clientKey}}/subscriptions" \
-  -H "Authorization: Bearer <client-credentials-token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Akowe swift-in (sandbox)",
-    "trigger_on": "swift-in#credit",
-    "delivery": {
-      "version": "4.0.0",
-      "url": "https://your-staging-host/api/webhooks/wise"
-    }
-  }'
+curl -X POST https://your-domain.com/api/cron/wise-subscription \
+  -H "Authorization: Bearer $CRON_SECRET"
 ```
 
-Repeat for `transfers#state-change` if you want those deliveries (the handler acknowledges them; upgrade is driven by `swift-in#credit`).
+It:
 
-Repeat the same structure against **production** with your production URL and tokens.
+1. **Downgrades** users whose `subscriptionEndDate` has passed (`paymentProvider: 'wise'`).
+2. Sends an email when **~3 days** remain before `subscriptionEndDate` (2–4 day window for daily cron), once per period (`wiseRenewalReminderSentAt`).
 
-Docs:
+## How matching works
 
-- [Event handling & signature verification](https://docs.wise.com/guides/developer/webhooks/event-handling)
-- [swift-in#credit](https://docs.wise.com/guides/product/receive-money/subscribe-to-swift-in-credit)
-- [transfers#state-change](https://docs.wise.com/guides/product/receive-money/subscribe-to-transfer-state-change)
+1. **Checkout** stores `wisePaymentReference`, `wisePendingPlan`, `wisePendingBillingCycle`, `wisePendingSku`, then redirects to the payment link with `?akoweRef=<reference>` (Wise may ignore; the value is still stored for reconciliation).
+2. On success, the handler loads the transfer via **`WISE_PROD_TOKEN_KEY`** (live) or **`WISE_SANDBOX_TOKEN_KEY`** (sandbox), matches **reference fields** (you indicated Wise will include these) or a **single pending checkout** in the last 72h for the **expected USD amount** for that SKU.
+3. **Idempotency**: one upgrade per transfer id (`transfer:upgrade:{id}`); refunds use `wise:refund:{id}`.
 
-## How upgrades work
+Configure the matching **token key** for each environment so reconciliation does not rely on amount alone.
 
-1. Before paying, the user must have **`wisePaymentReference`** (and usually **`wisePendingPlan`** / **`wisePendingBillingCycle`**) set in the database — typically via a future “Pay with Wise” flow that generates a unique reference.
-2. The customer sends a bank/SWIFT payment **using that reference** (or a reference that embeds their user id as a 24-character hex id).
-3. When Wise sends **`swift-in#credit`**, the handler verifies the signature, dedupes by **`uetr`**, matches the payment to a user, then sets **`plan`**, **`billingCycle`**, and **`subscriptionStartDate`**, and clears the pending Wise fields.
+## Test notifications
 
-Duplicate notifications (e.g. from also subscribing to `transfers#state-change`) are safe: processing is idempotent per **`uetr`**.
-
-## Local testing
-
-Wise may send **`X-Test-Notification: true`** when validating a URL; those requests are accepted after signature verification and do not upgrade users.
+`X-Test-Notification: true` — acknowledged without upgrading ([webhook API](https://docs.wise.com/api-reference/webhook)).

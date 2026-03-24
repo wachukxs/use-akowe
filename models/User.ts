@@ -25,6 +25,14 @@ interface IUser extends Omit<UserType, '_id'> {
   /** Plan to grant when a matching `swift-in#credit` is received. */
   wisePendingPlan?: 'standard' | 'pro';
   wisePendingBillingCycle?: 'monthly' | 'annual';
+  /** Which Wise payment link product the user opened (for INR / payment-link checkout). */
+  wisePendingSku?: 'annual_pro' | 'annual_standard' | 'monthly_standard' | 'monthly_pro';
+  /** `wise` = term-based Wise payments (non-recurring). Omit/undefined treated as Stripe for legacy rows. */
+  paymentProvider?: 'stripe' | 'wise';
+  /** Wise transfer id that last granted the current paid period (refund matching). */
+  wisePurchaseTransferId?: number;
+  /** Last time we sent the “renew in 3 days” email for the current period. */
+  wiseRenewalReminderSentAt?: Date | null;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -120,6 +128,21 @@ const UserSchema = new Schema<IUser>(
       enum: ['monthly', 'annual'],
       default: 'monthly',
     },
+    wisePendingSku: {
+      type: String,
+      enum: ['annual_pro', 'annual_standard', 'monthly_standard', 'monthly_pro'],
+    },
+    paymentProvider: {
+      type: String,
+      enum: ['stripe', 'wise'],
+    },
+    wisePurchaseTransferId: {
+      type: Number,
+    },
+    wiseRenewalReminderSentAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -156,6 +179,7 @@ UserSchema.index({ plan: 1, createdAt: -1 }); // Optimizes queries like: User.fi
 UserSchema.index({ referredBy: 1 }); // For counting referrals per user
 UserSchema.index({ referredByInfluencer: 1 }); // For counting referrals per influencer
 UserSchema.index({ lastActiveAt: 1 }); // For idle-user queries in engagement emails
+UserSchema.index({ paymentProvider: 1, subscriptionEndDate: 1 }); // Wise renewal reminder + expiry crons
 // Note: wisePaymentReference index is declared on the field (unique + sparse), like referralCode
 
 const User: Model<IUser> = (mongoose.models && mongoose.models.User) || mongoose.model<IUser>('User', UserSchema);

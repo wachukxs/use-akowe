@@ -48,19 +48,49 @@ export async function loadKeywordsFromSource(): Promise<KeywordPage[]> {
 
 /**
  * Get keyword page by slug
+ * Cache uses compound key `${category}:${slug}` so duplicate keywords across
+ * categories (e.g. "research impact" in both 'guide' and 'topic') don't collide.
  */
 let keywordCache: Map<string, KeywordPage> | null = null;
 
-export async function getKeywordPageBySlug(slug: string): Promise<KeywordPage | undefined> {
+function ensureKeywordCache(keywords: KeywordPage[]): Map<string, KeywordPage> {
   if (!keywordCache) {
-    const keywords = await loadKeywordsFromSource();
-    keywordCache = new Map(keywords.map((k) => [k.slug, k]));
+    keywordCache = new Map();
+    for (const k of keywords) {
+      keywordCache.set(`${k.category}:${k.slug}`, k);
+    }
   }
-  const page = keywordCache.get(slug);
+  return keywordCache;
+}
+
+/** Look up a keyword page by slug AND category (preferred, avoids ambiguity). */
+export async function getKeywordPageBySlugAndCategory(
+  slug: string,
+  category: KeywordPage['category']
+): Promise<KeywordPage | undefined> {
+  const keywords = await loadKeywordsFromSource();
+  const cache = ensureKeywordCache(keywords);
+  const page = cache.get(`${category}:${slug}`);
   if (page && !page.content?.introduction && !page.content?.sections) {
     page.content = generateKeywordContent(page);
   }
   return page;
+}
+
+/** @deprecated Use getKeywordPageBySlugAndCategory when the category is known. */
+export async function getKeywordPageBySlug(slug: string): Promise<KeywordPage | undefined> {
+  const keywords = await loadKeywordsFromSource();
+  const cache = ensureKeywordCache(keywords);
+  // Return the first match across all categories (first-wins deduplication).
+  for (const [key, page] of cache) {
+    if (key.endsWith(`:${slug}`)) {
+      if (page && !page.content?.introduction && !page.content?.sections) {
+        page.content = generateKeywordContent(page);
+      }
+      return page;
+    }
+  }
+  return undefined;
 }
 
 /**

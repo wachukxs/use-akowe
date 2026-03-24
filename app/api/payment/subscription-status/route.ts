@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth-server';
 import { stripe } from '@/lib/stripe';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { syncWiseTermExpiryIfNeeded } from '@/lib/wise-webhook-handlers';
 
 export async function GET() {
   try {
@@ -17,6 +18,19 @@ export async function GET() {
     const user = await User.findOne({ email: session.user.email });
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Wise term billing (non-recurring): expire when period ends
+    if (user.paymentProvider === 'wise') {
+      const needsUpdate = await syncWiseTermExpiryIfNeeded(user);
+      return NextResponse.json({
+        plan: user.plan,
+        status: needsUpdate ? 'expired' : 'active',
+        needsUpdate,
+        billingCycle: user.billingCycle || 'monthly',
+        subscriptionEnd: user.subscriptionEndDate?.toISOString() ?? null,
+        paymentProvider: 'wise' as const,
+      });
     }
 
     // If user doesn't have a Stripe subscription, return current plan
