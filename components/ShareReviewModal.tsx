@@ -409,7 +409,7 @@ export default function ShareReviewModal({
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-[hsl(var(--muted-foreground))]">
+                        <div className="flex items-center gap-4 text-xs text-[hsl(var(--muted-foreground))] flex-wrap">
                           <span>
                             Created {new Date(link.createdAt).toLocaleDateString()}
                           </span>
@@ -418,6 +418,11 @@ export default function ShareReviewModal({
                           </span>
                           <span>{link.accessCount || 0} views</span>
                           <span>{link.commentCount || 0} comments</span>
+                          {isActive && link.accessCount === 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full font-semibold uppercase tracking-[0.1em]">
+                              Not opened yet
+                            </span>
+                          )}
                         </div>
                       </div>
                     );
