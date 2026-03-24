@@ -137,6 +137,18 @@ function HomePageContent() {
                 {tCommon("blog")}
               </a>
               <Link
+                href="/pricing"
+                className="hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
+              >
+                Pricing
+              </Link>
+              <Link
+                href="/tools/reference-checker"
+                className="hidden sm:block hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
+              >
+                Free Tools
+              </Link>
+              <Link
                 href="/auth/signin"
                 className="hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
               >
@@ -1411,7 +1423,25 @@ function HomePageContent() {
               {tHome("footer.tagline")}
             </p>
           </div>
-          <nav className="flex gap-6 text-xs uppercase tracking-[0.28em]">
+          <nav className="flex flex-wrap gap-4 sm:gap-6 text-xs uppercase tracking-[0.28em]">
+            <Link
+              href="/pricing"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/tools/plagiarism-check"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
+              Plagiarism Check
+            </Link>
+            <Link
+              href="/tools/reference-checker"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
+              Reference Checker
+            </Link>
             <Link
               href="/about"
               className="hover:text-[hsl(var(--secondary))] transition-colors"

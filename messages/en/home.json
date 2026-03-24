@@ -1,7 +1,7 @@
 {
   "heroControl": {
     "title": "Academic writing without risk or chaos.",
-    "subtitle": "Write faster, cite real sources, and check for plagiarism — all before your advisor or Turnitin sees it."
+    "subtitle": "Write faster, cite real sources, and catch citation and originality issues early — all before your advisor sees it."
   },
   "heroVariantA": {
     "title": "Write a cited chapter draft in one session.",
@@ -10,7 +10,7 @@
   },
   "heroVariantB": {
     "title": "Submit your thesis with confidence, not anxiety.",
-    "subtitle": "Verified sources. Accurate citations. Similarity checked before Turnitin sees it. Everything in one place so nothing slips through.",
+    "subtitle": "Verified sources. Accurate citations. Originality checked against real academic databases before you submit. Everything in one place so nothing slips through.",
     "tagline": "Built for confident submission — not hopeful guessing.",
     "cta": "Start your thesis free"
   },
@@ -26,7 +26,7 @@
     "title": "Trusted by students & researchers worldwide",
     "testimonial1Quote": "Saved at least 10 hours every month. I actually submitted early for the first time.",
     "testimonial1Author": "— Fatima Adeoye, PhD Candidate, Europe",
-    "testimonial2Quote": "No last-minute Turnitin surprises. I knew my similarity score before I submitted.",
+    "testimonial2Quote": "I caught uncited claims and broken references before submission. The source matching saved me from an embarrassing mistake.",
     "testimonial2Author": "— Anjali Patel, Masters Student, North America"
   },
   "painA": {
@@ -54,11 +54,11 @@
     "heading": "Akowe is built for academic integrity.",
     "supportsResponsible": "Every feature supports responsible, submittable work.",
     "realSources": "Sources are real, verifiable, and properly formatted.",
-    "submitConfidence": "Check similarity before your supervisor or Turnitin does."
+    "submitConfidence": "Check your text against academic databases before your supervisor sees it."
   },
   "valueStrip": {
     "realSources": "AI that cites real academic sources",
-    "similarityChecks": "Built-in similarity checks before Turnitin",
+    "similarityChecks": "Academic source matching against Crossref and arXiv",
     "workspace": "Write, cite, and submit in one workspace"
   },
   "workflows": {
@@ -97,8 +97,8 @@
     "citationsIncludedAnswer": "Yes — pulled from real academic databases like Crossref and OpenAlex as you write.",
     "doesInvent": "Does Akowe invent sources",
     "doesInventAnswer": "Never. Every source is verifiable. No hallucinations, no fake DOIs.",
-    "similarityChecked": "Is similarity checked before submission",
-    "similarityCheckedAnswer": "Yes. Check before export so Turnitin holds no surprises."
+    "similarityChecked": "Does Akowe check for plagiarism",
+    "similarityCheckedAnswer": "Akowe checks your text against Crossref and arXiv academic databases to surface uncited sources, flag suspicious phrases, and verify your DOIs. It is not a replacement for tools like Turnitin, which compare against a repository of submitted student papers — but it catches issues early so you can fix them before submission."
   },
   "whyChoose": {
     "heading": "Why researchers choose Akọ̀wé",
@@ -106,10 +106,10 @@
     "akowe": "Akọ̀wé",
     "onlyOneThing": "Handle only one part of the process",
     "forceCopyPaste": "Make you copy-paste between writing, citing, and checking apps",
-    "guessingPlagiarism": "Leave you guessing about plagiarism until after submission",
+    "guessingPlagiarism": "Leave you guessing about citation issues until after submission",
     "oneWorkspace": "One editor for writing, real citations, and integrity checks",
     "realSources": "Real sources from live academic databases — never hallucinated",
-    "preSubmissionSafety": "Similarity check before you submit, not after"
+    "preSubmissionSafety": "Academic source check before you submit — fix issues early"
   },
   "howItWorks": {
     "heading": "How it works",
@@ -118,7 +118,7 @@
     "step2Title": "Write with real sources",
     "step2Desc": "AI assists your writing while pulling citations from academic databases",
     "step3Title": "Review & submit",
-    "step3Desc": "Check plagiarism, verify citations, and export submission-ready documents"
+    "step3Desc": "Run an academic source check, verify citations, and export submission-ready documents"
   },
   "features": {
     "heading": "Everything you need for serious academic writing",
@@ -130,9 +130,9 @@
     "feature2Title": "Real sources. Real citations. No hallucinations.",
     "feature2Desc": "Search Crossref and OpenAlex — trusted academic databases used by universities worldwide. Insert accurate references and manage them without leaving your document.",
     "feature2Badge": "No fabricated references. No fake DOIs. No blind AI output.",
-    "feature3Label": "Integrity & Plagiarism Safety",
-    "feature3Title": "Know your similarity score before Turnitin does.",
-    "feature3Desc": "Check originality before you upload. See similarity insights aligned with common university standards so you fix issues early — not after marks are lost.",
+    "feature3Label": "Academic Source Matching",
+    "feature3Title": "Catch citation and originality issues before submission.",
+    "feature3Desc": "Check your writing against Crossref and arXiv academic databases. Surface uncited claims, find related papers you may have missed, and verify your DOIs resolve correctly — before your examiner sees the work.",
     "ethicalBadgeTitle": "AI guidance built for academic use",
     "ethicalNoFabricated": "No fabricated references",
     "ethicalSupportsWriting": "Supports ethical writing",
@@ -205,7 +205,7 @@
     "designTitle": "Academic-First Design:",
     "designDesc": "Every feature built specifically for scholarly work, not retrofitted from generic tools.",
     "allInOneTitle": "All-in-one workflow",
-    "allInOneDesc": "Drafting, citations, plagiarism checks, and exports live together so work stays organized.",
+    "allInOneDesc": "Drafting, citations, academic source checks, and exports live together so work stays organized.",
     "designedTitle": "Designed for academics",
     "designedDesc": "Structured sections, methodology prompts, and citation intelligence keep research on track.",
     "pricingTitle": "Predictable pricing",
@@ -232,7 +232,7 @@
   },
   "footer": {
     "brand": "Akọ̀wé",
-    "tagline": "Academic writing tool • AI for thesis writing • citation management software • plagiarism checker for research papers",
+    "tagline": "Academic writing tool • AI for thesis writing • citation management software • academic source checker for research papers",
     "learnStory": "Learn our story",
     "privacy": "Privacy",
     "copyright": "All rights reserved."
