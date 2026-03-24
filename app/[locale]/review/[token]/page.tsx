@@ -870,31 +870,6 @@ export default function ReviewPage({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Checklist button — only when rubric exists */}
-            {data.rubric && data.rubric.length > 0 && (
-              <button
-                onClick={() => {
-                  const isMobile = window.matchMedia('(pointer: coarse)').matches;
-                  if (isMobile) {
-                    setShowRubricSheet(true);
-                  } else {
-                    rubricRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                className="relative flex items-center gap-2 px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs uppercase tracking-[0.18em] font-semibold hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] transition-colors touch-manipulation min-h-[44px]"
-                title="Review checklist"
-              >
-                {rubricSubmitted ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <ClipboardList className="h-4 w-4" />
-                )}
-                <span className="hidden sm:inline">Checklist</span>
-                {!rubricSubmitted && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-[hsl(var(--surface))]" />
-                )}
-              </button>
-            )}
             <button
               onClick={() => setShowCommentsPanel(!showCommentsPanel)}
               className="flex items-center gap-2 px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs uppercase tracking-[0.18em] font-semibold hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] transition-colors touch-manipulation min-h-[44px]"
@@ -905,6 +880,50 @@ export default function ReviewPage({
           </div>
         </div>
       </header>
+
+      {/* Sticky checklist notice bar — shown whenever a rubric exists */}
+      {data.rubric && data.rubric.length > 0 && (
+        <div className={`sticky top-0 z-30 border-b-2 transition-colors ${
+          rubricSubmitted
+            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+        }`}>
+          <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              {rubricSubmitted ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-green-700 dark:text-green-400">
+                    Checklist complete
+                  </span>
+                </>
+              ) : (
+                <>
+                  <ClipboardList className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300">
+                    {data.rubric.length} question{data.rubric.length !== 1 ? 's' : ''} to answer
+                  </span>
+                </>
+              )}
+            </div>
+            {!rubricSubmitted && (
+              <button
+                onClick={() => {
+                  const isMobile = window.matchMedia('(pointer: coarse)').matches;
+                  if (isMobile) {
+                    setShowRubricSheet(true);
+                  } else {
+                    rubricRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="text-[11px] uppercase tracking-[0.14em] font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1 hover:underline touch-manipulation min-h-[36px]"
+              >
+                Answer <ChevronRight className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto flex relative overflow-x-hidden">
         {/* Section Navigation */}
