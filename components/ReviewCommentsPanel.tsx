@@ -28,6 +28,7 @@ export default function ReviewCommentsPanel({
   onNavigateToComment,
 }: ReviewCommentsPanelProps) {
   const [comments, setComments] = useState<ReviewCommentData[]>([]);
+  const [lastReviewedAt, setLastReviewedAt] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'open' | 'resolved' | 'all'>('open');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export default function ReviewCommentsPanel({
       if (res.ok) {
         const data = await res.json();
         setComments(data.comments || []);
+        setLastReviewedAt(data.lastReviewedAt ? new Date(data.lastReviewedAt) : null);
       }
     } catch {
       // Silent fail
@@ -254,6 +256,10 @@ export default function ReviewCommentsPanel({
             {Array.from(sectionMap.entries()).map(([sectionId, sectionComments]) => {
               const section = sections.find((s) => s.id === sectionId);
               const openInSection = openBySectionId.get(sectionId) || 0;
+              const editedSinceReview =
+                lastReviewedAt &&
+                section?.updatedAt &&
+                new Date(section.updatedAt) > lastReviewedAt;
 
               return (
                 <div key={sectionId}>
@@ -263,6 +269,11 @@ export default function ReviewCommentsPanel({
                   >
                     <ChevronRight className="h-3 w-3 shrink-0" />
                     <span className="flex-1">{section?.title || 'Unknown Section'}</span>
+                    {editedSinceReview && (
+                      <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full font-semibold shrink-0">
+                        edited
+                      </span>
+                    )}
                     {openInSection > 0 ? (
                       <span className="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full font-semibold shrink-0">
                         {openInSection} open
@@ -410,15 +421,26 @@ export default function ReviewCommentsPanel({
                   Not yet reviewed
                 </p>
                 <div className="space-y-1 ml-4">
-                  {unreviewedSections.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => onNavigateToSection?.(s.id)}
-                      className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] w-full text-left py-1 touch-manipulation"
-                    >
-                      {s.title}
-                    </button>
-                  ))}
+                  {unreviewedSections.map((s) => {
+                    const editedSinceReview =
+                      lastReviewedAt &&
+                      s.updatedAt &&
+                      new Date(s.updatedAt) > lastReviewedAt;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => onNavigateToSection?.(s.id)}
+                        className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] w-full text-left py-1 touch-manipulation"
+                      >
+                        <span className="flex-1">{s.title}</span>
+                        {editedSinceReview && (
+                          <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full font-semibold shrink-0">
+                            edited
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
