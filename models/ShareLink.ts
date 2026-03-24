@@ -13,6 +13,7 @@ export interface IShareLink {
   lastAccessedAt?: Date;
   accessCount: number;
   lastNotifiedAt?: Date;
+  reminderSentAt?: Date; // when the advisor was last sent an open-link reminder
   createdAt: Date;
   updatedAt: Date;
 }
@@ -63,6 +64,9 @@ const ShareLinkSchema = new Schema<IShareLink>(
       default: 0,
     },
     lastNotifiedAt: {
+      type: Date,
+    },
+    reminderSentAt: {
       type: Date,
     },
   },
