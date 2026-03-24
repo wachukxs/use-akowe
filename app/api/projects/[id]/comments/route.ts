@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import ShareLink from '@/models/ShareLink';
 import ReviewComment from '@/models/ReviewComment';
+import RubricResponse from '@/models/RubricResponse';
 import mongoose from 'mongoose';
 
 export async function GET(
@@ -73,7 +74,17 @@ export async function GET(
       replies: replyMap.get(comment._id!.toString()) || [],
     }));
 
-    return NextResponse.json({ comments: commentsWithReplies, lastReviewedAt });
+    // Fetch rubric responses for all share links on this project
+    const allLinkIds = await ShareLink.find({
+      projectId: id,
+      userId: session.user.email,
+    }).select('_id').lean();
+
+    const rubricResponses = await RubricResponse.find({
+      shareLinkId: { $in: allLinkIds.map((l) => l._id) },
+    }).lean();
+
+    return NextResponse.json({ comments: commentsWithReplies, lastReviewedAt, rubricResponses });
   } catch (error) {
     console.error('Error fetching project comments:', error);
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 });

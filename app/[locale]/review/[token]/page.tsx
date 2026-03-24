@@ -231,6 +231,7 @@ interface ReviewData {
   advisorName: string;
   shareLinkId: string;
   expiresAt: string;
+  rubric?: string[];
 }
 
 function getCookie(name: string): string | null {
@@ -282,6 +283,11 @@ export default function ReviewPage({
 
   // Comments panel
   const [showCommentsPanel, setShowCommentsPanel] = useState(false);
+
+  // Rubric
+  const [rubricAnswers, setRubricAnswers] = useState<Record<string, string>>({});
+  const [rubricSubmitted, setRubricSubmitted] = useState(false);
+  const [isSubmittingRubric, setIsSubmittingRubric] = useState(false);
 
   // Mobile selection: show a floating "Comment" button when text is selected
   const [mobileSelectionReady, setMobileSelectionReady] = useState(false);
@@ -618,10 +624,57 @@ export default function ReviewPage({
       const reviewData = await res.json();
       setData(reviewData);
       fetchComments();
+      // Load existing rubric response if there is one
+      if (reviewData.rubric && reviewData.rubric.length > 0) {
+        fetchRubricResponse();
+      }
     } catch {
       setError('Failed to load review');
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function fetchRubricResponse() {
+    try {
+      const res = await fetch(`/api/review/${token}/rubric`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.response) {
+          const map: Record<string, string> = {};
+          for (const a of json.response.answers) {
+            map[a.question] = a.answer;
+          }
+          setRubricAnswers(map);
+          setRubricSubmitted(true);
+        }
+      }
+    } catch {
+      // Silent
+    }
+  }
+
+  async function submitRubric() {
+    if (!data?.rubric || !reviewerName || !sessionId) return;
+    setIsSubmittingRubric(true);
+    try {
+      const answers = data.rubric.map((q) => ({ question: q, answer: rubricAnswers[q] || '' }));
+      const res = await fetch(`/api/review/${token}/rubric`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          advisorName: reviewerName,
+          advisorSessionId: sessionId,
+          answers,
+        }),
+      });
+      if (res.ok) {
+        setRubricSubmitted(true);
+      }
+    } catch {
+      // Silent
+    } finally {
+      setIsSubmittingRubric(false);
     }
   }
 
@@ -1240,6 +1293,81 @@ export default function ReviewPage({
                 {isSubmitting ? t('sending') : t('send')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rubric form — shown only if the share link has questions */}
+      {data?.rubric && data.rubric.length > 0 && !showNamePrompt && (
+        <div className="max-w-5xl mx-auto px-4 pb-12">
+          <div className="border-4 border-[hsl(var(--border-strong))] rounded-(--radius) p-6">
+            <h2 className="text-xs uppercase tracking-[0.24em] font-semibold mb-1">
+              Review Checklist
+            </h2>
+            <p className="text-sm text-[hsl(var(--muted-foreground))] mb-5">
+              {data.project.name
+                ? `${data.advisorName ? data.advisorName.split(' ')[0] + ', please' : 'Please'} answer the questions below about "${data.project.name}".`
+                : 'Please answer the questions below.'}
+            </p>
+
+            {rubricSubmitted ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-green-600 font-semibold mb-4">
+                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                  Feedback submitted. You can update your answers below.
+                </div>
+                {data.rubric.map((question, i) => (
+                  <div key={i}>
+                    <p className="text-xs uppercase tracking-[0.16em] font-semibold mb-1">
+                      {question}
+                    </p>
+                    <textarea
+                      value={rubricAnswers[question] || ''}
+                      onChange={(e) =>
+                        setRubricAnswers((prev) => ({ ...prev, [question]: e.target.value }))
+                      }
+                      rows={3}
+                      className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))] resize-y"
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={submitRubric}
+                  disabled={isSubmittingRubric}
+                  className="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-(--radius) text-xs uppercase tracking-[0.16em] font-semibold disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Send className="h-3 w-3" />
+                  {isSubmittingRubric ? 'Saving...' : 'Update Answers'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {data.rubric.map((question, i) => (
+                  <div key={i}>
+                    <p className="text-xs uppercase tracking-[0.16em] font-semibold mb-1">
+                      {question}
+                    </p>
+                    <textarea
+                      value={rubricAnswers[question] || ''}
+                      onChange={(e) =>
+                        setRubricAnswers((prev) => ({ ...prev, [question]: e.target.value }))
+                      }
+                      rows={3}
+                      placeholder="Your answer..."
+                      className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))] resize-y"
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={submitRubric}
+                  disabled={isSubmittingRubric}
+                  className="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-(--radius) text-xs uppercase tracking-[0.16em] font-semibold disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Send className="h-3 w-3" />
+                  {isSubmittingRubric ? 'Submitting...' : 'Submit Feedback'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

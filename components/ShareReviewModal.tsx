@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Copy, Check, Share2, Trash2, ExternalLink } from 'lucide-react';
+import { X, Copy, Check, Share2, Trash2, ExternalLink, Plus } from 'lucide-react';
 import { Section, ShareLinkData } from '@/types';
 import Button from '@/components/ui/Button';
 
@@ -30,6 +30,7 @@ export default function ShareReviewModal({
   const [expiryDays, setExpiryDays] = useState(30);
   const [isCreating, setIsCreating] = useState(false);
   const [createdUrl, setCreatedUrl] = useState<string | null>(null);
+  const [rubricQuestions, setRubricQuestions] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLinks();
@@ -65,6 +66,9 @@ export default function ShareReviewModal({
           advisorEmail: advisorEmail.trim() || undefined,
           sectionIds: allSelected ? [] : Array.from(selectedSections),
           expiryDays,
+          rubric: rubricQuestions.filter((q) => q.trim()).length > 0
+            ? rubricQuestions.filter((q) => q.trim()).map((q) => q.trim())
+            : undefined,
         }),
       });
 
@@ -79,6 +83,7 @@ export default function ShareReviewModal({
         setCreatedUrl(clientUrl);
         setAdvisorName('');
         setAdvisorEmail('');
+        setRubricQuestions([]);
         fetchLinks();
       }
     } catch (error) {
@@ -303,6 +308,53 @@ export default function ShareReviewModal({
                             </label>
                           ))}
                       </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs uppercase tracking-[0.2em] font-semibold">
+                          Review Checklist <span className="text-[hsl(var(--muted-foreground))] normal-case tracking-normal font-normal">(optional)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setRubricQuestions((prev) => [...prev, ''])}
+                          disabled={rubricQuestions.length >= 8}
+                          className="flex items-center gap-1 text-xs text-[hsl(var(--primary))] hover:underline disabled:opacity-40 disabled:no-underline"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Add question
+                        </button>
+                      </div>
+                      {rubricQuestions.length > 0 ? (
+                        <div className="space-y-2">
+                          {rubricQuestions.map((q, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={q}
+                                onChange={(e) => {
+                                  const next = [...rubricQuestions];
+                                  next[i] = e.target.value;
+                                  setRubricQuestions(next);
+                                }}
+                                placeholder={`e.g. Is the methodology clearly explained?`}
+                                className="flex-1 px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setRubricQuestions((prev) => prev.filter((_, j) => j !== i))}
+                                className="p-1.5 border border-[hsl(var(--border))] rounded-(--radius) hover:bg-[hsl(var(--surface-muted))] text-[hsl(var(--muted-foreground))]"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                          Add specific questions for your advisor to answer alongside their comments.
+                        </p>
+                      )}
                     </div>
 
                     <div>

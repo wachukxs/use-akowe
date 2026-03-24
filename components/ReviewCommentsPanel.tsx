@@ -10,7 +10,7 @@ import {
   X,
   Users,
 } from 'lucide-react';
-import { ReviewCommentData, Section } from '@/types';
+import { ReviewCommentData, RubricResponseData, Section } from '@/types';
 
 interface ReviewCommentsPanelProps {
   projectId: string;
@@ -29,6 +29,7 @@ export default function ReviewCommentsPanel({
 }: ReviewCommentsPanelProps) {
   const [comments, setComments] = useState<ReviewCommentData[]>([]);
   const [lastReviewedAt, setLastReviewedAt] = useState<Date | null>(null);
+  const [rubricResponses, setRubricResponses] = useState<RubricResponseData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'open' | 'resolved' | 'all'>('open');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export default function ReviewCommentsPanel({
         const data = await res.json();
         setComments(data.comments || []);
         setLastReviewedAt(data.lastReviewedAt ? new Date(data.lastReviewedAt) : null);
+        setRubricResponses(data.rubricResponses || []);
       }
     } catch {
       // Silent fail
@@ -412,6 +414,37 @@ export default function ReviewCommentsPanel({
                 </div>
               );
             })}
+
+            {/* Rubric responses — shown when any advisor has submitted answers */}
+            {rubricResponses.length > 0 && (
+              <div className="pt-2 border-t border-[hsl(var(--border))]">
+                <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[hsl(var(--muted-foreground))] mb-3">
+                  Reviewer Feedback Forms
+                </p>
+                <div className="space-y-4">
+                  {rubricResponses.map((resp) => (
+                    <div
+                      key={resp._id}
+                      className="border-2 border-[hsl(var(--border))] rounded-(--radius) p-3"
+                    >
+                      <p className="text-xs font-semibold mb-2">{resp.advisorName}</p>
+                      <div className="space-y-3">
+                        {resp.answers.map((a, i) => (
+                          <div key={i}>
+                            <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-[hsl(var(--muted-foreground))] mb-1">
+                              {a.question}
+                            </p>
+                            <p className="text-sm leading-relaxed">
+                              {a.answer || <span className="italic text-[hsl(var(--muted-foreground))]">No answer provided</span>}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Unreviewed sections — shown when no advisor filter is active */}
             {showUnreviewed && (

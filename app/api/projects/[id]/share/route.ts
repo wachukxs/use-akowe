@@ -78,7 +78,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { advisorName, advisorEmail, sectionIds, expiryDays } = body;
+    const { advisorName, advisorEmail, sectionIds, expiryDays, rubric } = body;
 
     if (!advisorName || typeof advisorName !== 'string' || !advisorName.trim()) {
       return NextResponse.json({ error: 'Advisor name is required' }, { status: 400 });
@@ -109,6 +109,15 @@ export async function POST(
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
     const token = generateShareToken();
 
+    // Validate and sanitize rubric questions if provided
+    const sanitizedRubric =
+      Array.isArray(rubric)
+        ? rubric
+            .filter((q: unknown) => typeof q === 'string' && (q as string).trim())
+            .map((q: string) => q.trim().slice(0, 300))
+            .slice(0, 8)
+        : undefined;
+
     const shareLink = await ShareLink.create({
       projectId: id,
       userId: session.user.email,
@@ -117,6 +126,7 @@ export async function POST(
       advisorEmail: advisorEmail?.trim() || undefined,
       sectionIds: sectionIds || [],
       expiresAt,
+      rubric: sanitizedRubric && sanitizedRubric.length > 0 ? sanitizedRubric : undefined,
     });
 
     const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://useakowe.com';
