@@ -18,6 +18,7 @@ interface ReviewCommentsPanelProps {
   onClose: () => void;
   onNavigateToSection?: (sectionId: string) => void;
   onNavigateToComment?: (comment: ReviewCommentData) => void;
+  onCommentsLoaded?: (openCount: number) => void;
 }
 
 export default function ReviewCommentsPanel({
@@ -26,6 +27,7 @@ export default function ReviewCommentsPanel({
   onClose,
   onNavigateToSection,
   onNavigateToComment,
+  onCommentsLoaded,
 }: ReviewCommentsPanelProps) {
   const [comments, setComments] = useState<ReviewCommentData[]>([]);
   const [lastReviewedAt, setLastReviewedAt] = useState<Date | null>(null);
@@ -46,9 +48,11 @@ export default function ReviewCommentsPanel({
       const res = await fetch(`/api/projects/${projectId}/comments`);
       if (res.ok) {
         const data = await res.json();
-        setComments(data.comments || []);
+        const loaded = data.comments || [];
+        setComments(loaded);
         setLastReviewedAt(data.lastReviewedAt ? new Date(data.lastReviewedAt) : null);
         setRubricResponses(data.rubricResponses || []);
+        onCommentsLoaded?.(loaded.filter((c: ReviewCommentData) => c.status === 'open').length);
       }
     } catch {
       // Silent fail

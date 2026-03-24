@@ -246,6 +246,7 @@ export default function ProjectEditorPage({
   const [showShareModal, setShowShareModal] = useState(false);
   const [showReviewComments, setShowReviewComments] = useState(false);
   const [showAdvisorPrompt, setShowAdvisorPrompt] = useState(false);
+  const [openReviewCommentCount, setOpenReviewCommentCount] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportingFormat, setExportingFormat] = useState<string | null>(null);
   type ExportFormat = "pdf" | "docx" | "txt" | "latex";
@@ -480,6 +481,20 @@ export default function ProjectEditorPage({
     if (session?.user?.id) {
       fetchProject();
     }
+  }, [session, resolvedParams.id]);
+
+  // Background-fetch open review comment count so the badge shows before the panel is opened
+  useEffect(() => {
+    if (!session?.user?.id || !resolvedParams.id) return;
+    fetch(`/api/projects/${resolvedParams.id}/comments`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.comments) {
+          const open = data.comments.filter((c: { status: string }) => c.status === 'open').length;
+          setOpenReviewCommentCount(open);
+        }
+      })
+      .catch(() => {});
   }, [session, resolvedParams.id]);
 
   // Handle auto-trigger for plagiarism check from lead magnet flow
@@ -3386,6 +3401,8 @@ export default function ProjectEditorPage({
                         "flex items-center justify-between px-3 py-2 border-2 rounded-(--radius) cursor-pointer text-xs uppercase tracking-[0.18em] transition-transform duration-150",
                         showReviewComments
                           ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10"
+                          : openReviewCommentCount
+                          ? "border-[hsl(var(--primary))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                           : "border-[hsl(var(--border))] hover:border-[hsl(var(--border-strong))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
                       )}
                     >
@@ -3393,6 +3410,11 @@ export default function ProjectEditorPage({
                         <MessageSquare className="h-4 w-4" />
                         <span className="font-semibold">Review Comments</span>
                       </div>
+                      {openReviewCommentCount != null && openReviewCommentCount > 0 && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]">
+                          {openReviewCommentCount}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3719,12 +3741,22 @@ title={t("deleteSection")}
                           setShowProjectTools(false);
                           setShowReviewComments(true);
                         }}
-                        className="w-full flex items-center justify-between px-3 py-2 border-2 border-[hsl(var(--border))] rounded-(--radius) text-xs uppercase tracking-[0.18em]"
+                        className={cn(
+                          "w-full flex items-center justify-between px-3 py-2 border-2 rounded-(--radius) text-xs uppercase tracking-[0.18em]",
+                          openReviewCommentCount
+                            ? "border-[hsl(var(--primary))]"
+                            : "border-[hsl(var(--border))]"
+                        )}
                       >
                         <div className="flex items-center gap-2">
                           <MessageSquare className="h-4 w-4" />
                           <span className="font-semibold">Review Comments</span>
                         </div>
+                        {openReviewCommentCount != null && openReviewCommentCount > 0 && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]">
+                            {openReviewCommentCount}
+                          </span>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -5829,6 +5861,7 @@ title={t("deleteSection")}
                 setActiveSection(sectionId);
                 setShowReviewComments(false);
               }}
+              onCommentsLoaded={(count) => setOpenReviewCommentCount(count)}
               onNavigateToComment={(comment) => {
                 setActiveSection(comment.sectionId);
                 setShowReviewComments(false);
@@ -5896,6 +5929,7 @@ title={t("deleteSection")}
                   setActiveSection(sectionId);
                   setShowReviewComments(false);
                 }}
+                onCommentsLoaded={(count) => setOpenReviewCommentCount(count)}
                 onNavigateToComment={(comment) => {
                   setActiveSection(comment.sectionId);
                   setShowReviewComments(false);

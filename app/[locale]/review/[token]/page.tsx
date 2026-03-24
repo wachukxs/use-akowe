@@ -881,32 +881,60 @@ export default function ReviewPage({
         </div>
       </header>
 
-      {/* Sticky checklist notice bar — shown whenever a rubric exists */}
-      {data.rubric && data.rubric.length > 0 && (
-        <div className={`sticky top-0 z-30 border-b-2 transition-colors ${
-          rubricSubmitted
+      {/* Sticky activity bar — always shown: rubric status + comment count */}
+      <div className={`sticky top-0 z-30 border-b-2 transition-colors ${
+        data.rubric && data.rubric.length > 0
+          ? rubricSubmitted
             ? 'bg-[hsl(var(--surface))] border-green-400'
             : 'bg-[hsl(var(--surface))] border-[hsl(var(--border-strong))]'
-        }`}>
-          <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+          : 'bg-[hsl(var(--surface))] border-[hsl(var(--border))]'
+      }`}>
+        <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* Rubric status */}
+            {data.rubric && data.rubric.length > 0 && (
+              <div className="flex items-center gap-2">
+                {rubricSubmitted ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-green-600">
+                      Checklist done
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <ClipboardList className="h-3.5 w-3.5 text-[hsl(var(--foreground))] shrink-0" />
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--foreground))]">
+                      {data.rubric.length} question{data.rubric.length !== 1 ? 's' : ''} to answer
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+            {/* Divider */}
+            {data.rubric && data.rubric.length > 0 && (
+              <span className="text-[hsl(var(--border-strong))] text-[11px]">·</span>
+            )}
+            {/* Comment count */}
             <div className="flex items-center gap-2">
-              {rubricSubmitted ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-green-600">
-                    Checklist complete
-                  </span>
-                </>
-              ) : (
-                <>
-                  <ClipboardList className="h-3.5 w-3.5 text-[hsl(var(--foreground))] shrink-0" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--foreground))]">
-                    {data.rubric.length} question{data.rubric.length !== 1 ? 's' : ''} to answer
-                  </span>
-                </>
-              )}
+              <MessageSquare className="h-3.5 w-3.5 text-[hsl(var(--muted-foreground))] shrink-0" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--muted-foreground))]">
+                {comments.length === 0
+                  ? 'No comments yet'
+                  : `${comments.length} comment${comments.length !== 1 ? 's' : ''} left`}
+              </span>
             </div>
-            {!rubricSubmitted && (
+          </div>
+          <div className="flex items-center gap-3">
+            {comments.length > 0 && (
+              <button
+                onClick={() => setShowCommentsPanel(true)}
+                className="text-[11px] uppercase tracking-[0.14em] font-semibold text-[hsl(var(--muted-foreground))] flex items-center gap-1 hover:text-[hsl(var(--foreground))] transition-colors touch-manipulation min-h-[36px]"
+              >
+                View <ChevronRight className="h-3 w-3" />
+              </button>
+            )}
+            {data.rubric && data.rubric.length > 0 && !rubricSubmitted && (
               <button
                 onClick={() => {
                   const isMobile = window.matchMedia('(pointer: coarse)').matches;
@@ -923,7 +951,7 @@ export default function ReviewPage({
             )}
           </div>
         </div>
-      )}
+      </div>
 
       <div className="max-w-5xl mx-auto flex relative overflow-x-hidden">
         {/* Section Navigation */}
@@ -1092,9 +1120,9 @@ export default function ReviewPage({
                     ) : (
                       <button
                         onClick={() => setGeneralCommentSection(section.id)}
-                        className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] font-semibold flex items-center gap-2 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 border-2 border-[hsl(var(--border))] hover:border-[hsl(var(--border-strong))] rounded-(--radius) text-xs uppercase tracking-[0.18em] font-semibold text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors"
                       >
-                        <MessageSquare className="h-3.5 w-3.5" />
+                        <MessageSquarePlus className="h-3.5 w-3.5" />
                         {t('addCommentOnSection')}
                       </button>
                     )}
