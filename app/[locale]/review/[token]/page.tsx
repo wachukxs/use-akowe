@@ -8,6 +8,8 @@ import {
   X,
   AlertCircle,
   MessageSquarePlus,
+  ClipboardList,
+  Check,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { TextAnchor, ReviewCommentData } from '@/types';
@@ -288,6 +290,9 @@ export default function ReviewPage({
   const [rubricAnswers, setRubricAnswers] = useState<Record<string, string>>({});
   const [rubricSubmitted, setRubricSubmitted] = useState(false);
   const [isSubmittingRubric, setIsSubmittingRubric] = useState(false);
+  const [showRubricSheet, setShowRubricSheet] = useState(false);
+
+  const rubricRef = useRef<HTMLDivElement>(null);
 
   // Mobile selection: show a floating "Comment" button when text is selected
   const [mobileSelectionReady, setMobileSelectionReady] = useState(false);
@@ -864,7 +869,32 @@ export default function ReviewPage({
               {data.project.wordCount?.toLocaleString() || 0} words
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Checklist button — only when rubric exists */}
+            {data.rubric && data.rubric.length > 0 && (
+              <button
+                onClick={() => {
+                  const isMobile = window.matchMedia('(pointer: coarse)').matches;
+                  if (isMobile) {
+                    setShowRubricSheet(true);
+                  } else {
+                    rubricRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="relative flex items-center gap-2 px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs uppercase tracking-[0.18em] font-semibold hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] transition-colors touch-manipulation min-h-[44px]"
+                title="Review checklist"
+              >
+                {rubricSubmitted ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <ClipboardList className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">Checklist</span>
+                {!rubricSubmitted && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-[hsl(var(--surface))]" />
+                )}
+              </button>
+            )}
             <button
               onClick={() => setShowCommentsPanel(!showCommentsPanel)}
               className="flex items-center gap-2 px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs uppercase tracking-[0.18em] font-semibold hover:bg-[hsl(var(--accent))] active:bg-[hsl(var(--accent))] transition-colors touch-manipulation min-h-[44px]"
@@ -1297,9 +1327,9 @@ export default function ReviewPage({
         </div>
       )}
 
-      {/* Rubric form — shown only if the share link has questions */}
+      {/* Rubric form — desktop only (mobile uses the bottom sheet) */}
       {data?.rubric && data.rubric.length > 0 && !showNamePrompt && (
-        <div className="max-w-5xl mx-auto px-4 pb-12">
+        <div ref={rubricRef} className="hidden md:block max-w-5xl mx-auto px-4 pb-12">
           <div className="border-4 border-[hsl(var(--border-strong))] rounded-(--radius) p-6">
             <h2 className="text-xs uppercase tracking-[0.24em] font-semibold mb-1">
               Review Checklist
@@ -1368,6 +1398,74 @@ export default function ReviewPage({
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile rubric bottom sheet */}
+      {showRubricSheet && data?.rubric && data.rubric.length > 0 && !showNamePrompt && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-[hsl(var(--foreground))]/40"
+            onClick={() => setShowRubricSheet(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 bg-[hsl(var(--surface))] border-t-4 border-[hsl(var(--border-strong))] rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-200">
+            <div className="w-10 h-1 bg-[hsl(var(--border-strong))] rounded-full mx-auto mb-4" />
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-xs uppercase tracking-[0.24em] font-semibold flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Review Checklist
+              </h2>
+              <button
+                onClick={() => setShowRubricSheet(false)}
+                className="p-1 hover:bg-[hsl(var(--surface-muted))] rounded-(--radius)"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-sm text-[hsl(var(--muted-foreground))] mb-5">
+              {data.project.name
+                ? `Please answer the questions below about &ldquo;${data.project.name}&rdquo;.`
+                : 'Please answer the questions below.'}
+            </p>
+
+            {rubricSubmitted && (
+              <div className="flex items-center gap-2 text-sm text-green-600 font-semibold mb-4">
+                <Check className="h-4 w-4" />
+                Feedback submitted. You can update your answers below.
+              </div>
+            )}
+
+            <div className="space-y-4 mb-5">
+              {data.rubric.map((question, i) => (
+                <div key={i}>
+                  <p className="text-[10px] uppercase tracking-[0.16em] font-semibold mb-1.5">
+                    {question}
+                  </p>
+                  <textarea
+                    value={rubricAnswers[question] || ''}
+                    onChange={(e) =>
+                      setRubricAnswers((prev) => ({ ...prev, [question]: e.target.value }))
+                    }
+                    rows={3}
+                    placeholder="Your answer..."
+                    className="w-full px-3 py-2 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--background))] text-sm focus:outline-none focus:border-[hsl(var(--primary))] resize-y"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={async () => {
+                await submitRubric();
+                setShowRubricSheet(false);
+              }}
+              disabled={isSubmittingRubric}
+              className="w-full px-4 py-3 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-(--radius) text-xs uppercase tracking-[0.16em] font-semibold disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation min-h-[48px]"
+            >
+              <Send className="h-3.5 w-3.5" />
+              {isSubmittingRubric ? 'Saving...' : rubricSubmitted ? 'Update Answers' : 'Submit Feedback'}
+            </button>
           </div>
         </div>
       )}
