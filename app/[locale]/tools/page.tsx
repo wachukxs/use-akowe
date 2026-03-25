@@ -1,12 +1,28 @@
 import { Link } from '@/i18n/navigation';
 import { Shield, BookOpen, Search, ArrowRight, ArrowLeft, Check } from 'lucide-react';
 import type { Metadata } from 'next';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  title: 'Free Academic Writing Tools | Akọ̀wé',
-  description:
-    'Free tools for thesis and dissertation writing. Check academic sources, verify references, and find research gaps — no account required.',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  const metadata = generateSEOMetadata({
+    title: 'Free Academic Writing Tools | Akọ̀wé',
+    description:
+      'Free tools for thesis and dissertation writing. Check academic sources, verify references, and find research gaps — no account required.',
+    path: '/tools',
+  });
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
+  return metadata;
+}
 
 const tools = [
   {

@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['academic writing topics', 'academic writing help', 'research paper topics', 'thesis writing help', 'academic tools'],
     path: '/topics',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

@@ -1,6 +1,30 @@
+import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { BookOpen, ArrowLeft, CheckCircle, ExternalLink } from 'lucide-react';
 import HeroReferenceChecker from '@/components/HeroReferenceChecker';
+import { generateSEOMetadata } from '@/lib/seo/metadata';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  const metadata = generateSEOMetadata({
+    title: 'Free Reference List Checker — Verify DOIs & Citations',
+    description:
+      'Paste your reference list and verify every DOI against Crossref. Detects broken, missing, and malformed references in APA, MLA, Chicago, and Harvard formats. Free, no account required.',
+    keywords: ['reference checker', 'DOI verifier', 'citation checker', 'bibliography checker', 'APA reference checker'],
+    path: '/tools/reference-checker',
+  });
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
+  return metadata;
+}
 
 export default function ReferenceCheckerPage() {
   return (

@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['citation guides', 'citation styles', 'APA citation', 'MLA citation', 'academic citations'],
     path: '/citations',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

@@ -17,6 +17,33 @@ export interface SEOMetadataOptions {
 }
 
 /**
+ * Generate metadata for pSEO pages.
+ *
+ * - Non-English locales: returns noindex/nofollow with no hreflang so Google
+ *   does not discover or report duplicate non-English variants.
+ * - English locale: generates full canonical metadata but without hreflang
+ *   to non-English variants (pSEO content is English-only; hreflang to
+ *   identical non-English pages causes "Duplicate without canonical" in GSC).
+ */
+export function generatePSEOMetadata(
+  options: SEOMetadataOptions & { locale: string }
+): Metadata {
+  const { locale, ...rest } = options;
+
+  // Non-English: invisible to Google — no canonical, no hreflang, no indexing
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+
+  // English: full metadata but canonical-only alternates (no hreflang)
+  const metadata = generateSEOMetadata(rest);
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
+  return metadata;
+}
+
+/**
  * Generate comprehensive SEO metadata with canonical URLs
  */
 export function generateSEOMetadata(options: SEOMetadataOptions): Metadata {

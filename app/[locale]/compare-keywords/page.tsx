@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['citation style comparison', 'apa vs mla', 'academic writing comparison', 'citation format comparison', 'writing tool comparison'],
     path: '/compare-keywords',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

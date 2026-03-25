@@ -41,7 +41,10 @@ export async function generateMetadata({
   // Non-English pages have canonical pointing to /en/..., so explicitly mark
   // them noindex to prevent GSC "Crawled - not indexed" noise and save crawl budget.
   if (locale !== 'en') {
-    metadata.robots = { index: false, follow: true };
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
   }
 
   return metadata;

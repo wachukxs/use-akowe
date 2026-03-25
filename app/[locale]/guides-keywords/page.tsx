@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['writing guides', 'academic writing guides', 'how to write a thesis', 'research paper guide', 'academic writing help'],
     path: '/guides-keywords',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 
