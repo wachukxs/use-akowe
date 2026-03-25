@@ -11,6 +11,7 @@ import { Search, Grid, List, FileText, GraduationCap, BookOpen, FlaskConical, Ar
 import { cn } from '@/lib/utils';
 import LeadMagnetContinuation from '@/components/LeadMagnetContinuation';
 import Active37DiscountPopup from '@/components/Active37DiscountPopup';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
@@ -174,6 +175,7 @@ export default function DashboardPage() {
 
       <div className="flex-1 md:ml-64 overflow-auto">
         <div className="max-w-7xl mx-auto p-4 pt-16 md:pt-10 md:p-10 space-y-6 md:space-y-10">
+          <AnnouncementBanner />
           <div className="grid grid-cols-12 gap-4 md:gap-6 items-stretch">
             <div className="col-span-12 lg:col-span-8 space-y-3 md:space-y-4">
               <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">

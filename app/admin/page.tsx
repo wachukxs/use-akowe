@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { 
-  Users, 
-  DollarSign, 
-  TrendingUp, 
+import {
+  Users,
+  DollarSign,
+  TrendingUp,
   TrendingDown,
-  AlertCircle, 
-  FileText, 
+  AlertCircle,
+  FileText,
   Activity,
   CheckCircle,
   XCircle,
@@ -29,6 +29,7 @@ import {
   Mail,
   MessageSquare,
   Share2,
+  Megaphone,
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
 import MarketingTab from '@/components/admin/MarketingTab';
@@ -36,8 +37,9 @@ import AnalyticsTab from '@/components/admin/AnalyticsTab';
 import EngagementEmailsTab from '@/components/admin/EngagementEmailsTab';
 import ActivationFunnelTab from '@/components/admin/ActivationFunnelTab';
 import TimeSeriesChart from '@/components/admin/TimeSeriesChart';
+import AnnouncementsTab from '@/components/admin/AnnouncementsTab';
 
-type AdminTab = 'dashboard' | 'marketing' | 'referrals' | 'analytics' | 'engagement' | 'funnel' | 'support';
+type AdminTab = 'dashboard' | 'marketing' | 'referrals' | 'analytics' | 'engagement' | 'funnel' | 'support' | 'announcements';
 
 // Updated interface to match new structure
 interface AdminMetricsResponse {
@@ -1621,6 +1623,17 @@ export default function AdminDashboard() {
         <Shield size={14} className="sm:w-4 sm:h-4" />
         <span>Support</span>
       </button>
+      <button
+        onClick={() => setActiveTab('announcements')}
+        className={`px-3 sm:px-6 py-2.5 sm:py-3 min-h-[44px] text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] border-b-2 -mb-[2px] transition-colors flex items-center gap-1 sm:gap-2 cursor-pointer whitespace-nowrap touch-manipulation ${
+          activeTab === 'announcements'
+            ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+            : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
+        }`}
+      >
+        <Megaphone size={14} className="sm:w-4 sm:h-4" />
+        <span>Announce</span>
+      </button>
     </div>
   );
 
@@ -1722,6 +1735,21 @@ export default function AdminDashboard() {
   // Render support tab
   if (activeTab === 'support') {
     return <SupportTab TabNavigation={TabNavigation} />;
+  }
+
+  // Render announcements tab
+  if (activeTab === 'announcements') {
+    return (
+      <div className="min-h-screen bg-[hsl(var(--background))] p-3 sm:p-6">
+        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
+          <div className="pb-3 sm:pb-4 border-b-2 border-[hsl(var(--border-strong))]">
+            <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-[0.16em]">Admin</h1>
+          </div>
+          <TabNavigation />
+          <AnnouncementsTab />
+        </div>
+      </div>
+    );
   }
 
   if (!metrics) return null;

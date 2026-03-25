@@ -33,6 +33,8 @@ interface IUser extends Omit<UserType, '_id'> {
   wisePurchaseTransferId?: number;
   /** Last time we sent the “renew in 3 days” email for the current period. */
   wiseRenewalReminderSentAt?: Date | null;
+  /** IDs of announcements the user has dismissed. */
+  dismissedAnnouncements?: mongoose.Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -142,6 +144,11 @@ const UserSchema = new Schema<IUser>(
     wiseRenewalReminderSentAt: {
       type: Date,
       default: null,
+    },
+    dismissedAnnouncements: {
+      type: [Schema.Types.ObjectId],
+      ref: 'Announcement',
+      default: [],
     },
   },
   {
