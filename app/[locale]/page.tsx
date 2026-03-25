@@ -557,6 +557,16 @@ function HomePageContent() {
                   {tHome("workflows.export")}
                 </p>
               </div>
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">
+                  {tHome("workflows.importRefs")}
+                </p>
+              </div>
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">
+                  {tHome("workflows.editHistory")}
+                </p>
+              </div>
             </div>
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center">
               {tHome("workflows.tagline")}
@@ -822,6 +832,20 @@ function HomePageContent() {
                           size={18}
                         />
                         <span>{tHome("whyChoose.preSubmissionSafety")}</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <Check
+                          className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
+                          size={18}
+                        />
+                        <span>{tHome("whyChoose.importRefs")}</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <Check
+                          className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
+                          size={18}
+                        />
+                        <span>{tHome("whyChoose.authorshipTrail")}</span>
                       </li>
                     </ul>
                   </div>

@@ -67,6 +67,8 @@
     "structureChapters": "Structure thesis chapters without leaving the editor",
     "notesDrafts": "Keep notes, drafts, and citations together",
     "export": "Export submission-ready DOCX or PDF",
+    "importRefs": "Import references from Zotero or Mendeley (RIS / BibTeX)",
+    "editHistory": "Track every edit session with a full authorship trail",
     "tagline": "Akọ̀wé is the academic writing tool built for thesis writing, dissertation work, and research papers."
   },
   "trustA": {
@@ -109,7 +111,9 @@
     "guessingPlagiarism": "Leave you guessing about citation issues until after submission",
     "oneWorkspace": "One editor for writing, real citations, and integrity checks",
     "realSources": "Real sources from live academic databases — never hallucinated",
-    "preSubmissionSafety": "Academic source check before you submit — fix issues early"
+    "preSubmissionSafety": "Academic source check before you submit — fix issues early",
+    "importRefs": "Import references from Zotero or Mendeley (RIS / BibTeX)",
+    "authorshipTrail": "Full authorship trail — every edit session recorded automatically"
   },
   "howItWorks": {
     "heading": "How it works",
@@ -205,7 +209,7 @@
     "designTitle": "Academic-First Design:",
     "designDesc": "Every feature built specifically for scholarly work, not retrofitted from generic tools.",
     "allInOneTitle": "All-in-one workflow",
-    "allInOneDesc": "Drafting, citations, academic source checks, and exports live together so work stays organized.",
+    "allInOneDesc": "Drafting, citations, academic source checks, reference import, and exports live together so work stays organized.",
     "designedTitle": "Designed for academics",
     "designedDesc": "Structured sections, methodology prompts, and citation intelligence keep research on track.",
     "pricingTitle": "Predictable pricing",

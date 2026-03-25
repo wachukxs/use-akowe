@@ -170,10 +170,10 @@ export default function ReviewCommentsPanel({
 
         {/* Summary stats strip — visible once comments have loaded */}
         {!isLoading && comments.length > 0 && (
-          <div className="flex items-center gap-3 mb-3 px-0.5">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 px-0.5">
             <span className="flex items-center gap-1 text-[10px] text-[hsl(var(--muted-foreground))]">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block shrink-0" />
-              {openCount} open
+              {openCount} open comment{openCount !== 1 ? 's' : ''}
             </span>
             <span className="flex items-center gap-1 text-[10px] text-[hsl(var(--muted-foreground))]">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block shrink-0" />
@@ -182,7 +182,7 @@ export default function ReviewCommentsPanel({
             {unreviewedSections.length > 0 && (
               <span className="flex items-center gap-1 text-[10px] text-[hsl(var(--muted-foreground))]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--border-strong))] inline-block shrink-0" />
-                {unreviewedSections.length} not reviewed
+                {unreviewedSections.length} section{unreviewedSections.length !== 1 ? 's' : ''} not yet commented on
               </span>
             )}
           </div>
