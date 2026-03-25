@@ -70,6 +70,7 @@ export async function GET(
       advisorName: shareLink.advisorName,
       shareLinkId: shareLink._id,
       expiresAt: shareLink.expiresAt,
+      rubric: shareLink.rubric && shareLink.rubric.length > 0 ? shareLink.rubric : undefined,
     });
   } catch (error) {
     console.error('Error fetching review data:', error);

@@ -155,6 +155,85 @@ async function checkCrossRef(text: string): Promise<Array<{
   return matches.slice(0, 5);
 }
 
+// Semantic Scholar integration — 200M+ academic papers, free API
+async function checkSemanticScholar(text: string): Promise<Array<{
+  text: string;
+  source: string;
+  url?: string;
+  similarity?: number;
+  section?: string;
+  suggestion?: string;
+}>> {
+  const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
+
+  try {
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    // Use first 2 phrases to stay within free-tier rate limits
+    const keyPhrases = sentences.slice(0, 2);
+
+    for (const phrase of keyPhrases) {
+      const cleanPhrase = phrase.trim().substring(0, 100);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+
+      try {
+        const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(cleanPhrase)}&fields=title,abstract,year,authors,externalIds&limit=3`;
+        const response = await fetch(url, {
+          headers: { 'User-Agent': 'Akowe Research Tool (mailto:ola@placeholderllc.name.ng)' },
+          signal: controller.signal,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const papers: Array<{
+            paperId: string;
+            title?: string;
+            abstract?: string;
+            year?: number;
+            authors?: Array<{ name: string }>;
+            externalIds?: { DOI?: string; ArXiv?: string };
+          }> = data.data || [];
+
+          for (const paper of papers) {
+            if (!paper.title) continue;
+            const fullText = `${paper.title} ${paper.abstract || ''}`;
+            const titleSimilarity = calculateSimilarity(cleanPhrase, paper.title);
+            const paraphrase = detectParaphrasing(cleanPhrase, fullText);
+
+            if (titleSimilarity > 20 || paraphrase.similarity > 35) {
+              const similarity = Math.max(titleSimilarity, paraphrase.similarity);
+              const doi = paper.externalIds?.DOI;
+              const paperUrl = doi
+                ? `https://doi.org/${doi}`
+                : `https://www.semanticscholar.org/paper/${paper.paperId}`;
+              const firstAuthor = paper.authors?.[0]?.name?.split(' ').pop() || 'Author';
+
+              matches.push({
+                text: `Similar to: "${paper.title}"`,
+                source: 'Semantic Scholar',
+                url: paperUrl,
+                similarity: Math.round(similarity),
+                section: cleanPhrase.substring(0, 50) + '...',
+                suggestion: paraphrase.similarity > 35
+                  ? `This appears paraphrased from a published paper. Consider citing: (${firstAuthor}, ${paper.year || 'n.d.'})`
+                  : `Consider citing this related paper: ${paper.title}`,
+              });
+            }
+          }
+        }
+      } catch {
+        // Ignore per-phrase errors (timeout or rate limit) — continue
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+  } catch (error) {
+    console.error('Semantic Scholar API error:', error);
+  }
+
+  return matches.slice(0, 4);
+}
+
 // Enhanced arXiv API integration
 async function checkArxiv(text: string): Promise<Array<{
   text: string;
@@ -394,6 +473,7 @@ async function checkPlagiarism(
   sources: {
     crossref: number;
     arxiv: number;
+    semanticScholar: number;
   };
 }> {
   // Extract citations from the text to exclude them from plagiarism check
@@ -433,15 +513,17 @@ async function checkPlagiarism(
       },
       sources: {
         crossref: 0,
-        arxiv: 0
+        arxiv: 0,
+        semanticScholar: 0,
       }
     };
   }
 
-  // Check external sources in parallel
-  const [crossrefMatches, arxivMatches] = await Promise.all([
+  // Check external sources in parallel (Crossref + arXiv + Semantic Scholar)
+  const [crossrefMatches, arxivMatches, semanticScholarMatches] = await Promise.all([
     checkCrossRef(textToAnalyze),
-    checkArxiv(textToAnalyze)
+    checkArxiv(textToAnalyze),
+    checkSemanticScholar(textToAnalyze),
   ]);
 
   // Enhanced plagiarism detection
@@ -451,11 +533,12 @@ async function checkPlagiarism(
   const matches: Array<{ text: string; source: string; url?: string; similarity?: number; section?: string; suggestion?: string }> = [];
   
   // Add external matches
-  matches.push(...crossrefMatches, ...arxivMatches);
-  
+  matches.push(...crossrefMatches, ...arxivMatches, ...semanticScholarMatches);
+
   // Count paraphrasing detected
   paraphrasingDetected = crossrefMatches.filter(m => m.similarity && m.similarity > 40).length +
-                         arxivMatches.filter(m => m.similarity && m.similarity > 35).length;
+                         arxivMatches.filter(m => m.similarity && m.similarity > 35).length +
+                         semanticScholarMatches.filter(m => m.similarity && m.similarity > 35).length;
   
   // Academic clichés
   const academicPatterns = [
@@ -598,7 +681,7 @@ async function checkPlagiarism(
   }
   
   // Calculate overall match percentage
-  const externalMatches = crossrefMatches.length + arxivMatches.length;
+  const externalMatches = crossrefMatches.length + arxivMatches.length + semanticScholarMatches.length;
   const totalIssues = suspiciousPhrases + aiPatterns + repetitionIssues + citationProblems + externalMatches;
   const matchPercentage = Math.min(Math.floor((totalIssues / totalWords) * 100), 95);
   
@@ -617,7 +700,8 @@ async function checkPlagiarism(
     },
     sources: {
       crossref: crossrefMatches.length,
-      arxiv: arxivMatches.length
+      arxiv: arxivMatches.length,
+      semanticScholar: semanticScholarMatches.length,
     }
   };
 }

@@ -18,7 +18,12 @@ export async function generateMetadata({
     keywords: ['LaTeX', 'mathematical notation', 'academic writing', 'math equations', 'research paper', 'thesis writing', 'mathematical symbols', 'formula writing'],
     path: '/latex-guide',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

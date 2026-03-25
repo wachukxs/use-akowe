@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['citation style guides', 'APA MLA Chicago guides', 'citation format guides', 'how to cite sources', 'citation style reference'],
     path: '/citation-styles',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

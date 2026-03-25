@@ -30,7 +30,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 
   if (locale !== 'en') {
-    metadata.robots = { index: false, follow: true };
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
   }
 
   return metadata;

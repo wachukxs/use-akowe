@@ -254,6 +254,23 @@ export interface ShareLinkData {
   lastAccessedAt?: Date;
   accessCount: number;
   commentCount?: number;
+  rubric?: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RubricAnswerData {
+  question: string;
+  answer: string;
+}
+
+export interface RubricResponseData {
+  _id: string;
+  shareLinkId: string;
+  projectId: string;
+  advisorName: string;
+  advisorSessionId: string;
+  answers: RubricAnswerData[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['akowe FAQ', 'akowe questions', 'akowe help', 'akowe support', 'akowe answers'],
     path: '/faq',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

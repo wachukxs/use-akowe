@@ -49,15 +49,15 @@ export default function PlagiarismCheckPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
-                <span>Checks citation patterns & missing references</span>
+                <span>Searches OpenAlex (250M+ academic papers) for matching sources</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
-                <span>Detects AI-generated writing patterns</span>
+                <span>Verifies cited DOIs against Crossref</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
-                <span>Identifies word repetition issues</span>
+                <span>Detects AI-generated writing patterns & missing citations</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <CheckCircle size={18} className="text-green-500" />
@@ -81,25 +81,25 @@ export default function PlagiarismCheckPage() {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 space-y-3">
               <FileText size={24} className="text-[hsl(var(--primary))]" />
-              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Citation Analysis</h3>
+              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Source Matching</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Detects uncited claims, missing in-text citations, and reference formatting issues.
+                Searches OpenAlex (250M+ academic papers) for sources that match uncited claims in your text. Verifies existing DOIs against Crossref.
               </p>
             </div>
-            
+
             <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 space-y-3">
               <Sparkles size={24} className="text-[hsl(var(--primary))]" />
-              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">AI Detection</h3>
+              <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Citation & AI Analysis</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Identifies patterns commonly found in AI-generated text that may flag in academic review.
+                Detects uncited claims, missing in-text references, and patterns commonly found in AI-generated academic text.
               </p>
             </div>
-            
+
             <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 space-y-3">
               <Shield size={24} className="text-[hsl(var(--primary))]" />
               <h3 className="text-lg font-bold uppercase tracking-[0.1em]">Writing Quality</h3>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Flags word repetition, academic clichés, and areas that need stronger original writing.
+                Flags word repetition, academic clichés, and weak writing patterns that undermine your argument.
               </p>
             </div>
           </div>

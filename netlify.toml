@@ -225,3 +225,28 @@
   to = "/en/privacy"
   status = 301
 
+[[redirects]]
+  from = "/for-llms"
+  to = "/en/for-llms"
+  status = 301
+
+[[redirects]]
+  from = "/ambassador"
+  to = "/en/ambassador"
+  status = 301
+
+[[redirects]]
+  from = "/affiliate"
+  to = "/en/affiliate"
+  status = 301
+
+[[redirects]]
+  from = "/tools"
+  to = "/en/tools"
+  status = 301
+
+[[redirects]]
+  from = "/tools/:splat"
+  to = "/en/tools/:splat"
+  status = 301
+

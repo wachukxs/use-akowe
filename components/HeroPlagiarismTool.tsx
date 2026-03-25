@@ -18,6 +18,15 @@ interface CheckPerformed {
   status: 'pass' | 'issues' | 'locked';
 }
 
+interface SourceMatch {
+  title: string;
+  doi?: string;
+  authors: string[];
+  year?: number;
+  journal?: string;
+  url: string;
+}
+
 interface PlagiarismResult {
   riskScore: number;
   previewIssues: Array<{ text: string; type: string; suggestion: string }>;
@@ -30,6 +39,10 @@ interface PlagiarismResult {
     writingIssues: number;
   };
   checksPerformed: CheckPerformed[];
+  sourceMatches: SourceMatch[];
+  totalSourceMatches: number;
+  invalidDOIs: string[];
+  validDOICount: number;
 }
 
 export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps) {
@@ -329,6 +342,47 @@ export default function HeroPlagiarismTool({ variant }: HeroPlagiarismToolProps)
                   {t('plagiarismTool.moreIssuesToFix', { count: result.totalIssues - 1 })}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Source matches from OpenAlex */}
+          {result.sourceMatches && result.sourceMatches.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
+                Related academic source found
+              </p>
+              <div className="border-[2px] border-yellow-300 rounded p-3 bg-yellow-50 space-y-1">
+                <p className="text-[10px] font-semibold tracking-[0.1em] text-yellow-800 line-clamp-2">
+                  {result.sourceMatches[0].title}
+                </p>
+                <p className="text-[9px] text-yellow-700 tracking-[0.06em]">
+                  {result.sourceMatches[0].authors.slice(0, 2).join(', ')}
+                  {result.sourceMatches[0].year ? ` · ${result.sourceMatches[0].year}` : ''}
+                  {result.sourceMatches[0].journal ? ` · ${result.sourceMatches[0].journal}` : ''}
+                </p>
+                {result.sourceMatches[0].doi && (
+                  <p className="text-[9px] text-yellow-600 font-mono tracking-tight">
+                    doi:{result.sourceMatches[0].doi}
+                  </p>
+                )}
+              </div>
+              {result.totalSourceMatches > 1 && (
+                <p className="text-[9px] uppercase tracking-[0.16em] text-[hsl(var(--muted-foreground))] text-center">
+                  + {result.totalSourceMatches - 1} more related paper{result.totalSourceMatches - 1 !== 1 ? 's' : ''} found — sign up to see all
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Invalid DOIs */}
+          {result.invalidDOIs && result.invalidDOIs.length > 0 && (
+            <div className="border-[2px] border-red-200 rounded p-3 bg-red-50">
+              <p className="text-[9px] uppercase tracking-[0.16em] font-semibold text-red-700">
+                Unresolvable DOI detected
+              </p>
+              <p className="text-[9px] text-red-600 font-mono mt-1 truncate">
+                {result.invalidDOIs[0]}
+              </p>
             </div>
           )}
 

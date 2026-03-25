@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['academic writing templates', 'research paper templates', 'thesis templates', 'essay templates', 'academic paper templates'],
     path: '/templates',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

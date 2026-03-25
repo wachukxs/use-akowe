@@ -20,7 +20,12 @@ export async function generateMetadata({
     keywords: ['research methods', 'research methodology', 'qualitative research', 'quantitative research', 'academic research methods'],
     path: '/methods',
   });
-  if (locale !== 'en') metadata.robots = { index: false, follow: true };
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false } };
+  }
+  if (metadata.alternates) {
+    metadata.alternates = { canonical: metadata.alternates.canonical };
+  }
   return metadata;
 }
 

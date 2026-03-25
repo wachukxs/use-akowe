@@ -137,6 +137,18 @@ function HomePageContent() {
                 {tCommon("blog")}
               </a>
               <Link
+                href="/pricing"
+                className="hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
+              >
+                Pricing
+              </Link>
+              <Link
+                href="/tools/reference-checker"
+                className="hidden sm:block hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
+              >
+                Free Tools
+              </Link>
+              <Link
                 href="/auth/signin"
                 className="hover:text-[hsl(var(--secondary))] transition-colors min-h-auto!"
               >
@@ -545,6 +557,16 @@ function HomePageContent() {
                   {tHome("workflows.export")}
                 </p>
               </div>
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">
+                  {tHome("workflows.importRefs")}
+                </p>
+              </div>
+              <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6">
+                <p className="text-sm uppercase tracking-[0.18em]">
+                  {tHome("workflows.editHistory")}
+                </p>
+              </div>
             </div>
             <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] text-center">
               {tHome("workflows.tagline")}
@@ -811,6 +833,20 @@ function HomePageContent() {
                         />
                         <span>{tHome("whyChoose.preSubmissionSafety")}</span>
                       </li>
+                      <li className="flex items-start gap-3">
+                        <Check
+                          className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
+                          size={18}
+                        />
+                        <span>{tHome("whyChoose.importRefs")}</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <Check
+                          className="text-[hsl(var(--primary))] mt-1 flex-shrink-0"
+                          size={18}
+                        />
+                        <span>{tHome("whyChoose.authorshipTrail")}</span>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -951,6 +987,64 @@ function HomePageContent() {
                 height={600}
                 className="w-full border-2 border-[hsl(var(--border-strong))] rounded"
               />
+            </div>
+          </div>
+
+          {/* Feature 4: Peer Review */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+            <div className="order-2 lg:order-1 border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-6 space-y-4">
+              {/* Mock peer review UI */}
+              <div className="border-2 border-[hsl(var(--border-strong))] p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.24em] font-semibold text-[hsl(var(--muted-foreground))]">Shared with Dr. Amara</span>
+                  <span className="text-[9px] uppercase tracking-[0.2em] px-2 py-0.5 border border-green-400 text-green-700">Opened</span>
+                </div>
+                <div className="h-px bg-[hsl(var(--border-strong))]" />
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 text-[10px] tracking-[0.08em]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-1 shrink-0" />
+                    <p className="text-[hsl(var(--foreground))]"><span className="font-semibold">Literature Review §2</span> — &ldquo;The methodology section lacks a clear justification for sample size. Can you add a power analysis?&rdquo;</p>
+                  </div>
+                  <div className="flex items-start gap-2 text-[10px] tracking-[0.08em]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1 shrink-0" />
+                    <p className="text-[hsl(var(--muted-foreground))]"><span className="font-semibold">Introduction</span> — Resolved</p>
+                  </div>
+                </div>
+              </div>
+              <div className="border-2 border-[hsl(var(--primary))]/30 bg-[hsl(var(--primary))]/5 p-3">
+                <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-[hsl(var(--primary))]">2 open comments · 1 resolved · Checklist 3/4 complete</p>
+              </div>
+            </div>
+            <div className="order-1 lg:order-2 space-y-6">
+              <div className="space-y-3">
+                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                  Advisor Review
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-[0.12em]">
+                  Get feedback without sending attachments
+                </h3>
+              </div>
+              <p className="text-base uppercase tracking-[0.16em] text-[hsl(var(--foreground))]">
+                Share a private review link with your supervisor or advisor. They leave inline comments directly on your thesis sections — no login needed. You track every comment, resolve notes, and see exactly what was reviewed and when.
+              </p>
+              <ul className="space-y-2 text-sm uppercase tracking-[0.18em] text-[hsl(var(--foreground))]">
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  Inline comments anchored to specific text
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  Custom review checklist per advisor
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  Open / resolved comment tracking
+                </li>
+                <li className="flex items-center gap-3">
+                  <Check size={16} />
+                  No advisor account required
+                </li>
+              </ul>
             </div>
           </div>
 
@@ -1353,7 +1447,25 @@ function HomePageContent() {
               {tHome("footer.tagline")}
             </p>
           </div>
-          <nav className="flex gap-6 text-xs uppercase tracking-[0.28em]">
+          <nav className="flex flex-wrap gap-4 sm:gap-6 text-xs uppercase tracking-[0.28em]">
+            <Link
+              href="/pricing"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="/tools/plagiarism-check"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
+              Plagiarism Check
+            </Link>
+            <Link
+              href="/tools/reference-checker"
+              className="hover:text-[hsl(var(--secondary))] transition-colors"
+            >
+              Reference Checker
+            </Link>
             <Link
               href="/about"
               className="hover:text-[hsl(var(--secondary))] transition-colors"

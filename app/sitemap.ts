@@ -114,10 +114,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     // Standalone tool landing pages
     {
+      url: `${prefix}/tools`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    },
+    {
       url: `${prefix}/tools/plagiarism-check`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.9,
+    },
+    {
+      url: `${prefix}/tools/reference-checker`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${prefix}/pricing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
     },
   ];
 

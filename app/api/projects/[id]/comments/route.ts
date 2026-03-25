@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
+import ShareLink from '@/models/ShareLink';
 import ReviewComment from '@/models/ReviewComment';
+import RubricResponse from '@/models/RubricResponse';
 import mongoose from 'mongoose';
 
 export async function GET(
@@ -32,6 +34,22 @@ export async function GET(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
+    // Find the most recent time any advisor opened a share link for this project.
+    // Used by the client to flag sections edited after the last review visit.
+    const now = new Date();
+    const activeLinks = await ShareLink.find({
+      projectId: id,
+      userId: session.user.email,
+      revokedAt: { $exists: false },
+      expiresAt: { $gt: now },
+      lastAccessedAt: { $exists: true },
+    }).select('lastAccessedAt').lean();
+
+    const lastReviewedAt =
+      activeLinks.length > 0
+        ? new Date(Math.max(...activeLinks.map((l) => new Date(l.lastAccessedAt!).getTime())))
+        : null;
+
     // Fetch all comments for this project (top-level and replies)
     const comments = await ReviewComment.find({
       projectId: id,
@@ -56,7 +74,17 @@ export async function GET(
       replies: replyMap.get(comment._id!.toString()) || [],
     }));
 
-    return NextResponse.json({ comments: commentsWithReplies });
+    // Fetch rubric responses for all share links on this project
+    const allLinkIds = await ShareLink.find({
+      projectId: id,
+      userId: session.user.email,
+    }).select('_id').lean();
+
+    const rubricResponses = await RubricResponse.find({
+      shareLinkId: { $in: allLinkIds.map((l) => l._id) },
+    }).lean();
+
+    return NextResponse.json({ comments: commentsWithReplies, lastReviewedAt, rubricResponses });
   } catch (error) {
     console.error('Error fetching project comments:', error);
     return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 });

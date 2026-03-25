@@ -13,6 +13,8 @@ export interface IShareLink {
   lastAccessedAt?: Date;
   accessCount: number;
   lastNotifiedAt?: Date;
+  reminderSentAt?: Date; // when the advisor was last sent an open-link reminder
+  rubric?: string[]; // optional list of questions for the advisor to answer
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +66,13 @@ const ShareLinkSchema = new Schema<IShareLink>(
     },
     lastNotifiedAt: {
       type: Date,
+    },
+    reminderSentAt: {
+      type: Date,
+    },
+    rubric: {
+      type: [String],
+      default: undefined,
     },
   },
   {
