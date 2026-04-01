@@ -629,7 +629,7 @@ function UserLookupPanel({ initialEmail }: { initialEmail?: string }) {
           className="flex-1 border-2 border-[hsl(var(--border-strong))] px-3 py-1.5 text-sm"
         />
         <button
-          onClick={handleLookup}
+          onClick={() => void handleLookup()}
           disabled={loading || !searchEmail.trim()}
           className="px-5 py-1.5 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
         >

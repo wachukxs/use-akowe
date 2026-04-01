@@ -230,13 +230,17 @@ async function resolveWiseTransferMatch(transfer: WiseTransferDetails): Promise<
   const targetUsd = transfer.targetCurrency === 'USD' ? transfer.targetValue : undefined;
   const sourceUsd = transfer.sourceCurrency === 'USD' ? transfer.sourceValue : undefined;
   const usd = targetUsd ?? sourceUsd;
-  if (usd == null || Number.isNaN(usd)) return null;
+  if (usd == null || Number.isNaN(usd)) {
+    return { user: null, matchedSku: null, matchedReference: null };
+  }
 
   const tolerance = 0.02;
   const matchingSkus = (Object.keys(WISE_SKU_USD_TARGET) as WisePaymentLinkSku[]).filter(
     (sku) => Math.abs(WISE_SKU_USD_TARGET[sku] - usd) <= tolerance
   );
-  if (matchingSkus.length !== 1) return null;
+  if (matchingSkus.length !== 1) {
+    return { user: null, matchedSku: null, matchedReference: null };
+  }
   const sku = matchingSkus[0];
 
   const since = new Date(Date.now() - 72 * 60 * 60 * 1000);
