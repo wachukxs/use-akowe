@@ -69,6 +69,11 @@ function isWisePaymentLinksSandboxMode(): boolean {
  * Resolve configured Wise payment link URL for a SKU (prod vs sandbox env vars).
  */
 export function getWisePaymentLinkUrl(sku: WisePaymentLinkSku): string | undefined {
+  // Debug override: route all Wise checkouts to a single link when set.
+  // Useful for validating webhook payload shapes across plan/billing combinations.
+  const globalOverride = process.env.PROD_WISE_LINK_1_USD?.trim();
+  if (globalOverride) return globalOverride;
+
   const sandbox = isWisePaymentLinksSandboxMode();
   const keys = sandbox ? SKU_ENV_KEYS_SANDBOX : SKU_ENV_KEYS_PROD;
   const key = keys[sku];

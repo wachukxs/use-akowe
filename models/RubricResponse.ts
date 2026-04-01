@@ -30,7 +30,6 @@ const RubricResponseSchema = new Schema<IRubricResponse>(
       type: Schema.Types.ObjectId,
       ref: 'ShareLink',
       required: true,
-      index: true,
     },
     projectId: {
       type: Schema.Types.ObjectId,

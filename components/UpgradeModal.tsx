@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Check, Zap, Crown } from 'lucide-react';
 import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
@@ -45,6 +45,65 @@ export default function UpgradeModal({
   const t = useTranslations('components.upgradeModal');
   const [isAnnual, setIsAnnual] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState<'standard' | 'pro' | null>(null);
+  const CHECKOUT_REDIRECT_FLAG = 'akowe_checkout_redirecting';
+  const CHECKOUT_REDIRECT_FLAG_FALLBACK = 'akowe_checkout_redirecting_ls';
+
+  useEffect(() => {
+    const resetUpgrading = () => setIsUpgrading(null);
+    const clearCheckoutRedirect = () => {
+      sessionStorage.removeItem(CHECKOUT_REDIRECT_FLAG);
+      localStorage.removeItem(CHECKOUT_REDIRECT_FLAG_FALLBACK);
+    };
+    const hasCheckoutRedirectMark = () =>
+      sessionStorage.getItem(CHECKOUT_REDIRECT_FLAG) === '1' ||
+      localStorage.getItem(CHECKOUT_REDIRECT_FLAG_FALLBACK) === '1';
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      const fromCheckoutRedirect = hasCheckoutRedirectMark();
+      if (fromCheckoutRedirect) {
+        clearCheckoutRedirect();
+      }
+
+      if (event.persisted) {
+        resetUpgrading();
+        if (fromCheckoutRedirect) {
+          window.location.reload();
+          return;
+        }
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        resetUpgrading();
+      }
+    };
+
+    const handleWindowFocus = () => {
+      resetUpgrading();
+    };
+
+    const handlePageHide = () => {
+      resetUpgrading();
+    };
+
+    if (hasCheckoutRedirectMark()) {
+      clearCheckoutRedirect();
+      resetUpgrading();
+    }
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   const PLANS = PLAN_META.map((plan) => ({
     ...plan,
@@ -66,6 +125,9 @@ export default function UpgradeModal({
       if (response.ok) {
         const data = await response.json();
         if (data.url) {
+          sessionStorage.setItem(CHECKOUT_REDIRECT_FLAG, '1');
+          localStorage.setItem(CHECKOUT_REDIRECT_FLAG_FALLBACK, '1');
+          setIsUpgrading(null);
           window.location.href = data.url;
           return;
         }
@@ -73,6 +135,8 @@ export default function UpgradeModal({
     } catch {
       // fall through
     }
+    sessionStorage.removeItem(CHECKOUT_REDIRECT_FLAG);
+    localStorage.removeItem(CHECKOUT_REDIRECT_FLAG_FALLBACK);
     setIsUpgrading(null);
     router.push('/settings');
   };

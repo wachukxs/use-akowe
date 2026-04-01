@@ -88,6 +88,8 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get('x-signature-sha256');
   const deliveryId = request.headers.get('x-delivery-id');
   const isTest = request.headers.get('x-test-notification') === 'true';
+  const webhookEnv = process.env.WISE_WEBHOOK_ENV || 'auto';
+  const webhookDebugEnabled = process.env.WISE_WEBHOOK_DEBUG === 'true';
 
   const publicKey = getWiseWebhookPublicKeyPem();
   if (!verifyWiseWebhookSignature(body, signature, publicKey)) {
@@ -107,6 +109,33 @@ export async function POST(request: NextRequest) {
   }
 
   const eventType = payload.event_type || '';
+
+  if (webhookDebugEnabled) {
+    // Debug logging to inspect incoming Wise webhook payload shape.
+    // Keep this explicit and bounded so logs remain readable.
+    try {
+      const serialized = JSON.stringify(payload);
+      const MAX_LOG_LENGTH = 12000;
+      const clipped =
+        serialized.length > MAX_LOG_LENGTH
+          ? `${serialized.slice(0, MAX_LOG_LENGTH)}... [truncated]`
+          : serialized;
+      console.log('[wise webhook] payload debug', {
+        env: webhookEnv,
+        eventType,
+        deliveryId,
+        isTest,
+        hasSignature: Boolean(signature),
+        payload: clipped,
+      });
+    } catch (error) {
+      console.warn('[wise webhook] payload debug serialization failed', {
+        eventType,
+        deliveryId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
 
   await connectDB();
 
