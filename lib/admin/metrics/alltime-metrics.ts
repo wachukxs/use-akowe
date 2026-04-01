@@ -3,6 +3,7 @@
 import User from '@/models/User';
 import Project from '@/models/Project';
 import DailyUsage from '@/models/DailyUsage';
+import WisePaymentEvent from '@/models/WisePaymentEvent';
 import Stripe from 'stripe';
 import { metricsCache, getCacheKey, CACHE_TTL } from './cache';
 
@@ -54,6 +55,15 @@ function getValidPriceIds(): string[] {
   return priceIds;
 }
 
+function getWisePlanPricesUsd() {
+  return {
+    standardMonthly: parseFloat(process.env.WISE_STANDARD_MONTHLY_USD || '7'),
+    standardAnnual: parseFloat(process.env.WISE_STANDARD_ANNUAL_USD || '70'),
+    proMonthly: parseFloat(process.env.WISE_PRO_MONTHLY_USD || '12'),
+    proAnnual: parseFloat(process.env.WISE_PRO_ANNUAL_USD || '120'),
+  };
+}
+
 export async function getAllTimeUserMetrics() {
   const totalUsers = await User.countDocuments();
   const freeUsers = await User.countDocuments({ plan: 'free' });
@@ -62,7 +72,10 @@ export async function getAllTimeUserMetrics() {
   const teamUsers = await User.countDocuments({ plan: 'team' });
 
   const usersWithSubscriptions = await User.countDocuments({
-    stripeSubscriptionId: { $exists: true, $ne: null }
+    $or: [
+      { stripeSubscriptionId: { $exists: true, $ne: null } },
+      { paymentProvider: 'wise' },
+    ],
   });
 
   const recentUsers = await User.find()
@@ -211,171 +224,219 @@ export async function getAllTimeRevenueMetrics() {
     subscriptionDetails: [] as any[],
   };
 
-  // If Stripe is not configured, we can't compute revenue – return zeros.
-  if (!stripe) {
-    return defaultRevenue;
-  }
+  const result = { ...defaultRevenue };
 
-  try {
-    // Sum ACTUAL paid invoices (most accurate for total revenue)
-    let totalRevenue = 0;
-    let invoiceStartingAfter: string | undefined = undefined;
-    let invoiceHasMore = true;
+  if (stripe) {
+    try {
+      // Sum ACTUAL paid invoices (most accurate for total revenue)
+      let totalRevenue = 0;
+      let invoiceStartingAfter: string | undefined = undefined;
+      let invoiceHasMore = true;
 
-    while (invoiceHasMore) {
-      const invoices: Stripe.ApiList<Stripe.Invoice> = await stripe.invoices.list({
-        limit: 100,
-        status: 'paid',
-        starting_after: invoiceStartingAfter,
-        expand: ['data.lines.data.price'],
-      });
-
-      for (const invoice of invoices.data) {
-        let invoiceAmountCents = 0;
-
-        if (validPriceIds.length > 0 && invoice.lines?.data?.length) {
-          invoice.lines.data.forEach((line: any) => {
-            const priceId = line.price?.id;
-            if (priceId && validPriceIds.includes(priceId)) {
-              invoiceAmountCents += line.amount || 0;
-            }
-          });
-        }
-
-        if (invoiceAmountCents === 0) {
-          invoiceAmountCents = invoice.amount_paid || 0;
-        }
-
-        totalRevenue += invoiceAmountCents / 100;
-      }
-
-      invoiceHasMore = invoices.has_more;
-      if (invoiceHasMore && invoices.data.length > 0) {
-        invoiceStartingAfter = invoices.data[invoices.data.length - 1].id;
-      } else {
-        invoiceHasMore = false;
-      }
-    }
-
-    // Get all subscriptions with pagination
-    let allSubscriptions: any[] = [];
-    let hasMore = true;
-    let startingAfter: string | undefined = undefined;
-
-    while (hasMore) {
-      const params: any = {
-        limit: 100,
-        status: 'all',
-      };
-      if (startingAfter) {
-        params.starting_after = startingAfter;
-      }
-
-      const subscriptions = await stripe.subscriptions.list(params);
-      
-      // If no valid price IDs are configured, accept all subscriptions (same behaviour as period metrics).
-      // Otherwise, restrict to the configured price IDs only.
-      const filteredSubs = subscriptions.data.filter((sub: any) => {
-        const priceId = sub.items.data[0]?.price?.id;
-        if (!priceId) return false;
-        if (validPriceIds.length === 0) return true;
-        return validPriceIds.includes(priceId);
-      });
-      
-      allSubscriptions = allSubscriptions.concat(filteredSubs);
-
-      hasMore = subscriptions.has_more;
-      if (hasMore && subscriptions.data.length > 0) {
-        startingAfter = subscriptions.data[subscriptions.data.length - 1].id;
-      } else {
-        hasMore = false;
-      }
-    }
-
-    let mrr = 0;
-    let arr = 0;
-    let activeSubs = 0;
-    let failedPayments = 0;
-    let pastDue = 0;
-    let canceled = 0;
-    const subscriptionDetails: any[] = [];
-
-    for (const subscription of allSubscriptions) {
-      const priceId = subscription.items.data[0]?.price?.id;
-      
-      // Skip if no price ID, or if price IDs are configured and this one doesn't match
-      if (!priceId || (validPriceIds.length > 0 && !validPriceIds.includes(priceId))) {
-        continue;
-      }
-
-      try {
-        const price = await stripe.prices.retrieve(priceId);
-        const amount = price.unit_amount || 0;
-        const customerId = subscription.customer;
-        
-        let customerEmail = '';
-        try {
-          const customer = typeof customerId === 'string' 
-            ? await stripe.customers.retrieve(customerId)
-            : null;
-          if (customer && !customer.deleted && 'email' in customer) {
-            customerEmail = customer.email || '';
-          }
-        } catch {
-          // Customer might be deleted
-        }
-        
-        subscriptionDetails.push({
-          id: subscription.id,
-          status: subscription.status,
-          customerEmail,
-          amount: amount / 100,
-          interval: price.recurring?.interval || 'unknown',
-          createdAt: subscription.created,
-          currentPeriodEnd: subscription.current_period_end,
+      while (invoiceHasMore) {
+        const invoices: Stripe.ApiList<Stripe.Invoice> = await stripe.invoices.list({
+          limit: 100,
+          status: 'paid',
+          starting_after: invoiceStartingAfter,
+          expand: ['data.lines.data.price'],
         });
-        
-        if (subscription.status === 'active' || subscription.status === 'trialing') {
-          activeSubs++;
-          
-          if (price.recurring?.interval === 'month') {
-            mrr += amount / 100;
-          } else if (price.recurring?.interval === 'year') {
-            arr += amount / 100;
-            mrr += (amount / 100) / 12;
+
+        for (const invoice of invoices.data) {
+          let invoiceAmountCents = 0;
+
+          if (validPriceIds.length > 0 && invoice.lines?.data?.length) {
+            invoice.lines.data.forEach((line: any) => {
+              const priceId = line.price?.id;
+              if (priceId && validPriceIds.includes(priceId)) {
+                invoiceAmountCents += line.amount || 0;
+              }
+            });
           }
+
+          if (invoiceAmountCents === 0) {
+            invoiceAmountCents = invoice.amount_paid || 0;
+          }
+
+          totalRevenue += invoiceAmountCents / 100;
         }
 
-        if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
-          failedPayments++;
-          pastDue++;
+        invoiceHasMore = invoices.has_more;
+        if (invoiceHasMore && invoices.data.length > 0) {
+          invoiceStartingAfter = invoices.data[invoices.data.length - 1].id;
+        } else {
+          invoiceHasMore = false;
         }
-
-        if (subscription.status === 'canceled') {
-          canceled++;
-        }
-      } catch (priceError) {
-        console.error('Error retrieving price:', priceError);
       }
+
+      // Get all subscriptions with pagination
+      let allSubscriptions: any[] = [];
+      let hasMore = true;
+      let startingAfter: string | undefined = undefined;
+
+      while (hasMore) {
+        const params: any = {
+          limit: 100,
+          status: 'all',
+        };
+        if (startingAfter) {
+          params.starting_after = startingAfter;
+        }
+
+        const subscriptions = await stripe.subscriptions.list(params);
+
+        // If no valid price IDs are configured, accept all subscriptions.
+        // Otherwise, restrict to configured price IDs only.
+        const filteredSubs = subscriptions.data.filter((sub: any) => {
+          const priceId = sub.items.data[0]?.price?.id;
+          if (!priceId) return false;
+          if (validPriceIds.length === 0) return true;
+          return validPriceIds.includes(priceId);
+        });
+
+        allSubscriptions = allSubscriptions.concat(filteredSubs);
+
+        hasMore = subscriptions.has_more;
+        if (hasMore && subscriptions.data.length > 0) {
+          startingAfter = subscriptions.data[subscriptions.data.length - 1].id;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      let mrr = 0;
+      let arr = 0;
+      let activeSubs = 0;
+      let failedPayments = 0;
+      let pastDue = 0;
+      let canceled = 0;
+      const subscriptionDetails: any[] = [];
+
+      for (const subscription of allSubscriptions) {
+        const priceId = subscription.items.data[0]?.price?.id;
+        if (!priceId || (validPriceIds.length > 0 && !validPriceIds.includes(priceId))) {
+          continue;
+        }
+
+        try {
+          const price = await stripe.prices.retrieve(priceId);
+          const amount = price.unit_amount || 0;
+          const customerId = subscription.customer;
+
+          let customerEmail = '';
+          try {
+            const customer =
+              typeof customerId === 'string' ? await stripe.customers.retrieve(customerId) : null;
+            if (customer && !customer.deleted && 'email' in customer) {
+              customerEmail = customer.email || '';
+            }
+          } catch {
+            // Customer might be deleted
+          }
+
+          subscriptionDetails.push({
+            id: subscription.id,
+            status: subscription.status,
+            customerEmail,
+            amount: amount / 100,
+            interval: price.recurring?.interval || 'unknown',
+            createdAt: subscription.created,
+            currentPeriodEnd: subscription.current_period_end,
+          });
+
+          if (subscription.status === 'active' || subscription.status === 'trialing') {
+            activeSubs++;
+
+            if (price.recurring?.interval === 'month') {
+              mrr += amount / 100;
+            } else if (price.recurring?.interval === 'year') {
+              arr += amount / 100;
+              mrr += (amount / 100) / 12;
+            }
+          }
+
+          if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+            failedPayments++;
+            pastDue++;
+          }
+
+          if (subscription.status === 'canceled') {
+            canceled++;
+          }
+        } catch (priceError) {
+          console.error('Error retrieving price:', priceError);
+        }
+      }
+
+      result.totalRevenue = totalRevenue;
+      result.monthlyRecurringRevenue = mrr;
+      result.annualRecurringRevenue = arr;
+      result.activeSubscriptions = activeSubs;
+      result.paymentFailures = failedPayments;
+      result.pastDueSubscriptions = pastDue;
+      result.canceledSubscriptions = canceled;
+      result.subscriptionDetails = subscriptionDetails.slice(0, 50);
+    } catch (stripeError) {
+      console.warn(
+        'Stripe data unavailable:',
+        stripeError instanceof Error ? stripeError.message : 'Stripe not configured'
+      );
     }
-
-    const result = {
-      totalRevenue,
-      monthlyRecurringRevenue: mrr,
-      annualRecurringRevenue: arr,
-      activeSubscriptions: activeSubs,
-      paymentFailures: failedPayments,
-      pastDueSubscriptions: pastDue,
-      canceledSubscriptions: canceled,
-      subscriptionDetails: subscriptionDetails.slice(0, 50),
-    };
-
-    metricsCache.set(cacheKey, result, CACHE_TTL.stripeData);
-    return result;
-  } catch (stripeError) {
-    console.warn('Stripe data unavailable:', stripeError instanceof Error ? stripeError.message : 'Stripe not configured');
-    return defaultRevenue;
   }
+
+  // Include Wise ledger totals and active Wise subscriptions.
+  const [wiseRevenueAgg, activeWiseUsers] = await Promise.all([
+    WisePaymentEvent.aggregate([
+      {
+        $match: {
+          provider: 'wise',
+          eventKind: { $in: ['payment', 'refund'] },
+          amountUsd: { $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: '$eventKind',
+          total: { $sum: '$amountUsd' },
+        },
+      },
+    ]),
+    User.find({
+      paymentProvider: 'wise',
+      plan: { $in: ['standard', 'pro', 'team'] },
+      $or: [{ subscriptionEndDate: null }, { subscriptionEndDate: { $exists: false } }],
+    })
+      .select('plan billingCycle')
+      .lean(),
+  ]);
+
+  const wisePayments =
+    wiseRevenueAgg.find((x: { _id: string; total: number }) => x._id === 'payment')?.total || 0;
+  const wiseRefunds =
+    wiseRevenueAgg.find((x: { _id: string; total: number }) => x._id === 'refund')?.total || 0;
+  const wiseNetRevenue = wisePayments - wiseRefunds;
+
+  const wisePrices = getWisePlanPricesUsd();
+  let wiseMrr = 0;
+  let wiseArr = 0;
+  for (const user of activeWiseUsers as Array<{ plan?: string; billingCycle?: string }>) {
+    const billing = user.billingCycle || 'monthly';
+    const isProLike = user.plan === 'pro' || user.plan === 'team';
+    if (billing === 'annual') {
+      const annual = isProLike ? wisePrices.proAnnual : wisePrices.standardAnnual;
+      wiseArr += annual;
+      wiseMrr += annual / 12;
+    } else {
+      wiseMrr += isProLike ? wisePrices.proMonthly : wisePrices.standardMonthly;
+    }
+  }
+
+  result.totalRevenue += wiseNetRevenue;
+  result.monthlyRecurringRevenue += wiseMrr;
+  result.annualRecurringRevenue += wiseArr;
+  result.activeSubscriptions += activeWiseUsers.length;
+
+  metricsCache.set(cacheKey, result, CACHE_TTL.stripeData);
+  return result;
 }
 
 export async function getAllTimeProductMetrics() {

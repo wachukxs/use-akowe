@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import User from '@/models/User';
 import WiseWebhookReceipt from '@/models/WiseWebhookReceipt';
+import WisePaymentEvent from '@/models/WisePaymentEvent';
 import { extractMongoIdFromWiseReference } from '@/lib/wise-webhook';
 import type { WiseTransferDetails } from '@/lib/wise-api';
 import { wiseGetTransfer } from '@/lib/wise-api';
@@ -34,6 +35,75 @@ function combinedReferenceText(t: WiseTransferDetails): string {
     (x): x is string => typeof x === 'string' && x.length > 0
   );
   return parts.join(' ');
+}
+
+function extractTransferAmountForLedger(transfer: WiseTransferDetails): {
+  amount: number;
+  currency: string;
+  amountUsd: number | null;
+} | null {
+  const targetValue = typeof transfer.targetValue === 'number' ? transfer.targetValue : null;
+  const sourceValue = typeof transfer.sourceValue === 'number' ? transfer.sourceValue : null;
+  const targetCurrency = transfer.targetCurrency?.toUpperCase();
+  const sourceCurrency = transfer.sourceCurrency?.toUpperCase();
+
+  if (targetValue != null && targetCurrency) {
+    return {
+      amount: targetValue,
+      currency: targetCurrency,
+      amountUsd: targetCurrency === 'USD' ? targetValue : null,
+    };
+  }
+
+  if (sourceValue != null && sourceCurrency) {
+    return {
+      amount: sourceValue,
+      currency: sourceCurrency,
+      amountUsd: sourceCurrency === 'USD' ? sourceValue : null,
+    };
+  }
+
+  return null;
+}
+
+async function recordWisePaymentEvent(params: {
+  transfer: WiseTransferDetails;
+  eventKind: 'payment' | 'refund';
+  eventType: string;
+  user?: InstanceType<typeof User> | null;
+}) {
+  const transferId = params.transfer.id != null ? String(params.transfer.id) : '';
+  if (!transferId) return;
+
+  const amountData = extractTransferAmountForLedger(params.transfer);
+  if (!amountData) return;
+
+  const user = params.user || null;
+  const plan = user?.wisePendingPlan || user?.plan || null;
+  const billingCycle = user?.wisePendingBillingCycle || user?.billingCycle || null;
+
+  await WisePaymentEvent.findOneAndUpdate(
+    { provider: 'wise', transferId, eventKind: params.eventKind },
+    {
+      $set: {
+        eventType: params.eventType,
+        userId: user?._id || null,
+        amount: amountData.amount,
+        currency: amountData.currency,
+        amountUsd: amountData.amountUsd,
+        status: params.transfer.status || undefined,
+        plan,
+        billingCycle,
+        occurredAt: new Date(),
+      },
+      $setOnInsert: {
+        provider: 'wise',
+        transferId,
+        eventKind: params.eventKind,
+      },
+    },
+    { upsert: true, new: true }
+  );
 }
 
 export function isWiseTransferFailureState(state: string | undefined): boolean {
@@ -185,6 +255,9 @@ export async function processWiseRefund(transferId: number, eventType: string): 
   const isNew = await recordWiseDedupe(dedupeKey, eventType);
   if (!isNew) return { ok: true, result: 'duplicate' };
 
+  const transfer = await wiseGetTransfer(transferId);
+  if (!transfer) return { ok: true, result: 'no_transfer_api' };
+
   let user =
     (await User.findOne({
       paymentProvider: 'wise',
@@ -192,10 +265,15 @@ export async function processWiseRefund(transferId: number, eventType: string): 
     })) || null;
 
   if (!user) {
-    const transfer = await wiseGetTransfer(transferId);
-    if (!transfer) return { ok: true, result: 'no_transfer_api' };
     user = await findUserForWiseTransfer(transfer);
   }
+
+  await recordWisePaymentEvent({
+    transfer,
+    eventKind: 'refund',
+    eventType,
+    user,
+  });
 
   if (!user) {
     console.log('[wise webhook] refund: no user for transfer', transferId);
@@ -253,6 +331,13 @@ export async function processWiseTransferForPayment(
   }
 
   const user = await findUserForWiseTransfer(transfer);
+  await recordWisePaymentEvent({
+    transfer,
+    eventKind: 'payment',
+    eventType,
+    user,
+  });
+
   if (!user) {
     console.log('[wise webhook] no user matched transfer', tid);
     return { ok: true, result: 'no_user' };
