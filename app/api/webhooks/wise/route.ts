@@ -79,7 +79,7 @@ async function findUserForSwiftCredit(referenceRaw: string | undefined) {
 
 function profileMatches(profileId: number | undefined, expected: string | undefined): boolean {
   if (!expected) return true;
-  if (profileId === undefined) return true;
+  if (profileId === undefined || profileId === null) return false;
   return String(profileId) === expected;
 }
 

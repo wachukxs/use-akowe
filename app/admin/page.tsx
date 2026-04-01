@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Users,
   DollarSign,
@@ -30,6 +30,7 @@ import {
   MessageSquare,
   Share2,
   Megaphone,
+  Copy,
 } from 'lucide-react';
 import ReferralsTab from '@/components/admin/ReferralsTab';
 import MarketingTab from '@/components/admin/MarketingTab';
@@ -497,7 +498,7 @@ const PLAN_COLORS: Record<string, string> = {
   team: 'bg-green-100 text-green-700',
 };
 
-function UserLookupPanel() {
+function UserLookupPanel({ initialEmail }: { initialEmail?: string }) {
   const [searchEmail, setSearchEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<LookupResult | null>(null);
@@ -506,14 +507,15 @@ function UserLookupPanel() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [newPlan, setNewPlan] = useState('');
 
-  async function handleLookup() {
-    if (!searchEmail.trim()) return;
+  const handleLookup = useCallback(async (emailOverride?: string) => {
+    const emailToLookup = (emailOverride ?? searchEmail).trim();
+    if (!emailToLookup) return;
     setLoading(true);
     setError(null);
     setData(null);
     setActionResult(null);
     try {
-      const res = await fetch(`/api/admin/user-lookup?email=${encodeURIComponent(searchEmail.trim())}`);
+      const res = await fetch(`/api/admin/user-lookup?email=${encodeURIComponent(emailToLookup)}`);
       const json = await res.json();
       if (!res.ok) { setError(json.error); return; }
       setData(json);
@@ -523,7 +525,14 @@ function UserLookupPanel() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [searchEmail]);
+
+  useEffect(() => {
+    if (!initialEmail || !initialEmail.trim()) return;
+    const nextEmail = initialEmail.trim();
+    setSearchEmail(nextEmail);
+    void handleLookup(nextEmail);
+  }, [initialEmail, handleLookup]);
 
   async function handleResetUsage(field: string) {
     if (!data) return;
@@ -600,7 +609,7 @@ function UserLookupPanel() {
   }
 
   return (
-    <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-5">
+    <div id="admin-user-lookup" className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-5">
       <div className="flex items-center gap-2">
         <Search size={16} />
         <h2 className="text-sm font-bold uppercase tracking-[0.2em]">User Lookup</h2>
@@ -871,6 +880,92 @@ function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element 
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [loadingReset, setLoadingReset] = useState<'bulk' | 'user' | null>(null);
   const [result, setResult] = useState<{ message: string; success: boolean } | null>(null);
+  const [wiseAttempts, setWiseAttempts] = useState<Array<{
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    reference: string;
+    plan: string;
+    billingCycle: string;
+    sku: string;
+    status: 'pending' | 'completed' | 'cancelled';
+    transferId: number | null;
+    expiresAt?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+  }>>([]);
+  const [wiseAttemptsPage, setWiseAttemptsPage] = useState(1);
+  const [wiseAttemptsTotalPages, setWiseAttemptsTotalPages] = useState(1);
+  const [wiseAttemptsStatus, setWiseAttemptsStatus] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
+  const [wiseAttemptsSince, setWiseAttemptsSince] = useState<'all' | '24h' | '7d' | '30d'>('all');
+  const [loadingWiseAttempts, setLoadingWiseAttempts] = useState(false);
+  const [lookupSeedEmail, setLookupSeedEmail] = useState('');
+  const [copiedReferenceId, setCopiedReferenceId] = useState<string | null>(null);
+
+  function formatRelativeTime(value?: string) {
+    if (!value) return '—';
+    const diffMs = Date.now() - new Date(value).getTime();
+    if (!Number.isFinite(diffMs)) return '—';
+    const min = Math.floor(diffMs / (1000 * 60));
+    if (min < 1) return 'just now';
+    if (min < 60) return `${min}m ago`;
+    const hours = Math.floor(min / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  async function handleCopyReference(reference: string, id: string) {
+    try {
+      await navigator.clipboard.writeText(reference);
+      setCopiedReferenceId(id);
+      setTimeout(() => setCopiedReferenceId((current) => (current === id ? null : current)), 1500);
+    } catch (error) {
+      console.error('Failed to copy reference:', error);
+      setResult({ success: false, message: 'Failed to copy Wise reference.' });
+    }
+  }
+
+  function handleLookupUser(email: string) {
+    if (!email) return;
+    setLookupSeedEmail(email);
+    document.getElementById('admin-user-lookup')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const fetchWiseAttempts = useCallback(async (
+    page = wiseAttemptsPage,
+    status = wiseAttemptsStatus,
+    since = wiseAttemptsSince
+  ) => {
+    setLoadingWiseAttempts(true);
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: '20',
+        status,
+        since,
+      });
+      const res = await fetch(`/api/admin/wise-checkout-attempts?${params.toString()}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to load Wise attempts');
+      }
+      setWiseAttempts(Array.isArray(data.attempts) ? data.attempts : []);
+      setWiseAttemptsTotalPages(Math.max(1, data.totalPages || 1));
+    } catch (error) {
+      console.error('Failed to load Wise checkout attempts:', error);
+      setWiseAttempts([]);
+      setWiseAttemptsTotalPages(1);
+      setResult({ success: false, message: 'Failed to load Wise checkout attempts.' });
+    } finally {
+      setLoadingWiseAttempts(false);
+    }
+  }, [wiseAttemptsPage, wiseAttemptsStatus, wiseAttemptsSince]);
+
+  useEffect(() => {
+    fetchWiseAttempts(wiseAttemptsPage, wiseAttemptsStatus, wiseAttemptsSince);
+  }, [wiseAttemptsPage, wiseAttemptsStatus, wiseAttemptsSince, fetchWiseAttempts]);
 
   async function fetchPreview() {
     setLoadingPreview(true);
@@ -936,7 +1031,140 @@ function SupportTab({ TabNavigation }: { TabNavigation: () => React.JSX.Element 
 
         <TabNavigation />
 
-        <UserLookupPanel />
+        <UserLookupPanel initialEmail={lookupSeedEmail} />
+
+        {/* ── Section divider: Wise Checkout Attempts ── */}
+        <div className="pt-2 border-t-2 border-[hsl(var(--border))]">
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))] mb-6">Wise Checkout Attempts</p>
+        </div>
+
+        <div className="border-[3px] border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded p-6 space-y-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <LinkIcon size={16} />
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em]">Recent Wise Attempts</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={wiseAttemptsStatus}
+                onChange={(e) => {
+                  setWiseAttemptsPage(1);
+                  setWiseAttemptsStatus(e.target.value as 'all' | 'pending' | 'completed' | 'cancelled');
+                }}
+                className="border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-xs uppercase tracking-[0.12em]"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <select
+                value={wiseAttemptsSince}
+                onChange={(e) => {
+                  setWiseAttemptsPage(1);
+                  setWiseAttemptsSince(e.target.value as 'all' | '24h' | '7d' | '30d');
+                }}
+                className="border-2 border-[hsl(var(--border-strong))] px-2 py-1 text-xs uppercase tracking-[0.12em]"
+              >
+                <option value="all">All Time</option>
+                <option value="24h">Last 24h</option>
+                <option value="7d">Last 7d</option>
+                <option value="30d">Last 30d</option>
+              </select>
+              <button
+                onClick={() => fetchWiseAttempts(wiseAttemptsPage, wiseAttemptsStatus, wiseAttemptsSince)}
+                disabled={loadingWiseAttempts}
+                className="px-3 py-1.5 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.16em] font-semibold hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform disabled:opacity-50"
+              >
+                {loadingWiseAttempts ? 'Refreshing…' : 'Refresh'}
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-[hsl(var(--muted-foreground))] uppercase tracking-[0.14em]">
+            Track recent Wise checkout references and their latest reconciliation status.
+          </p>
+
+          <div className="border-2 border-[hsl(var(--border))] rounded overflow-auto max-h-72">
+            <table className="w-full text-xs">
+              <thead className="bg-[hsl(var(--surface-muted))] uppercase tracking-[0.12em]">
+                <tr>
+                  <th className="text-left p-2">Created</th>
+                  <th className="text-left p-2">User</th>
+                  <th className="text-left p-2">Reference</th>
+                  <th className="text-left p-2">Plan</th>
+                  <th className="text-left p-2">Status</th>
+                  <th className="text-left p-2">Transfer</th>
+                  <th className="text-left p-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wiseAttempts.length === 0 ? (
+                  <tr>
+                    <td className="p-3 text-[hsl(var(--muted-foreground))]" colSpan={7}>
+                      {loadingWiseAttempts ? 'Loading attempts...' : 'No Wise attempts found.'}
+                    </td>
+                  </tr>
+                ) : (
+                  wiseAttempts.map((attempt) => (
+                    <tr key={attempt.id} className="border-t border-[hsl(var(--border))]">
+                      <td className="p-2 whitespace-nowrap">
+                        <div>{attempt.createdAt ? new Date(attempt.createdAt).toLocaleString() : '—'}</div>
+                        <div className="text-[hsl(var(--muted-foreground))]">{formatRelativeTime(attempt.createdAt)}</div>
+                      </td>
+                      <td className="p-2">
+                        <div className="font-medium">{attempt.userName || 'N/A'}</div>
+                        <div className="text-[hsl(var(--muted-foreground))]">{attempt.userEmail || '—'}</div>
+                      </td>
+                      <td className="p-2 font-mono">{attempt.reference}</td>
+                      <td className="p-2 uppercase">{attempt.plan} / {attempt.billingCycle}</td>
+                      <td className="p-2 uppercase">{attempt.status}</td>
+                      <td className="p-2">{attempt.transferId ?? '—'}</td>
+                      <td className="p-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleCopyReference(attempt.reference, attempt.id)}
+                            className="px-2 py-1 border border-[hsl(var(--border-strong))] rounded text-[10px] uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))]"
+                            title="Copy Wise reference"
+                          >
+                            {copiedReferenceId === attempt.id ? 'Copied' : <span className="inline-flex items-center gap-1"><Copy size={12} />Copy</span>}
+                          </button>
+                          <button
+                            onClick={() => handleLookupUser(attempt.userEmail)}
+                            className="px-2 py-1 border border-[hsl(var(--border-strong))] rounded text-[10px] uppercase tracking-[0.12em] hover:bg-[hsl(var(--surface-muted))]"
+                            title="Open user in lookup panel"
+                          >
+                            Lookup
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => setWiseAttemptsPage((p) => Math.max(1, p - 1))}
+              disabled={wiseAttemptsPage <= 1 || loadingWiseAttempts}
+              className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.14em] disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span className="text-xs uppercase tracking-[0.14em]">
+              Page {wiseAttemptsPage} of {wiseAttemptsTotalPages}
+            </span>
+            <button
+              onClick={() => setWiseAttemptsPage((p) => Math.min(wiseAttemptsTotalPages, p + 1))}
+              disabled={wiseAttemptsPage >= wiseAttemptsTotalPages || loadingWiseAttempts}
+              className="px-3 py-1 border-2 border-[hsl(var(--border-strong))] text-xs uppercase tracking-[0.14em] disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
 
         {/* ── Section divider: Bulk Tools ── */}
         <div className="pt-2 border-t-2 border-[hsl(var(--border))]">
