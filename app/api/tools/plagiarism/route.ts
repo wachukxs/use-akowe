@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mammoth from 'mammoth';
+import { extractDocumentText, resolveDocumentTypeSecure } from '@/lib/document-extraction';
 
 // Enhanced plagiarism check for lead magnet (no auth required)
 // Returns limited but valuable results to encourage signup
@@ -14,28 +14,16 @@ interface SourceMatch {
 }
 
 async function parseFile(file: File): Promise<string> {
-  const extension = file.name.split('.').pop()?.toLowerCase();
-
-  if (extension === 'txt') {
-    return await file.text();
+  const extension = await resolveDocumentTypeSecure(file);
+  if (!extension) {
+    throw new Error('Unsupported file type');
   }
 
-  if (extension === 'docx') {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const result = await mammoth.extractRawText({ buffer });
-    return result.value;
-  }
-
-  if (extension === 'pdf') {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const text = buffer.toString('utf-8');
-    const matches = text.match(/[\x20-\x7E\n\r]+/g) || [];
-    return matches.join(' ').substring(0, 10000);
-  }
-
-  throw new Error('Unsupported file type');
+  const { text } = await extractDocumentText(file, {
+    forceType: extension,
+    maxCharacters: 10000,
+  });
+  return text;
 }
 
 // Check for claims that need citations
@@ -333,9 +321,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'No file provided' }, { status: 400 });
       }
 
-      const allowedExtensions = ['docx', 'pdf', 'txt'];
-      const extension = file.name.split('.').pop()?.toLowerCase();
-      if (!extension || !allowedExtensions.includes(extension)) {
+      const extension = await resolveDocumentTypeSecure(file);
+      if (!extension) {
         return NextResponse.json(
           { error: 'Unsupported file type. Use .docx, .pdf, or .txt' },
           { status: 400 }

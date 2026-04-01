@@ -26,6 +26,12 @@ interface ImportResult {
   citationCount: number;
   readinessScore: number;
   gaps: Gap[];
+  metadata?: {
+    extractionConfidence?: 'high' | 'medium' | 'low';
+    extractionSignal?: 'clean_text' | 'sparse_text' | 'noisy_text';
+    fileType?: string;
+    fileName?: string;
+  };
 }
 
 export default function HeroImportTool({ variant }: HeroImportToolProps) {
@@ -103,8 +109,8 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
         timestamp: Date.now(),
         expires: Date.now() + 3600 * 1000,
       }));
-    } catch (err: any) {
-      setError(err.message || t('analysisFailed'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('analysisFailed'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -156,6 +162,14 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
     if (score >= 60) return 'bg-yellow-500';
     return 'bg-red-500';
   };
+
+  const extractionConfidence = result?.metadata?.extractionConfidence;
+  const showExtractionWarning =
+    extractionConfidence === 'low' || extractionConfidence === 'medium';
+  const extractionWarningMessage =
+    extractionConfidence === 'low'
+      ? t('extractionLowConfidence')
+      : t('extractionMediumConfidence');
 
   return (
     <div className="space-y-4">
@@ -252,6 +266,15 @@ export default function HeroImportTool({ variant }: HeroImportToolProps) {
               />
             </div>
           </div>
+
+          {showExtractionWarning && (
+            <div className="flex items-start gap-2 border-[2px] border-yellow-300 bg-yellow-50 rounded p-2">
+              <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={14} />
+              <span className="text-[10px] uppercase tracking-[0.12em]">
+                {extractionWarningMessage}
+              </span>
+            </div>
+          )}
 
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-2 py-2 border-y-[2px] border-[hsl(var(--border-strong))]">

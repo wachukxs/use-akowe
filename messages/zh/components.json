@@ -227,6 +227,8 @@
     "moreIssuesToFix": "+{count} 个更多问题待修正",
     "fixInAkowe": "在 Akọ̀wé 中修复问题",
     "continueInAkowe": "在 Akọ̀wé 中继续",
+    "extractionLowConfidence": "提取置信度较低。该 PDF 可能是扫描件或以图片为主，使用 OCR 可提升结果。",
+    "extractionMediumConfidence": "提取置信度中等，部分章节可能不完整。",
     "analysisFailed": "分析失败，请重试。"
   },
   "leadMagnetEmailCapture": {

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import { Citation } from '@/types';
-import mammoth from 'mammoth';
+import {
+  DOCUMENT_IMPORT_ERRORS,
+  extractDocumentText,
+  resolveDocumentTypeSecure,
+} from '@/lib/document-extraction';
 
 /**
  * POST /api/projects/import
@@ -22,14 +26,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Validate file type
-    const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-      'application/pdf',
-      'text/plain',
-    ];
-    
-    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(docx|pdf|txt)$/i)) {
+    const detectedType = await resolveDocumentTypeSecure(file);
+    if (!detectedType) {
       return NextResponse.json(
         { error: 'Unsupported file type. Please upload a .docx, .pdf, or .txt file.' },
         { status: 400 }
@@ -45,8 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse document based on file type
-    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    // Parse document based on detected file type
     let extractedData: {
       title: string;
       sections: Array<{ title: string; content: string; order: number }>;
@@ -59,11 +56,11 @@ export async function POST(request: NextRequest) {
     };
 
     try {
-      if (fileExtension === 'docx') {
+      if (detectedType === 'docx') {
         extractedData = await parseDOCX(file);
-      } else if (fileExtension === 'pdf') {
+      } else if (detectedType === 'pdf') {
         extractedData = await parsePDF(file);
-      } else if (fileExtension === 'txt') {
+      } else if (detectedType === 'txt') {
         extractedData = await parseTXT(file);
       } else {
         return NextResponse.json(
@@ -109,16 +106,8 @@ async function parseDOCX(file: File): Promise<{
   wordCount: number;
   topic: string;
 }> {
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  
   try {
-    // Extract text content
-    const textResult = await mammoth.extractRawText({ buffer });
-    const text = textResult.value;
-    
-    // Extract HTML for better structure detection
-    await mammoth.convertToHtml({ buffer });
+    const { text } = await extractDocumentText(file, { forceType: 'docx' });
     
     // Parse structure from text (similar to TXT parsing)
     const sections = parseTextIntoSections(text);
@@ -175,42 +164,8 @@ async function parsePDF(file: File): Promise<{
   wordCount: number;
   topic: string;
 }> {
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  
   try {
-    // Use pdf2json - simpler, no canvas dependency
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const PDFParser = require('pdf2json');
-    
-    // Parse PDF to extract text
-    const pdfParser = new PDFParser(null, 1);
-    
-    // Convert buffer to text
-    const text = await new Promise<string>((resolve, reject) => {
-      pdfParser.on('pdfParser_dataError', (errData: { parserError: Error }) => {
-        reject(new Error(`PDF parsing error: ${errData.parserError?.message || 'Unknown error'}`));
-      });
-      
-      pdfParser.on('pdfParser_dataReady', () => {
-        try {
-          // Extract text from all pages
-          const pdfData = pdfParser.getRawTextContent();
-          resolve(pdfData || '');
-        } catch (err) {
-          reject(err);
-        }
-      });
-      
-      // Parse the buffer
-      pdfParser.parseBuffer(buffer);
-    });
-    
-    const extractedText = text.trim();
-    
-    if (!extractedText || extractedText.trim().length === 0) {
-      throw new Error('PDF appears to be empty or contains only images. Please ensure the PDF has extractable text.');
-    }
+    const { text: extractedText } = await extractDocumentText(file, { forceType: 'pdf' });
     
     // Parse structure from text
     const sections = parseTextIntoSections(extractedText);
@@ -250,7 +205,7 @@ async function parsePDF(file: File): Promise<{
     };
   } catch (error) {
     console.error('Error parsing PDF:', error);
-    if (error instanceof Error && error.message.includes('empty')) {
+    if (error instanceof Error && error.message.includes(DOCUMENT_IMPORT_ERRORS.PDF_EMPTY_ERROR)) {
       throw error;
     }
     throw new Error('Failed to parse PDF file. Please ensure the PDF has extractable text (not just images).');
@@ -270,7 +225,7 @@ async function parseTXT(file: File): Promise<{
   wordCount: number;
   topic: string;
 }> {
-  const text = await file.text();
+  const { text } = await extractDocumentText(file, { forceType: 'txt' });
   
   // Parse structure from text
   const sections = parseTextIntoSections(text);

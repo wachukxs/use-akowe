@@ -227,6 +227,8 @@
     "moreIssuesToFix": "+{count} more issues to fix",
     "fixInAkowe": "Fix Issues in Akọ̀wé",
     "continueInAkowe": "Continue in Akọ̀wé",
+    "extractionLowConfidence": "ความเชื่อมั่นในการดึงข้อความต่ำ ไฟล์ PDF นี้อาจเป็นไฟล์สแกนหรือมีรูปภาพจำนวนมาก การใช้ OCR อาจช่วยให้ผลลัพธ์ดีขึ้น",
+    "extractionMediumConfidence": "ความเชื่อมั่นในการดึงข้อความอยู่ในระดับปานกลาง บางส่วนอาจไม่ครบถ้วน",
     "analysisFailed": "Failed to analyze. Please try again."
   },
   "leadMagnetEmailCapture": {

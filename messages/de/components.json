@@ -227,6 +227,8 @@
     "moreIssuesToFix": "+{count} more issues to fix",
     "fixInAkowe": "Fix Issues in Akọ̀wé",
     "continueInAkowe": "Continue in Akọ̀wé",
+    "extractionLowConfidence": "Niedrige Extraktionssicherheit. Dieses PDF ist moglicherweise gescannt oder bildlastig. OCR kann die Ergebnisse verbessern.",
+    "extractionMediumConfidence": "Mittlere Extraktionssicherheit. Einige Abschnitte konnen unvollstandig sein.",
     "analysisFailed": "Failed to analyze. Please try again."
   },
   "leadMagnetEmailCapture": {

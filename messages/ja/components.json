@@ -227,6 +227,8 @@
     "moreIssuesToFix": "+{count} more issues to fix",
     "fixInAkowe": "Fix Issues in Akọ̀wé",
     "continueInAkowe": "Continue in Akọ̀wé",
+    "extractionLowConfidence": "抽出の信頼度が低いです。このPDFはスキャン文書または画像中心の可能性があります。OCRで改善できる場合があります。",
+    "extractionMediumConfidence": "抽出の信頼度は中程度です。一部のセクションが不完全な可能性があります。",
     "analysisFailed": "Failed to analyze. Please try again."
   },
   "leadMagnetEmailCapture": {

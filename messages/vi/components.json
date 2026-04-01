@@ -227,6 +227,8 @@
     "moreIssuesToFix": "+{count} vấn đề cần sửa",
     "fixInAkowe": "Sửa vấn đề trong Akọ̀wé",
     "continueInAkowe": "Tiếp tục trong Akọ̀wé",
+    "extractionLowConfidence": "Độ tin cậy trích xuất thấp. PDF này có thể là bản quét hoặc chứa nhiều hình ảnh. OCR có thể cải thiện kết quả.",
+    "extractionMediumConfidence": "Độ tin cậy trích xuất ở mức trung bình. Một số phần có thể chưa đầy đủ.",
     "analysisFailed": "Phân tích thất bại. Vui lòng thử lại."
   },
   "leadMagnetEmailCapture": {
