@@ -118,6 +118,13 @@
     "deleting": "삭제 중...",
     "confirm": "계정 삭제"
   },
+  "wiseRedirectModal": {
+    "title": "Wise로 계속",
+    "intro": "결제를 완료하기 위해 Wise로 이동합니다.",
+    "instructions": "은행 이체를 완료하거나 Wise 계정으로 결제한 뒤에는 직접 Akowe로 돌아와 주세요. Wise에서 결제 확인이 되면 계정 상태를 업데이트합니다.",
+    "cancel": "나중에",
+    "confirm": "Wise로 이동"
+  },
   "alerts": {
     "failedToSend": "전송에 실패했습니다. 다시 시도해 주세요.",
     "failedBillingPortal": "결제 포털을 열 수 없습니다. 다시 시도해 주세요.",

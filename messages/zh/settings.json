@@ -118,6 +118,13 @@
     "deleting": "正在删除...",
     "confirm": "删除账户"
   },
+  "wiseRedirectModal": {
+    "title": "继续前往 Wise",
+    "intro": "您即将跳转到 Wise 完成付款。",
+    "instructions": "完成银行转账或使用 Wise 账户付款后，请手动返回 Akowe。Wise 确认收款后，我们会更新您的账户状态。",
+    "cancel": "暂不",
+    "confirm": "前往 Wise"
+  },
   "alerts": {
     "failedToSend": "发送失败，请重试。",
     "failedBillingPortal": "无法打开账单管理页面，请重试。",

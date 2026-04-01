@@ -43,6 +43,8 @@ export default function SettingsPage() {
   const [hasCheckoutCancelledParam, setHasCheckoutCancelledParam] = useState(false);
   const [showActive37Popup, setShowActive37Popup] = useState(false);
   const [active37Eligibility, setActive37Eligibility] = useState<{ eligible: boolean; activeDays?: number } | null>(null);
+  const [showWiseRedirectModal, setShowWiseRedirectModal] = useState(false);
+  const [wiseRedirectUrl, setWiseRedirectUrl] = useState<string | null>(null);
   const CHECKOUT_REDIRECT_FLAG = 'akowe_checkout_redirecting';
   const CHECKOUT_REDIRECT_FLAG_FALLBACK = 'akowe_checkout_redirecting_ls';
 
@@ -226,6 +228,19 @@ export default function SettingsPage() {
     localStorage.removeItem(CHECKOUT_REDIRECT_FLAG_FALLBACK);
   };
 
+  const handleWiseRedirectConfirm = () => {
+    if (!wiseRedirectUrl) return;
+    setCheckoutRedirectMark();
+    setShowWiseRedirectModal(false);
+    window.location.href = wiseRedirectUrl;
+  };
+
+  const handleWiseRedirectCancel = () => {
+    setShowWiseRedirectModal(false);
+    setWiseRedirectUrl(null);
+    setIsUpgrading(false);
+  };
+
   const fetchUsage = async () => {
     try {
       const [usageResponse, statusResponse] = await Promise.all([
@@ -314,8 +329,14 @@ export default function SettingsPage() {
           trackFunnel.checkoutStart(params.user_id, params.billing_cycle, params.plan_type);
         }
         
-        // Redirect to Stripe Checkout
+        // Redirect to payment provider checkout
         if (data.url) {
+          if (data.provider === 'wise') {
+            setWiseRedirectUrl(data.url);
+            setShowWiseRedirectModal(true);
+            setIsUpgrading(false);
+            return;
+          }
           setCheckoutRedirectMark();
           setIsUpgrading(false);
           window.location.href = data.url;
@@ -895,6 +916,45 @@ export default function SettingsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showWiseRedirectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full p-4 md:p-6 relative">
+            <button
+              onClick={handleWiseRedirectCancel}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              aria-label={t('wiseRedirectModal.cancel')}
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">
+              {t('wiseRedirectModal.title')}
+            </h3>
+            <p className="text-gray-700 text-sm md:text-base mb-3">
+              {t('wiseRedirectModal.intro')}
+            </p>
+            <p className="text-gray-700 text-sm md:text-base mb-6">
+              {t('wiseRedirectModal.instructions')}
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleWiseRedirectCancel}
+              >
+                {t('wiseRedirectModal.cancel')}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleWiseRedirectConfirm}
+              >
+                {t('wiseRedirectModal.confirm')}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
