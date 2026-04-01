@@ -1,4 +1,5 @@
 import mammoth from 'mammoth';
+import { DocumentImportError } from '@/lib/document-import-errors';
 
 export type SupportedDocumentType = 'docx' | 'pdf' | 'txt';
 export type ExtractionConfidence = 'high' | 'medium' | 'low';
@@ -18,6 +19,7 @@ const SUPPORTED_MIME_TYPES: Record<SupportedDocumentType, string[]> = {
 
 const PDF_EMPTY_ERROR =
   'PDF appears to be empty or contains only images. Please ensure the PDF has extractable text.';
+const DEFAULT_PARSER_TIMEOUT_MS = 15000;
 
 function getExtensionFromName(fileName: string): string | null {
   const extension = fileName.split('.').pop()?.toLowerCase();
@@ -134,6 +136,51 @@ async function parsePDFBuffer(buffer: Buffer): Promise<string> {
   return normalized;
 }
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, onTimeout: () => Error): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(onTimeout()), timeoutMs);
+    promise
+      .then((result) => {
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
+async function callExternalOcrFallback(file: File): Promise<string | null> {
+  const endpoint = process.env.OCR_FALLBACK_ENDPOINT;
+  if (!endpoint) {
+    return null;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('filename', file.name);
+
+  const headers: HeadersInit = {};
+  if (process.env.OCR_FALLBACK_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.OCR_FALLBACK_TOKEN}`;
+  }
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new DocumentImportError('OCR_FAILED', 'OCR fallback failed. Please try again with a clearer PDF.', 502);
+  }
+
+  const data = (await response.json()) as { text?: string };
+  const text = data?.text?.trim();
+  return text || null;
+}
+
 function analyzeTextQuality(text: string): ExtractionQuality {
   const nonWhitespaceChars = (text.match(/\S/g) || []).length;
   const alphaChars = (text.match(/[A-Za-z]/g) || []).length;
@@ -177,32 +224,86 @@ function analyzeTextQuality(text: string): ExtractionQuality {
 
 export async function extractDocumentText(
   file: File,
-  options?: { forceType?: SupportedDocumentType; maxCharacters?: number }
-): Promise<{ text: string; type: SupportedDocumentType; quality: ExtractionQuality }> {
+  options?: {
+    forceType?: SupportedDocumentType;
+    maxCharacters?: number;
+    timeoutMs?: number;
+    enableOcrFallback?: boolean;
+  }
+): Promise<{ text: string; type: SupportedDocumentType; quality: ExtractionQuality; ocrUsed: boolean }> {
   const type = options?.forceType || (await resolveDocumentTypeSecure(file));
   if (!type) {
-    throw new Error('Unsupported file type');
+    throw new DocumentImportError('UNSUPPORTED_FILE_TYPE', 'Unsupported file type.', 400);
   }
 
   let text = '';
+  let ocrUsed = false;
+  const timeoutMs = options?.timeoutMs ?? DEFAULT_PARSER_TIMEOUT_MS;
+  const ocrEnabled = Boolean(options?.enableOcrFallback && process.env.OCR_FALLBACK_ENDPOINT);
 
   if (type === 'txt') {
-    text = await file.text();
+    text = await withTimeout(
+      file.text(),
+      timeoutMs,
+      () => new DocumentImportError('PARSER_TIMEOUT', 'Document parsing timed out.', 408)
+    );
   } else {
-    const arrayBuffer = await file.arrayBuffer();
+    const arrayBuffer = await withTimeout(
+      file.arrayBuffer(),
+      timeoutMs,
+      () => new DocumentImportError('PARSER_TIMEOUT', 'Document parsing timed out.', 408)
+    );
     const buffer = Buffer.from(arrayBuffer);
 
     if (type === 'docx') {
-      const result = await mammoth.extractRawText({ buffer });
+      const result = await withTimeout(
+        mammoth.extractRawText({ buffer }),
+        timeoutMs,
+        () => new DocumentImportError('PARSER_TIMEOUT', 'Document parsing timed out.', 408)
+      );
       text = result.value;
     } else {
-      text = await parsePDFBuffer(buffer);
+      try {
+        text = await withTimeout(
+          parsePDFBuffer(buffer),
+          timeoutMs,
+          () => new DocumentImportError('PARSER_TIMEOUT', 'Document parsing timed out.', 408)
+        );
+      } catch (error) {
+        if (
+          ocrEnabled &&
+          ((error instanceof Error && error.message.includes(PDF_EMPTY_ERROR)) || error instanceof DocumentImportError)
+        ) {
+          const ocrText = await withTimeout(
+            callExternalOcrFallback(file),
+            timeoutMs,
+            () => new DocumentImportError('PARSER_TIMEOUT', 'Document parsing timed out.', 408)
+          );
+          if (!ocrText) {
+            throw new DocumentImportError(
+              'OCR_REQUIRED',
+              'This PDF appears to be scanned. OCR fallback is required to extract text.',
+              422
+            );
+          }
+          text = ocrText;
+          ocrUsed = true;
+        } else if (error instanceof DocumentImportError) {
+          throw error;
+        } else {
+          throw new DocumentImportError('PARSE_FAILED', 'Failed to parse PDF document.', 500);
+        }
+      }
     }
   }
 
   const normalized = text.trim();
   if (!normalized) {
-    throw new Error('Document appears to be empty.');
+    throw new DocumentImportError(
+      type === 'pdf' ? 'PDF_IMAGE_ONLY' : 'EMPTY_DOCUMENT',
+      type === 'pdf' ? PDF_EMPTY_ERROR : 'Document appears to be empty.',
+      422
+    );
   }
 
   const limitedText =
@@ -210,10 +311,33 @@ export async function extractDocumentText(
       ? normalized.substring(0, options.maxCharacters)
       : normalized;
 
+  let quality = analyzeTextQuality(limitedText);
+  if (type === 'pdf' && quality.confidence === 'low' && ocrEnabled && !ocrUsed) {
+    const ocrText = await callExternalOcrFallback(file);
+    if (ocrText && ocrText.trim()) {
+      const fallbackText = options?.maxCharacters && options.maxCharacters > 0
+        ? ocrText.trim().substring(0, options.maxCharacters)
+        : ocrText.trim();
+      quality = analyzeTextQuality(fallbackText);
+      return {
+        text: fallbackText,
+        type,
+        quality,
+        ocrUsed: true,
+      };
+    }
+    throw new DocumentImportError(
+      'OCR_REQUIRED',
+      'This PDF appears to be scanned. OCR fallback is required to extract text.',
+      422
+    );
+  }
+
   return {
     text: limitedText,
     type,
-    quality: analyzeTextQuality(limitedText),
+    quality,
+    ocrUsed,
   };
 }
 

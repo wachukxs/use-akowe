@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  DOCUMENT_IMPORT_ERRORS,
   extractDocumentText,
   ExtractionConfidence,
   resolveDocumentTypeSecure,
 } from '@/lib/document-extraction';
+import { getImportErrorResponse, getLocalizedImportMessage } from '@/lib/import-error-localization';
 
 // Simplified import preview for lead magnet (no auth required)
 // Returns limited preview to encourage signup
@@ -24,15 +24,18 @@ async function parseFile(file: File): Promise<{
   gaps: ReadinessGap[];
   extractionConfidence: ExtractionConfidence;
   extractionSignal: 'clean_text' | 'sparse_text' | 'noisy_text';
+  ocrUsed: boolean;
 }> {
   const detectedType = await resolveDocumentTypeSecure(file);
   if (!detectedType) {
     throw new Error('Unsupported file type');
   }
 
-  const { text, quality } = await extractDocumentText(file, {
+  const { text, quality, ocrUsed } = await extractDocumentText(file, {
     forceType: detectedType,
     maxCharacters: 20000,
+    timeoutMs: 15000,
+    enableOcrFallback: true,
   });
   
   // Extract title (first line or first heading)
@@ -189,6 +192,7 @@ async function parseFile(file: File): Promise<{
     gaps: gaps.slice(0, 4), // Limit to 4 gaps for preview
     extractionConfidence: quality.confidence,
     extractionSignal: quality.signal,
+    ocrUsed,
   };
 }
 
@@ -198,21 +202,24 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: getLocalizedImportMessage(request, 'NO_FILE_PROVIDED'), errorCode: 'NO_FILE_PROVIDED' },
+        { status: 400 }
+      );
     }
     
     // Validate file
     const extension = await resolveDocumentTypeSecure(file);
     if (!extension) {
       return NextResponse.json(
-        { error: 'Unsupported file type. Use .docx, .pdf, or .txt' },
+        { error: getLocalizedImportMessage(request, 'UNSUPPORTED_FILE_TYPE'), errorCode: 'UNSUPPORTED_FILE_TYPE' },
         { status: 400 }
       );
     }
     
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json(
-        { error: 'File too large. Maximum 10MB for free preview.' },
+        { error: `${getLocalizedImportMessage(request, 'FILE_TOO_LARGE')} Maximum 10MB for free preview.`, errorCode: 'FILE_TOO_LARGE' },
         { status: 400 }
       );
     }
@@ -233,15 +240,17 @@ export async function POST(request: NextRequest) {
         fileName: file.name,
         extractionConfidence: result.extractionConfidence,
         extractionSignal: result.extractionSignal,
+        ocrUsed: result.ocrUsed,
       },
     });
   } catch (error) {
     console.error('Error in import preview:', error);
-    if (error instanceof Error && error.message.includes(DOCUMENT_IMPORT_ERRORS.PDF_EMPTY_ERROR)) {
-      return NextResponse.json({ error: DOCUMENT_IMPORT_ERRORS.PDF_EMPTY_ERROR }, { status: 400 });
+    const localized = getImportErrorResponse(error, request);
+    if (localized) {
+      return localized;
     }
     return NextResponse.json(
-      { error: 'Failed to parse document' },
+      { error: 'Failed to parse document', errorCode: 'PARSE_FAILED' },
       { status: 500 }
     );
   }

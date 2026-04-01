@@ -55,6 +55,20 @@ export interface ParsedCitation {
   source: 'parsed' | 'manual';
 }
 
+function normalizeAuthor(author: string): string {
+  return author.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function buildCitationIdentity(authors: string[], year?: number, doi?: string, citationText?: string): string {
+  if (doi) {
+    return `doi:${doi.trim().toLowerCase()}`;
+  }
+  const mainAuthor = authors[0] ? normalizeAuthor(authors[0]) : 'unknown';
+  const normalizedText = (citationText || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const yearValue = Number.isInteger(year) ? String(year) : 'n.d.';
+  return `${mainAuthor}|${yearValue}|${normalizedText}`;
+}
+
 /**
  * Parse citations from text content based on citation style
  */
@@ -123,13 +137,6 @@ export function parseCitationsFromText(
           : undefined;
       const yearForKey = Number.isInteger(year) ? year : formatYearForCitationKey(undefined);
 
-      // Skip if we've already seen this citation
-      const citationKey = `${authorPart}-${yearForKey}`.toLowerCase();
-      if (seenCitations.has(citationKey)) {
-        continue;
-      }
-      seenCitations.add(citationKey);
-
       // Create citation object
       const citation: ParsedCitation = {
         id: `parsed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -142,6 +149,13 @@ export function parseCitationsFromText(
         addedAt: new Date(),
         source: 'parsed'
       };
+
+      const identity = buildCitationIdentity(citation.authors, citation.year, citation.doi, citation.citationText);
+      if (seenCitations.has(identity) || seenCitations.has(`${authorPart.toLowerCase()}-${yearForKey}`)) {
+        continue;
+      }
+      seenCitations.add(identity);
+      seenCitations.add(`${authorPart.toLowerCase()}-${yearForKey}`);
 
       citations.push(citation);
     }
@@ -226,36 +240,38 @@ export function mergeCitations(
   existingCitations: Citation[], 
   parsedCitations: ParsedCitation[]
 ): Citation[] {
-  const merged = [...existingCitations];
+  const merged: Citation[] = [];
+  const seen = new Set<string>();
+
+  for (const existing of existingCitations) {
+    const identity = buildCitationIdentity(existing.authors || [], existing.year, existing.doi, existing.citationText);
+    if (seen.has(identity)) continue;
+    seen.add(identity);
+    merged.push(existing);
+  }
   
   for (const parsedCitation of parsedCitations) {
-    // Check if citation already exists (year comparison handles undefined)
-    const exists = existingCitations.some(
-      (existing) =>
-        existing.authors.some((author) =>
-          parsedCitation.authors.some(
-            (parsedAuthor) =>
-              author.toLowerCase().includes(parsedAuthor.toLowerCase()) ||
-              parsedAuthor.toLowerCase().includes(author.toLowerCase())
-          )
-        ) && existing.year === parsedCitation.year
+    const identity = buildCitationIdentity(
+      parsedCitation.authors || [],
+      parsedCitation.year,
+      parsedCitation.doi,
+      parsedCitation.citationText
     );
-    
-    if (!exists) {
-      merged.push({
-        id: parsedCitation.id,
-        title: parsedCitation.title,
-        authors: parsedCitation.authors,
-        year: parsedCitation.year,
-        journal: parsedCitation.journal,
-        doi: parsedCitation.doi,
-        url: parsedCitation.url,
-        citationKey: parsedCitation.citationKey,
-        citationText: parsedCitation.citationText,
-        addedAt: parsedCitation.addedAt,
-        source: parsedCitation.source
-      });
-    }
+    if (seen.has(identity)) continue;
+    seen.add(identity);
+    merged.push({
+      id: parsedCitation.id,
+      title: parsedCitation.title,
+      authors: parsedCitation.authors,
+      year: parsedCitation.year,
+      journal: parsedCitation.journal,
+      doi: parsedCitation.doi,
+      url: parsedCitation.url,
+      citationKey: parsedCitation.citationKey,
+      citationText: parsedCitation.citationText,
+      addedAt: parsedCitation.addedAt,
+      source: parsedCitation.source
+    });
   }
   
   return merged;
@@ -264,24 +280,29 @@ export function mergeCitations(
 /**
  * Extract citations from all sections of a project
  */
-export function extractCitationsFromProject(sections: any[], citationStyle: string): ParsedCitation[] {
+export function extractCitationsFromProject(
+  sections: Array<{ content?: string }>,
+  citationStyle: string
+): ParsedCitation[] {
   const allCitations: ParsedCitation[] = [];
+  const seen = new Set<string>();
   
   for (const section of sections) {
     if (section.content) {
       const sectionCitations = parseCitationsFromText(section.content, citationStyle);
-      allCitations.push(...sectionCitations);
+      for (const citation of sectionCitations) {
+        const identity = buildCitationIdentity(
+          citation.authors || [],
+          citation.year,
+          citation.doi,
+          citation.citationText
+        );
+        if (seen.has(identity)) continue;
+        seen.add(identity);
+        allCitations.push(citation);
+      }
     }
   }
-  
-  // Remove duplicates (year may be undefined)
-  const uniqueCitations = allCitations.filter(
-    (citation, index, self) =>
-      index ===
-      self.findIndex(
-        (c) => c.authors[0] === citation.authors[0] && c.year === citation.year
-      )
-  );
-  
-  return uniqueCitations;
+
+  return allCitations;
 }

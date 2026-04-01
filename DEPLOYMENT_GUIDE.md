@@ -26,6 +26,8 @@ NEXTAUTH_URL=http://localhost:3000
 # AI Services
 OPENAI_API_KEY=your_openai_key
 ANTHROPIC_API_KEY=your_anthropic_key
+OCR_FALLBACK_ENDPOINT=https://your-ocr-service.example.com/parse
+OCR_FALLBACK_TOKEN=optional_ocr_service_token
 
 # Other APIs
 SERPAPI_API_KEY=your_serpapi_key
@@ -143,6 +145,30 @@ After deployment:
 - **Database connection fails**: Verify MONGODB_URI
 - **Authentication issues**: Check NEXTAUTH_SECRET and NEXTAUTH_URL
 - **AI features not working**: Verify API keys are set
+- **Scanned PDFs fail to import**: Verify OCR_FALLBACK_ENDPOINT and OCR_FALLBACK_TOKEN
+
+### OCR Service Contract (Ops Reference)
+
+If you configure `OCR_FALLBACK_ENDPOINT`, the app sends:
+
+- `POST` multipart/form-data
+- fields:
+  - `file` (PDF binary)
+  - `filename` (original file name)
+- optional header:
+  - `Authorization: Bearer <OCR_FALLBACK_TOKEN>`
+
+Expected response:
+
+- `200` JSON:
+  ```json
+  { "text": "extracted plain text..." }
+  ```
+
+Failure behavior in app:
+
+- Non-200 response -> `OCR_FAILED`
+- Empty OCR text for scanned PDF -> `OCR_REQUIRED`
 
 **Debug Commands:**
 ```bash

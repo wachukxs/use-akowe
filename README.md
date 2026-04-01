@@ -54,6 +54,45 @@ Edit `.env.local` and add your credentials:
 - NextAuth secret
 - (Optional) Google OAuth credentials
 - (Optional) Copyleaks API key for plagiarism checking
+- (Optional) OCR fallback endpoint for scanned PDFs
+
+### OCR Fallback (Optional, Recommended)
+
+The import pipeline attempts normal PDF text extraction first. If a PDF appears scanned/image-only,
+it can call an external OCR service.
+
+Add these env vars if you have an OCR service:
+
+```bash
+OCR_FALLBACK_ENDPOINT=https://your-ocr-service.example.com/parse
+OCR_FALLBACK_TOKEN=your_service_token_optional
+```
+
+#### Request contract (Akowe -> OCR service)
+
+- Method: `POST`
+- Content-Type: `multipart/form-data`
+- Form fields:
+  - `file`: uploaded PDF binary
+  - `filename`: original filename string
+- Optional header:
+  - `Authorization: Bearer <OCR_FALLBACK_TOKEN>` (only when token is configured)
+
+#### Response contract (OCR service -> Akowe)
+
+- Success (`200`):
+  ```json
+  { "text": "extracted plain text..." }
+  ```
+- Failure (`>=400`): any non-200 response is treated as OCR failure.
+
+#### Runtime behavior
+
+- If OCR returns valid `text`, import continues with OCR output.
+- If OCR is not configured or returns empty text for scanned PDFs, API returns:
+  - `errorCode: "OCR_REQUIRED"` (unprocessable scanned document)
+- If OCR endpoint errors, API returns:
+  - `errorCode: "OCR_FAILED"`
 
 4. Run the development server:
 \`\`\`bash

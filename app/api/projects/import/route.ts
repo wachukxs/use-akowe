@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import { Citation } from '@/types';
 import {
-  DOCUMENT_IMPORT_ERRORS,
   extractDocumentText,
   resolveDocumentTypeSecure,
 } from '@/lib/document-extraction';
+import { getImportErrorResponse, getLocalizedImportMessage } from '@/lib/import-error-localization';
 
 /**
  * POST /api/projects/import
@@ -23,13 +23,16 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: getLocalizedImportMessage(request, 'NO_FILE_PROVIDED'), errorCode: 'NO_FILE_PROVIDED' },
+        { status: 400 }
+      );
     }
 
     const detectedType = await resolveDocumentTypeSecure(file);
     if (!detectedType) {
       return NextResponse.json(
-        { error: 'Unsupported file type. Please upload a .docx, .pdf, or .txt file.' },
+        { error: getLocalizedImportMessage(request, 'UNSUPPORTED_FILE_TYPE'), errorCode: 'UNSUPPORTED_FILE_TYPE' },
         { status: 400 }
       );
     }
@@ -38,7 +41,7 @@ export async function POST(request: NextRequest) {
     const maxSize = 50 * 1024 * 1024; // 50MB default
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'File too large. Maximum size is 50MB.' },
+        { error: `${getLocalizedImportMessage(request, 'FILE_TOO_LARGE')} Maximum size is 50MB.`, errorCode: 'FILE_TOO_LARGE' },
         { status: 400 }
       );
     }
@@ -70,10 +73,11 @@ export async function POST(request: NextRequest) {
       }
     } catch (parseError) {
       console.error('Error parsing document:', parseError);
-      return NextResponse.json(
-        { error: 'Failed to parse document. Please ensure the file is not corrupted.' },
-        { status: 500 }
-      );
+      const localized = getImportErrorResponse(parseError, request);
+      if (localized) {
+        return localized;
+      }
+      return NextResponse.json({ error: 'Failed to parse document. Please ensure the file is not corrupted.', errorCode: 'PARSE_FAILED' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -107,7 +111,7 @@ async function parseDOCX(file: File): Promise<{
   topic: string;
 }> {
   try {
-    const { text } = await extractDocumentText(file, { forceType: 'docx' });
+    const { text } = await extractDocumentText(file, { forceType: 'docx', timeoutMs: 15000 });
     
     // Parse structure from text (similar to TXT parsing)
     const sections = parseTextIntoSections(text);
@@ -165,7 +169,11 @@ async function parsePDF(file: File): Promise<{
   topic: string;
 }> {
   try {
-    const { text: extractedText } = await extractDocumentText(file, { forceType: 'pdf' });
+    const { text: extractedText } = await extractDocumentText(file, {
+      forceType: 'pdf',
+      timeoutMs: 15000,
+      enableOcrFallback: true,
+    });
     
     // Parse structure from text
     const sections = parseTextIntoSections(extractedText);
@@ -205,10 +213,7 @@ async function parsePDF(file: File): Promise<{
     };
   } catch (error) {
     console.error('Error parsing PDF:', error);
-    if (error instanceof Error && error.message.includes(DOCUMENT_IMPORT_ERRORS.PDF_EMPTY_ERROR)) {
-      throw error;
-    }
-    throw new Error('Failed to parse PDF file. Please ensure the PDF has extractable text (not just images).');
+    throw error;
   }
 }
 
@@ -225,7 +230,7 @@ async function parseTXT(file: File): Promise<{
   wordCount: number;
   topic: string;
 }> {
-  const { text } = await extractDocumentText(file, { forceType: 'txt' });
+  const { text } = await extractDocumentText(file, { forceType: 'txt', timeoutMs: 15000 });
   
   // Parse structure from text
   const sections = parseTextIntoSections(text);

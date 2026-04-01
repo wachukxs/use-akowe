@@ -75,7 +75,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-center justify-between border-t-2 border-[hsl(var(--border-strong))] pt-4">
           <span className={cn('px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]', {
             'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]': project.status === 'draft',
-            'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]': project.status === 'in_progress',
+            'bg-[hsl(var(--secondary))]/20 text-[hsl(var(--foreground))]': project.status === 'in_progress',
             'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]': project.status === 'completed',
             'bg-[hsl(var(--surface-muted))] text-[hsl(var(--foreground))]': project.status === 'archived',
           })}>
