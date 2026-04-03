@@ -118,6 +118,13 @@
     "deleting": "削除中...",
     "confirm": "アカウントを削除"
   },
+  "wiseRedirectModal": {
+    "title": "Wiseへ進む",
+    "intro": "お支払いを完了するため、Wise にリダイレクトされます。",
+    "instructions": "銀行振込または Wise アカウントでのお支払い完了後は、ご自身で Akowe に戻ってください。Wise で入金が確認され次第、アカウント状態を更新します。",
+    "cancel": "今はしない",
+    "confirm": "Wiseへ移動"
+  },
   "alerts": {
     "failedToSend": "送信に失敗しました。もう一度お試しください。",
     "failedBillingPortal": "請求ポータルを開けませんでした。もう一度お試しください。",

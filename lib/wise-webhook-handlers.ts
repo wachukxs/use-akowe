@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import User from '@/models/User';
 import WiseWebhookReceipt from '@/models/WiseWebhookReceipt';
+import WisePaymentEvent from '@/models/WisePaymentEvent';
+import WiseCheckoutAttempt from '@/models/WiseCheckoutAttempt';
 import { extractMongoIdFromWiseReference } from '@/lib/wise-webhook';
 import type { WiseTransferDetails } from '@/lib/wise-api';
 import { wiseGetTransfer } from '@/lib/wise-api';
@@ -36,6 +38,98 @@ function combinedReferenceText(t: WiseTransferDetails): string {
   return parts.join(' ');
 }
 
+function extractTransferAmountForLedger(
+  transfer: WiseTransferDetails,
+  fallbackUsd: number | null = null
+): {
+  amount: number;
+  currency: string;
+  amountUsd: number | null;
+} | null {
+  const targetValue = typeof transfer.targetValue === 'number' ? transfer.targetValue : null;
+  const sourceValue = typeof transfer.sourceValue === 'number' ? transfer.sourceValue : null;
+  const targetCurrency = transfer.targetCurrency?.toUpperCase();
+  const sourceCurrency = transfer.sourceCurrency?.toUpperCase();
+
+  const usdFromTarget = targetCurrency === 'USD' && targetValue != null ? targetValue : null;
+  const usdFromSource = sourceCurrency === 'USD' && sourceValue != null ? sourceValue : null;
+  const computedUsd = usdFromTarget ?? usdFromSource ?? fallbackUsd;
+
+  if (targetValue != null && targetCurrency) {
+    return {
+      amount: targetValue,
+      currency: targetCurrency,
+      amountUsd: computedUsd,
+    };
+  }
+
+  if (sourceValue != null && sourceCurrency) {
+    return {
+      amount: sourceValue,
+      currency: sourceCurrency,
+      amountUsd: computedUsd,
+    };
+  }
+
+  return null;
+}
+
+async function recordWisePaymentEvent(params: {
+  transfer: WiseTransferDetails;
+  eventKind: 'payment' | 'refund';
+  eventType: string;
+  user?: InstanceType<typeof User> | null;
+  matchedSku?: WisePaymentLinkSku | null;
+}) {
+  const transferId = params.transfer.id != null ? String(params.transfer.id) : '';
+  if (!transferId) return;
+
+  let fallbackUsd: number | null = null;
+  if (params.matchedSku) {
+    fallbackUsd = WISE_SKU_USD_TARGET[params.matchedSku];
+  } else if (params.eventKind === 'refund') {
+    const priorPayment = await WisePaymentEvent.findOne({
+      provider: 'wise',
+      transferId,
+      eventKind: 'payment',
+      amountUsd: { $ne: null },
+    })
+      .select('amountUsd')
+      .lean();
+    fallbackUsd = typeof priorPayment?.amountUsd === 'number' ? priorPayment.amountUsd : null;
+  }
+
+  const amountData = extractTransferAmountForLedger(params.transfer, fallbackUsd);
+  if (!amountData) return;
+
+  const user = params.user || null;
+  const plan = user?.wisePendingPlan || user?.plan || null;
+  const billingCycle = user?.wisePendingBillingCycle || user?.billingCycle || null;
+
+  await WisePaymentEvent.findOneAndUpdate(
+    { provider: 'wise', transferId, eventKind: params.eventKind },
+    {
+      $set: {
+        eventType: params.eventType,
+        userId: user?._id || null,
+        amount: amountData.amount,
+        currency: amountData.currency,
+        amountUsd: amountData.amountUsd,
+        status: params.transfer.status || undefined,
+        plan,
+        billingCycle,
+        occurredAt: new Date(),
+      },
+      $setOnInsert: {
+        provider: 'wise',
+        transferId,
+        eventKind: params.eventKind,
+      },
+    },
+    { upsert: true, new: true }
+  );
+}
+
 export function isWiseTransferFailureState(state: string | undefined): boolean {
   return !!state && FAILURE_STATES.has(state);
 }
@@ -63,29 +157,90 @@ async function findUserByReferenceBlob(blob: string) {
   return null;
 }
 
-export async function findUserForWiseTransfer(transfer: WiseTransferDetails): Promise<InstanceType<typeof User> | null> {
+type WiseTransferMatch = {
+  user: InstanceType<typeof User> | null;
+  matchedSku: WisePaymentLinkSku | null;
+  matchedReference: string | null;
+};
+
+async function findPendingAttemptByReferenceBlob(blob: string) {
+  const trimmed = blob.trim();
+  if (!trimmed) return null;
+
+  const exact = await WiseCheckoutAttempt.findOne({
+    status: 'pending',
+    reference: { $regex: new RegExp(`^${escapeRegex(trimmed)}$`, 'i') },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+  if (exact) return exact;
+
+  const attempts = await WiseCheckoutAttempt.find({
+    status: 'pending',
+    reference: { $exists: true, $nin: [null, ''] },
+    createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+  })
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .lean();
+
+  for (const attempt of attempts) {
+    if (attempt.reference && refsLikelyMatch(trimmed, attempt.reference)) {
+      return attempt;
+    }
+  }
+  return null;
+}
+
+async function resolveWiseTransferMatch(transfer: WiseTransferDetails): Promise<WiseTransferMatch> {
+  /**
+   * User mapping decision order for Wise transfer events:
+   * 1) Pending WiseCheckoutAttempt by reference (authoritative, supports retries/multiple attempts).
+   * 2) Legacy user.wisePaymentReference matching.
+   * 3) Embedded Mongo ObjectId in reference text.
+   * 4) Last-resort SKU amount heuristic (only when uniquely matchable).
+   *
+   * This keeps checkout-attempt linkage stable even if the user starts checkout multiple times
+   * before completing payment.
+   */
   const blob = combinedReferenceText(transfer);
   if (blob) {
+    const matchedAttempt = await findPendingAttemptByReferenceBlob(blob);
+    if (matchedAttempt) {
+      const userByAttempt = await User.findById(matchedAttempt.userId);
+      if (userByAttempt) {
+        return {
+          user: userByAttempt,
+          matchedSku: matchedAttempt.sku,
+          matchedReference: matchedAttempt.reference,
+        };
+      }
+    }
+
     const byRef = await findUserByReferenceBlob(blob);
-    if (byRef) return byRef;
+    if (byRef) return { user: byRef, matchedSku: null, matchedReference: byRef.wisePaymentReference || null };
   }
 
   const oid = extractMongoIdFromWiseReference(blob);
   if (oid && mongoose.Types.ObjectId.isValid(oid)) {
     const byId = await User.findById(oid);
-    if (byId) return byId;
+    if (byId) return { user: byId, matchedSku: null, matchedReference: null };
   }
 
   const targetUsd = transfer.targetCurrency === 'USD' ? transfer.targetValue : undefined;
   const sourceUsd = transfer.sourceCurrency === 'USD' ? transfer.sourceValue : undefined;
   const usd = targetUsd ?? sourceUsd;
-  if (usd == null || Number.isNaN(usd)) return null;
+  if (usd == null || Number.isNaN(usd)) {
+    return { user: null, matchedSku: null, matchedReference: null };
+  }
 
   const tolerance = 0.02;
   const matchingSkus = (Object.keys(WISE_SKU_USD_TARGET) as WisePaymentLinkSku[]).filter(
     (sku) => Math.abs(WISE_SKU_USD_TARGET[sku] - usd) <= tolerance
   );
-  if (matchingSkus.length !== 1) return null;
+  if (matchingSkus.length !== 1) {
+    return { user: null, matchedSku: null, matchedReference: null };
+  }
   const sku = matchingSkus[0];
 
   const since = new Date(Date.now() - 72 * 60 * 60 * 1000);
@@ -98,9 +253,16 @@ export async function findUserForWiseTransfer(transfer: WiseTransferDetails): Pr
     .limit(2)
     .exec();
 
-  if (pending.length === 1) return pending[0];
+  if (pending.length === 1) {
+    return { user: pending[0], matchedSku: sku, matchedReference: pending[0].wisePaymentReference || null };
+  }
 
-  return null;
+  return { user: null, matchedSku: null, matchedReference: null };
+}
+
+export async function findUserForWiseTransfer(transfer: WiseTransferDetails): Promise<InstanceType<typeof User> | null> {
+  const match = await resolveWiseTransferMatch(transfer);
+  return match.user;
 }
 
 function transferStatusAllowsUpgrade(
@@ -169,6 +331,10 @@ export async function downgradeWisePaidUserToFree(user: InstanceType<typeof User
   user.wisePendingBillingCycle = undefined;
   user.wisePendingSku = undefined;
   await user.save();
+  await WiseCheckoutAttempt.updateMany(
+    { userId: user._id, status: 'pending' },
+    { $set: { status: 'cancelled' } }
+  );
 }
 
 /** If the Wise-paid term has ended, downgrade. Returns whether the user document was changed. */
@@ -185,6 +351,9 @@ export async function processWiseRefund(transferId: number, eventType: string): 
   const isNew = await recordWiseDedupe(dedupeKey, eventType);
   if (!isNew) return { ok: true, result: 'duplicate' };
 
+  const transfer = await wiseGetTransfer(transferId);
+  if (!transfer) return { ok: true, result: 'no_transfer_api' };
+
   let user =
     (await User.findOne({
       paymentProvider: 'wise',
@@ -192,10 +361,16 @@ export async function processWiseRefund(transferId: number, eventType: string): 
     })) || null;
 
   if (!user) {
-    const transfer = await wiseGetTransfer(transferId);
-    if (!transfer) return { ok: true, result: 'no_transfer_api' };
-    user = await findUserForWiseTransfer(transfer);
+    const match = await resolveWiseTransferMatch(transfer);
+    user = match.user;
   }
+
+  await recordWisePaymentEvent({
+    transfer,
+    eventKind: 'refund',
+    eventType,
+    user,
+  });
 
   if (!user) {
     console.log('[wise webhook] refund: no user for transfer', transferId);
@@ -217,6 +392,10 @@ export async function clearWisePendingForUser(user: InstanceType<typeof User>): 
   user.wisePendingBillingCycle = undefined;
   user.wisePendingSku = undefined;
   await user.save();
+  await WiseCheckoutAttempt.updateMany(
+    { userId: user._id, status: 'pending' },
+    { $set: { status: 'cancelled' } }
+  );
 }
 
 export async function recordWiseDedupe(dedupeKey: string, eventType: string): Promise<boolean> {
@@ -252,7 +431,16 @@ export async function processWiseTransferForPayment(
     return { ok: true, result: `status:${st || 'unknown'}` };
   }
 
-  const user = await findUserForWiseTransfer(transfer);
+  const match = await resolveWiseTransferMatch(transfer);
+  const user = match.user;
+  await recordWisePaymentEvent({
+    transfer,
+    eventKind: 'payment',
+    eventType,
+    user,
+    matchedSku: match.matchedSku,
+  });
+
   if (!user) {
     console.log('[wise webhook] no user matched transfer', tid);
     return { ok: true, result: 'no_user' };
@@ -263,10 +451,39 @@ export async function processWiseTransferForPayment(
   }
 
   const transferNumericId = typeof transfer.id === 'number' ? transfer.id : Number(transfer.id);
+  if (match.matchedSku) {
+    const pb = planBillingFromWiseSku(match.matchedSku);
+    user.wisePendingSku = match.matchedSku;
+    user.wisePendingPlan = pb.plan;
+    user.wisePendingBillingCycle = pb.billingCycle;
+    if (match.matchedReference) {
+      user.wisePaymentReference = match.matchedReference;
+    }
+  }
   const out = await applyWisePaymentUpgrade(
     user,
     Number.isFinite(transferNumericId) ? { transferId: transferNumericId } : undefined
   );
+  if (Number.isFinite(transferNumericId)) {
+    await WiseCheckoutAttempt.updateMany(
+      {
+        userId: user._id,
+        status: 'pending',
+      },
+      {
+        $set: {
+          status: 'cancelled',
+          transferId: transferNumericId,
+        },
+      }
+    );
+    if (match.matchedReference) {
+      await WiseCheckoutAttempt.updateOne(
+        { reference: match.matchedReference },
+        { $set: { status: 'completed', transferId: transferNumericId } }
+      );
+    }
+  }
   console.log('[wise webhook] transfer payment →', out, user._id);
   return { ok: true, result: out };
 }

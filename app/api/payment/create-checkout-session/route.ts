@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
 import { stripe, getStripePriceId } from '@/lib/stripe';
 import User from '@/models/User';
+import WiseCheckoutAttempt from '@/models/WiseCheckoutAttempt';
 import connectDB from '@/lib/mongodb';
 import { shouldUseWisePaymentLinks } from '@/lib/payment-region';
 import {
@@ -59,8 +60,11 @@ export async function POST(request: NextRequest) {
       }
 
       const ref = await generateUniqueWisePaymentReference(async (r) => {
-        const exists = await User.exists({ wisePaymentReference: r });
-        return !!exists;
+        const [existsUser, existsAttempt] = await Promise.all([
+          User.exists({ wisePaymentReference: r }),
+          WiseCheckoutAttempt.exists({ reference: r }),
+        ]);
+        return Boolean(existsUser || existsAttempt);
       });
 
       user.wisePaymentReference = ref;
@@ -68,6 +72,16 @@ export async function POST(request: NextRequest) {
       user.wisePendingBillingCycle = billingCycle;
       user.wisePendingSku = sku;
       await user.save();
+
+      await WiseCheckoutAttempt.create({
+        userId: user._id,
+        reference: ref,
+        plan: resolvedPlanType,
+        billingCycle,
+        sku,
+        status: 'pending',
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
 
       const url = appendAkoweRefToPaymentUrl(paymentUrl, ref);
 

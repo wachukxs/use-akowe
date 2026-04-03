@@ -1,6 +1,7 @@
 // Main metrics service - orchestrates all metric calculations
 
 import Stripe from 'stripe';
+import WisePaymentEvent from '@/models/WisePaymentEvent';
 import { DateRange, AdminMetricsResponse } from './types';
 import { createDateRange, getEarliestDataDate } from './date-utils';
 import * as periodMetrics from './period-metrics';
@@ -309,96 +310,114 @@ async function getPeriodRevenue(range: DateRange) {
   
   const validPriceIds = getValidPriceIds();
 
-  const defaultRevenue = {
-    revenueInPeriod: 0,
-    revenueLast7Days: 0,
-    growth: [] as Array<{ _id: string; count: number }>,
-  };
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
+  sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+  const sevenDaysAgoTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
 
-  // If Stripe is not configured, we can't compute revenue – return zeros.
-  if (!stripe) {
-    return defaultRevenue;
+  let revenueInPeriod = 0;
+  let revenueLast7Days = 0;
+  const dailyRevenueMap = new Map<string, number>();
+
+  if (stripe) {
+    try {
+      let startingAfter: string | undefined = undefined;
+      let hasMore = true;
+
+      while (hasMore) {
+        const page: Stripe.ApiList<Stripe.Invoice> = await stripe.invoices.list({
+          limit: 100,
+          status: 'paid',
+          created: {
+            gte: range.startTimestamp,
+            lte: range.endTimestamp,
+          },
+          starting_after: startingAfter,
+          expand: ['data.lines.data.price'],
+        });
+
+        for (const invoice of page.data) {
+          const createdTs =
+            typeof invoice.created === 'number'
+              ? invoice.created
+              : Math.floor(new Date(invoice.created as any).getTime() / 1000);
+
+          let invoiceAmountCents = 0;
+          if (validPriceIds.length > 0 && invoice.lines?.data?.length) {
+            invoice.lines.data.forEach((line: any) => {
+              const priceId = line.price?.id;
+              if (priceId && validPriceIds.includes(priceId)) {
+                invoiceAmountCents += line.amount || 0;
+              }
+            });
+          }
+
+          if (invoiceAmountCents === 0) {
+            invoiceAmountCents = invoice.amount_paid || 0;
+          }
+
+          const invoiceAmount = invoiceAmountCents / 100;
+          revenueInPeriod += invoiceAmount;
+
+          const dateStr = new Date(createdTs * 1000).toISOString().split('T')[0];
+          dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + invoiceAmount);
+
+          if (createdTs >= sevenDaysAgoTimestamp) {
+            revenueLast7Days += invoiceAmount;
+          }
+        }
+
+        hasMore = page.has_more;
+        if (hasMore && page.data.length > 0) {
+          startingAfter = page.data[page.data.length - 1].id;
+        } else {
+          hasMore = false;
+        }
+      }
+    } catch (error) {
+      console.warn('Error fetching period Stripe revenue:', error);
+    }
   }
 
-  try {
-    // Fetch paid invoices within the period to get actual collected revenue
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7);
-    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
-    const sevenDaysAgoTimestamp = Math.floor(sevenDaysAgo.getTime() / 1000);
+  // Merge Wise revenue events in the same period (payments positive, refunds negative).
+  const wiseEvents = await WisePaymentEvent.find({
+    provider: 'wise',
+    eventKind: { $in: ['payment', 'refund'] },
+    amountUsd: { $ne: null },
+    createdAt: {
+      $gte: range.start,
+      $lte: range.end,
+    },
+  })
+    .select('eventKind amountUsd createdAt')
+    .lean();
 
-    let startingAfter: string | undefined = undefined;
-    let hasMore = true;
+  for (const event of wiseEvents as Array<{ eventKind: string; amountUsd?: number | null; createdAt?: Date }>) {
+    const amount = typeof event.amountUsd === 'number' ? event.amountUsd : 0;
+    const signedAmount = event.eventKind === 'refund' ? -amount : amount;
 
-    let revenueInPeriod = 0;
-    let revenueLast7Days = 0;
-    const dailyRevenueMap = new Map<string, number>();
+    revenueInPeriod += signedAmount;
 
-    while (hasMore) {
-      const page: Stripe.ApiList<Stripe.Invoice> = await stripe.invoices.list({
-        limit: 100,
-        status: 'paid',
-        created: {
-          gte: range.startTimestamp,
-          lte: range.endTimestamp,
-        },
-        starting_after: startingAfter,
-        expand: ['data.lines.data.price'],
-      });
-
-      for (const invoice of page.data) {
-        const createdTs = typeof invoice.created === 'number'
-          ? invoice.created
-          : Math.floor(new Date(invoice.created as any).getTime() / 1000);
-
-        // Sum only matching price IDs when provided; otherwise use the invoice total
-        let invoiceAmountCents = 0;
-        if (validPriceIds.length > 0 && invoice.lines?.data?.length) {
-          invoice.lines.data.forEach((line: any) => {
-            const priceId = line.price?.id;
-            if (priceId && validPriceIds.includes(priceId)) {
-              invoiceAmountCents += line.amount || 0;
-            }
-          });
-        }
-
-        // Fallback to amount_paid when no line items matched or filtering not applied
-        if (invoiceAmountCents === 0) {
-          invoiceAmountCents = invoice.amount_paid || 0;
-        }
-
-        const invoiceAmount = invoiceAmountCents / 100;
-        revenueInPeriod += invoiceAmount;
-
-        const dateStr = new Date(createdTs * 1000).toISOString().split('T')[0];
-        dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + invoiceAmount);
-
-        if (createdTs >= sevenDaysAgoTimestamp) {
-          revenueLast7Days += invoiceAmount;
-        }
-      }
-
-      hasMore = page.has_more;
-      if (hasMore && page.data.length > 0) {
-        startingAfter = page.data[page.data.length - 1].id;
-      } else {
-        hasMore = false;
-      }
+    const createdTs = event.createdAt ? Math.floor(new Date(event.createdAt).getTime() / 1000) : 0;
+    const dateStr = createdTs > 0 ? new Date(createdTs * 1000).toISOString().split('T')[0] : null;
+    if (dateStr) {
+      dailyRevenueMap.set(dateStr, (dailyRevenueMap.get(dateStr) || 0) + signedAmount);
     }
 
-    const revenueGrowth = Array.from(dailyRevenueMap.entries())
-      .map(([date, amount]) => ({ _id: date, count: amount }))
-      .sort((a, b) => a._id.localeCompare(b._id));
-
-    return {
-      revenueInPeriod,
-      revenueLast7Days,
-      growth: revenueGrowth,
-    };
-  } catch (error) {
-    console.warn('Error fetching period revenue:', error);
-    return defaultRevenue;
+    if (createdTs >= sevenDaysAgoTimestamp) {
+      revenueLast7Days += signedAmount;
+    }
   }
+
+  const revenueGrowth = Array.from(dailyRevenueMap.entries())
+    .map(([date, amount]) => ({ _id: date, count: amount }))
+    .sort((a, b) => a._id.localeCompare(b._id));
+
+  return {
+    revenueInPeriod,
+    revenueLast7Days,
+    growth: revenueGrowth,
+  };
 }
 
 function getStripeClient() {

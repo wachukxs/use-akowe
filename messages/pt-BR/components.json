@@ -227,6 +227,8 @@
     "moreIssuesToFix": "+{count} more issues to fix",
     "fixInAkowe": "Fix Issues in Akọ̀wé",
     "continueInAkowe": "Continue in Akọ̀wé",
+    "extractionLowConfidence": "Baixa confianca de extracao. Este PDF pode ser digitalizado ou conter muitas imagens. O OCR pode melhorar os resultados.",
+    "extractionMediumConfidence": "Confianca de extracao moderada. Algumas secoes podem estar incompletas.",
     "analysisFailed": "Failed to analyze. Please try again."
   },
   "leadMagnetEmailCapture": {

@@ -43,6 +43,10 @@ export default function SettingsPage() {
   const [hasCheckoutCancelledParam, setHasCheckoutCancelledParam] = useState(false);
   const [showActive37Popup, setShowActive37Popup] = useState(false);
   const [active37Eligibility, setActive37Eligibility] = useState<{ eligible: boolean; activeDays?: number } | null>(null);
+  const [showWiseRedirectModal, setShowWiseRedirectModal] = useState(false);
+  const [wiseRedirectUrl, setWiseRedirectUrl] = useState<string | null>(null);
+  const CHECKOUT_REDIRECT_FLAG = 'akowe_checkout_redirecting';
+  const CHECKOUT_REDIRECT_FLAG_FALLBACK = 'akowe_checkout_redirecting_ls';
 
   const showCheckoutFeedback =
     hasCheckoutCancelledParam &&
@@ -152,6 +156,91 @@ export default function SettingsPage() {
     }
   }, [update]);
 
+  // If the page is restored from browser back/forward cache after external checkout,
+  // ensure upgrade buttons are clickable again.
+  useEffect(() => {
+    const resetUpgradeState = () => setIsUpgrading(false);
+    const clearCheckoutRedirect = () => {
+      sessionStorage.removeItem(CHECKOUT_REDIRECT_FLAG);
+      localStorage.removeItem(CHECKOUT_REDIRECT_FLAG_FALLBACK);
+    };
+    const hasCheckoutRedirectMark = () =>
+      sessionStorage.getItem(CHECKOUT_REDIRECT_FLAG) === '1' ||
+      localStorage.getItem(CHECKOUT_REDIRECT_FLAG_FALLBACK) === '1';
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      const fromCheckoutRedirect = hasCheckoutRedirectMark();
+      if (fromCheckoutRedirect) {
+        clearCheckoutRedirect();
+      }
+
+      if (event.persisted) {
+        resetUpgradeState();
+        // bfcache can restore stale React state; force clean re-render after checkout return.
+        if (fromCheckoutRedirect) {
+          window.location.reload();
+          return;
+        }
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      // Covers return from external payment pages where bfcache isn't used.
+      if (document.visibilityState === 'visible') {
+        resetUpgradeState();
+      }
+    };
+
+    const handleWindowFocus = () => {
+      // Additional safety net for browsers that don't emit persisted pageshow.
+      resetUpgradeState();
+    };
+
+    const handlePageHide = () => {
+      // Ensure bfcache snapshots do not preserve a stuck loading state.
+      resetUpgradeState();
+    };
+
+    if (hasCheckoutRedirectMark()) {
+      clearCheckoutRedirect();
+      resetUpgradeState();
+    }
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  const setCheckoutRedirectMark = () => {
+    sessionStorage.setItem(CHECKOUT_REDIRECT_FLAG, '1');
+    localStorage.setItem(CHECKOUT_REDIRECT_FLAG_FALLBACK, '1');
+  };
+
+  const clearCheckoutRedirectMark = () => {
+    sessionStorage.removeItem(CHECKOUT_REDIRECT_FLAG);
+    localStorage.removeItem(CHECKOUT_REDIRECT_FLAG_FALLBACK);
+  };
+
+  const handleWiseRedirectConfirm = () => {
+    if (!wiseRedirectUrl) return;
+    setCheckoutRedirectMark();
+    setShowWiseRedirectModal(false);
+    window.location.href = wiseRedirectUrl;
+  };
+
+  const handleWiseRedirectCancel = () => {
+    setShowWiseRedirectModal(false);
+    setWiseRedirectUrl(null);
+    setIsUpgrading(false);
+  };
+
   const fetchUsage = async () => {
     try {
       const [usageResponse, statusResponse] = await Promise.all([
@@ -201,6 +290,7 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json();
         if (data.url) {
+          setIsUpgrading(false);
           window.location.href = data.url;
         }
       } else {
@@ -239,21 +329,32 @@ export default function SettingsPage() {
           trackFunnel.checkoutStart(params.user_id, params.billing_cycle, params.plan_type);
         }
         
-        // Redirect to Stripe Checkout
+        // Redirect to payment provider checkout
         if (data.url) {
+          if (data.provider === 'wise') {
+            setWiseRedirectUrl(data.url);
+            setShowWiseRedirectModal(true);
+            setIsUpgrading(false);
+            return;
+          }
+          setCheckoutRedirectMark();
+          setIsUpgrading(false);
           window.location.href = data.url;
         } else {
-alert(t('alerts.failedCheckoutSession'));
-        setIsUpgrading(false);
+          alert(t('alerts.failedCheckoutSession'));
+          clearCheckoutRedirectMark();
+          setIsUpgrading(false);
         }
       } else {
         const error = await response.json();
         alert(t('alerts.failedStartCheckout', { error: error.error || 'Unknown error' }));
+        clearCheckoutRedirectMark();
         setIsUpgrading(false);
       }
     } catch (error) {
       console.error('Error starting checkout:', error);
       alert(t('alerts.errorStartCheckout'));
+      clearCheckoutRedirectMark();
       setIsUpgrading(false);
     }
   };
@@ -815,6 +916,45 @@ alert(t('alerts.failedCheckoutSession'));
           </Card>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showWiseRedirectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full p-4 md:p-6 relative">
+            <button
+              onClick={handleWiseRedirectCancel}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              aria-label={t('wiseRedirectModal.cancel')}
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">
+              {t('wiseRedirectModal.title')}
+            </h3>
+            <p className="text-gray-700 text-sm md:text-base mb-3">
+              {t('wiseRedirectModal.intro')}
+            </p>
+            <p className="text-gray-700 text-sm md:text-base mb-6">
+              {t('wiseRedirectModal.instructions')}
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleWiseRedirectCancel}
+              >
+                {t('wiseRedirectModal.cancel')}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleWiseRedirectConfirm}
+              >
+                {t('wiseRedirectModal.confirm')}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (

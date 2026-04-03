@@ -1,5 +1,6 @@
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import WisePaymentEvent from '@/models/WisePaymentEvent';
 import { createDateRange } from './metrics/date-utils';
 import * as periodMetrics from './metrics/period-metrics';
 import * as periodProductMetrics from './metrics/period-product-metrics';
@@ -31,7 +32,10 @@ async function getLocalRevenueMetrics() {
   
   // Get ALL users with subscriptions (active or expired - they've all paid at least once)
   const allSubscriptionUsers = await User.find({
-    stripeSubscriptionId: { $exists: true, $ne: null }
+    $or: [
+      { stripeSubscriptionId: { $exists: true, $ne: null } },
+      { paymentProvider: 'wise' },
+    ],
   }).select('billingCycle subscriptionStartDate subscriptionEndDate plan createdAt').lean();
   
   let mrr = 0;
@@ -96,6 +100,28 @@ async function getLocalRevenueMetrics() {
       totalRevenue += annualPrice * cyclesCompleted;
     }
   }
+
+  // Add net Wise-reported revenue from webhook ledger (payments - refunds).
+  const wiseRevenueAgg = await WisePaymentEvent.aggregate([
+    {
+      $match: {
+        provider: 'wise',
+        eventKind: { $in: ['payment', 'refund'] },
+        amountUsd: { $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: '$eventKind',
+        total: { $sum: '$amountUsd' },
+      },
+    },
+  ]);
+  const wisePayments =
+    wiseRevenueAgg.find((x: { _id: string; total: number }) => x._id === 'payment')?.total || 0;
+  const wiseRefunds =
+    wiseRevenueAgg.find((x: { _id: string; total: number }) => x._id === 'refund')?.total || 0;
+  totalRevenue += (wisePayments - wiseRefunds) * 100;
   
   return {
     totalRevenue: Math.round(totalRevenue), // Already in cents
@@ -138,7 +164,10 @@ export async function getPublicMetrics() {
       const proUsers = await User.countDocuments({ plan: 'pro' });
       const teamUsers = await User.countDocuments({ plan: 'team' });
       const usersWithSubscriptions = await User.countDocuments({
-        stripeSubscriptionId: { $exists: true, $ne: null }
+        $or: [
+          { stripeSubscriptionId: { $exists: true, $ne: null } },
+          { paymentProvider: 'wise' },
+        ],
       });
       return {
         total: totalUsers,

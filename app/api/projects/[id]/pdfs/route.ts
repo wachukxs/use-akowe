@@ -4,6 +4,19 @@ import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import User from '@/models/User';
 import { generateId } from '@/lib/utils';
+import { resolveDocumentTypeSecure } from '@/lib/document-extraction';
+import { getLocalizedImportMessage } from '@/lib/import-error-localization';
+
+function sanitizeUploadedFilename(filename: string): string {
+  const normalized = filename.normalize('NFKC').replace(/[\/\\]/g, '_');
+  const safe = normalized.replace(/[^A-Za-z0-9._-]/g, '_').replace(/_+/g, '_');
+  const trimmed = safe.replace(/^[_\.]+|[_\.]+$/g, '');
+  if (!trimmed) {
+    return 'document.pdf';
+  }
+  const withExtension = trimmed.toLowerCase().endsWith('.pdf') ? trimmed : `${trimmed}.pdf`;
+  return withExtension.slice(0, 120);
+}
 
 export async function POST(
   request: NextRequest,
@@ -42,26 +55,38 @@ export async function POST(
     const file = formData.get('file') as File;
     
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: getLocalizedImportMessage(request, 'NO_FILE_PROVIDED'), errorCode: 'NO_FILE_PROVIDED' },
+        { status: 400 }
+      );
     }
 
-    // Validate file type
-    if (file.type !== 'application/pdf') {
-      return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 });
+    const documentType = await resolveDocumentTypeSecure(file);
+    if (documentType !== 'pdf') {
+      return NextResponse.json(
+        { error: getLocalizedImportMessage(request, 'UNSUPPORTED_FILE_TYPE'), errorCode: 'UNSUPPORTED_FILE_TYPE' },
+        { status: 400 }
+      );
     }
 
     // Validate file size (10MB max)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      return NextResponse.json({ error: 'File size must be less than 10MB' }, { status: 400 });
+      return NextResponse.json(
+        { error: `${getLocalizedImportMessage(request, 'FILE_TOO_LARGE')} Maximum 10MB.`, errorCode: 'FILE_TOO_LARGE' },
+        { status: 400 }
+      );
     }
+
+    const safeFilename = sanitizeUploadedFilename(file.name);
+    const storageFilename = `${generateId()}-${safeFilename}`;
 
     // In production, upload to S3, GCS, or similar
     // For now, store metadata only
     const pdfData = {
       id: generateId(),
-      filename: file.name,
-      url: `/uploads/${id}/${file.name}`, // Mock URL
+      filename: storageFilename,
+      url: `/uploads/${id}/${encodeURIComponent(storageFilename)}`, // Mock URL
       uploadedAt: new Date(),
       size: file.size,
     };

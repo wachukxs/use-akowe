@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mammoth from 'mammoth';
+import {
+  extractDocumentText,
+  ExtractionConfidence,
+  resolveDocumentTypeSecure,
+} from '@/lib/document-extraction';
+import { getImportErrorResponse, getLocalizedImportMessage } from '@/lib/import-error-localization';
 
 // Simplified import preview for lead magnet (no auth required)
 // Returns limited preview to encourage signup
 
 interface ReadinessGap {
-  type: 'missing_section' | 'low_citations' | 'short_section' | 'no_methodology' | 'weak_structure';
+  type: 'missing_section' | 'low_citations' | 'short_section' | 'no_methodology' | 'weak_structure' | 'weak_extraction';
   message: string;
   severity: 'high' | 'medium' | 'low';
 }
@@ -17,26 +22,21 @@ async function parseFile(file: File): Promise<{
   citationCount: number;
   readinessScore: number;
   gaps: ReadinessGap[];
+  extractionConfidence: ExtractionConfidence;
+  extractionSignal: 'clean_text' | 'sparse_text' | 'noisy_text';
+  ocrUsed: boolean;
 }> {
-  const extension = file.name.split('.').pop()?.toLowerCase();
-  let text = '';
-  
-  if (extension === 'txt') {
-    text = await file.text();
-  } else if (extension === 'docx') {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const result = await mammoth.extractRawText({ buffer });
-    text = result.value;
-  } else if (extension === 'pdf') {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const rawText = buffer.toString('utf-8');
-    const matches = rawText.match(/[\x20-\x7E\n\r]+/g) || [];
-    text = matches.join(' ').substring(0, 20000);
-  } else {
+  const detectedType = await resolveDocumentTypeSecure(file);
+  if (!detectedType) {
     throw new Error('Unsupported file type');
   }
+
+  const { text, quality, ocrUsed } = await extractDocumentText(file, {
+    forceType: detectedType,
+    maxCharacters: 20000,
+    timeoutMs: 15000,
+    enableOcrFallback: true,
+  });
   
   // Extract title (first line or first heading)
   const lines = text.split('\n').filter(l => l.trim().length > 0);
@@ -100,11 +100,16 @@ async function parseFile(file: File): Promise<{
     /\[\d+\]/g, // [1], [2], etc.
   ];
   
-  let citationCount = 0;
+  const uniqueCitations = new Set<string>();
   for (const pattern of citationPatterns) {
-    const matches = text.match(pattern);
-    if (matches) citationCount += matches.length;
+    for (const match of text.matchAll(pattern)) {
+      const value = match[0];
+      if (!value) continue;
+      const start = match.index ?? -1;
+      uniqueCitations.add(`${start}:${value.toLowerCase()}`);
+    }
   }
+  const citationCount = uniqueCitations.size;
   
   const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
   
@@ -158,6 +163,22 @@ async function parseFile(file: File): Promise<{
     gaps.push({ type: 'weak_structure', message: 'Document lacks clear structure', severity: 'medium' });
     score -= 10;
   }
+
+  if (quality.confidence === 'low') {
+    gaps.push({
+      type: 'weak_extraction',
+      message: 'Document text extraction quality is low. This PDF may be scanned or image-heavy.',
+      severity: 'high',
+    });
+    score -= 20;
+  } else if (quality.confidence === 'medium' && detectedType === 'pdf') {
+    gaps.push({
+      type: 'weak_extraction',
+      message: 'PDF extraction confidence is moderate. Review imported text for missing sections.',
+      severity: 'medium',
+    });
+    score -= 10;
+  }
   
   // Ensure score stays in bounds
   score = Math.max(0, Math.min(100, score));
@@ -169,6 +190,9 @@ async function parseFile(file: File): Promise<{
     citationCount,
     readinessScore: score,
     gaps: gaps.slice(0, 4), // Limit to 4 gaps for preview
+    extractionConfidence: quality.confidence,
+    extractionSignal: quality.signal,
+    ocrUsed,
   };
 }
 
@@ -178,22 +202,24 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: getLocalizedImportMessage(request, 'NO_FILE_PROVIDED'), errorCode: 'NO_FILE_PROVIDED' },
+        { status: 400 }
+      );
     }
     
     // Validate file
-    const allowedExtensions = ['docx', 'pdf', 'txt'];
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    if (!extension || !allowedExtensions.includes(extension)) {
+    const extension = await resolveDocumentTypeSecure(file);
+    if (!extension) {
       return NextResponse.json(
-        { error: 'Unsupported file type. Use .docx, .pdf, or .txt' },
+        { error: getLocalizedImportMessage(request, 'UNSUPPORTED_FILE_TYPE'), errorCode: 'UNSUPPORTED_FILE_TYPE' },
         { status: 400 }
       );
     }
     
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json(
-        { error: 'File too large. Maximum 10MB for free preview.' },
+        { error: `${getLocalizedImportMessage(request, 'FILE_TOO_LARGE')} Maximum 10MB for free preview.`, errorCode: 'FILE_TOO_LARGE' },
         { status: 400 }
       );
     }
@@ -212,12 +238,19 @@ export async function POST(request: NextRequest) {
       metadata: {
         fileType: extension,
         fileName: file.name,
+        extractionConfidence: result.extractionConfidence,
+        extractionSignal: result.extractionSignal,
+        ocrUsed: result.ocrUsed,
       },
     });
   } catch (error) {
     console.error('Error in import preview:', error);
+    const localized = getImportErrorResponse(error, request);
+    if (localized) {
+      return localized;
+    }
     return NextResponse.json(
-      { error: 'Failed to parse document' },
+      { error: 'Failed to parse document', errorCode: 'PARSE_FAILED' },
       { status: 500 }
     );
   }

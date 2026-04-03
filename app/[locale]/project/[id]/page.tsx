@@ -5142,22 +5142,30 @@ title={t("deleteSection")}
 
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <input
-                    type="text"
+                  <textarea
                     value={aiInput}
-                    onChange={(e) => setAiInput(e.target.value)}
-                    onKeyPress={(e) =>
-                      e.key === "Enter" &&
-                      !e.shiftKey &&
-                      handleAIWrite(activeS?.id || "")
-                    }
+                    onChange={(e) => {
+                      setAiInput(e.target.value);
+                      e.currentTarget.style.height = "auto";
+                      const lineHeight = Number.parseFloat(getComputedStyle(e.currentTarget).lineHeight || "16");
+                      const maxHeight = lineHeight * 3 + 24; // 3 lines + vertical padding
+                      e.currentTarget.style.height = `${Math.min(e.currentTarget.scrollHeight, maxHeight)}px`;
+                    }}
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleAIWrite(activeS?.id || "");
+                        e.currentTarget.style.height = "auto";
+                      }
+                    }}
                     placeholder={t("askAboutSection", { title: activeS?.title || "Introduction" })}
-                    className="w-full px-4 py-3 pr-12 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em]"
+                    className="w-full min-h-[48px] max-h-[104px] overflow-y-auto px-4 py-3 pr-14 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) focus-visible:outline-2 focus-visible:outline-[hsl(var(--ring))] focus-visible:outline-offset-2 text-xs uppercase tracking-[0.2em] resize-none"
                   />
                   <button
                     onClick={() => handleAIWrite(activeS?.id || "")}
                     disabled={aiIsLoading || !aiInput.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
+                    className="absolute right-2 bottom-3 p-2 border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] rounded-(--radius) hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150 disabled:opacity-60 disabled:translate-x-0 disabled:translate-y-0"
                   >
                     <Send className="h-4 w-4" />
                   </button>

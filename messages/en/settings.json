@@ -131,6 +131,13 @@
     "deleting": "Deleting...",
     "confirm": "Delete Account"
   },
+  "wiseRedirectModal": {
+    "title": "Continue to Wise",
+    "intro": "You are about to be redirected to Wise to complete your payment.",
+    "instructions": "After you make the bank transfer or pay with your Wise account, return to Akowe manually. We will update your account status once Wise confirms the payment.",
+    "cancel": "Not now",
+    "confirm": "Go to Wise"
+  },
   "alerts": {
     "failedToSend": "Failed to send. Please try again.",
     "failedBillingPortal": "Failed to open billing portal. Please try again.",

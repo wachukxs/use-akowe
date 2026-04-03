@@ -227,6 +227,8 @@
     "moreIssuesToFix": "+{count} more issues to fix",
     "fixInAkowe": "Fix Issues in Akọ̀wé",
     "continueInAkowe": "Continue in Akọ̀wé",
+    "extractionLowConfidence": "추출 신뢰도가 낮습니다. 이 PDF는 스캔본이거나 이미지 비중이 높을 수 있습니다. OCR을 사용하면 결과가 개선될 수 있습니다.",
+    "extractionMediumConfidence": "추출 신뢰도가 보통 수준입니다. 일부 섹션이 불완전할 수 있습니다.",
     "analysisFailed": "Failed to analyze. Please try again."
   },
   "leadMagnetEmailCapture": {

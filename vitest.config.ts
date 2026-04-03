@@ -8,7 +8,7 @@ export default defineConfig({
     environment: 'happy-dom', // Use happy-dom for React component tests
     include: ['lib/**/*.test.ts', '**/__tests__/**/*.test.{ts,tsx}'],
     globals: true,
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: ['./lib/vitest.setup.ts'],
   },
   resolve: {
     alias: {
