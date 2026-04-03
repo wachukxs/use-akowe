@@ -117,7 +117,7 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/faq/${slug}`,
+              url: `${baseUrl}/en/faq/${slug}`,
               title: `${faq.question} - Akowe FAQ`,
               description: faq.answer.substring(0, 160),
             })),

@@ -109,7 +109,7 @@ export default async function TemplateKeywordPage({ params }: { params: Promise<
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/templates-keywords/${slug}`,
+              url: `${baseUrl}/en/templates-keywords/${slug}`,
               title: title,
               description: keywordPage.description,
             })),

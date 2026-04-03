@@ -100,7 +100,7 @@ export default async function MethodologyPage({ params }: { params: Promise<{ sl
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/methods/${slug}`,
+              url: `${baseUrl}/en/methods/${slug}`,
               title: keywordPage.title,
               description: keywordPage.description,
             })),

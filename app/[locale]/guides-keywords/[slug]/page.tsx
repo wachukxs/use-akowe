@@ -109,7 +109,7 @@ export default async function GuideKeywordPage({ params }: { params: Promise<{ s
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/guides-keywords/${slug}`,
+              url: `${baseUrl}/en/guides-keywords/${slug}`,
               title: title,
               description: keywordPage.description,
             })),

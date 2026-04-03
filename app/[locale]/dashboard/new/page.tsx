@@ -9,10 +9,11 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { ProjectType } from '@/types';
-import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, X, Sparkles } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Lightbulb, Info, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TopicFinderModal from '@/components/TopicFinderModal';
 import GuidedFirstProject from '@/components/GuidedFirstProject';
+import UpgradeModal from '@/components/UpgradeModal';
 import { trackFunnel } from '@/lib/gtag';
 
 const projectTypeConfig: {
@@ -37,8 +38,8 @@ export default function NewProjectPage() {
   const [citationStyle, setCitationStyle] = useState('APA');
   const [methodology, setMethodology] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [showLimitModal, setShowLimitModal] = useState(false);
   const [limitError, setLimitError] = useState<string>('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showTopicFinder, setShowTopicFinder] = useState(false);
   const [userPlan, setUserPlan] = useState<'free' | 'pro' | 'team'>('free');
@@ -200,7 +201,7 @@ export default function NewProjectPage() {
           // Track paywall view
           trackFunnel.paywallView('project_limit', 'new_project');
           setLimitError(error.message || t('limitReachedDefault'));
-          setShowLimitModal(true);
+          setShowUpgradeModal(true);
         } else {
           alert(`Error creating project: ${error.error || 'Unknown error'}`);
         }
@@ -569,51 +570,13 @@ export default function NewProjectPage() {
         </div>
       </div>
       
-      {/* Project Limit Modal */}
-      {showLimitModal && (
-        <div 
-          className="fixed inset-0 bg-[hsl(var(--foreground))]/60 flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowLimitModal(false);
-            }
-          }}
-        >
-          <div className="w-full max-w-md">
-            <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[10px_10px_0_rgba(29,41,57,0.2)] p-6 md:p-8 space-y-6 text-center">
-              <div className="mx-auto w-14 h-14 md:w-16 md:h-16 border-4 border-[hsl(var(--border-strong))] rounded-(--radius) flex items-center justify-center text-[hsl(var(--destructive))]">
-                <X className="w-6 h-6 md:w-8 md:h-8" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl md:text-2xl font-bold uppercase tracking-[0.16em]">
-                  {t('projectLimitReached')}
-                </h3>
-                <p className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                  {limitError}
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowLimitModal(false)}
-                  className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
-                >
-                  {t('cancel')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowLimitModal(false);
-                    router.push('/settings');
-                  }}
-                  className="flex-1 py-3 text-xs uppercase tracking-[0.2em]"
-                >
-                  {t('upgradePlan')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Project Limit - Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason={limitError || t('limitReachedDefault')}
+        suggestedPlan="standard"
+      />
 
       {/* Guided First Project Modal */}
       <GuidedFirstProject

@@ -121,7 +121,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/guides/${slug}`,
+              url: `${baseUrl}/en/guides/${slug}`,
               title: guide.title,
               description: guide.description,
               datePublished: new Date().toISOString(),
@@ -153,7 +153,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
               dateModified: new Date().toISOString(),
               mainEntityOfPage: {
                 '@type': 'WebPage',
-                '@id': `${baseUrl}/guides/${slug}`,
+                '@id': `${baseUrl}/en/guides/${slug}`,
               },
             }),
           }}

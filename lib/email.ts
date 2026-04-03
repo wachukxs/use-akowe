@@ -756,3 +756,55 @@ export async function sendAffiliateDeniedEmail(
 
   console.info('[email] Affiliate denied email sent', { to, messageId: info.messageId });
 }
+
+// ============================================
+// Daily AI word limit hit email
+// ============================================
+
+export async function sendLimitHitEmail(
+  to: string,
+  name: string,
+  wordsUsed: number
+): Promise<void> {
+  if (!transporter) {
+    console.warn('[email] Skipping limit-hit email - transporter not configured');
+    return;
+  }
+
+  const baseUrl = getBaseUrl();
+  const upgradeUrl = `${baseUrl}/en/settings?utm_source=email&utm_medium=transactional&utm_campaign=limit_hit#upgrade`;
+  const greeting = name || 'there';
+  const unsubUrl = getUnsubscribeUrl(to);
+
+  const info = await transporter.sendMail({
+    from: defaultFrom,
+    to,
+    subject: `You've used all ${wordsUsed} AI words for today`,
+    headers: unsubscribeHeaders(to),
+    text: [
+      `Hi ${greeting},`,
+      '',
+      `You just hit your daily AI writing limit on Akowe (${wordsUsed} words used today).`,
+      '',
+      "Your limit resets tomorrow — but if you're in the middle of something important, upgrading unlocks unlimited AI writing immediately.",
+      '',
+      `Upgrade now: ${upgradeUrl}`,
+      '',
+      'Standard is $5.83/month billed annually. No lock-in.',
+      '',
+      '— Olamide from Akowe',
+      emailFooterText(unsubUrl),
+    ].join('\n'),
+    html: `
+      <p>Hi ${greeting},</p>
+      <p>You just hit your daily AI writing limit on Akowe — <strong>${wordsUsed} words</strong> used today.</p>
+      <p>Your limit resets tomorrow. But if you're in the middle of something important, upgrading gives you unlimited AI writing right now.</p>
+      <p style="margin:20px 0;">${ctaButton(upgradeUrl, 'Upgrade — from $5.83/mo')}</p>
+      <p style="font-size:13px; color:#6b7280;">No long-term commitment. Cancel anytime.</p>
+      <p>— Olamide from Akowe</p>
+      ${emailFooter(unsubUrl)}
+    `,
+  });
+
+  console.info('[email] Limit-hit email sent', { to, messageId: info.messageId });
+}

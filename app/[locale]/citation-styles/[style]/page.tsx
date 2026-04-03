@@ -133,7 +133,7 @@ export default async function CitationStylePage({ params }: { params: Promise<{ 
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/citation-styles/${style}`,
+              url: `${baseUrl}/en/citation-styles/${style}`,
               title: `${citationStyle.name} Citation Guide`,
               description: citationStyle.description,
             })),

@@ -100,7 +100,7 @@ export default async function FieldPage({ params }: { params: Promise<{ slug: st
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/fields/${slug}`,
+              url: `${baseUrl}/en/fields/${slug}`,
               title: keywordPage.title,
               description: keywordPage.description,
             })),

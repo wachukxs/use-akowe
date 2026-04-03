@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import LeadMagnetContinuation from '@/components/LeadMagnetContinuation';
 import Active37DiscountPopup from '@/components/Active37DiscountPopup';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
+import UpgradeModal from '@/components/UpgradeModal';
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard');
@@ -24,6 +25,9 @@ export default function DashboardPage() {
   const [showActive37Popup, setShowActive37Popup] = useState(false);
   const [active37Eligibility, setActive37Eligibility] = useState<{ eligible: boolean; activeDays?: number } | null>(null);
   const [showIdleNudge, setShowIdleNudge] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [aiWordsUsed, setAiWordsUsed] = useState(0);
+  const [aiWordsLimit, setAiWordsLimit] = useState(500);
 
   // Find the most stale incomplete project for idle nudge
   const idleProject = useMemo(() => {
@@ -113,6 +117,22 @@ export default function DashboardPage() {
     };
   }, [session]);
 
+  // Fetch AI word usage for free users to show dashboard nudge
+  useEffect(() => {
+    const plan = (session?.user as any)?.plan;
+    if (plan !== 'free') return;
+    fetch('/api/usage')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return;
+        setAiWordsUsed(data.aiWordsGenerated ?? 0);
+        if (data.limits?.aiWordsPerDay && data.limits.aiWordsPerDay !== Infinity) {
+          setAiWordsLimit(data.limits.aiWordsPerDay);
+        }
+      })
+      .catch(() => {/* non-critical */});
+  }, [session]);
+
   const fetchProjects = async () => {
     try {
       const response = await fetch('/api/projects');
@@ -159,13 +179,19 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason="Upgrade for unlimited AI writing and more projects."
+      />
       <Active37DiscountPopup
         isOpen={showActive37Popup}
         onClose={() => {
           setShowActive37Popup(false);
         }}
         onUpgrade={() => {
-          router.push('/settings');
+          setShowActive37Popup(false);
+          setShowUpgradeModal(true);
         }}
         activeDays={active37Eligibility?.activeDays || 0}
       />
@@ -259,13 +285,60 @@ export default function DashboardPage() {
                 >
                   {t('importDocument')}
                 </button>
-                <button
-                  onClick={() => router.push('/settings')}
-                  className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
-                >
-                  {t('reviewPlans')}
-                </button>
+                {(session?.user as any)?.plan === 'free' ? (
+                  <button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  >
+                    {t('reviewPlans')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push('/settings')}
+                    className="w-full px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--surface))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--surface-muted))] transition-transform duration-150 hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem]"
+                  >
+                    {t('reviewPlans')}
+                  </button>
+                )}
               </div>
+
+              {/* AI usage widget — free users only */}
+              {(session?.user as any)?.plan === 'free' && (
+                <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.32em] text-[hsl(var(--accent-foreground))]">
+                      AI words today
+                    </span>
+                    <button
+                      onClick={() => setShowUpgradeModal(true)}
+                      className="text-[10px] uppercase tracking-[0.28em] font-semibold underline underline-offset-4 text-[hsl(var(--accent-foreground))] cursor-pointer"
+                    >
+                      Upgrade
+                    </button>
+                  </div>
+                  <div className="h-2 rounded-full bg-[hsl(var(--border-strong))] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        aiWordsUsed / aiWordsLimit >= 1
+                          ? 'bg-red-500'
+                          : aiWordsUsed / aiWordsLimit >= 0.8
+                          ? 'bg-yellow-500'
+                          : 'bg-[hsl(var(--primary))]'
+                      }`}
+                      style={{ width: `${Math.min(100, (aiWordsUsed / aiWordsLimit) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--accent-foreground))]">
+                    {aiWordsUsed.toLocaleString()} / {aiWordsLimit.toLocaleString()} used
+                    {aiWordsUsed / aiWordsLimit >= 0.8 && aiWordsUsed < aiWordsLimit && (
+                      <span className="ml-1 text-yellow-600 font-semibold">— almost at limit</span>
+                    )}
+                    {aiWordsUsed >= aiWordsLimit && (
+                      <span className="ml-1 text-red-500 font-semibold">— limit reached</span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

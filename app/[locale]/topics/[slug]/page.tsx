@@ -100,7 +100,7 @@ export default async function TopicPage({ params }: { params: Promise<{ slug: st
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/topics/${slug}`,
+              url: `${baseUrl}/en/topics/${slug}`,
               title: `${title} - Academic Writing Guide`,
               description: `Complete guide to ${title} for academic writing.`,
             })),

@@ -100,7 +100,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/compare/${slug}`,
+              url: `${baseUrl}/en/compare/${slug}`,
               title: comparison.title,
               description: comparison.description,
             })),

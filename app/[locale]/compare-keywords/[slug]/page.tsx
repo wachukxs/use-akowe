@@ -109,7 +109,7 @@ export default async function ComparisonKeywordPage({ params }: { params: Promis
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/compare-keywords/${slug}`,
+              url: `${baseUrl}/en/compare-keywords/${slug}`,
               title: title,
               description: keywordPage.description,
             })),

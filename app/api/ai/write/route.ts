@@ -46,9 +46,18 @@ export async function POST(request: NextRequest) {
     if (user.plan === 'free' && shouldShowPaywallBeforeOutput(paywallVariant) && !usageCheck.allowed) {
       // Track paywall view event
       await trackPaywallEvent(session.user.id, paywallVariant, 'paywall_view', 'ai_write');
-      
+
+      // Send limit-hit email once per day (fire-and-forget)
+      const today = new Date().toISOString().slice(0, 10);
+      if ((user as any).limitHitEmailSentDate !== today && user.email) {
+        User.findByIdAndUpdate(session.user.id, { limitHitEmailSentDate: today }).catch(() => {});
+        import('@/lib/email').then(({ sendLimitHitEmail }) => {
+          sendLimitHitEmail(user.email as string, user.name as string, usageCheck.limit - usageCheck.remaining).catch(() => {});
+        });
+      }
+
       return NextResponse.json(
-        { 
+        {
           error: 'Daily word limit reached',
           remaining: usageCheck.remaining,
           limit: usageCheck.limit,

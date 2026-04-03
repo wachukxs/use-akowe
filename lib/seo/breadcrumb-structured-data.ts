@@ -24,7 +24,7 @@ export function getBreadcrumbStructuredData(
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      item: `${baseUrl}${item.href}`,
+      item: `${baseUrl}/en${item.href}`,
     })),
   };
 }

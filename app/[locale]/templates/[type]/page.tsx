@@ -117,7 +117,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ type:
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/templates/${type}`,
+              url: `${baseUrl}/en/templates/${type}`,
               title: template.title,
               description: template.description,
             })),

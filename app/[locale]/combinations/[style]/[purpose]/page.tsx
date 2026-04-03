@@ -165,7 +165,7 @@ export default async function CombinationPage({ params }: { params: Promise<{ st
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/combinations/${style}/${purpose}`,
+              url: `${baseUrl}/en/combinations/${style}/${purpose}`,
               title: title,
               description: `Complete ${citationStyle.name} citation guide for ${purposeName.toLowerCase()}.`,
             })),

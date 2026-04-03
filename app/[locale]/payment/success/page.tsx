@@ -54,13 +54,15 @@ function PaymentSuccessContent() {
     };
 
     // Give Stripe time to send the webhook, then check
-    const timer = setTimeout(() => {
-      checkAndUpdatePlan();
+    const timer = setTimeout(async () => {
+      await checkAndUpdatePlan();
       setIsLoading(false);
+      // Auto-redirect after showing success for 3 seconds
+      setTimeout(() => router.push('/dashboard'), 3000);
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [searchParams, updateSession]);
+  }, [searchParams, updateSession, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -84,13 +86,13 @@ function PaymentSuccessContent() {
               Payment Successful!
             </h2>
             <p className="text-gray-600 mb-6">
-              Welcome to Pro! You now have access to all premium features.
+              You now have unlimited AI writing. Let&apos;s get back to your work.
             </p>
             <button
-              onClick={() => router.push('/settings?upgraded=true')}
+              onClick={() => router.push('/dashboard')}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
             >
-              Go to Settings
+              Continue Writing
             </button>
           </>
         )}

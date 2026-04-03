@@ -150,7 +150,7 @@ export default async function CitationSourcePage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/citation-sources/${style}/${type}`,
+              url: `${baseUrl}/en/citation-sources/${style}/${type}`,
               title: citationSource.title,
               description: citationSource.description,
             })),

@@ -650,7 +650,8 @@ export default function ProjectEditorPage({
 
   // AI words usage tracking (for free plan progress indicator)
   const [aiWordsUsed, setAiWordsUsed] = useState<number>(0);
-  const [aiWordsLimit, setAiWordsLimit] = useState<number>(200);
+  const [aiWordsLimit, setAiWordsLimit] = useState<number>(500);
+  const [usageBannerDismissed, setUsageBannerDismissed] = useState(false);
   const [rewriteHighlightRects, setRewriteHighlightRects] = useState<Array<{top: number; left: number; width: number; height: number}>>([]);
   const [rewriteHighlightType, setRewriteHighlightType] = useState<'loading' | 'success' | null>(null);
 
@@ -5094,8 +5095,8 @@ title={t("deleteSection")}
                       {aiWordsUsed.toLocaleString()} / {aiWordsLimit.toLocaleString()} AI words today
                     </span>
                     <button
-                      onClick={() => router.push("/settings")}
-                      className="underline underline-offset-4"
+                      onClick={() => { setUpgradeModalReason("Upgrade for unlimited AI writing."); setShowUpgradeModal(true); }}
+                      className="underline underline-offset-4 cursor-pointer"
                     >
                       {t("upgrade")}
                     </button>
@@ -5112,6 +5113,30 @@ title={t("deleteSection")}
                       style={{ width: `${Math.min(100, (aiWordsUsed / aiWordsLimit) * 100)}%` }}
                     />
                   </div>
+                </div>
+              )}
+
+              {(session?.user as any)?.plan === "free" &&
+                !usageBannerDismissed &&
+                aiWordsUsed / aiWordsLimit >= 0.8 &&
+                aiWordsUsed / aiWordsLimit < 1 && (
+                <div className="flex items-start justify-between gap-2 p-3 border-2 border-yellow-400 bg-yellow-50 text-yellow-900 rounded-(--radius) text-[10px] uppercase tracking-[0.18em]">
+                  <span>
+                    You&apos;ve used {Math.round((aiWordsUsed / aiWordsLimit) * 100)}% of today&apos;s AI words.{" "}
+                    <button
+                      onClick={() => { setUpgradeModalReason("Upgrade for unlimited AI writing."); setShowUpgradeModal(true); }}
+                      className="underline underline-offset-4 font-semibold cursor-pointer"
+                    >
+                      Upgrade for unlimited
+                    </button>
+                  </span>
+                  <button
+                    onClick={() => setUsageBannerDismissed(true)}
+                    className="flex-shrink-0 hover:opacity-70 cursor-pointer"
+                    aria-label="Dismiss"
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
               )}
 

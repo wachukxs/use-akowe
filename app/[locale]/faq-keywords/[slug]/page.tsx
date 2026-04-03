@@ -109,7 +109,7 @@ export default async function FAQKeywordPage({ params }: { params: Promise<{ slu
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(generateWebPageSchema({
-              url: `${baseUrl}/faq-keywords/${slug}`,
+              url: `${baseUrl}/en/faq-keywords/${slug}`,
               title: title,
               description: keywordPage.description,
             })),

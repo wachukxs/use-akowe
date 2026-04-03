@@ -35,6 +35,8 @@ interface IUser extends Omit<UserType, '_id'> {
   wiseRenewalReminderSentAt?: Date | null;
   /** IDs of announcements the user has dismissed. */
   dismissedAnnouncements?: mongoose.Types.ObjectId[];
+  /** Date (YYYY-MM-DD) we last sent the daily limit-hit email, to avoid repeat sends. */
+  limitHitEmailSentDate?: string | null;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -149,6 +151,10 @@ const UserSchema = new Schema<IUser>(
       type: [Schema.Types.ObjectId],
       ref: 'Announcement',
       default: [],
+    },
+    limitHitEmailSentDate: {
+      type: String,
+      default: null,
     },
   },
   {

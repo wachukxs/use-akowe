@@ -43,7 +43,7 @@ export default function UpgradeModal({
 }: UpgradeModalProps) {
   const router = useRouter();
   const t = useTranslations('components.upgradeModal');
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
   const [isUpgrading, setIsUpgrading] = useState<'standard' | 'pro' | null>(null);
 
   const PLANS = PLAN_META.map((plan) => ({
@@ -209,7 +209,10 @@ export default function UpgradeModal({
           })}
         </div>
 
-        <div className="p-4 border-t-2 border-[hsl(var(--border))] text-center">
+        <div className="p-4 border-t-2 border-[hsl(var(--border))] text-center space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+            Join 500+ researchers writing with Akowe Pro
+          </p>
           <p className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
             {t('footer')}
           </p>
