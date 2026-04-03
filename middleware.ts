@@ -33,6 +33,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // 3a. Traction/investor page: no locale, exclude from translations
+  if (pathname.startsWith('/traction')) {
+    return NextResponse.next();
+  }
+
   // 3. Admin API routes: no locale, return immediately
   if (pathname.startsWith('/api/admin')) {
     const publicAdminRoutes = ['/api/admin/login', '/api/admin/logout', '/api/admin/verify'];
