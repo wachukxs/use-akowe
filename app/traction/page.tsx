@@ -2,9 +2,9 @@ import { getPublicMetrics } from '@/lib/admin/public-metrics';
 import { notFound } from 'next/navigation';
 
 // ─── Known-accurate figures (update these as numbers change) ────────────────
+// Total users comes from the live DB — see below after getPublicMetrics()
 const TOTAL_SPEND_USD   = 600;   // total marketing spend to date
 const TOTAL_REVENUE_USD = 133;   // actual total revenue (verified from admin)
-const TOTAL_USERS       = 1550;  // verified from admin
 const PAID_CUSTOMERS    = 5;     // ever paid (includes lapsed)
 const ACTIVE_PAYING     = 3;     // currently active subscriptions
 const MONTHS_OPERATING  = 3;     // months since first spend
@@ -13,17 +13,13 @@ const ACCESS_TOKEN      = '';    // set a string to password-protect
 // ─── Valuation ──────────────────────────────────────────────────────────────
 const VALUATION_USD     = 500_000;  // pre-money · see methodology section on page
 
-// ─── Derived unit economics ─────────────────────────────────────────────────
-const COST_PER_USER     = TOTAL_SPEND_USD / TOTAL_USERS;
+// ─── Derived unit economics (totalUsers resolved after DB fetch below) ─────
 const CAC_USD           = TOTAL_SPEND_USD / PAID_CUSTOMERS;
 const ARPU_USD          = TOTAL_REVENUE_USD / PAID_CUSTOMERS;
 const LTV_USD           = ARPU_USD * 12;
 const LTV_CAC           = LTV_USD / CAC_USD;
-const CONVERSION_PCT    = ((PAID_CUSTOMERS / TOTAL_USERS) * 100).toFixed(2);
 const BURN_MONTHLY      = TOTAL_SPEND_USD / MONTHS_OPERATING;
-const IMPLIED_PER_USER  = VALUATION_USD / TOTAL_USERS;
-const CAC_AT_2PCT       = COST_PER_USER / 0.02;
-const CAC_AT_5PCT       = COST_PER_USER / 0.05;
+// cacAt2Pct and cacAt5Pct derived inside page function after totalUsers is known
 
 function fmt(n: number, dp = 0) {
   return n.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
@@ -87,10 +83,19 @@ export default async function TractionPage({
     liveMetrics = null;
   }
 
+  // Total users: live from DB, fall back to last-known figure if DB unavailable
+  const totalUsers     = liveMetrics?.users.total ?? 1550;
   const activeUsers30d = liveMetrics?.productHealth.activeUsers ?? 0;
   const aiWords30d     = liveMetrics?.usage.aiWordsInPeriod ?? 0;
   const totalProjects  = liveMetrics?.projects.total ?? 0;
   const wau            = liveMetrics?.users.wau ?? 0;
+
+  // User-dependent derived figures (need totalUsers from DB)
+  const costPerUser    = TOTAL_SPEND_USD / totalUsers;
+  const conversionPct  = ((PAID_CUSTOMERS / totalUsers) * 100).toFixed(2);
+  const impliedPerUser = VALUATION_USD / totalUsers;
+  const cacAt2Pct      = costPerUser / 0.02;
+  const cacAt5Pct      = costPerUser / 0.05;
 
   const date = new Date().toLocaleDateString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -132,7 +137,7 @@ export default async function TractionPage({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
               label="Total users"
-              value={fmt(TOTAL_USERS)}
+              value={fmt(totalUsers)}
               note={`Acquired over ${MONTHS_OPERATING} months`}
               accent
             />
@@ -165,10 +170,10 @@ export default async function TractionPage({
                 Cost per acquired user
               </p>
               <p className="text-5xl font-black text-[hsl(var(--foreground))]">
-                {usd(COST_PER_USER, 2)}
+                {usd(costPerUser, 2)}
               </p>
               <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                {usd(TOTAL_SPEND_USD)} spent · {fmt(TOTAL_USERS)} users · {MONTHS_OPERATING} months
+                {usd(TOTAL_SPEND_USD)} spent · {fmt(totalUsers)} users · {MONTHS_OPERATING} months
               </p>
               <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed pt-1">
                 The cost to bring someone through the door.
@@ -185,9 +190,9 @@ export default async function TractionPage({
                 {usd(TOTAL_SPEND_USD)} ÷ {PAID_CUSTOMERS} paying customers
               </p>
               <p className="text-xs opacity-70 leading-relaxed pt-1">
-                High because free-to-paid ({CONVERSION_PCT}%) hasn&apos;t been
-                actively worked yet. At 2% conversion: <strong className="opacity-100">{usd(CAC_AT_2PCT, 0)}</strong>.
-                At 5%: <strong className="opacity-100">{usd(CAC_AT_5PCT, 0)}</strong>.
+                High because free-to-paid ({conversionPct}%) hasn&apos;t been
+                actively worked yet. At 2% conversion: <strong className="opacity-100">{usd(cacAt2Pct, 0)}</strong>.
+                At 5%: <strong className="opacity-100">{usd(cacAt5Pct, 0)}</strong>.
               </p>
             </div>
           </div>
@@ -205,7 +210,7 @@ export default async function TractionPage({
             />
             <StatCard
               label="Free-to-paid rate"
-              value={`${CONVERSION_PCT}%`}
+              value={`${conversionPct}%`}
               note="SaaS baseline is 2–5%"
             />
           </div>
@@ -216,11 +221,11 @@ export default async function TractionPage({
               The opportunity
             </p>
             <p className="text-sm text-[hsl(var(--foreground))] leading-relaxed">
-              Acquisition is cheap at <strong>{usd(COST_PER_USER, 2)}/user</strong>. The bottleneck
+              Acquisition is cheap at <strong>{usd(costPerUser, 2)}/user</strong>. The bottleneck
               is converting free users to paid — a product and messaging problem, not a distribution
               problem. That&apos;s the most tractable kind to have. Moving conversion from{' '}
-              {CONVERSION_PCT}% to 2% — without acquiring a single new user — produces{' '}
-              <strong>{fmt(Math.round(TOTAL_USERS * 0.02))} paying customers</strong> from
+              {conversionPct}% to 2% — without acquiring a single new user — produces{' '}
+              <strong>{fmt(Math.round(totalUsers * 0.02))} paying customers</strong> from
               the existing base.
             </p>
           </div>
@@ -253,7 +258,7 @@ export default async function TractionPage({
               </p>
               <div className="space-y-2 pt-1">
                 {[
-                  `${fmt(TOTAL_USERS)} users at ${usd(COST_PER_USER, 2)}/user — well below industry average`,
+                  `${fmt(totalUsers)} users at ${usd(costPerUser, 2)}/user — well below industry average`,
                   'Conversion funnel is the known bottleneck, not product quality',
                   'Recurring need — students return each semester with new assignments',
                   'Free-to-paid improvement is a lever, not a variable',
@@ -269,7 +274,7 @@ export default async function TractionPage({
             <div className="space-y-3">
               <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 space-y-1">
                 <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">User-based multiple</p>
-                <p className="text-lg font-black">{usd(TOTAL_USERS * 50)} – {usd(TOTAL_USERS * 300)}</p>
+                <p className="text-lg font-black">{usd(totalUsers * 50)} – {usd(totalUsers * 300)}</p>
                 <p className="text-[10px] text-[hsl(var(--muted-foreground))]">$50–$300/user · standard pre-seed range</p>
               </div>
               <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 space-y-1">
@@ -293,7 +298,7 @@ export default async function TractionPage({
             {[
               {
                 title: 'Free-to-paid conversion',
-                body: `Current rate is ${CONVERSION_PCT}%. At the 2% SaaS baseline that's ${fmt(Math.round(TOTAL_USERS * 0.02))} paying customers from the existing base — without acquiring a single new user.`,
+                body: `Current rate is ${conversionPct}%. At the 2% SaaS baseline that's ${fmt(Math.round(totalUsers * 0.02))} paying customers from the existing base — without acquiring a single new user.`,
               },
               {
                 title: 'SEO content moat',
@@ -333,7 +338,7 @@ export default async function TractionPage({
                 ${(VALUATION_USD / 1000).toFixed(0)}K
               </p>
               <p className="text-[10px] uppercase tracking-[0.28em] opacity-50">
-                {usd(IMPLIED_PER_USER, 0)} implied per user · {fmt(TOTAL_USERS)} users
+                {usd(impliedPerUser, 0)} implied per user · {fmt(totalUsers)} users
               </p>
             </div>
             <div className="space-y-1 md:text-right max-w-xs">
@@ -353,10 +358,10 @@ export default async function TractionPage({
               <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                 Method 1 · User multiple
               </p>
-              <p className="text-xl font-black">{usd(TOTAL_USERS * 100)} – {usd(TOTAL_USERS * 300)}</p>
+              <p className="text-xl font-black">{usd(totalUsers * 100)} – {usd(totalUsers * 300)}</p>
               <p className="text-[10px] text-[hsl(var(--muted-foreground))] leading-relaxed">
                 $100–$300/user is standard for early-stage SaaS with demonstrated
-                engagement. Our {usd(IMPLIED_PER_USER, 0)}/user sits conservatively within this.
+                engagement. Our {usd(impliedPerUser, 0)}/user sits conservatively within this.
               </p>
             </div>
             <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 space-y-2">
@@ -374,9 +379,9 @@ export default async function TractionPage({
               <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
                 Method 3 · Conversion upside
               </p>
-              <p className="text-xl font-black">{usd(TOTAL_USERS * 0.02 * LTV_USD, 0)} potential LTV</p>
+              <p className="text-xl font-black">{usd(totalUsers * 0.02 * LTV_USD, 0)} potential LTV</p>
               <p className="text-[10px] text-[hsl(var(--muted-foreground))] leading-relaxed">
-                {fmt(Math.round(TOTAL_USERS * 0.02))} customers at 2% conversion × {usd(LTV_USD, 0)} LTV.
+                {fmt(Math.round(totalUsers * 0.02))} customers at 2% conversion × {usd(LTV_USD, 0)} LTV.
                 The {usd(VALUATION_USD / 1000, 0)}K valuation implies buying this upside
                 at a steep discount to realised value.
               </p>
@@ -390,8 +395,8 @@ export default async function TractionPage({
             </p>
             <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">
               We are not claiming to be a $500K revenue business. We are claiming to be a working product
-              with {fmt(TOTAL_USERS)} real users, proof of willingness to pay, cheap distribution at{' '}
-              {usd(COST_PER_USER, 2)}/user, and a clear, solvable bottleneck in free-to-paid conversion.
+              with {fmt(totalUsers)} real users, proof of willingness to pay, cheap distribution at{' '}
+              {usd(costPerUser, 2)}/user, and a clear, solvable bottleneck in free-to-paid conversion.
               The valuation reflects the cost to rebuild what exists plus a reasonable premium
               for early traction — not a projection of future revenue.
             </p>
