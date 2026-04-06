@@ -19,7 +19,7 @@ export async function generateMetadata({
     path: '/latex-guide',
   });
   if (locale !== 'en') {
-    return { robots: { index: false, follow: false } };
+    return { robots: { index: false, follow: false }, alternates: { canonical: metadata.alternates?.canonical } };
   }
   if (metadata.alternates) {
     metadata.alternates = { canonical: metadata.alternates.canonical };

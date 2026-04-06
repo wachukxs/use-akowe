@@ -7,9 +7,6 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  if (locale !== 'en') {
-    return { robots: { index: false, follow: false } };
-  }
   const metadata = generateSEOMetadata({
     title: 'Free Academic Source Checker — Check Writing Against 250M+ Papers',
     description:
@@ -24,6 +21,9 @@ export async function generateMetadata({
     ],
     path: '/tools/plagiarism-check',
   });
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false }, alternates: { canonical: metadata.alternates?.canonical } };
+  }
   if (metadata.alternates) {
     metadata.alternates = { canonical: metadata.alternates.canonical };
   }

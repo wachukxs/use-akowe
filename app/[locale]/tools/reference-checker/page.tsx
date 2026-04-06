@@ -10,9 +10,6 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  if (locale !== 'en') {
-    return { robots: { index: false, follow: false } };
-  }
   const metadata = generateSEOMetadata({
     title: 'Free Reference List Checker — Verify DOIs & Citations',
     description:
@@ -20,6 +17,9 @@ export async function generateMetadata({
     keywords: ['reference checker', 'DOI verifier', 'citation checker', 'bibliography checker', 'APA reference checker'],
     path: '/tools/reference-checker',
   });
+  if (locale !== 'en') {
+    return { robots: { index: false, follow: false }, alternates: { canonical: metadata.alternates?.canonical } };
+  }
   if (metadata.alternates) {
     metadata.alternates = { canonical: metadata.alternates.canonical };
   }
