@@ -43,8 +43,9 @@ export default function SettingsPage() {
   const [hasCheckoutCancelledParam, setHasCheckoutCancelledParam] = useState(false);
   const [showActive37Popup, setShowActive37Popup] = useState(false);
   const [active37Eligibility, setActive37Eligibility] = useState<{ eligible: boolean; activeDays?: number } | null>(null);
-  const [showWiseRedirectModal, setShowWiseRedirectModal] = useState(false);
-  const [wiseRedirectUrl, setWiseRedirectUrl] = useState<string | null>(null);
+  const [isWiseRegion, setIsWiseRegion] = useState(false);
+  const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
+  const [pendingPlanType, setPendingPlanType] = useState<PlanType | null>(null);
   const CHECKOUT_REDIRECT_FLAG = 'akowe_checkout_redirecting';
   const CHECKOUT_REDIRECT_FLAG_FALLBACK = 'akowe_checkout_redirecting_ls';
 
@@ -228,24 +229,20 @@ export default function SettingsPage() {
     localStorage.removeItem(CHECKOUT_REDIRECT_FLAG_FALLBACK);
   };
 
-  const handleWiseRedirectConfirm = () => {
-    if (!wiseRedirectUrl) return;
-    setCheckoutRedirectMark();
-    setShowWiseRedirectModal(false);
-    window.location.href = wiseRedirectUrl;
-  };
-
-  const handleWiseRedirectCancel = () => {
-    setShowWiseRedirectModal(false);
-    setWiseRedirectUrl(null);
-    setIsUpgrading(false);
+  const handlePaymentMethodSelect = (method: 'wise' | 'stripe') => {
+    setShowPaymentMethodModal(false);
+    if (pendingPlanType) {
+      handleUpgrade(pendingPlanType, method);
+      setPendingPlanType(null);
+    }
   };
 
   const fetchUsage = async () => {
     try {
-      const [usageResponse, statusResponse] = await Promise.all([
+      const [usageResponse, statusResponse, methodsResponse] = await Promise.all([
         fetch('/api/usage'),
-        fetch('/api/payment/subscription-status')
+        fetch('/api/payment/subscription-status'),
+        fetch('/api/payment/available-methods'),
       ]);
 
       if (usageResponse.ok) {
@@ -269,6 +266,11 @@ export default function SettingsPage() {
           // Session will be updated via the JWT callback
           console.log('🔄 Subscription status updated:', statusData);
         }
+      }
+
+      if (methodsResponse.ok) {
+        const methodsData = await methodsResponse.json();
+        setIsWiseRegion(methodsData.isWiseRegion === true);
       }
     } catch (error) {
       console.error('Error fetching usage:', error);
@@ -304,8 +306,15 @@ export default function SettingsPage() {
     }
   };
 
-  const handleUpgrade = async (planType: PlanType) => {
+  const handleUpgrade = async (planType: PlanType, paymentMethod?: 'wise' | 'stripe') => {
     if (planType === 'free' || planType === 'team') return;
+
+    // For Wise regions, show payment method selector if no method chosen yet
+    if (isWiseRegion && !paymentMethod) {
+      setPendingPlanType(planType);
+      setShowPaymentMethodModal(true);
+      return;
+    }
 
     setIsUpgrading(true);
 
@@ -317,7 +326,7 @@ export default function SettingsPage() {
       const response = await fetch('/api/payment/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ billingCycle, planType }),
+        body: JSON.stringify({ billingCycle, planType, ...(paymentMethod && { paymentMethod }) }),
       });
 
       if (response.ok) {
@@ -331,12 +340,6 @@ export default function SettingsPage() {
         
         // Redirect to payment provider checkout
         if (data.url) {
-          if (data.provider === 'wise') {
-            setWiseRedirectUrl(data.url);
-            setShowWiseRedirectModal(true);
-            setIsUpgrading(false);
-            return;
-          }
           setCheckoutRedirectMark();
           setIsUpgrading(false);
           window.location.href = data.url;
@@ -917,41 +920,51 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Delete Account Confirmation Modal */}
-      {showWiseRedirectModal && (
+      {/* Payment Method Selector Modal */}
+      {showPaymentMethodModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-md w-full p-4 md:p-6 relative">
             <button
-              onClick={handleWiseRedirectCancel}
+              onClick={() => { setShowPaymentMethodModal(false); setPendingPlanType(null); }}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-              aria-label={t('wiseRedirectModal.cancel')}
+              aria-label={t('paymentMethodModal.cancel')}
             >
               <X size={20} />
             </button>
-            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3">
-              {t('wiseRedirectModal.title')}
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">
+              {t('paymentMethodModal.title')}
             </h3>
-            <p className="text-gray-700 text-sm md:text-base mb-3">
-              {t('wiseRedirectModal.intro')}
+            <p className="text-sm text-gray-500 mb-5">
+              {t('paymentMethodModal.subtitle')}
             </p>
-            <p className="text-gray-700 text-sm md:text-base mb-6">
-              {t('wiseRedirectModal.instructions')}
-            </p>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={handleWiseRedirectCancel}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handlePaymentMethodSelect('wise')}
+                className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-colors group"
               >
-                {t('wiseRedirectModal.cancel')}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleWiseRedirectConfirm}
+                <div className="font-semibold text-gray-900 group-hover:text-indigo-700">
+                  {t('paymentMethodModal.wise.label')}{' '}
+                  <span className="text-xs font-normal text-gray-400">{t('paymentMethodModal.wise.provider')}</span>
+                </div>
+                <div className="text-sm text-gray-500 mt-0.5">{t('paymentMethodModal.wise.description')}</div>
+              </button>
+              <button
+                onClick={() => handlePaymentMethodSelect('stripe')}
+                className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-colors group"
               >
-                {t('wiseRedirectModal.confirm')}
-              </Button>
+                <div className="font-semibold text-gray-900 group-hover:text-indigo-700">
+                  {t('paymentMethodModal.stripe.label')}{' '}
+                  <span className="text-xs font-normal text-gray-400">{t('paymentMethodModal.stripe.provider')}</span>
+                </div>
+                <div className="text-sm text-gray-500 mt-0.5">{t('paymentMethodModal.stripe.description')}</div>
+              </button>
             </div>
+            <button
+              onClick={() => { setShowPaymentMethodModal(false); setPendingPlanType(null); }}
+              className="mt-4 w-full text-sm text-gray-400 hover:text-gray-600 text-center"
+            >
+              {t('paymentMethodModal.cancel')}
+            </button>
           </Card>
         </div>
       )}
