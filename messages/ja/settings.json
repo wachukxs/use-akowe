@@ -118,6 +118,21 @@
     "deleting": "削除中...",
     "confirm": "アカウントを削除"
   },
+  "paymentMethodModal": {
+    "title": "お支払い方法を選択してください",
+    "subtitle": "ご希望のお支払い方法をお選びください",
+    "wise": {
+      "label": "銀行振込",
+      "provider": "via Wise",
+      "description": "銀行口座から直接振り込みます。手動処理で、1〜2営業日かかります。"
+    },
+    "stripe": {
+      "label": "デビット / クレジットカード",
+      "provider": "via Stripe",
+      "description": "カードで即座にお支払いいただけます。安全で自動請求です。"
+    },
+    "cancel": "キャンセル"
+  },
   "wiseRedirectModal": {
     "title": "Wiseへ進む",
     "intro": "お支払いを完了するため、Wise にリダイレクトされます。",
