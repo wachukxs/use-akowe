@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { billingCycle, planType = 'pro' } = body;
+    const { billingCycle, planType = 'pro', paymentMethod } = body;
 
     if (!billingCycle || !['monthly', 'annual'].includes(billingCycle)) {
       return NextResponse.json(
@@ -49,7 +49,11 @@ export async function POST(request: NextRequest) {
     }
 
     // India (geo) / env: Wise payment links instead of Stripe
-    if (shouldUseWisePaymentLinks(request)) {
+    // paymentMethod param lets the user override the geo-detected default
+    const useWise =
+      paymentMethod === 'wise' ||
+      (paymentMethod !== 'stripe' && shouldUseWisePaymentLinks(request));
+    if (useWise) {
       const sku = wiseSkuFromPlan(billingCycle, resolvedPlanType);
       const paymentUrl = getWisePaymentLinkUrl(sku);
       if (!paymentUrl) {

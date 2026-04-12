@@ -43,8 +43,12 @@ export default function UpgradeModal({
 }: UpgradeModalProps) {
   const router = useRouter();
   const t = useTranslations('components.upgradeModal');
+  const tSettings = useTranslations('settings');
   const [isAnnual, setIsAnnual] = useState(true);
   const [isUpgrading, setIsUpgrading] = useState<'standard' | 'pro' | null>(null);
+  const [isWiseRegion, setIsWiseRegion] = useState(false);
+  const [showPaymentMethodModal, setShowPaymentMethodModal] = useState(false);
+  const [pendingPlanType, setPendingPlanType] = useState<'standard' | 'pro' | null>(null);
   const CHECKOUT_REDIRECT_FLAG = 'akowe_checkout_redirecting';
   const CHECKOUT_REDIRECT_FLAG_FALLBACK = 'akowe_checkout_redirecting_ls';
 
@@ -105,6 +109,13 @@ export default function UpgradeModal({
     };
   }, []);
 
+  useEffect(() => {
+    fetch('/api/payment/available-methods')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.isWiseRegion) setIsWiseRegion(true); })
+      .catch(() => {});
+  }, []);
+
   const PLANS = PLAN_META.map((plan) => ({
     ...plan,
     features: [1, 2, 3, 4, 5, 6, 7].map((i) => t(`${plan.type}.feature${i}` as Parameters<typeof t>[0])),
@@ -112,14 +123,20 @@ export default function UpgradeModal({
 
   if (!isOpen) return null;
 
-  const handleUpgrade = async (planType: 'standard' | 'pro') => {
+  const handleUpgrade = async (planType: 'standard' | 'pro', paymentMethod?: 'wise' | 'stripe') => {
+    if (isWiseRegion && !paymentMethod) {
+      setPendingPlanType(planType);
+      setShowPaymentMethodModal(true);
+      return;
+    }
+
     setIsUpgrading(planType);
     try {
       const billingCycle = isAnnual ? 'annual' : 'monthly';
       const response = await fetch('/api/payment/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ billingCycle, planType }),
+        body: JSON.stringify({ billingCycle, planType, ...(paymentMethod && { paymentMethod }) }),
       });
 
       if (response.ok) {
@@ -282,6 +299,61 @@ export default function UpgradeModal({
           </p>
         </div>
       </div>
+
+      {/* Payment Method Selector */}
+      {showPaymentMethodModal && (
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 p-4">
+          <div className="bg-white w-full max-w-sm p-5 shadow-lg relative">
+            <button
+              onClick={() => { setShowPaymentMethodModal(false); setPendingPlanType(null); }}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              aria-label={tSettings('paymentMethodModal.cancel')}
+            >
+              <X size={18} />
+            </button>
+            <h3 className="text-base font-bold text-gray-900 mb-0.5">
+              {tSettings('paymentMethodModal.title')}
+            </h3>
+            <p className="text-xs text-gray-500 mb-4">
+              {tSettings('paymentMethodModal.subtitle')}
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setShowPaymentMethodModal(false);
+                  if (pendingPlanType) { handleUpgrade(pendingPlanType, 'wise'); setPendingPlanType(null); }
+                }}
+                className="w-full text-left p-3 border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition-colors group"
+              >
+                <div className="text-sm font-semibold text-gray-900 group-hover:text-indigo-700">
+                  {tSettings('paymentMethodModal.wise.label')}{' '}
+                  <span className="text-xs font-normal text-gray-400">{tSettings('paymentMethodModal.wise.provider')}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">{tSettings('paymentMethodModal.wise.description')}</div>
+              </button>
+              <button
+                onClick={() => {
+                  setShowPaymentMethodModal(false);
+                  if (pendingPlanType) { handleUpgrade(pendingPlanType, 'stripe'); setPendingPlanType(null); }
+                }}
+                className="w-full text-left p-3 border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition-colors group"
+              >
+                <div className="text-sm font-semibold text-gray-900 group-hover:text-indigo-700">
+                  {tSettings('paymentMethodModal.stripe.label')}{' '}
+                  <span className="text-xs font-normal text-gray-400">{tSettings('paymentMethodModal.stripe.provider')}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">{tSettings('paymentMethodModal.stripe.description')}</div>
+              </button>
+            </div>
+            <button
+              onClick={() => { setShowPaymentMethodModal(false); setPendingPlanType(null); }}
+              className="mt-3 w-full text-xs text-gray-400 hover:text-gray-600 text-center"
+            >
+              {tSettings('paymentMethodModal.cancel')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

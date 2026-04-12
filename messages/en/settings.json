@@ -131,6 +131,21 @@
     "deleting": "Deleting...",
     "confirm": "Delete Account"
   },
+  "paymentMethodModal": {
+    "title": "How would you like to pay?",
+    "subtitle": "Choose your preferred payment method",
+    "wise": {
+      "label": "Bank Transfer",
+      "provider": "via Wise",
+      "description": "Transfer directly from your bank account. Manual, takes 1–2 business days."
+    },
+    "stripe": {
+      "label": "Debit / Credit Card",
+      "provider": "via Stripe",
+      "description": "Pay instantly with your card. Secure, automatic billing."
+    },
+    "cancel": "Cancel"
+  },
   "wiseRedirectModal": {
     "title": "Continue to Wise",
     "intro": "You are about to be redirected to Wise to complete your payment.",

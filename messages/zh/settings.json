@@ -118,6 +118,21 @@
     "deleting": "正在删除...",
     "confirm": "删除账户"
   },
+  "paymentMethodModal": {
+    "title": "您希望如何付款？",
+    "subtitle": "请选择您偏好的支付方式",
+    "wise": {
+      "label": "银行转账",
+      "provider": "via Wise",
+      "description": "直接从您的银行账户转账。手动操作，需1–2个工作日。"
+    },
+    "stripe": {
+      "label": "借记卡 / 信用卡",
+      "provider": "via Stripe",
+      "description": "使用您的卡片即时付款。安全，自动扣款。"
+    },
+    "cancel": "取消"
+  },
   "wiseRedirectModal": {
     "title": "继续前往 Wise",
     "intro": "您即将跳转到 Wise 完成付款。",
