@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { GitCompare, Check, X } from 'lucide-react';
 import { getAllComparisonSlugs, getComparisonBySlug } from '@/lib/seo/comparisons';
@@ -18,9 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const comparison = getComparisonBySlug(slug);
 
   if (!comparison) {
-    return {
-      title: 'Comparison Not Found - Akowe',
-    };
+    return { robots: { index: false, follow: false } };
   }
 
   const metadata = generateSEOMetadata({
@@ -45,16 +44,7 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
   const comparison = getComparisonBySlug(slug);
 
   if (!comparison) {
-    return (
-      <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <h1 className="text-2xl font-bold mb-4">Comparison Not Found</h1>
-          <Link href="/compare" className="text-[hsl(var(--primary))] underline">
-            Back to Comparisons
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   return (

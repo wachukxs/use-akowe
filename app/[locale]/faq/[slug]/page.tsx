@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { HelpCircle } from 'lucide-react';
 import { getFAQBySlug } from '@/lib/seo/faqs';
@@ -18,9 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const faq = getFAQBySlug(slug);
 
   if (!faq) {
-    return {
-      title: 'FAQ Not Found - Akowe',
-    };
+    return { robots: { index: false, follow: false } };
   }
 
   const metadata = generateSEOMetadata({
@@ -45,16 +44,7 @@ export default async function FAQPage({ params }: { params: Promise<{ slug: stri
   const faq = getFAQBySlug(slug);
 
   if (!faq) {
-    return (
-      <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <h1 className="text-2xl font-bold mb-4">FAQ Not Found</h1>
-          <Link href="/faq" className="text-[hsl(var(--primary))] underline">
-            Back to FAQs
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   return (
