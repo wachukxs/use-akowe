@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { useEffect, useState, use, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -2900,6 +2901,20 @@ export default function ProjectEditorPage({
 
   return (
     <>
+      {/* KaTeX — math rendering used in the editor. Loaded here (not in root layout)
+          so it doesn't block LCP on public marketing pages. */}
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+        integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn"
+        crossOrigin="anonymous"
+      />
+      <Script
+        src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+        integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+        crossOrigin="anonymous"
+        strategy="lazyOnload"
+      />
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}

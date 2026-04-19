@@ -38,6 +38,7 @@ const COHORT_LABELS: Record<string, string> = {
   almost_activated: 'Almost Activated',
   going_idle: 'Going Idle',
   win_back: 'Win-back',
+  paid_feedback: 'Paid Feedback',
 };
 
 const COHORT_DESCRIPTIONS: Record<string, string> = {
@@ -46,6 +47,7 @@ const COHORT_DESCRIPTIONS: Record<string, string> = {
   almost_activated: '5-10 days old, has AI usage',
   going_idle: '7-14 days inactive',
   win_back: '30+ days inactive',
+  paid_feedback: 'Paid, subscribed 7-14 days ago',
 };
 
 export default function EngagementEmailsTab() {
@@ -115,7 +117,7 @@ export default function EngagementEmailsTab() {
     else if (activeView === 'daily') fetchDaily();
   }, [activeView, fetchSummary, fetchDaily]);
 
-  const allCohorts = ['ghost_signup', 'stuck_starter', 'almost_activated', 'going_idle', 'win_back'];
+  const allCohorts = ['ghost_signup', 'stuck_starter', 'almost_activated', 'going_idle', 'win_back', 'paid_feedback'];
   const totalSent = summary ? allCohorts.reduce((s, c) => s + (summary.cohorts[c]?.sent || 0), 0) : 0;
   const totalFailed = summary ? allCohorts.reduce((s, c) => s + (summary.cohorts[c]?.failed || 0), 0) : 0;
 
@@ -313,7 +315,7 @@ export default function EngagementEmailsTab() {
                 <tbody>
                   {Object.keys(dailyByDate).length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                      <td colSpan={7} className="px-4 py-8 text-center text-xs text-[hsl(var(--muted-foreground))]">
                         No data for this period
                       </td>
                     </tr>

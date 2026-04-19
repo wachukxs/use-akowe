@@ -120,13 +120,14 @@ export async function POST(request: NextRequest) {
       lastSendSucceeded = false;
       try {
         const result = await sendFn(candidate.email, candidate.name, candidate.projectName);
-        await EmailLog.create({
-          userId: candidate.email,
-          cohort,
-          sentAt: now,
-          status: 'sent',
-          messageId: result.messageId,
-        });
+        // Use upsert so a prior 'failed' record doesn't block logging a successful send.
+        // Without this, a duplicate-key error would be thrown, the send would be miscounted
+        // as a failure, and the user would keep getting retried on every cron run.
+        await EmailLog.findOneAndUpdate(
+          { userId: candidate.email, cohort },
+          { $set: { status: 'sent', sentAt: now, messageId: result.messageId, error: undefined } },
+          { upsert: true }
+        );
         sent++;
         lastSendSucceeded = true;
       } catch (err) {
@@ -146,20 +147,11 @@ export async function POST(request: NextRequest) {
           suppressedEmails.add(candidate.email.toLowerCase());
         }
 
-        try {
-          await EmailLog.create({
-            userId: candidate.email,
-            cohort,
-            sentAt: now,
-            status: 'failed',
-            error: errorMsg,
-          });
-        } catch (logErr: any) {
-          // Duplicate key = already logged, skip silently
-          if (logErr?.code !== 11000) {
-            console.error('[cron] Failed to log email failure:', logErr);
-          }
-        }
+        await EmailLog.findOneAndUpdate(
+          { userId: candidate.email, cohort },
+          { $set: { status: 'failed', sentAt: now, error: errorMsg } },
+          { upsert: true }
+        );
         failed++;
       }
     }
@@ -347,7 +339,10 @@ export async function POST(request: NextRequest) {
 
     const winBackUsers = await User.find({
       plan: 'free',
-      lastActiveAt: { $lte: thirtyDaysAgo },
+      // $ne: null excludes users whose lastActiveAt was never set (null/missing fields
+      // compare as less-than any Date in MongoDB, which would incorrectly pull in
+      // brand-new sign-ups who have never been active).
+      lastActiveAt: { $ne: null, $lte: thirtyDaysAgo },
     }).select('email name').lean();
 
     if (winBackUsers.length > 0) {
