@@ -297,7 +297,7 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      <nav className="flex-1 px-4 space-y-2">
+      <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-2">
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -340,7 +340,7 @@ export default function Sidebar() {
 
       {/* Upgrade nudge — only for free users */}
       {(session?.user as any)?.plan === 'free' && (
-        <div className="px-4 pb-3">
+        <div className="px-4 py-3">
           <Link href="/settings" onClick={() => isMobile && setIsOpen(false)}>
             <div className="border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] p-3 hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform duration-150 cursor-pointer">
               <div className="flex items-center gap-2 mb-1">

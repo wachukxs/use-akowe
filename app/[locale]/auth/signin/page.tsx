@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import { Eye, EyeOff } from 'lucide-react';
+import Alert from '@/components/ui/Alert';
 import { getStoredReferralCode } from '@/components/ReferralCapture';
 import { setUserId } from '@/lib/gtag';
 
@@ -30,6 +31,7 @@ function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -58,33 +60,34 @@ function SignInForm() {
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (error) {
       console.error('Google sign-in error:', error);
-      alert(t('errors.googleSignInFailed'));
+      setErrorMessage(t('errors.googleSignInFailed'));
       setIsGoogleLoading(false);
     }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setErrorMessage(null);
+
     // Validation
     if (!email.trim()) {
-      alert(t('errors.enterEmail'));
+      setErrorMessage(t('errors.enterEmail'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      alert(t('errors.validEmail'));
+      setErrorMessage(t('errors.validEmail'));
       return;
     }
 
     if (!password) {
-      alert(t('errors.enterPassword'));
+      setErrorMessage(t('errors.enterPassword'));
       return;
     }
 
     if (password.length < 6) {
-      alert(t('errors.passwordMinLength'));
+      setErrorMessage(t('errors.passwordMinLength'));
       return;
     }
 
@@ -101,13 +104,13 @@ function SignInForm() {
       if (result?.error) {
         // Handle specific error cases with clean messages
         if (result.error === 'CredentialsSignin') {
-          alert(t('errors.invalidCredentials'));
+          setErrorMessage(t('errors.invalidCredentials'));
         } else if (result.error.includes('No account found')) {
-          alert(t('errors.noAccount'));
+          setErrorMessage(t('errors.noAccount'));
         } else if (result.error.includes('Invalid password')) {
-          alert(t('errors.invalidPassword'));
+          setErrorMessage(t('errors.invalidPassword'));
         } else {
-          alert(`${t('errors.signInFailed')}: ${result.error}`);
+          setErrorMessage(`${t('errors.signInFailed')}: ${result.error}`);
         }
       } else if (result?.ok) {
         // Set GA user_id immediately after successful login
@@ -135,26 +138,26 @@ function SignInForm() {
         // Note: router.refresh() removed - navigation will render the new page automatically
       } else {
         // Fallback for unexpected cases
-        alert(t('errors.unexpectedError'));
+        setErrorMessage(t('errors.unexpectedError'));
       }
     } catch (error) {
       // Handle all possible error types
       if (error instanceof Error) {
         if (error.message.includes('No account found')) {
-          alert(t('errors.noAccount'));
+          setErrorMessage(t('errors.noAccount'));
         } else if (error.message.includes('Invalid password')) {
-          alert(t('errors.invalidPassword'));
+          setErrorMessage(t('errors.invalidPassword'));
         } else if (error.message.includes('Google')) {
-          alert(t('errors.accountCreatedWithGoogle'));
+          setErrorMessage(t('errors.accountCreatedWithGoogle'));
         } else if (error.message.includes('Email and password are required')) {
-          alert(t('errors.enterBothEmailPassword'));
+          setErrorMessage(t('errors.enterBothEmailPassword'));
         } else if (error.message.includes('CallbackRouteError')) {
-          alert(t('errors.noAccount'));
+          setErrorMessage(t('errors.noAccount'));
         } else {
-          alert(`${t('errors.signInFailed')}: ${error.message}`);
+          setErrorMessage(`${t('errors.signInFailed')}: ${error.message}`);
         }
       } else {
-        alert(t('errors.errorOccurred'));
+        setErrorMessage(t('errors.errorOccurred'));
       }
     } finally {
       setIsLoading(false);
@@ -200,6 +203,10 @@ function SignInForm() {
               </span>
             </div>
           </div>
+
+          {errorMessage && (
+            <Alert onDismiss={() => setErrorMessage(null)}>{errorMessage}</Alert>
+          )}
 
           <form onSubmit={handleSignIn} className="space-y-5">
             <Input

@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input';
 import { Link, useRouter } from '@/i18n/navigation';
 import Card from '@/components/ui/Card';
 import { Eye, EyeOff } from 'lucide-react';
+import Alert from '@/components/ui/Alert';
 import { getStoredReferralCode, clearStoredReferralCode } from '@/components/ReferralCapture';
 import { trackFunnel } from '@/lib/gtag';
 
@@ -38,6 +39,7 @@ function SignUpForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Track the last processed URL params to detect navigation changes
   const [lastProcessedParams, setLastProcessedParams] = useState<string | null>(null);
@@ -122,7 +124,7 @@ function SignUpForm() {
       await signIn('google', { callbackUrl });
     } catch (error) {
       console.error('Google sign-up error:', error);
-      alert(t('errors.googleSignUpFailed'));
+      setErrorMessage(t('errors.googleSignUpFailed'));
       setIsGoogleLoading(false);
     }
   };
@@ -136,41 +138,42 @@ function SignUpForm() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setErrorMessage(null);
+
     // Validation
     if (!formData.name.trim()) {
-      alert(t('errors.enterName'));
+      setErrorMessage(t('errors.enterName'));
       return;
     }
 
     if (formData.name.trim().length < 2) {
-      alert(t('errors.nameMinLength'));
+      setErrorMessage(t('errors.nameMinLength'));
       return;
     }
 
     if (!formData.email.trim()) {
-      alert(t('errors.enterEmail'));
+      setErrorMessage(t('errors.enterEmail'));
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      alert(t('errors.validEmail'));
+      setErrorMessage(t('errors.validEmail'));
       return;
     }
 
     if (!formData.password) {
-      alert(t('errors.enterPasswordSignUp'));
+      setErrorMessage(t('errors.enterPasswordSignUp'));
       return;
     }
 
     if (formData.password.length < 6) {
-      alert(t('errors.passwordMinLength'));
+      setErrorMessage(t('errors.passwordMinLength'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert(t('errors.passwordsDoNotMatch'));
+      setErrorMessage(t('errors.passwordsDoNotMatch'));
       return;
     }
 
@@ -215,7 +218,7 @@ function SignUpForm() {
           // Check for errors FIRST
           if (result?.error) {
             // Handle auto sign-in failure gracefully
-            alert(t('errors.accountCreatedSignInFailed'));
+            setErrorMessage(t('errors.accountCreatedSignInFailed'));
             router.push('/auth/signin');
           } else if (result?.ok) {
             console.log('Auto sign-in successful, redirecting...');
@@ -236,12 +239,12 @@ function SignUpForm() {
           } else {
             // Fallback for unexpected cases
             console.error('Unexpected auto sign-in result:', result);
-            alert(t('errors.accountCreatedUnexpected'));
+            setErrorMessage(t('errors.accountCreatedUnexpected'));
             router.push('/auth/signin');
           }
         } catch (error) {
           console.error('Auto sign-in error:', error);
-          alert(t('errors.accountCreatedSignInFailed'));
+          setErrorMessage(t('errors.accountCreatedSignInFailed'));
           // Redirect to sign-in page instead of dashboard
           router.push('/auth/signin');
         }
@@ -249,35 +252,35 @@ function SignUpForm() {
         const error = await response.json();
         // Show specific error messages for all edge cases
         if (error.error?.includes('already exists')) {
-          alert(t('errors.emailAlreadyExists'));
+          setErrorMessage(t('errors.emailAlreadyExists'));
         } else if (error.error?.includes('Invalid email')) {
-          alert(t('errors.validEmailShort'));
+          setErrorMessage(t('errors.validEmailShort'));
         } else if (error.error?.includes('Password must be')) {
-          alert(t('errors.passwordMinLengthLong'));
+          setErrorMessage(t('errors.passwordMinLengthLong'));
         } else if (error.error?.includes('Name must be')) {
-          alert(t('errors.nameMinLengthLong'));
+          setErrorMessage(t('errors.nameMinLengthLong'));
         } else if (error.error?.includes('All fields are required')) {
-          alert(t('errors.fillRequiredFields'));
+          setErrorMessage(t('errors.fillRequiredFields'));
         } else if (error.error?.includes('Missing required fields')) {
-          alert(t('errors.fillRequiredFields'));
+          setErrorMessage(t('errors.fillRequiredFields'));
         } else if (error.error?.includes('Failed to create user')) {
-          alert(t('errors.failedToCreateAccount'));
+          setErrorMessage(t('errors.failedToCreateAccount'));
         } else {
-          alert(`${t('errors.signUpFailed')}: ${error.error || t('errors.unknownError')}`);
+          setErrorMessage(`${t('errors.signUpFailed')}: ${error.error || t('errors.unknownError')}`);
         }
       }
     } catch (error) {
       console.error('Sign up error:', error);
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
-          alert(t('errors.networkError'));
+          setErrorMessage(t('errors.networkError'));
         } else if (error.message.includes('already exists')) {
-          alert(t('errors.emailAlreadyExists'));
+          setErrorMessage(t('errors.emailAlreadyExists'));
         } else {
-          alert(`${t('errors.signUpFailed')}: ${error.message}`);
+          setErrorMessage(`${t('errors.signUpFailed')}: ${error.message}`);
         }
       } else {
-        alert(t('errors.errorOccurred'));
+        setErrorMessage(t('errors.errorOccurred'));
       }
     } finally {
       setIsLoading(false);
@@ -323,6 +326,10 @@ function SignUpForm() {
               </span>
             </div>
           </div>
+
+          {errorMessage && (
+            <Alert onDismiss={() => setErrorMessage(null)}>{errorMessage}</Alert>
+          )}
 
           <form onSubmit={handleSignUp} className="space-y-5">
             <Input
