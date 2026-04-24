@@ -17,7 +17,7 @@ import { uploadBufferToCloudinary } from '@/lib/cloudinary';
 // ---------------------------------------------------------------------------
 
 interface PdfjsImageData {
-  data: Uint8ClampedArray;
+  data: Uint8ClampedArray | Uint8Array;
   width: number;
   height: number;
   kind: 1 | 2 | 3; // ImageKind: GRAYSCALE_1BPP | RGB_24BPP | RGBA_32BPP
