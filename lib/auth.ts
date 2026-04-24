@@ -22,6 +22,7 @@ export const authOptions: NextAuthConfig = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        rememberMe: { label: 'Remember Me', type: 'text' },
       },
         async authorize(credentials) {
           if (!credentials?.email || !credentials?.password) {
@@ -56,6 +57,7 @@ export const authOptions: NextAuthConfig = {
               email: user.email,
               name: user.name,
               image: user.image,
+              rememberMe: credentials.rememberMe !== 'false',
             };
           } catch (error) {
             // Only log error message, not full stack trace
@@ -202,7 +204,12 @@ export const authOptions: NextAuthConfig = {
         token.email = user.email;
         token.plan = user.plan || 'free';
         token.billingCycle = user.billingCycle || 'monthly';
-        token.planLastUpdated = Date.now(); // Track when plan was last fetched
+        token.planLastUpdated = Date.now();
+        // For credentials sign-in without "remember me", expire the token in 24 hours
+        const rememberMe = user.rememberMe !== false;
+        if (!rememberMe) {
+          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+        }
       }
       
       // Only fetch the latest plan from database if:
@@ -293,6 +300,7 @@ export const authOptions: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 90 * 24 * 60 * 60, // 90 days (3 months)
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

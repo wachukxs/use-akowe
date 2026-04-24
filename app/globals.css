@@ -357,6 +357,20 @@ body {
   cursor: default;
 }
 
+/* Inserted images */
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.75rem 0;
+  display: block;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
 /* Keep legacy contentEditable fallback for any other editors */
 [contenteditable] ul {
   list-style-type: disc !important;

@@ -98,7 +98,7 @@ export default function ProjectCard({ project, onDelete }: ProjectCardProps) {
             onDelete(project._id);
           }}
           title={t('deleteProject')}
-          className="absolute top-3 right-3 p-1.5 rounded-(--radius) border border-transparent opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-[hsl(var(--destructive))]/10 hover:border-[hsl(var(--destructive))]/30 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] cursor-pointer"
+          className="absolute top-3 right-3 p-1.5 rounded-(--radius) border border-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-[hsl(var(--destructive))]/10 hover:border-[hsl(var(--destructive))]/30 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] cursor-pointer"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>

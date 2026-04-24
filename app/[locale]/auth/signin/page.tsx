@@ -31,6 +31,7 @@ function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const router = useRouter();
@@ -97,6 +98,7 @@ function SignInForm() {
       const result = await signIn('credentials', {
         email,
         password,
+        rememberMe: String(rememberMe),
         redirect: false,
       });
 
@@ -241,8 +243,17 @@ function SignInForm() {
               </button>
             </div>
 
-            <div className="flex justify-end text-xs uppercase tracking-[0.18em]">
-              <Link href="/auth/forgot-password" className="underline underline-offset-4 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--secondary))]">
+            <div className="flex items-center justify-between gap-1 text-xs uppercase tracking-[0.18em]">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-[hsl(var(--muted-foreground))]">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded accent-[hsl(var(--primary))] cursor-pointer"
+                />
+                {t('signin.rememberMe')}
+              </label>
+              <Link href="/auth/forgot-password" className="text-end underline underline-offset-4 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--secondary))]">
                 {t('signin.forgotPassword')}
               </Link>
             </div>

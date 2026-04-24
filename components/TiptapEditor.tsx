@@ -3,12 +3,13 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import Image from '@tiptap/extension-image';
 import { Node, Mark, mergeAttributes } from '@tiptap/core';
-import { forwardRef, useImperativeHandle, useEffect, useRef, useCallback } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useRef, useCallback, useState } from 'react';
 import type { Editor } from '@tiptap/core';
 import {
   Bold, Italic, Underline as UnderlineIcon, List, Hash,
-  Undo, Redo, Calculator, BarChart3, Sparkles, BookOpen,
+  Undo, Redo, Calculator, BarChart3, Sparkles, BookOpen, ImageIcon, Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CITATION_HIGHLIGHT_ATTR, CITATION_HIGHLIGHT_CLASS } from '@/lib/citation-highlight';
@@ -86,6 +87,22 @@ const CitationHighlight = Mark.create({
     ];
   },
 });
+
+// ---------------------------------------------------------------------------
+// Upload helper
+// ---------------------------------------------------------------------------
+
+async function uploadImageToCloudinary(file: File): Promise<string> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch('/api/images', { method: 'POST', body: form });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || 'Image upload failed');
+  }
+  const { url } = await res.json() as { url: string };
+  return url;
+}
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -180,12 +197,31 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
     } = props;
 
     const prevContentRef = useRef<string>(content);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+
+    // Shared upload handler — used by toolbar button, drag-drop, and paste
+    const insertImageFile = useCallback(async (file: File, editorInstance: Editor) => {
+      setIsUploadingImage(true);
+      setImageUploadError(null);
+      try {
+        const url = await uploadImageToCloudinary(file);
+        editorInstance.chain().focus().setImage({ src: url, alt: file.name }).run();
+      } catch (err) {
+        setImageUploadError(err instanceof Error ? err.message : 'Image upload failed');
+        setTimeout(() => setImageUploadError(null), 4000);
+      } finally {
+        setIsUploadingImage(false);
+      }
+    }, []);
 
     const editor = useEditor({
       immediatelyRender: false,
       extensions: [
         StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
         Underline,
+        Image.configure({ inline: false, allowBase64: false }),
         MathBlock,
         CitationHighlight,
       ],
@@ -195,6 +231,41 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
           class:
             'w-full min-h-[400px] p-4 focus:outline-none leading-relaxed prose prose-sm max-w-none',
           spellCheck: 'true',
+        },
+        // Handle drag-and-drop of image files onto the editor
+        handleDrop(view, event) {
+          const files = Array.from(event.dataTransfer?.files ?? []);
+          const imageFile = files.find(f => f.type.startsWith('image/'));
+          if (!imageFile) return false;
+
+          event.preventDefault();
+
+          // Insert at the drop position
+          const coords = { left: event.clientX, top: event.clientY };
+          const pos = view.posAtCoords(coords);
+          if (pos) view.dispatch(view.state.tr.setSelection(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window as any).prosemirror?.Selection?.near?.(view.state.doc.resolve(pos.pos)) ?? view.state.selection
+          ));
+
+          // We need the editor instance; grab it via the view
+          const editorInstance = (view as unknown as { editorView?: never } & { editor?: Editor }).editor;
+          if (editorInstance) insertImageFile(imageFile, editorInstance);
+          return true;
+        },
+        // Handle paste of image files / clipboard images
+        handlePaste(view, event) {
+          const items = Array.from(event.clipboardData?.items ?? []);
+          const imageItem = items.find(i => i.type.startsWith('image/'));
+          if (!imageItem) return false;
+
+          const file = imageItem.getAsFile();
+          if (!file) return false;
+
+          event.preventDefault();
+          const editorInstance = (view as unknown as { editor?: Editor }).editor;
+          if (editorInstance) insertImageFile(file, editorInstance);
+          return true;
         },
       },
       onUpdate: ({ editor: e }) => {
@@ -368,6 +439,31 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
 
           {/* Custom action buttons */}
           <div className="flex items-center gap-1">
+            {/* Image upload */}
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isUploadingImage}
+              className={toolbarBtn(false)}
+              title={t('insertImage')}
+            >
+              {isUploadingImage
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <ImageIcon className="h-4 w-4" />
+              }
+            </button>
+            {/* Hidden file input */}
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (file && editor) await insertImageFile(file, editor);
+              }}
+            />
+
             {onMathClick && (
               <button
                 onClick={onMathClick}
@@ -437,6 +533,13 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
             {wordCount} {t('words')}
           </span>
         </div>
+
+        {/* Upload error toast */}
+        {imageUploadError && (
+          <div className="px-4 py-2 bg-[hsl(var(--destructive))]/10 border-b border-[hsl(var(--destructive))]/30 text-xs text-[hsl(var(--destructive))] uppercase tracking-[0.18em]">
+            {imageUploadError}
+          </div>
+        )}
 
         {/* ---- Editor content ---- */}
         <EditorContent

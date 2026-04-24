@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-server';
+import mammoth from 'mammoth';
 import { Citation } from '@/types';
 import {
   extractDocumentText,
   resolveDocumentTypeSecure,
 } from '@/lib/document-extraction';
 import { getImportErrorResponse, getLocalizedImportMessage } from '@/lib/import-error-localization';
+import { uploadBufferToCloudinary } from '@/lib/cloudinary';
+import { extractPDFImages } from '@/lib/pdf-image-extractor';
 
 /**
  * POST /api/projects/import
@@ -98,7 +101,9 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Parse DOCX file using mammoth
+ * Parse DOCX file using mammoth's HTML conversion.
+ * Images embedded in the document are uploaded to Cloudinary and replaced
+ * with their public URLs so they survive in the Tiptap editor.
  */
 async function parseDOCX(file: File): Promise<{
   title: string;
@@ -111,38 +116,44 @@ async function parseDOCX(file: File): Promise<{
   topic: string;
 }> {
   try {
-    const { text } = await extractDocumentText(file, { forceType: 'docx', timeoutMs: 15000 });
-    
-    // Parse structure from text (similar to TXT parsing)
-    const sections = parseTextIntoSections(text);
-    
-    // Extract title from filename or first heading
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Convert to HTML, uploading every embedded image to Cloudinary.
+    // mammoth calls convertImage for each <img> and uses the returned src.
+    const { value: html } = await mammoth.convertToHtml(
+      { buffer },
+      {
+        convertImage: mammoth.images.imgElement(async (image) => {
+          try {
+            const imageBuffer = Buffer.from(await image.read());
+            const url = await uploadBufferToCloudinary(imageBuffer, image.contentType);
+            return { src: url };
+          } catch {
+            // If an individual image upload fails, omit it rather than
+            // failing the whole import.
+            return { src: '' };
+          }
+        }),
+      }
+    );
+
+    const sections = parseHtmlIntoSections(html);
+
+    // Plain text for metadata detection (strip tags)
+    const plainText = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
     const title = file.name.replace(/\.(docx|pdf|txt)$/i, '');
-    
-    // Calculate word count
-    const wordCount = text.split(/\s+/).filter((word: string) => word.length > 0).length;
-    
-    // Extract topic from first paragraph
-    const firstParagraph = text.split('\n\n')[0] || text.substring(0, 200);
-    const topic = firstParagraph.substring(0, 100).trim();
-    
-    // Detect citation style
-    const detectedCitationStyle = detectCitationStyle(text);
-    
-    // Detect project type
-    const detectedType = detectProjectType(text, wordCount);
-    
-    // Detect methodology
-    const detectedMethodology = detectMethodology(text);
-    
+    const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+    const topic = plainText.substring(0, 100).trim();
+    const detectedCitationStyle = detectCitationStyle(plainText);
+    const detectedType = detectProjectType(plainText, wordCount);
+    const detectedMethodology = detectMethodology(plainText);
+
     return {
       title,
-      sections: sections.length > 0 ? sections : [{
-        title: 'Content',
-        content: text,
-        order: 1,
-      }],
-      citations: [], // TODO: Extract citations from document
+      sections: sections.length > 0 ? sections : [{ title: 'Content', content: html, order: 1 }],
+      citations: [],
       detectedType,
       detectedCitationStyle,
       detectedMethodology,
@@ -156,7 +167,12 @@ async function parseDOCX(file: File): Promise<{
 }
 
 /**
- * Parse PDF file using pdf-parse
+ * Parse PDF file.
+ *
+ * Text is extracted via pdf2json (fast, existing pipeline).
+ * Images are extracted via pdfjs-dist + node-canvas, uploaded to Cloudinary,
+ * and injected as <img> tags into the appropriate section content so they
+ * appear in the Tiptap editor alongside the surrounding text.
  */
 async function parsePDF(file: File): Promise<{
   title: string;
@@ -169,42 +185,64 @@ async function parsePDF(file: File): Promise<{
   topic: string;
 }> {
   try {
-    const { text: extractedText } = await extractDocumentText(file, {
-      forceType: 'pdf',
-      timeoutMs: 15000,
-      enableOcrFallback: true,
-    });
-    
-    // Parse structure from text
-    const sections = parseTextIntoSections(extractedText);
-    
-    // Extract title from filename or first heading
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Run text extraction and image extraction in parallel
+    const [{ text: rawText }, pageImages] = await Promise.all([
+      extractDocumentText(file, {
+        forceType: 'pdf',
+        timeoutMs: 15000,
+        enableOcrFallback: true,
+      }),
+      extractPDFImages(buffer).catch((err) => {
+        // Image extraction is best-effort; never block the import
+        console.warn('[parsePDF] image extraction failed:', err);
+        return new Map<number, string[]>();
+      }),
+    ]);
+
+    // pdf2json inserts page-break markers like:
+    //   "----------------Page (0) Break----------------"
+    // where the number is 0-indexed. Split on these to get per-page text,
+    // then re-inject any images found on that page before reassembling.
+    const PAGE_MARKER = /[-]{4,}Page\s*\((\d+)\)\s*Break[-]{4,}/gi;
+    const pageTexts = rawText.split(PAGE_MARKER).filter((_, i) => i % 2 === 0); // skip captured group indices
+
+    let enrichedText = '';
+    for (let i = 0; i < pageTexts.length; i++) {
+      const pageText = pageTexts[i].trim();
+      if (pageText) enrichedText += pageText + '\n';
+
+      // 1-based page number; pdf2json marker says "Page (0)" for page 1
+      const pdfPageNum = i + 1;
+      const images = pageImages.get(pdfPageNum);
+      if (images && images.length > 0) {
+        for (const url of images) {
+          enrichedText += `<img src="${url}" alt="Figure from page ${pdfPageNum}" style="max-width:100%;margin:1rem 0;display:block;" />\n`;
+        }
+      }
+    }
+
+    const sections = parseTextIntoSections(enrichedText);
+
     const title = file.name.replace(/\.(docx|pdf|txt)$/i, '');
-    
-    // Calculate word count
-    const wordCount = extractedText.split(/\s+/).filter((word: string) => word.length > 0).length;
-    
-    // Extract topic from first paragraph
-    const firstParagraph = extractedText.split('\n\n')[0] || extractedText.substring(0, 200);
+    const plainText = rawText.replace(PAGE_MARKER, ' ');
+    const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+    const firstParagraph = plainText.split('\n\n')[0] || plainText.substring(0, 200);
     const topic = firstParagraph.substring(0, 100).trim();
-    
-    // Detect citation style
-    const detectedCitationStyle = detectCitationStyle(extractedText);
-    
-    // Detect project type
-    const detectedType = detectProjectType(extractedText, wordCount);
-    
-    // Detect methodology
-    const detectedMethodology = detectMethodology(extractedText);
-    
+    const detectedCitationStyle = detectCitationStyle(plainText);
+    const detectedType = detectProjectType(plainText, wordCount);
+    const detectedMethodology = detectMethodology(plainText);
+
     return {
       title,
       sections: sections.length > 0 ? sections : [{
         title: 'Content',
-        content: extractedText,
+        content: enrichedText,
         order: 1,
       }],
-      citations: [], // TODO: Extract citations from document
+      citations: [],
       detectedType,
       detectedCitationStyle,
       detectedMethodology,
@@ -268,6 +306,62 @@ async function parseTXT(file: File): Promise<{
       wordCount,
       topic,
     };
+}
+
+/**
+ * Parse mammoth-generated HTML into editor-ready sections by splitting on
+ * heading tags (h1, h2, h3).  Content between headings (including any
+ * <img> tags pointing at Cloudinary) is kept as raw HTML so the Tiptap
+ * editor can render it faithfully.
+ */
+function parseHtmlIntoSections(
+  html: string
+): Array<{ title: string; content: string; order: number }> {
+  // Split the HTML at every top-level heading tag.
+  // The regex captures the full opening tag so we can extract the text from it.
+  const parts = html.split(/(?=<h[1-3][\s>])/i);
+
+  const sections: Array<{ title: string; content: string; order: number }> = [];
+
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+
+    const headingMatch = trimmed.match(/^<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/i);
+    if (headingMatch) {
+      // The heading text (strip any inline tags inside the heading)
+      const headingText = headingMatch[1].replace(/<[^>]+>/g, '').trim();
+      // Everything after the closing heading tag is the section body
+      const body = trimmed.slice(headingMatch[0].length).trim();
+      sections.push({
+        title: headingText || 'Section',
+        content: body,
+        order: sections.length + 1,
+      });
+    } else {
+      // Content before the first heading
+      if (sections.length === 0) {
+        sections.push({ title: 'Content', content: trimmed, order: 1 });
+      } else {
+        // Append orphaned content to the last section
+        sections[sections.length - 1].content += trimmed;
+      }
+    }
+  }
+
+  // Deduplicate consecutive sections with identical titles (same logic as the
+  // text-based parser).
+  const deduped: typeof sections = [];
+  for (const section of sections) {
+    const prev = deduped[deduped.length - 1];
+    if (prev && prev.title.toLowerCase() === section.title.toLowerCase()) {
+      prev.content = [prev.content, section.content].filter(Boolean).join('');
+    } else {
+      deduped.push({ ...section, order: deduped.length + 1 });
+    }
+  }
+
+  return deduped;
 }
 
 /**

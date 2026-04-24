@@ -1,14 +1,195 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useSession } from 'next-auth/react';
 import Sidebar, { MobileMenuButton } from '@/components/Sidebar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import { Upload, FileText, CheckCircle2, AlertCircle, X, ArrowRight } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, AlertCircle, X, ArrowRight, ImageIcon, ScanText, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// ---------------------------------------------------------------------------
+// Progress stages for the import loader
+// ---------------------------------------------------------------------------
+
+type ImportStage = 'reading' | 'images' | 'finalizing';
+
+interface Stage {
+  id: ImportStage;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  /** Minimum ms before this stage can advance to the next one */
+  minDurationMs: number;
+}
+
+const STAGES_PDF: Stage[] = [
+  {
+    id: 'reading',
+    label: 'Reading document',
+    description: 'Extracting text content and structure',
+    icon: ScanText,
+    minDurationMs: 2500,
+  },
+  {
+    id: 'images',
+    label: 'Processing images',
+    description: 'Extracting and uploading embedded figures — this may take a moment',
+    icon: ImageIcon,
+    minDurationMs: 8000,
+  },
+  {
+    id: 'finalizing',
+    label: 'Building sections',
+    description: 'Assembling your document into editable sections',
+    icon: Layers,
+    minDurationMs: 0, // Stays here until the real response arrives
+  },
+];
+
+const STAGES_OTHER: Stage[] = [
+  {
+    id: 'reading',
+    label: 'Reading document',
+    description: 'Extracting text content and structure',
+    icon: ScanText,
+    minDurationMs: 2000,
+  },
+  {
+    id: 'finalizing',
+    label: 'Building sections',
+    description: 'Assembling your document into editable sections',
+    icon: Layers,
+    minDurationMs: 0,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// ImportProgressOverlay
+// ---------------------------------------------------------------------------
+
+function ImportProgressOverlay({
+  fileName,
+  isPDF,
+}: {
+  fileName: string;
+  isPDF: boolean;
+}) {
+  const stages = isPDF ? STAGES_PDF : STAGES_OTHER;
+  const [stageIndex, setStageIndex] = useState(0);
+  const [barProgress, setBarProgress] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Advance through stages automatically based on minDurationMs
+  useEffect(() => {
+    setStageIndex(0);
+    setBarProgress(0);
+  }, []);
+
+  useEffect(() => {
+    const current = stages[stageIndex];
+    if (!current || current.minDurationMs === 0) return; // last stage waits for real response
+
+    timerRef.current = setTimeout(() => {
+      setStageIndex((i) => Math.min(i + 1, stages.length - 1));
+    }, current.minDurationMs);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [stageIndex, stages]);
+
+  // Animate the progress bar smoothly toward the target for the current stage
+  useEffect(() => {
+    const targetPct = Math.round(((stageIndex + 1) / stages.length) * 90);
+    const step = () => {
+      setBarProgress((p) => {
+        if (p >= targetPct) return p;
+        return p + 1;
+      });
+    };
+    const interval = setInterval(step, 60);
+    return () => clearInterval(interval);
+  }, [stageIndex, stages.length]);
+
+  const currentStage = stages[stageIndex];
+
+  return (
+    <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-8 space-y-8">
+      {/* File name */}
+      <div className="flex items-center gap-3">
+        <FileText className="text-[hsl(var(--primary))] shrink-0" size={20} />
+        <span className="text-xs uppercase tracking-[0.22em] text-[hsl(var(--muted-foreground))] truncate">
+          {fileName}
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+          <span>{currentStage.label}</span>
+          <span>{barProgress}%</span>
+        </div>
+        <div className="h-2 rounded-full bg-[hsl(var(--border-strong))] overflow-hidden">
+          <div
+            className="h-full rounded-full bg-[hsl(var(--primary))] transition-all duration-300"
+            style={{ width: `${barProgress}%` }}
+          />
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+          {currentStage.description}
+        </p>
+      </div>
+
+      {/* Stage steps */}
+      <div className="space-y-3">
+        {stages.map((stage, i) => {
+          const Icon = stage.icon;
+          const isDone = i < stageIndex;
+          const isActive = i === stageIndex;
+          return (
+            <div
+              key={stage.id}
+              className={cn(
+                'flex items-center gap-3 text-xs uppercase tracking-[0.18em] transition-colors',
+                isDone && 'text-[hsl(var(--foreground))]',
+                isActive && 'text-[hsl(var(--primary))] font-semibold',
+                !isDone && !isActive && 'text-[hsl(var(--muted-foreground))] opacity-50',
+              )}
+            >
+              <div
+                className={cn(
+                  'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0',
+                  isDone && 'border-[hsl(var(--secondary))] bg-[hsl(var(--secondary))]',
+                  isActive && 'border-[hsl(var(--primary))]',
+                  !isDone && !isActive && 'border-[hsl(var(--border-strong))]',
+                )}
+              >
+                {isDone ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--secondary-foreground))]" />
+                ) : isActive ? (
+                  <div className="w-2 h-2 rounded-full bg-[hsl(var(--primary))] animate-pulse" />
+                ) : (
+                  <Icon className="w-3 h-3" />
+                )}
+              </div>
+              {stage.label}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Note for image-heavy docs */}
+      {isPDF && stageIndex === stages.findIndex((s) => s.id === 'images') && (
+        <p className="text-[10px] uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] border-t border-[hsl(var(--border-strong))] pt-4">
+          Images are extracted and uploaded to the cloud — the more figures your PDF contains, the longer this takes.
+        </p>
+      )}
+    </div>
+  );
+}
 
 interface ExtractedData {
   title: string;
@@ -236,6 +417,12 @@ function ImportProjectPageInner() {
           {!extractedData ? (
             <div className="space-y-6">
               <Card className="p-6 md:p-8">
+                {isUploading ? (
+                  <ImportProgressOverlay
+                    fileName={file?.name ?? ''}
+                    isPDF={file?.name.toLowerCase().endsWith('.pdf') ?? false}
+                  />
+                ) : (
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <Upload className="text-[hsl(var(--primary))]" size={24} />
@@ -307,12 +494,13 @@ function ImportProjectPageInner() {
                         disabled={isUploading}
                         className="px-6 py-3"
                       >
-                        {isUploading ? 'Processing...' : 'Process Document'}
-                        {!isUploading && <ArrowRight size={18} className="ml-2" />}
+                        Process Document
+                        <ArrowRight size={18} className="ml-2" />
                       </Button>
                     </div>
                   )}
                 </div>
+                )}
               </Card>
             </div>
           ) : (
