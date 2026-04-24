@@ -341,9 +341,9 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
     const hasSelection = editor ? !editor.state.selection.empty : false;
 
     return (
-      <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) overflow-hidden bg-[hsl(var(--surface))]">
+      <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))]">
         {/* ---- Toolbar ---- */}
-        <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-2 md:p-3 flex items-center gap-1 md:gap-2 bg-[hsl(var(--surface-muted))] overflow-x-auto toolbar-container">
+        <div className="sticky top-0 z-10 rounded-t-(--radius) border-b-[3px] border-[hsl(var(--border-strong))] p-2 md:p-3 flex items-center gap-1 md:gap-2 bg-[hsl(var(--surface-muted))] overflow-x-auto toolbar-container">
 
           {/* Undo / Redo */}
           <div className="flex items-center gap-1">
@@ -542,13 +542,15 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
         )}
 
         {/* ---- Editor content ---- */}
-        <EditorContent
-          editor={editor}
-          onContextMenu={onContextMenu}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        />
+        <div className="rounded-b-(--radius) overflow-hidden">
+          <EditorContent
+            editor={editor}
+            onContextMenu={onContextMenu}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          />
+        </div>
       </div>
     );
   },
