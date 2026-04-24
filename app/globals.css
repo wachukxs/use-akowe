@@ -479,6 +479,131 @@ body {
   }
 }
 
+/* ---- Tiptap table styles ---- */
+.ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  table-layout: fixed;
+  overflow: hidden;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  border: 2px solid hsl(var(--border-strong));
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  min-width: 1em;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.ProseMirror table th {
+  background: hsl(var(--surface-muted));
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.ProseMirror table .selectedCell::after {
+  z-index: 2;
+  position: absolute;
+  content: '';
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: hsl(var(--secondary) / 0.15);
+  pointer-events: none;
+}
+
+/* ---- Tiptap task list styles ---- */
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.25rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  cursor: pointer;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  accent-color: hsl(var(--secondary));
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  color: hsl(var(--muted-foreground));
+  text-decoration: line-through;
+}
+
+/* ---- Tiptap code styles ---- */
+.ProseMirror code {
+  background: hsl(var(--surface-muted));
+  border: 1px solid hsl(var(--border-strong));
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  font-size: 0.85em;
+  color: hsl(var(--foreground));
+}
+
+.ProseMirror pre {
+  background: hsl(210 34% 10%);
+  border-radius: var(--radius);
+  color: hsl(210 40% 92%);
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.ProseMirror pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.875rem;
+  color: inherit;
+}
+
+/* ---- Tiptap horizontal rule ---- */
+.ProseMirror hr {
+  border: none;
+  border-top: 3px solid hsl(var(--border-strong));
+  margin: 1.5rem 0;
+}
+
+/* ---- Tiptap footnote styles ---- */
+.ProseMirror sup.footnote-ref {
+  color: hsl(var(--secondary));
+  font-size: 0.7em;
+  font-weight: 700;
+  cursor: help;
+  line-height: 0;
+  vertical-align: super;
+  padding: 0 1px;
+  border-bottom: 1px dotted hsl(var(--secondary));
+}
+
+/* ---- Tiptap link styles ---- */
+.ProseMirror a {
+  color: hsl(var(--secondary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 /* Touch manipulation for better mobile interactions */
 .touch-manipulation {
   touch-action: manipulation;

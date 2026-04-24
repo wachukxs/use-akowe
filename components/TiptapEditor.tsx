@@ -1,18 +1,29 @@
 'use client';
 
 import { useEditor, EditorContent } from '@tiptap/react';
+import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import Superscript from '@tiptap/extension-superscript';
+import Subscript from '@tiptap/extension-subscript';
+import Link from '@tiptap/extension-link';
+import Typography from '@tiptap/extension-typography';
+import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import Image from '@tiptap/extension-image';
 import { Node, Mark, mergeAttributes } from '@tiptap/core';
 import { forwardRef, useImperativeHandle, useEffect, useRef, useCallback, useState } from 'react';
 import type { Editor } from '@tiptap/core';
 import {
-  Bold, Italic, Underline as UnderlineIcon, List, Hash,
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, Hash,
   Undo, Redo, Calculator, BarChart3, Sparkles, BookOpen, ImageIcon, Loader2,
+  Quote, Link2, Link2Off, Superscript as SuperscriptIcon, Subscript as SubscriptIcon,
+  Table as TableIcon, Plus, FileText, Code, Code2, Minus, ListChecks,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CITATION_HIGHLIGHT_ATTR, CITATION_HIGHLIGHT_CLASS } from '@/lib/citation-highlight';
+import Tooltip from '@/components/ui/Tooltip';
 
 // ---------------------------------------------------------------------------
 // Custom extensions
@@ -84,6 +95,44 @@ const CitationHighlight = Mark.create({
       'span',
       mergeAttributes({ class: CITATION_HIGHLIGHT_CLASS, [CITATION_HIGHLIGHT_ATTR]: 'true' }),
       0,
+    ];
+  },
+});
+
+/**
+ * FootnoteRef — inline atom that renders as a superscript footnote number.
+ * Stores the footnote text so the content is self-contained in the HTML.
+ */
+const FootnoteRef = Node.create({
+  name: 'footnoteRef',
+  group: 'inline',
+  inline: true,
+  atom: true,
+
+  addAttributes() {
+    return {
+      id: { default: '' },
+      index: { default: 1 },
+      content: { default: '' },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'sup[data-footnote-ref]' }];
+  },
+
+  renderHTML({ node }) {
+    return [
+      'sup',
+      mergeAttributes({
+        'data-footnote-ref': 'true',
+        'data-footnote-id': node.attrs.id,
+        'data-footnote-content': node.attrs.content,
+        'data-footnote-index': node.attrs.index,
+        class: 'footnote-ref',
+        title: node.attrs.content,
+      }),
+      String(node.attrs.index),
     ];
   },
 });
@@ -200,6 +249,11 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
     const imageInputRef = useRef<HTMLInputElement>(null);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+    const [linkModalOpen, setLinkModalOpen] = useState(false);
+    const [linkUrl, setLinkUrl] = useState('');
+    const [showTableMenu, setShowTableMenu] = useState(false);
+    const [footnoteModalOpen, setFootnoteModalOpen] = useState(false);
+    const [footnoteText, setFootnoteText] = useState('');
 
     // Shared upload handler — used by toolbar button, drag-drop, and paste
     const insertImageFile = useCallback(async (file: File, editorInstance: Editor) => {
@@ -221,9 +275,24 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
       extensions: [
         StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
         Underline,
+        Superscript,
+        Subscript,
+        Link.configure({
+          openOnClick: false,
+          autolink: true,
+          HTMLAttributes: { class: 'text-[hsl(var(--secondary))] underline underline-offset-2 cursor-pointer' },
+        }),
+        Typography,
+        Table.configure({ resizable: false }),
+        TableRow,
+        TableCell,
+        TableHeader,
+        TaskList,
+        TaskItem.configure({ nested: true }),
         Image.configure({ inline: false, allowBase64: false }),
         MathBlock,
         CitationHighlight,
+        FootnoteRef,
       ],
       content: content || '<p></p>',
       editorProps: {
@@ -231,6 +300,14 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
           class:
             'w-full min-h-[400px] p-4 focus:outline-none leading-relaxed prose prose-sm max-w-none',
           spellCheck: 'true',
+        },
+        handleKeyDown(_, event) {
+          if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+            event.preventDefault();
+            setLinkModalOpen(v => !v);
+            return true;
+          }
+          return false;
         },
         // Handle drag-and-drop of image files onto the editor
         handleDrop(view, event) {
@@ -276,7 +353,7 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
       onSelectionUpdate: ({ editor: e }) => {
         if (!onSelectionChange) return;
         const { from, to } = e.state.selection;
-        const hasSelection = from !== to;
+        const hasSelection = from !== to && e.state.selection instanceof TextSelection;
         if (hasSelection && !rewritePanelVisible) {
           const domSel = window.getSelection();
           if (domSel && domSel.rangeCount > 0) {
@@ -337,8 +414,17 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
       return () => dom.removeEventListener('copy', handleCopyInternal);
     }, [editor, handleCopyInternal]);
 
+    useEffect(() => {
+      if (!showTableMenu) return;
+      const close = () => setShowTableMenu(false);
+      document.addEventListener('mousedown', close);
+      return () => document.removeEventListener('mousedown', close);
+    }, [showTableMenu]);
+
     const isLitReviewEnabled = citationCount >= 3;
-    const hasSelection = editor ? !editor.state.selection.empty : false;
+    const hasSelection = editor
+      ? !editor.state.selection.empty && editor.state.selection instanceof TextSelection
+      : false;
 
     return (
       <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) bg-[hsl(var(--surface))]">
@@ -347,110 +433,276 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
 
           {/* Undo / Redo */}
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => editor?.chain().focus().undo().run()}
-              disabled={!editor?.can().undo()}
-              className={toolbarBtn(false)}
-              title={t('undo')}
-            >
-              <Undo className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().redo().run()}
-              disabled={!editor?.can().redo()}
-              className={toolbarBtn(false)}
-              title={t('redo')}
-            >
-              <Redo className="h-4 w-4" />
-            </button>
+            <Tooltip label={t('undo')} shortcut="Ctrl+Z">
+              <button
+                onClick={() => editor?.chain().focus().undo().run()}
+                disabled={!editor?.can().undo()}
+                className={toolbarBtn(false)}
+              >
+                <Undo className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('redo')} shortcut="Ctrl+Shift+Z">
+              <button
+                onClick={() => editor?.chain().focus().redo().run()}
+                disabled={!editor?.can().redo()}
+                className={toolbarBtn(false)}
+              >
+                <Redo className="h-4 w-4" />
+              </button>
+            </Tooltip>
           </div>
 
           <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
 
           {/* Text formatting */}
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              className={toolbarBtn(!!editor?.isActive('bold'))}
-              title={t('bold')}
-            >
-              <Bold className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              className={toolbarBtn(!!editor?.isActive('italic'))}
-              title="Italic (Ctrl+I)"
-            >
-              <Italic className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().toggleUnderline().run()}
-              className={toolbarBtn(!!editor?.isActive('underline'))}
-              title={t('underline')}
-            >
-              <UnderlineIcon className="h-4 w-4" />
-            </button>
+            <Tooltip label={t('bold')} shortcut="Ctrl+B">
+              <button
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                className={toolbarBtn(!!editor?.isActive('bold'))}
+              >
+                <Bold className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('italic')} shortcut="Ctrl+I">
+              <button
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                className={toolbarBtn(!!editor?.isActive('italic'))}
+              >
+                <Italic className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('underline')} shortcut="Ctrl+U">
+              <button
+                onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                className={toolbarBtn(!!editor?.isActive('underline'))}
+              >
+                <UnderlineIcon className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('strikethrough')} description="Draw a line through selected text">
+              <button
+                onClick={() => editor?.chain().focus().toggleStrike().run()}
+                className={toolbarBtn(!!editor?.isActive('strike'))}
+              >
+                <Strikethrough className="h-4 w-4" />
+              </button>
+            </Tooltip>
+          </div>
+
+          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+
+          {/* Blockquote + Horizontal rule */}
+          <div className="flex items-center gap-1">
+            <Tooltip label={t('blockquote')} description="Indent and style a quotation from a source">
+              <button
+                onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                className={toolbarBtn(!!editor?.isActive('blockquote'))}
+              >
+                <Quote className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('horizontalRule')} description="Insert a horizontal line to divide sections">
+              <button
+                onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+                className={toolbarBtn(false)}
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+            </Tooltip>
+          </div>
+
+          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+
+          {/* Code — inline and block */}
+          <div className="flex items-center gap-1">
+            <Tooltip label={t('inlineCode')} shortcut="Ctrl+E" description="Format a word or phrase as code">
+              <button
+                onClick={() => editor?.chain().focus().toggleCode().run()}
+                className={toolbarBtn(!!editor?.isActive('code'))}
+              >
+                <Code className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('codeBlock')} description="Multi-line preformatted code block">
+              <button
+                onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+                className={toolbarBtn(!!editor?.isActive('codeBlock'))}
+              >
+                <Code2 className="h-4 w-4" />
+              </button>
+            </Tooltip>
           </div>
 
           <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
 
           {/* Lists */}
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              className={toolbarBtn(!!editor?.isActive('bulletList'))}
-              title={t('bulletList')}
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              className={toolbarBtn(!!editor?.isActive('orderedList'))}
-              title={t('numberedList')}
-            >
-              <Hash className="h-4 w-4" />
-            </button>
+            <Tooltip label={t('bulletList')}>
+              <button
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                className={toolbarBtn(!!editor?.isActive('bulletList'))}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('numberedList')}>
+              <button
+                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                className={toolbarBtn(!!editor?.isActive('orderedList'))}
+              >
+                <Hash className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('taskList')} description="Interactive checklist with checkboxes">
+              <button
+                onClick={() => editor?.chain().focus().toggleTaskList().run()}
+                className={toolbarBtn(!!editor?.isActive('taskList'))}
+              >
+                <ListChecks className="h-4 w-4" />
+              </button>
+            </Tooltip>
           </div>
 
           <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
 
           {/* Headings */}
           <div className="flex items-center gap-1">
-            {([1, 2, 3] as const).map((level) => (
+            {([1, 2, 3] as const).map((level) => {
+              const descriptions = ['Major section title', 'Sub-section title', 'Minor heading'];
+              const shortcuts = ['Ctrl+Alt+1', 'Ctrl+Alt+2', 'Ctrl+Alt+3'];
+              return (
+                <Tooltip key={level} label={t(`header${level}`)} shortcut={shortcuts[level - 1]} description={descriptions[level - 1]}>
+                  <button
+                    onClick={() => editor?.chain().focus().toggleHeading({ level }).run()}
+                    className={toolbarBtn(!!editor?.isActive('heading', { level }))}
+                  >
+                    <span className="text-sm font-bold">H{level}</span>
+                  </button>
+                </Tooltip>
+              );
+            })}
+            <Tooltip label={t('normalText')} shortcut="Ctrl+Alt+0">
               <button
-                key={level}
-                onClick={() => editor?.chain().focus().toggleHeading({ level }).run()}
-                className={toolbarBtn(!!editor?.isActive('heading', { level }))}
-                title={t(`header${level}`)}
+                onClick={() => editor?.chain().focus().setParagraph().run()}
+                className={toolbarBtn(!!editor?.isActive('paragraph') && !editor?.isActive('heading'))}
               >
-                <span className="text-sm font-bold">H{level}</span>
+                <span className="text-sm font-medium">{t('normal')}</span>
               </button>
-            ))}
-            <button
-              onClick={() => editor?.chain().focus().setParagraph().run()}
-              className={toolbarBtn(!!editor?.isActive('paragraph') && !editor?.isActive('heading'))}
-              title={t('normalText')}
-            >
-              <span className="text-sm font-medium">{t('normal')}</span>
-            </button>
+            </Tooltip>
           </div>
 
-          <div className="w-px h-6 bg-gray-300 mx-1" />
+          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+
+          {/* Superscript / Subscript */}
+          <div className="flex items-center gap-1">
+            <Tooltip label={t('superscript')} description="Raised text — footnote refs, exponents (x²)">
+              <button
+                onClick={() => editor?.chain().focus().toggleSuperscript().run()}
+                className={toolbarBtn(!!editor?.isActive('superscript'))}
+              >
+                <SuperscriptIcon className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label={t('subscript')} description="Lowered text — chemical formulas (H₂O)">
+              <button
+                onClick={() => editor?.chain().focus().toggleSubscript().run()}
+                className={toolbarBtn(!!editor?.isActive('subscript'))}
+              >
+                <SubscriptIcon className="h-4 w-4" />
+              </button>
+            </Tooltip>
+          </div>
+
+          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+
+          {/* Link */}
+          <div className="flex items-center gap-1">
+            <Tooltip
+              label={editor?.isActive('link') ? t('removeLink') : t('insertLink')}
+              shortcut={editor?.isActive('link') ? undefined : 'Ctrl+K'}
+              description={editor?.isActive('link') ? 'Unlink the selected text' : 'Add a hyperlink to selected text'}
+            >
+              <button
+                onClick={() => {
+                  if (editor?.isActive('link')) {
+                    editor.chain().focus().unsetLink().run();
+                  } else {
+                    setLinkUrl(editor?.getAttributes('link').href || '');
+                    setLinkModalOpen(true);
+                  }
+                }}
+                className={toolbarBtn(!!editor?.isActive('link'))}
+              >
+                {editor?.isActive('link') ? <Link2Off className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+              </button>
+            </Tooltip>
+          </div>
+
+          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+
+          {/* Table */}
+          <div className="relative flex items-center">
+            <Tooltip label={t('insertTable')} description="Insert a table for structured data">
+            <button
+              onClick={() => setShowTableMenu(v => !v)}
+              className={toolbarBtn(!!editor?.isActive('table'))}
+            >
+              <TableIcon className="h-4 w-4" />
+            </button>
+            </Tooltip>
+            {showTableMenu && (
+              <div className="absolute top-full left-0 mt-1 z-20 bg-[hsl(var(--surface))] border-2 border-[hsl(var(--border-strong))] rounded-(--radius) shadow-lg p-1 min-w-[160px]">
+                {!editor?.isActive('table') ? (
+                  <button
+                    onClick={() => { editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); setShowTableMenu(false); }}
+                    className="w-full text-left px-3 py-2 text-xs uppercase tracking-[0.14em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) flex items-center gap-2"
+                  >
+                    <Plus className="h-3 w-3" /> {t('table.insert')}
+                  </button>
+                ) : (
+                  <>
+                    <button onClick={() => { editor?.chain().focus().addRowAfter().run(); setShowTableMenu(false); }} className="w-full text-left px-3 py-2 text-xs uppercase tracking-[0.14em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius)">{t('table.addRowAfter')}</button>
+                    <button onClick={() => { editor?.chain().focus().addColumnAfter().run(); setShowTableMenu(false); }} className="w-full text-left px-3 py-2 text-xs uppercase tracking-[0.14em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius)">{t('table.addColumnAfter')}</button>
+                    <button onClick={() => { editor?.chain().focus().deleteRow().run(); setShowTableMenu(false); }} className="w-full text-left px-3 py-2 text-xs uppercase tracking-[0.14em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) text-[hsl(var(--destructive))]">{t('table.deleteRow')}</button>
+                    <button onClick={() => { editor?.chain().focus().deleteColumn().run(); setShowTableMenu(false); }} className="w-full text-left px-3 py-2 text-xs uppercase tracking-[0.14em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) text-[hsl(var(--destructive))]">{t('table.deleteColumn')}</button>
+                    <button onClick={() => { editor?.chain().focus().deleteTable().run(); setShowTableMenu(false); }} className="w-full text-left px-3 py-2 text-xs uppercase tracking-[0.14em] hover:bg-[hsl(var(--surface-muted))] rounded-(--radius) text-[hsl(var(--destructive))]">{t('table.delete')}</button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+
+          {/* Footnote */}
+          <Tooltip label={t('insertFootnote')} description="Insert a numbered inline footnote">
+            <button
+              onClick={() => { setFootnoteText(''); setFootnoteModalOpen(true); }}
+              className={toolbarBtn(false)}
+            >
+              <FileText className="h-4 w-4" />
+            </button>
+          </Tooltip>
+
+          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
 
           {/* Custom action buttons */}
           <div className="flex items-center gap-1">
             {/* Image upload */}
-            <button
-              onClick={() => imageInputRef.current?.click()}
-              disabled={isUploadingImage}
-              className={toolbarBtn(false)}
-              title={t('insertImage')}
-            >
-              {isUploadingImage
-                ? <Loader2 className="h-4 w-4 animate-spin" />
-                : <ImageIcon className="h-4 w-4" />
-              }
-            </button>
+            <Tooltip label={t('insertImage')} description="Upload or drag-and-drop an image">
+              <button
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isUploadingImage}
+                className={toolbarBtn(false)}
+              >
+                {isUploadingImage
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <ImageIcon className="h-4 w-4" />
+                }
+              </button>
+            </Tooltip>
             {/* Hidden file input */}
             <input
               ref={imageInputRef}
@@ -465,65 +717,65 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
             />
 
             {onMathClick && (
-              <button
-                onClick={onMathClick}
-                className={toolbarBtn(false)}
-                title={t('insertMathEquation')}
-              >
-                <Calculator className="h-4 w-4" />
-              </button>
+              <Tooltip label={t('insertMathEquation')} description="Insert a LaTeX formula (∑, ∫, α, β)">
+                <button onClick={onMathClick} className={toolbarBtn(false)}>
+                  <Calculator className="h-4 w-4" />
+                </button>
+              </Tooltip>
             )}
             {onChartClick && (
-              <button
-                onClick={onChartClick}
-                className={toolbarBtn(false)}
-                title={t('insertChart')}
-              >
-                <BarChart3 className="h-4 w-4" />
-              </button>
+              <Tooltip label={t('insertChart')} description="Insert a data visualization chart">
+                <button onClick={onChartClick} className={toolbarBtn(false)}>
+                  <BarChart3 className="h-4 w-4" />
+                </button>
+              </Tooltip>
             )}
             {onRewriteClick && (
               <>
                 <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
-                <button
-                  onClick={onRewriteClick}
-                  disabled={!hasSelection}
-                  className={cn(
-                    'cursor-pointer p-2 rounded-(--radius) transition-colors',
-                    'min-w-[44px] min-h-[44px] flex items-center justify-center',
-                    'toolbar-button border-2 border-transparent',
-                    hasSelection
-                      ? 'hover:border-[hsl(var(--border-strong))] text-[hsl(var(--primary))]'
-                      : 'opacity-40 cursor-not-allowed',
-                  )}
-                  title={t('rewriteWithAI')}
+                <Tooltip
+                  label={t('rewriteWithAI')}
+                  description={hasSelection ? 'Rewrite or improve the selected text' : 'Select text first to rewrite'}
                 >
-                  <Sparkles className="h-4 w-4" />
-                </button>
+                  <button
+                    onClick={onRewriteClick}
+                    disabled={!hasSelection}
+                    className={cn(
+                      'cursor-pointer p-2 rounded-(--radius) transition-colors',
+                      'min-w-[44px] min-h-[44px] flex items-center justify-center',
+                      'toolbar-button border-2 border-transparent',
+                      hasSelection
+                        ? 'hover:border-[hsl(var(--border-strong))] text-[hsl(var(--primary))]'
+                        : 'opacity-40 cursor-not-allowed',
+                    )}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                  </button>
+                </Tooltip>
               </>
             )}
             {onLitReviewClick && (
               <>
                 <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
-                <button
-                  onClick={onLitReviewClick}
-                  disabled={!isLitReviewEnabled}
-                  className={cn(
-                    'cursor-pointer p-2 rounded-(--radius) transition-colors',
-                    'min-w-[44px] min-h-[44px] flex items-center justify-center',
-                    'toolbar-button border-2 border-transparent',
-                    isLitReviewEnabled
-                      ? 'hover:border-[hsl(var(--border-strong))] text-[hsl(var(--secondary))]'
-                      : 'opacity-40 cursor-not-allowed',
-                  )}
-                  title={
-                    isLitReviewEnabled
-                      ? t('litReview.toolbarButton')
-                      : t('litReview.toolbarDisabled')
-                  }
+                <Tooltip
+                  label={t('litReview.toolbarButton')}
+                  description={isLitReviewEnabled ? 'Generate a literature review from your citations' : 'Add 3+ citations to unlock'}
                 >
-                  <BookOpen className="h-4 w-4" />
-                </button>
+                  <button
+                    onClick={onLitReviewClick}
+                    disabled={!isLitReviewEnabled}
+                    className={cn(
+                      'cursor-pointer p-2 rounded-(--radius) transition-colors',
+                      'min-w-[44px] min-h-[44px] flex items-center justify-center',
+                      'toolbar-button border-2 border-transparent',
+                      isLitReviewEnabled
+                        ? 'hover:border-[hsl(var(--border-strong))] text-[hsl(var(--secondary))]'
+                        : 'opacity-40 cursor-not-allowed',
+                    )}
+                  >
+                    <BookOpen className="h-4 w-4" />
+                  </button>
+                </Tooltip>
               </>
             )}
           </div>
@@ -538,6 +790,112 @@ const TiptapEditor = forwardRef<TiptapEditorHandle, TiptapEditorProps>(
         {imageUploadError && (
           <div className="px-4 py-2 bg-[hsl(var(--destructive))]/10 border-b border-[hsl(var(--destructive))]/30 text-xs text-[hsl(var(--destructive))] uppercase tracking-[0.18em]">
             {imageUploadError}
+          </div>
+        )}
+
+        {/* Link modal */}
+        {linkModalOpen && (
+          <div className="border-b-[3px] border-[hsl(var(--border-strong))] px-4 py-3 bg-[hsl(var(--surface-muted))] flex items-center gap-3">
+            <Link2 className="h-4 w-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+            <input
+              autoFocus
+              type="url"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const url = linkUrl.trim();
+                  if (url) editor?.chain().focus().setLink({ href: url.startsWith('http') ? url : `https://${url}` }).run();
+                  setLinkModalOpen(false);
+                  setLinkUrl('');
+                } else if (e.key === 'Escape') {
+                  setLinkModalOpen(false);
+                  setLinkUrl('');
+                }
+              }}
+              placeholder={t('linkPlaceholder')}
+              className="flex-1 text-sm bg-transparent outline-none border-b-2 border-[hsl(var(--border-strong))] focus:border-[hsl(var(--secondary))] pb-0.5 text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))]"
+            />
+            <button
+              onClick={() => {
+                const url = linkUrl.trim();
+                if (url) editor?.chain().focus().setLink({ href: url.startsWith('http') ? url : `https://${url}` }).run();
+                setLinkModalOpen(false);
+                setLinkUrl('');
+              }}
+              className="text-xs uppercase tracking-[0.18em] font-semibold text-[hsl(var(--secondary))] hover:opacity-80"
+            >
+              {t('apply')}
+            </button>
+            <button
+              onClick={() => { setLinkModalOpen(false); setLinkUrl(''); }}
+              className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] hover:opacity-80"
+            >
+              {t('cancel')}
+            </button>
+          </div>
+        )}
+
+        {/* Footnote modal */}
+        {footnoteModalOpen && (
+          <div className="border-b-[3px] border-[hsl(var(--border-strong))] px-4 py-3 bg-[hsl(var(--surface-muted))] flex items-center gap-3">
+            <FileText className="h-4 w-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+            <input
+              autoFocus
+              type="text"
+              value={footnoteText}
+              onChange={(e) => setFootnoteText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const text = footnoteText.trim();
+                  if (text && editor) {
+                    const html = editor.getHTML();
+                    const existingRefs = (html.match(/data-footnote-ref="true"/g) || []).length;
+                    const index = existingRefs + 1;
+                    const id = `fn-${Date.now()}`;
+                    editor.chain().focus().insertContent({
+                      type: 'footnoteRef',
+                      attrs: { id, index, content: text },
+                    }).run();
+                  }
+                  setFootnoteModalOpen(false);
+                  setFootnoteText('');
+                } else if (e.key === 'Escape') {
+                  setFootnoteModalOpen(false);
+                  setFootnoteText('');
+                }
+              }}
+              placeholder={t('footnotePlaceholder')}
+              className="flex-1 text-sm bg-transparent outline-none border-b-2 border-[hsl(var(--border-strong))] focus:border-[hsl(var(--secondary))] pb-0.5 text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))]"
+            />
+            <button
+              onClick={() => {
+                const text = footnoteText.trim();
+                if (text && editor) {
+                  const html = editor.getHTML();
+                  const existingRefs = (html.match(/data-footnote-ref="true"/g) || []).length;
+                  const index = existingRefs + 1;
+                  const id = `fn-${Date.now()}`;
+                  editor.chain().focus().insertContent({
+                    type: 'footnoteRef',
+                    attrs: { id, index, content: text },
+                  }).run();
+                }
+                setFootnoteModalOpen(false);
+                setFootnoteText('');
+              }}
+              className="text-xs uppercase tracking-[0.18em] font-semibold text-[hsl(var(--secondary))] hover:opacity-80"
+            >
+              {t('apply')}
+            </button>
+            <button
+              onClick={() => { setFootnoteModalOpen(false); setFootnoteText(''); }}
+              className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))] hover:opacity-80"
+            >
+              {t('cancel')}
+            </button>
           </div>
         )}
 
