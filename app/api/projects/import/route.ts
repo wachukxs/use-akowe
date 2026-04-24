@@ -271,41 +271,65 @@ async function parseTXT(file: File): Promise<{
 }
 
 /**
- * Helper function to parse text into sections
+ * Helper function to parse text into sections.
+ * Handles plain text from PDF (including Word-exported PDFs) and DOCX files.
+ *
+ * Key fixes for Microsoft Word PDFs:
+ *  - Strips pdf2json page-break markers before parsing
+ *  - Tightens heading detection (requires ≥2 words for ALL-CAPS lines to avoid
+ *    matching single abbreviations or short body fragments)
+ *  - Deduplicates consecutive sections that share the same title (Word PDFs
+ *    sometimes repeat the running header at the top of each page)
  */
 function parseTextIntoSections(text: string): Array<{ title: string; content: string; order: number }> {
-  const lines = text.split('\n').filter(line => line.trim());
+  // Strip pdf2json page-break markers (e.g. "----------------Page (0) Break----------------")
+  const cleaned = text.replace(/[-]{4,}Page\s*\(\d+\)\s*Break[-]{4,}/gi, '');
+
+  const lines = cleaned.split('\n').filter(line => line.trim());
   const sections: Array<{ title: string; content: string; order: number }> = [];
   let currentSection: { title: string; content: string[] } | null = null;
-  
+
+  const KNOWN_SECTIONS = [
+    'Introduction', 'Methodology', 'Methods', 'Results', 'Discussion',
+    'Conclusion', 'Conclusions', 'Abstract', 'Literature Review',
+    'Background', 'References', 'Bibliography', 'Appendix', 'Acknowledgements',
+    'Acknowledgments', 'Related Work', 'Future Work',
+  ];
+
+  const isHeading = (line: string): boolean => {
+    if (line.length === 0 || line.length >= 100) return false;
+    // Numbered heading: "1. Introduction" or "1 Introduction"
+    if (/^\d+\.?\s+[A-Z]/.test(line)) return true;
+    // Known academic section keyword (case-insensitive full-word match)
+    if (KNOWN_SECTIONS.some(h => new RegExp(`\\b${h}\\b`, 'i').test(line))) return true;
+    // ALL-CAPS line: require at least 2 words to avoid matching abbreviations
+    // and single-word fragments that appear in the body of Word PDFs
+    if (/^[A-Z][A-Z\s]+$/.test(line)) {
+      const wordCount = line.trim().split(/\s+/).filter(Boolean).length;
+      return wordCount >= 2;
+    }
+    return false;
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    
-    // Detect potential heading (short line, possibly all caps or numbered)
-    const isHeading = line.length < 100 && 
-      (line.match(/^[A-Z\s]+$/) || 
-       line.match(/^\d+\.?\s+[A-Z]/) ||
-       ['Introduction', 'Methodology', 'Results', 'Discussion', 'Conclusion', 'Abstract', 'Literature Review'].some(h => line.includes(h)));
-    
-    if (isHeading && currentSection) {
-      // Save previous section
-      sections.push({
-        title: currentSection.title,
-        content: currentSection.content.join('\n\n'),
-        order: sections.length + 1,
-      });
-      currentSection = { title: line, content: [] };
-    } else if (isHeading && !currentSection) {
+
+    if (isHeading(line)) {
+      if (currentSection) {
+        sections.push({
+          title: currentSection.title,
+          content: currentSection.content.join('\n\n'),
+          order: sections.length + 1,
+        });
+      }
       currentSection = { title: line, content: [] };
     } else if (currentSection) {
       currentSection.content.push(line);
     } else {
-      // Create a default section if we have content but no section yet
       currentSection = { title: 'Content', content: [line] };
     }
   }
-  
-  // Add last section
+
   if (currentSection) {
     sections.push({
       title: currentSection.title,
@@ -313,8 +337,21 @@ function parseTextIntoSections(text: string): Array<{ title: string; content: st
       order: sections.length + 1,
     });
   }
-  
-  return sections;
+
+  // Deduplicate consecutive sections with the same title (Word running headers
+  // can cause the same heading to open a new section on every page).
+  const deduped: typeof sections = [];
+  for (const section of sections) {
+    const prev = deduped[deduped.length - 1];
+    if (prev && prev.title.toLowerCase() === section.title.toLowerCase()) {
+      // Merge content into the existing section
+      prev.content = [prev.content, section.content].filter(Boolean).join('\n\n');
+    } else {
+      deduped.push({ ...section, order: deduped.length + 1 });
+    }
+  }
+
+  return deduped;
 }
 
 /**

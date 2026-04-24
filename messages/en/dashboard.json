@@ -26,5 +26,10 @@
   "typeResearchDesc": "Comprehensive research documents",
   "idleProjectNudge": "Your \"{name}\" is {percent}% complete — pick up where you left off",
   "continueWriting": "Continue writing",
-  "dismiss": "Dismiss"
+  "dismiss": "Dismiss",
+  "deleteProjectTitle": "Delete Project",
+  "deleteProjectConfirm": "Are you sure you want to permanently delete this project? All sections, citations, and data will be lost. This action cannot be undone.",
+  "deleteProject": "Delete Project",
+  "deleting": "Deleting...",
+  "cancel": "Cancel"
 }

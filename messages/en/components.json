@@ -327,7 +327,8 @@
     "typeEssay": "essay",
     "typeThesis": "thesis",
     "typeJournal": "journal",
-    "typeResearch": "research"
+    "typeResearch": "research",
+    "deleteProject": "Delete project"
   },
   "emptyState": {
     "loading": "Loading...",

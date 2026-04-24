@@ -28,6 +28,8 @@ export default function DashboardPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [aiWordsUsed, setAiWordsUsed] = useState(0);
   const [aiWordsLimit, setAiWordsLimit] = useState(500);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [isDeletingProject, setIsDeletingProject] = useState(false);
 
   // Find the most stale incomplete project for idle nudge
   const idleProject = useMemo(() => {
@@ -159,6 +161,22 @@ export default function DashboardPage() {
   const filteredProjects = (projects || []).filter(project =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+    setIsDeletingProject(true);
+    try {
+      const res = await fetch(`/api/projects/${projectToDelete}`, { method: 'DELETE' });
+      if (res.ok) {
+        setProjects(prev => prev.filter(p => p._id !== projectToDelete));
+      }
+    } catch {
+      // silent fail — user can retry
+    } finally {
+      setIsDeletingProject(false);
+      setProjectToDelete(null);
+    }
+  };
 
   if (status === 'loading' || isLoading) {
     return (
@@ -428,12 +446,46 @@ export default function DashboardPage() {
               }
             >
               {filteredProjects.map((project) => (
-                <ProjectCard key={project._id} project={project} />
+                <ProjectCard key={project._id} project={project} onDelete={setProjectToDelete} />
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Delete project confirmation modal */}
+      {projectToDelete && (
+        <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+            <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))]">
+              <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--destructive))]">
+                {t('deleteProjectTitle')}
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                {t('deleteProjectConfirm')}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setProjectToDelete(null)}
+                  disabled={isDeletingProject}
+                  className="flex-1 px-4 py-3 border-2 border-[hsl(var(--border-strong))] rounded-(--radius) text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--surface))] hover:bg-[hsl(var(--surface-muted))] transition-colors disabled:opacity-50"
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  onClick={handleDeleteProject}
+                  disabled={isDeletingProject}
+                  className="flex-1 px-4 py-3 border-2 border-[hsl(var(--destructive))]/40 rounded-(--radius) text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--destructive))] text-white hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform duration-150 disabled:opacity-50 disabled:translate-x-0 disabled:translate-y-0"
+                >
+                  {isDeletingProject ? t('deleting') : t('deleteProject')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

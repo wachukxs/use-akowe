@@ -26,26 +26,19 @@ import {
   BookMarked,
   Search,
   Shield,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  Hash,
   Link,
-  Undo,
-  Redo,
-  Calculator,
-  BarChart3,
   GripVertical,
   AlertCircle,
   RefreshCw,
-  Sparkles,
   Loader2,
   Share2,
   MessageSquare,
   History,
   Upload,
+  Sparkles,
+  BarChart3,
 } from "lucide-react";
+import TiptapEditor, { type TiptapEditorHandle } from "@/components/TiptapEditor";
 import Button from "@/components/ui/Button";
 import FeedbackNudge from "@/components/FeedbackNudge";
 import UpgradeModal from "@/components/UpgradeModal";
@@ -70,10 +63,7 @@ import {
   CITATION_HIGHLIGHT_ATTR,
   CITATION_HIGHLIGHT_CLASS,
   escapeHtmlForCitation,
-  scheduleCitationHighlightRemoval,
-  wrapCitationInHighlight,
 } from "@/lib/citation-highlight";
-import { insertCitationAtRange } from "@/lib/insert-citation-at-range";
 import { scheduleScrollEditorIntoView } from "@/lib/scroll-editor-into-view";
 import { cn } from "@/lib/utils";
 import { trackFunnel, trackEditor } from "@/lib/gtag";
@@ -102,6 +92,8 @@ export default function ProjectEditorPage({
   const isTypingRef = useRef<boolean>(false);
   const activeSectionRef = useRef<string | null>(null);
   const editorSectionRef = useRef<HTMLDivElement | null>(null);
+  const tiptapEditorRef = useRef<TiptapEditorHandle | null>(null);
+  // Legacy alias so existing code that checks editorContentEditableRef still compiles
   const editorContentEditableRef = useRef<HTMLDivElement | null>(null);
   const storedInsertRangeRef = useRef<Range | null>(null);
   const contextMenuPillRef = useRef<HTMLDivElement | null>(null);
@@ -154,27 +146,14 @@ export default function ProjectEditorPage({
     storedInsertRangeRef.current = null;
   }, [activeSection]);
 
-  // Track copy events from the editor (GA4)
-  useEffect(() => {
-    const el = editorContentEditableRef.current;
-    if (!el) return;
-
-    const handleCopy = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed) return;
-      const text = selection.toString();
-      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-      if (wordCount === 0) return;
-      const sectionTitle = activeSectionRef.current
-        ? project?.sections?.find((s) => s.id === activeSectionRef.current)?.title
-        : undefined;
-      trackEditor.textCopied(wordCount, sectionTitle);
-    };
-
-    el.addEventListener('copy', handleCopy);
-    return () => el.removeEventListener('copy', handleCopy);
+  // Copy tracking is now handled by TiptapEditor's onTextCopied prop.
+  const handleEditorTextCopied = useCallback((wordCount: number) => {
+    const sectionTitle = activeSectionRef.current
+      ? project?.sections?.find((s) => s.id === activeSectionRef.current)?.title
+      : undefined;
+    trackEditor.textCopied(wordCount, sectionTitle);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorContentEditableRef.current]);
+  }, [project?.sections]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAIDrawerOpen, setIsAIDrawerOpen] = useState(false);
   const [isLitReviewOpen, setIsLitReviewOpen] = useState(false);
@@ -214,6 +193,8 @@ export default function ProjectEditorPage({
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
+  const [isDeletingProject, setIsDeletingProject] = useState(false);
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(
     null
@@ -226,17 +207,7 @@ export default function ProjectEditorPage({
   const [, setLocalSectionContent] = useState<string>("");
   const [realTimeWordCount, setRealTimeWordCount] = useState<number>(0);
   const [showManualCitationModal, setShowManualCitationModal] = useState(false);
-  const [formattingState, setFormattingState] = useState({
-    bold: false,
-    italic: false,
-    underline: false,
-    unorderedList: false,
-    orderedList: false,
-    h1: false,
-    h2: false,
-    h3: false,
-    normal: false,
-  });
+  // formattingState removed — toolbar active states are now managed by TiptapEditor internally.
 
   const [manualCitation, setManualCitation] = useState({
     title: "",
@@ -1317,39 +1288,31 @@ export default function ProjectEditorPage({
     setRewriteLimitReached(false);
   };
 
-  // Function to check current formatting state using document.queryCommandState
+  /**
+   * Checks and updates the floating selection bar position.
+   * Toolbar formatting state is now managed by TiptapEditor internally.
+   */
   const checkFormattingState = () => {
     try {
       const selection = window.getSelection();
-
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
-        const editor = document.querySelector('[contenteditable="true"]');
-
-        // Only check formatting if selection is within our editor
-        if (editor && editor.contains(range.commonAncestorContainer)) {
-          // Track whether user has text selected (for rewrite button + floating bar)
+        const editorDom = tiptapEditorRef.current?.getEditorDOM();
+        if (editorDom && editorDom.contains(range.commonAncestorContainer)) {
           const selText = selection.toString();
           const hasSelection = selText.trim().length > 0;
           setHasTextSelection(hasSelection);
-
-          // Position the floating selection bar when text is selected
           if (hasSelection && !rewritePanelVisible) {
             const rect = range.getBoundingClientRect();
             if (rect.width > 0) {
-              // Bar is ~220px wide (two buttons + divider)
               const BAR_WIDTH = 220;
               const barX = rect.left + rect.width / 2 - BAR_WIDTH / 2;
               const safeX = Math.max(8, Math.min(barX, window.innerWidth - BAR_WIDTH - 8));
-              // On mobile, position below the selection to avoid clashing with
-              // the iOS native Copy/Paste toolbar which also sits above the selection
-              const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
-              const barY = isMobile ? rect.bottom + 8 : rect.top - 52;
-              const safeY = (!isMobile && barY < 8) ? rect.bottom + 8 : barY;
+              const isMobileDevice = window.innerWidth < 768 || 'ontouchstart' in window;
+              const barY = isMobileDevice ? rect.bottom + 8 : rect.top - 52;
+              const safeY = (!isMobileDevice && barY < 8) ? rect.bottom + 8 : barY;
               setSelectionBarPosition({ x: safeX, y: safeY });
               setSelectionBarVisible(true);
-
-              // First-use tooltip: show once ever
               if (!rewriteTooltipShownRef.current) {
                 try {
                   const dismissed = localStorage.getItem('akowe-rewrite-tooltip-dismissed');
@@ -1369,362 +1332,19 @@ export default function ProjectEditorPage({
           } else {
             setSelectionBarVisible(false);
           }
-
-          // Use document.queryCommandState for more accurate state detection
-          const isBold = document.queryCommandState("bold");
-          const isItalic = document.queryCommandState("italic");
-          const isUnderline = document.queryCommandState("underline");
-
-          // For lists, headers, and normal text, we need to check the DOM structure
-          let isUnorderedList = false;
-          let isOrderedList = false;
-          let isH1 = false;
-          let isH2 = false;
-          let isH3 = false;
-          let isNormal = false;
-          let element = range.commonAncestorContainer;
-
-          // Walk up to find the element
-          while (element && element.nodeType !== Node.ELEMENT_NODE) {
-            element = element.parentNode as Node;
-          }
-
-          if (element) {
-            let currentElement = element as Element;
-            // Check formatting by walking up the DOM tree
-            while (currentElement && currentElement !== document.body) {
-              if (currentElement.tagName === "UL") {
-                isUnorderedList = true;
-                break;
-              }
-              if (currentElement.tagName === "OL") {
-                isOrderedList = true;
-                break;
-              }
-              if (currentElement.tagName === "H1") {
-                isH1 = true;
-                break;
-              }
-              if (currentElement.tagName === "H2") {
-                isH2 = true;
-                break;
-              }
-              if (currentElement.tagName === "H3") {
-                isH3 = true;
-                break;
-              }
-              if (
-                currentElement.tagName === "DIV" &&
-                !isUnorderedList &&
-                !isOrderedList &&
-                !isH1 &&
-                !isH2 &&
-                !isH3
-              ) {
-                isNormal = true;
-                break;
-              }
-              currentElement = currentElement.parentElement as Element;
-            }
-          }
-
-          setFormattingState({
-            bold: isBold,
-            italic: isItalic,
-            underline: isUnderline,
-            unorderedList: isUnorderedList,
-            orderedList: isOrderedList,
-            h1: isH1,
-            h2: isH2,
-            h3: isH3,
-            normal: isNormal,
-          });
         }
       } else {
-        // No selection, reset formatting state
         setHasTextSelection(false);
         setSelectionBarVisible(false);
-        setFormattingState({
-          bold: false,
-          italic: false,
-          underline: false,
-          unorderedList: false,
-          orderedList: false,
-          h1: false,
-          h2: false,
-          h3: false,
-          normal: false,
-        });
       }
     } catch (error) {
-      console.warn("Formatting state check failed:", error);
-      // Reset to safe state on error
-      setFormattingState({
-        bold: false,
-        italic: false,
-        underline: false,
-        unorderedList: false,
-        orderedList: false,
-        h1: false,
-        h2: false,
-        h3: false,
-        normal: false,
-      });
+      console.warn("Selection state check failed:", error);
+      setHasTextSelection(false);
+      setSelectionBarVisible(false);
     }
   };
 
-  // Enhanced formatting functions that work with contentEditable
-  const applyBold = () => {
-    try {
-      // Use document.execCommand for better reliability and browser compatibility
-      const success = document.execCommand("bold", false, undefined);
-      if (success) {
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Bold formatting failed:", error);
-    }
-  };
-
-  const applyItalic = () => {
-    try {
-      // Use document.execCommand for better reliability and browser compatibility
-      const success = document.execCommand("italic", false, undefined);
-      if (success) {
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Italic formatting failed:", error);
-    }
-  };
-
-  const applyUnorderedList = () => {
-    try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        selection.getRangeAt(0);
-        const selectedText = selection.toString();
-
-        let htmlToInsert = "";
-        if (selectedText) {
-          // Text is selected, convert to list
-          htmlToInsert = `<ul><li>${selectedText}</li></ul>`;
-        } else {
-          // No selection, create new list
-          htmlToInsert = "<ul><li>&nbsp;</li></ul>";
-        }
-
-        // Try insertHTML first
-        const success = document.execCommand("insertHTML", false, htmlToInsert);
-        if (success) {
-          checkFormattingState();
-          return;
-        }
-      }
-    } catch (error) {
-      console.warn("insertHTML failed, trying manual approach:", error);
-    }
-
-    // Fallback to manual DOM manipulation
-    try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const selectedText = selection.toString();
-
-        if (selectedText) {
-          // Text is selected, convert to list
-          const ul = document.createElement("ul");
-          const li = document.createElement("li");
-          li.textContent = selectedText;
-          ul.appendChild(li);
-          range.deleteContents();
-          range.insertNode(ul);
-        } else {
-          // No selection, create new list
-          const ul = document.createElement("ul");
-          const li = document.createElement("li");
-          li.innerHTML = "&nbsp;";
-          ul.appendChild(li);
-          range.insertNode(ul);
-          range.setStart(li, 0);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Manual unordered list creation failed:", error);
-    }
-  };
-
-  const applyOrderedList = () => {
-    try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        selection.getRangeAt(0);
-        const selectedText = selection.toString();
-
-        let htmlToInsert = "";
-        if (selectedText) {
-          // Text is selected, convert to numbered list
-          htmlToInsert = `<ol><li>${selectedText}</li></ol>`;
-        } else {
-          // No selection, create new numbered list
-          htmlToInsert = "<ol><li>&nbsp;</li></ol>";
-        }
-
-        // Try insertHTML first
-        const success = document.execCommand("insertHTML", false, htmlToInsert);
-        if (success) {
-          checkFormattingState();
-          return;
-        }
-      }
-    } catch (error) {
-      console.warn("insertHTML failed, trying manual approach:", error);
-    }
-
-    // Fallback to manual DOM manipulation
-    try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const selectedText = selection.toString();
-
-        if (selectedText) {
-          // Text is selected, convert to numbered list
-          const ol = document.createElement("ol");
-          const li = document.createElement("li");
-          li.textContent = selectedText;
-          ol.appendChild(li);
-          range.deleteContents();
-          range.insertNode(ol);
-        } else {
-          // No selection, create new numbered list
-          const ol = document.createElement("ol");
-          const li = document.createElement("li");
-          li.innerHTML = "&nbsp;";
-          ol.appendChild(li);
-          range.insertNode(ol);
-          range.setStart(li, 0);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Manual ordered list creation failed:", error);
-    }
-  };
-
-  // Add underline support
-  const applyUnderline = () => {
-    try {
-      // Use document.execCommand for better reliability
-      const success = document.execCommand("underline", false, undefined);
-      if (success) {
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Underline formatting failed:", error);
-    }
-  };
-
-  const applyHeader = (level: number) => {
-    try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        selection.getRangeAt(0);
-        const selectedText = selection.toString();
-
-        let htmlToInsert = "";
-        if (selectedText) {
-          // Text is selected, wrap it in header
-          htmlToInsert = `<h${level}>${selectedText}</h${level}>`;
-        } else {
-          // No selection, create new header
-          htmlToInsert = `<h${level}>&nbsp;</h${level}>`;
-        }
-
-        // Try insertHTML first
-        const success = document.execCommand("insertHTML", false, htmlToInsert);
-        if (success) {
-          checkFormattingState();
-          return;
-        }
-      }
-    } catch (error) {
-      console.warn("insertHTML failed, trying manual approach:", error);
-    }
-
-    // Fallback to manual DOM manipulation
-    try {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const selectedText = selection.toString();
-
-        if (selectedText) {
-          // Text is selected, wrap it in header
-          const header = document.createElement(`h${level}`);
-          header.textContent = selectedText;
-          range.deleteContents();
-          range.insertNode(header);
-        } else {
-          // No selection, create new header
-          const header = document.createElement(`h${level}`);
-          header.innerHTML = "&nbsp;";
-          range.insertNode(header);
-          range.setStart(header, 0);
-          range.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Manual header creation failed:", error);
-    }
-  };
-
-  // Convert to normal paragraph
-  const applyNormal = () => {
-    try {
-      // Use formatBlock to convert to div (normal paragraph)
-      const success = document.execCommand("formatBlock", false, "div");
-      if (success) {
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Normal formatting failed:", error);
-    }
-  };
-
-  // Add undo/redo functionality
-  const undo = () => {
-    try {
-      const success = document.execCommand("undo", false, undefined);
-      if (success) {
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Undo failed:", error);
-    }
-  };
-
-  const redo = () => {
-    try {
-      const success = document.execCommand("redo", false, undefined);
-      if (success) {
-        checkFormattingState();
-      }
-    } catch (error) {
-      console.warn("Redo failed:", error);
-    }
-  };
+  // Formatting is now handled by TiptapEditor's built-in toolbar.
 
   // Generate AI explanation for math equation
   const generateMathExplanation = async (latexCode: string, retryCount = 0) => {
@@ -1816,199 +1436,30 @@ export default function ProjectEditorPage({
     }
   };
 
-  // Math insertion function that saves to database immediately
+  /** Inserts a math equation at the current cursor position using TipTap. */
   const insertMathIntoEditor = async (
-    mathElement: string,
+    _mathElement: string,
     latexCode: string
   ) => {
-    console.log("🔧 DEBUG: insertMathIntoEditor called");
-    console.log("🔧 DEBUG: mathElement:", mathElement);
-    console.log("🔧 DEBUG: latexCode:", latexCode);
-
-    try {
-      const editorElement = document.querySelector(
-        "[contentEditable]"
-      ) as HTMLElement;
-      console.log("🔧 DEBUG: editorElement found:", !!editorElement);
-
-      if (!editorElement) {
-        console.error("❌ ContentEditable element not found");
-        return;
-      }
-
-      // Focus the editor first to ensure we have a selection
-      console.log("🔧 DEBUG: Focusing editor element");
-      editorElement.focus();
-
-      const selection = window.getSelection();
-      console.log("🔧 DEBUG: selection object:", selection);
-      console.log("🔧 DEBUG: selection.rangeCount:", selection?.rangeCount);
-
-      let range: Range;
-
-      if (selection && selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);
-        console.log("🔧 DEBUG: Using existing selection range");
-        console.log(
-          "🔧 DEBUG: Selection position:",
-          range.startOffset,
-          "in",
-          range.startContainer.nodeName
-        );
-      } else {
-        console.log("🔧 DEBUG: Creating new selection at end of editor");
-        // If no selection, create one at the end of the editor
-        range = document.createRange();
-
-        // Find the last text node or element in the editor
-        const walker = document.createTreeWalker(
-          editorElement,
-          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-          null
-        );
-
-        let lastNode: Node = editorElement;
-        let node: Node | null;
-        while ((node = walker.nextNode())) {
-          lastNode = node;
-        }
-
-        if (lastNode.nodeType === Node.TEXT_NODE) {
-          range.setStart(lastNode, lastNode.textContent?.length || 0);
-          range.setEnd(lastNode, lastNode.textContent?.length || 0);
-        } else {
-          range.setStartAfter(lastNode);
-          range.setEndAfter(lastNode);
-        }
-
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-        console.log(
-          "🔧 DEBUG: New selection created at end, offset:",
-          range.startOffset
-        );
-      }
-
-      console.log("🔧 DEBUG: Range created:", range);
-      console.log("🔧 DEBUG: Range start container:", range.startContainer);
-      console.log("🔧 DEBUG: Range start offset:", range.startOffset);
-
-      // Clear any existing content in the range
-      console.log("🔧 DEBUG: Clearing existing content in range");
-      range.deleteContents();
-
-      // Create and insert the math element
-      console.log("🔧 DEBUG: Creating math element from HTML");
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = mathElement;
-      const mathNode = tempDiv.firstElementChild; // Use firstElementChild instead of firstChild
-
-      console.log("🔧 DEBUG: mathNode created:", !!mathNode);
-      console.log("🔧 DEBUG: mathNode type:", mathNode?.nodeType);
-      console.log("🔧 DEBUG: mathNode content:", mathNode?.textContent);
-      console.log("🔧 DEBUG: mathNode outerHTML:", mathNode?.outerHTML);
-
-      if (mathNode) {
-        console.log("🔧 DEBUG: Inserting math node into range");
-        range.insertNode(mathNode);
-
-        // Move cursor after the inserted math
-        console.log("🔧 DEBUG: Moving cursor after inserted math");
-        range.setStartAfter(mathNode);
-        range.setEndAfter(mathNode);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-
-        // Trigger input event to update the editor state
-        console.log("🔧 DEBUG: Dispatching input event");
-        const inputEvent = new Event("input", { bubbles: true });
-        editorElement.dispatchEvent(inputEvent);
-
-        // Get the updated content and save to database after a short delay
-        if (activeSection) {
-          console.log("🔧 DEBUG: Waiting for DOM update before database save");
-          // Small delay to ensure DOM is updated
-          setTimeout(async () => {
-            console.log(
-              "🔧 DEBUG: Saving to database, activeSection:",
-              activeSection
-            );
-            const updatedContent = editorElement.innerHTML;
-            console.log(
-              "🔧 DEBUG: Updated content length:",
-              updatedContent.length
-            );
-            console.log(
-              "🔧 DEBUG: Updated content preview:",
-              updatedContent.substring(0, 200) + "..."
-            );
-
-            await handleSectionChange(activeSection, updatedContent);
-            console.log("🔧 DEBUG: Database save completed");
-          }, 100);
-        }
-
-        checkFormattingState();
-        console.log("✅ Math equation inserted successfully");
-      } else {
-        console.error("❌ Failed to create math node");
-      }
-    } catch (error) {
-      console.error("❌ Math insertion failed:", error);
-      console.error("❌ Error stack:", (error as Error).stack);
-    }
-  };
-
-  // Math Block helper functions
-
-  // Simple text input handler
-  const handleTextInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    const content = target.innerHTML;
-
-    // Update word count
-    setRealTimeWordCount(countWords(cleanupSectionContent(content)));
+    const editor = tiptapEditorRef.current?.getEditor();
+    if (!editor) return;
+    editor.chain().focus().insertContent({ type: 'mathBlock', attrs: { latex: latexCode } }).run();
     if (activeSection) {
-      handleSectionChange(activeSection, content);
+      const updatedContent = editor.getHTML();
+      await handleSectionChange(activeSection, updatedContent);
     }
   };
 
-  // Function to update editor content from external sources (AI/citations)
+  /** Updates editor content from external sources (AI responses, citations). */
   const updateEditorContent = (newContent: string) => {
-    const editorElement = document.querySelector(
-      '[contenteditable="true"]'
-    ) as HTMLElement;
-    if (editorElement) {
-      // Save cursor position before update
-      const selection = window.getSelection();
-      const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
-      const cursorOffset = range ? range.startOffset : 0;
+    tiptapEditorRef.current?.setContent(newContent);
+  };
 
-      editorElement.innerHTML = newContent;
-
-      // Restore cursor position after update
-      if (range && selection) {
-        try {
-          const newRange = document.createRange();
-          const textNode = editorElement.firstChild;
-          if (textNode && textNode.nodeType === Node.TEXT_NODE) {
-            newRange.setStart(
-              textNode,
-              Math.min(cursorOffset, textNode.textContent?.length || 0)
-            );
-            newRange.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(newRange);
-          }
-        } catch {
-          // If cursor restoration fails, just place at end
-          const newRange = document.createRange();
-          newRange.selectNodeContents(editorElement);
-          newRange.collapse(false);
-          selection.removeAllRanges();
-          selection.addRange(newRange);
-        }
-      }
+  /** Called by TiptapEditor's onUpdate — syncs word count and persists. */
+  const handleTiptapUpdate = (html: string) => {
+    setRealTimeWordCount(countWords(cleanupSectionContent(html)));
+    if (activeSection) {
+      handleSectionChange(activeSection, html);
     }
   };
 
@@ -2048,81 +1499,61 @@ export default function ProjectEditorPage({
 
     setIsAddingCitation(true);
     const currentContent = cleanupSectionContent(section.content || "");
-    const editor = editorContentEditableRef.current;
+    const tiptapEditor = tiptapEditorRef.current?.getEditor();
+    const editorDom = tiptapEditorRef.current?.getEditorDOM();
     const storedRange = storedInsertRangeRef.current;
 
     const authorsText = Array.isArray(citation.authors)
       ? citation.authors.join(", ")
       : citation.authors || "Unknown Author";
-    const citationText = `(${authorsText}, ${formatYearForDisplay(
-      citation.year
-    )})`;
+    const citationText = `(${authorsText}, ${formatYearForDisplay(citation.year)})`;
 
-    // Insert at stored cursor range if valid
-    if (
-      editor &&
+    const insertedViaRange =
+      tiptapEditor &&
+      editorDom &&
       storedRange &&
       document.contains(storedRange.startContainer) &&
-      editor.contains(storedRange.startContainer)
-    ) {
-      insertCitationAtRange(editor, storedRange, citationText, true);
-      const newContent = editor.innerHTML;
-      const normalized = normalizeCitationForProject(citation);
-      const citationsToSave = getCitationsWithAdded(
-        project.citations ?? [],
-        normalized
-      );
+      editorDom.contains(storedRange.startContainer);
 
+    if (insertedViaRange && tiptapEditor) {
+      try {
+        const from = tiptapEditor.view.posAtDOM(storedRange.startContainer as Node, storedRange.startOffset);
+        const to = storedRange.collapsed
+          ? from
+          : tiptapEditor.view.posAtDOM(storedRange.endContainer as Node, storedRange.endOffset);
+        tiptapEditor.chain().focus().insertContentAt({ from, to }, ` ${citationText} `).run();
+      } catch {
+        tiptapEditor.chain().focus().insertContent(` ${citationText} `).run();
+      }
+      const newContent = tiptapEditor.getHTML();
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
       handleSectionChange(activeSection, newContent);
-      setProject((prev) =>
-        prev ? { ...prev, citations: citationsToSave } : null
-      );
+      setProject((prev) => prev ? { ...prev, citations: citationsToSave } : null);
       setLocalSectionContent(newContent);
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
       closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
-      await refreshCitationsAfterAdd(
-        project,
-        activeSection,
-        newContent,
-        citationsToSave
-      );
-      scheduleCitationHighlightRemoval(editor);
+      await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
       scheduleScrollEditorIntoView(editorSectionRef);
       setShowSuccessMessage("Citation added to section!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
     } else {
       // Fallback: append at end of section
-      const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
-        citationText
-      )}</span>`;
-      const newContent =
-        currentContent + (currentContent ? " " : "") + highlightedCitation;
+      const highlightedCitation = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(citationText)}</span>`;
+      const newContent = currentContent + (currentContent ? " " : "") + highlightedCitation;
       const normalized = normalizeCitationForProject(citation);
-      const citationsToSave = getCitationsWithAdded(
-        project.citations ?? [],
-        normalized
-      );
-
+      const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
       handleSectionChange(activeSection, newContent);
-      setProject((prev) =>
-        prev ? { ...prev, citations: citationsToSave } : null
-      );
+      setProject((prev) => prev ? { ...prev, citations: citationsToSave } : null);
       setLocalSectionContent(newContent);
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
       updateEditorContent(newContent);
-
-      if (editor) scheduleCitationHighlightRemoval(editor);
       closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
-      await refreshCitationsAfterAdd(
-        project,
-        activeSection,
-        newContent,
-        citationsToSave
-      );
+      await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
       scheduleScrollEditorIntoView(editorSectionRef);
       setShowSuccessMessage("Citation added to section!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
@@ -2191,75 +1622,57 @@ export default function ProjectEditorPage({
 
     setIsAddingCitation(true);
     const currentContent = cleanupSectionContent(section.content || "");
-    const editor = editorContentEditableRef.current;
+    const tiptapEditor = tiptapEditorRef.current?.getEditor();
+    const editorDom = tiptapEditorRef.current?.getEditorDOM();
     const storedRange = storedInsertRangeRef.current;
     const textToInsert = citationContextResult;
 
-    // Insert at stored cursor range if valid
-    if (
-      editor &&
+    const insertedViaRange =
+      tiptapEditor &&
+      editorDom &&
       storedRange &&
       document.contains(storedRange.startContainer) &&
-      editor.contains(storedRange.startContainer)
-    ) {
-      insertCitationAtRange(editor, storedRange, textToInsert, true);
-      const newContent = editor.innerHTML;
-      const normalized = normalizeCitationForProject(citation);
-      const citationsToSave = getCitationsWithAdded(
-        project.citations ?? [],
-        normalized
-      );
+      editorDom.contains(storedRange.startContainer);
 
+    if (insertedViaRange && tiptapEditor) {
+      try {
+        const from = tiptapEditor.view.posAtDOM(storedRange.startContainer as Node, storedRange.startOffset);
+        const to = storedRange.collapsed
+          ? from
+          : tiptapEditor.view.posAtDOM(storedRange.endContainer as Node, storedRange.endOffset);
+        tiptapEditor.chain().focus().insertContentAt({ from, to }, ` ${textToInsert} `).run();
+      } catch {
+        tiptapEditor.chain().focus().insertContent(` ${textToInsert} `).run();
+      }
+      const newContent = tiptapEditor.getHTML();
+      const normalized = normalizeCitationForProject(citation);
+      const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
       handleSectionChange(activeSection, newContent);
-      setProject((prev) =>
-        prev ? { ...prev, citations: citationsToSave } : null
-      );
+      setProject((prev) => prev ? { ...prev, citations: citationsToSave } : null);
       setLocalSectionContent(newContent);
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
       closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
-      await refreshCitationsAfterAdd(
-        project,
-        activeSection,
-        newContent,
-        citationsToSave
-      );
-      scheduleCitationHighlightRemoval(editor);
+      await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
       scheduleScrollEditorIntoView(editorSectionRef);
       setShowSuccessMessage("Citation added with context!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
     } else {
       // Fallback: append at end of section
-      const highlightedText = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(
-        textToInsert
-      )}</span>`;
-      const newContent =
-        currentContent + (currentContent ? " " : "") + highlightedText;
+      const highlightedText = `<span class="${CITATION_HIGHLIGHT_CLASS}" ${CITATION_HIGHLIGHT_ATTR}="true">${escapeHtmlForCitation(textToInsert)}</span>`;
+      const newContent = currentContent + (currentContent ? " " : "") + highlightedText;
       const normalized = normalizeCitationForProject(citation);
-      const citationsToSave = getCitationsWithAdded(
-        project.citations ?? [],
-        normalized
-      );
-
+      const citationsToSave = getCitationsWithAdded(project.citations ?? [], normalized);
       handleSectionChange(activeSection, newContent);
-      setProject((prev) =>
-        prev ? { ...prev, citations: citationsToSave } : null
-      );
+      setProject((prev) => prev ? { ...prev, citations: citationsToSave } : null);
       setLocalSectionContent(newContent);
       setRealTimeWordCount(countWords(cleanupSectionContent(newContent)));
       updateEditorContent(newContent);
-
-      if (editor) scheduleCitationHighlightRemoval(editor);
       closeCitationChoice();
       setShowCitationDiscovery(false);
       storedInsertRangeRef.current = null;
-      await refreshCitationsAfterAdd(
-        project,
-        activeSection,
-        newContent,
-        citationsToSave
-      );
+      await refreshCitationsAfterAdd(project, activeSection, newContent, citationsToSave);
       scheduleScrollEditorIntoView(editorSectionRef);
       setShowSuccessMessage("Citation added with context!");
       setTimeout(() => setShowSuccessMessage(""), 6000);
@@ -2440,6 +1853,22 @@ export default function ProjectEditorPage({
       });
     } catch (error) {
       console.error("Error deleting section:", error);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!project) return;
+    setIsDeletingProject(true);
+    try {
+      const res = await fetch(`/api/projects/${resolvedParams.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        router.push('/dashboard');
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setIsDeletingProject(false);
+      setShowDeleteProjectModal(false);
     }
   };
 
@@ -3085,13 +2514,22 @@ export default function ProjectEditorPage({
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-[0.12em]">
                   {project.name}
                 </h1>
-                <button
-                  onClick={() => setIsAIDrawerOpen(true)}
-                  className="hidden md:inline-flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
-                >
-                  <Bot className="h-4 w-4" />
-                  Open Assistant
-                </button>
+                <div className="hidden md:flex items-center gap-2">
+                  <button
+                    onClick={() => setIsAIDrawerOpen(true)}
+                    className="inline-flex items-center gap-2 border-2 border-[hsl(var(--border-strong))] px-4 py-3 text-xs font-semibold uppercase tracking-[0.24em] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:-translate-x-[0.125rem] hover:-translate-y-[0.125rem] transition-transform duration-150"
+                  >
+                    <Bot className="h-4 w-4" />
+                    Open Assistant
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteProjectModal(true)}
+                    title={t("deleteProject")}
+                    className="p-3 border-2 border-[hsl(var(--border-strong))] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] hover:border-[hsl(var(--destructive))]/40 hover:bg-[hsl(var(--destructive))]/5 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
               <p className="text-[10px] md:text-[11px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
                 {project.type} • {localWordCount} / {project.targetWordCount}{" "}
@@ -3902,653 +3340,96 @@ title={t("deleteSection")}
                           {t("askAkowe")}
                         </button>
                       </div>
-                      <div className="border-[3px] border-[hsl(var(--border-strong))] rounded-(--radius) overflow-hidden bg-[hsl(var(--surface))]">
-                        {/* Rich Text Toolbar */}
-                        <div className="border-b-[3px] border-[hsl(var(--border-strong))] p-2 md:p-3 flex items-center gap-1 md:gap-2 bg-[hsl(var(--surface-muted))] overflow-x-auto toolbar-container">
-                          {/* Undo/Redo */}
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={undo}
-                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title={t("undo")}
-                            >
-                              <Undo className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={redo}
-                              className="cursor-pointer p-2 md:p-2 border-2 border-transparent hover:border-[hsl(var(--border-strong))] rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title={t("redo")}
-                            >
-                              <Redo className="h-4 w-4" />
-                            </button>
+                      {/* Lit Review Banner */}
+                      {activeS?.type === 'literature_review' &&
+                        (project?.citations?.length || 0) >= 3 &&
+                        !isLitReviewOpen &&
+                        typeof window !== 'undefined' &&
+                        !localStorage.getItem('akowe-lit-review-banner-dismissed') && (
+                        <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-[hsl(var(--secondary)/0.08)] border border-[hsl(var(--secondary)/0.2)] rounded-(--radius) mb-2">
+                          <div className="flex items-center gap-2 text-xs">
+                            <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--secondary))]" />
+                            <span>{t("litReview.bannerMessage", { count: String(project?.citations?.length || 0) })}</span>
                           </div>
-
-                          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1"></div>
-
-                          {/* Text Formatting */}
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={applyBold}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.bold
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("bold")}
-                            >
-                              <Bold className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={applyItalic}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.italic
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title="Italic (Ctrl+I)"
-                            >
-                              <Italic className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={applyUnderline}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.underline
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("underline")}
-                            >
-                              <Underline className="h-4 w-4" />
-                            </button>
-                          </div>
-
-                          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1"></div>
-
-                          {/* Lists */}
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={applyUnorderedList}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.unorderedList
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("bulletList")}
-                            >
-                              <List className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={applyOrderedList}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.orderedList
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("numberedList")}
-                            >
-                              <Hash className="h-4 w-4" />
-                            </button>
-                          </div>
-
-                          <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1"></div>
-
-                          {/* Headers */}
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => applyHeader(1)}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.h1
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("header1")}
-                            >
-                              <span className="text-sm font-bold">H1</span>
-                            </button>
-                            <button
-                              onClick={() => applyHeader(2)}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.h2
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("header2")}
-                            >
-                              <span className="text-sm font-bold">H2</span>
-                            </button>
-                            <button
-                              onClick={() => applyHeader(3)}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.h3
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("header3")}
-                            >
-                              <span className="text-sm font-bold">H3</span>
-                            </button>
-                            <button
-                              onClick={applyNormal}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                formattingState.normal
-                                  ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] border-[hsl(var(--border-strong))]"
-                                  : "hover:border-[hsl(var(--border-strong))]"
-                              )}
-                              title={t("normalText")}
-                            >
-                              <span className="text-sm font-medium">
-                                {t("normal")}
-                              </span>
-                            </button>
-                          </div>
-
-                          <div className="w-px h-6 bg-gray-300 mx-1"></div>
-
-                          {/* Math and Charts */}
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => setShowMathModal(true)}
-                              className="cursor-pointer p-2 rounded-(--radius) border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title={t("insertMathEquation")}
-                            >
-                              <Calculator className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => setShowChartModal(true)}
-                              className="cursor-pointer p-2 rounded-(--radius) border-2 border-transparent hover:border-[hsl(var(--border-strong))] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button"
-                              title={t("insertChart")}
-                            >
-                              <BarChart3 className="h-4 w-4" />
-                            </button>
-                            <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
-                            <button
-                              onClick={() => openRewritePanel(false)}
-                              disabled={!hasTextSelection}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                hasTextSelection
-                                  ? "hover:border-[hsl(var(--border-strong))] text-[hsl(var(--primary))]"
-                                  : "opacity-40 cursor-not-allowed"
-                              )}
-                              title={t("rewriteWithAI")}
-                            >
-                              <Sparkles className="h-4 w-4" />
-                            </button>
-                            <div className="w-px h-6 bg-[hsl(var(--border-strong))] mx-1" />
+                          <div className="flex items-center gap-2 shrink-0">
                             <button
                               onClick={() => {
                                 setIsLitReviewOpen(true);
                                 setIsAIDrawerOpen(false);
                               }}
-                              disabled={(project?.citations?.length || 0) < 3}
-                              className={cn(
-                                "cursor-pointer p-2 rounded-(--radius) transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center toolbar-button border-2 border-transparent",
-                                (project?.citations?.length || 0) >= 3
-                                  ? "hover:border-[hsl(var(--border-strong))] text-[hsl(var(--secondary))]"
-                                  : "opacity-40 cursor-not-allowed"
-                              )}
-                              title={(project?.citations?.length || 0) >= 3 ? t("litReview.toolbarButton") : t("litReview.toolbarDisabled")}
+                              className="text-xs font-medium text-[hsl(var(--secondary))] hover:underline"
                             >
-                              <BookOpen className="h-4 w-4" />
+                              {t("litReview.bannerCta")}
+                            </button>
+                            <button
+                              onClick={() => {
+                                localStorage.setItem('akowe-lit-review-banner-dismissed', 'true');
+                              }}
+                              className="p-0.5 hover:bg-[hsl(var(--secondary)/0.1)] rounded"
+                            >
+                              <X className="w-3 h-3 text-[hsl(var(--muted-foreground))]" />
                             </button>
                           </div>
-
-                          <div className="flex-1"></div>
-                          <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))] font-semibold">
-                            {realTimeWordCount} {t("words")}
-                          </span>
                         </div>
-
-                        {/* Lit Review Banner */}
-                        {activeS?.type === 'literature_review' &&
-                          (project?.citations?.length || 0) >= 3 &&
-                          !isLitReviewOpen &&
-                          typeof window !== 'undefined' &&
-                          !localStorage.getItem('akowe-lit-review-banner-dismissed') && (
-                          <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-[hsl(var(--secondary)/0.08)] border border-[hsl(var(--secondary)/0.2)] rounded-(--radius) mx-2 mb-2">
-                            <div className="flex items-center gap-2 text-xs">
-                              <BookOpen className="w-3.5 h-3.5 text-[hsl(var(--secondary))]" />
-                              <span>{t("litReview.bannerMessage", { count: String(project?.citations?.length || 0) })}</span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                onClick={() => {
-                                  setIsLitReviewOpen(true);
-                                  setIsAIDrawerOpen(false);
-                                }}
-                                className="text-xs font-medium text-[hsl(var(--secondary))] hover:underline"
-                              >
-                                {t("litReview.bannerCta")}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  localStorage.setItem('akowe-lit-review-banner-dismissed', 'true');
-                                }}
-                                className="p-0.5 hover:bg-[hsl(var(--secondary)/0.1)] rounded"
-                              >
-                                <X className="w-3 h-3 text-[hsl(var(--muted-foreground))]" />
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Editor */}
-                        <div
-                          ref={(el) => {
-                            editorContentEditableRef.current = el;
-                            if (el && !el.dataset.initialized) {
-                              const sectionContent = activeS?.content || "";
-                              const newContent =
-                                cleanupSectionContent(sectionContent) ||
-                                "<p><br></p>";
-                              el.innerHTML = newContent;
-                              el.dataset.initialized = "true";
-                            }
-                          }}
-                          contentEditable
-                          spellCheck="true"
-                          suppressContentEditableWarning
-                          onInput={handleTextInput}
-                          onContextMenu={(e) => {
-                            const selection = window.getSelection();
-                            if (selection && selection.rangeCount > 0) {
-                              const range = selection
-                                .getRangeAt(0)
-                                .cloneRange();
-                              storedInsertRangeRef.current = range;
-                              const hasSelection = selection.toString().trim().length > 0;
-                              setContextMenuHasSelection(hasSelection);
-                              setContextMenuPillPosition(
-                                viewportSafePillPosition(e.clientX, e.clientY)
-                              );
-                              setContextMenuPillVisible(true);
-                            }
-                          }}
-                          onTouchStart={(e) => {
-                            if (e.changedTouches.length === 0) return;
-                            const t = e.changedTouches[0];
-                            longPressTouchRef.current = {
-                              clientX: t.clientX,
-                              clientY: t.clientY,
-                            };
-                            longPressTimerRef.current = setTimeout(() => {
-                              longPressTimerRef.current = null;
-                              const pos = longPressTouchRef.current;
-                              if (!pos) return;
-                              const range = getRangeAtPoint(
-                                pos.clientX,
-                                pos.clientY
-                              );
-                              if (range) storedInsertRangeRef.current = range;
-                              setContextMenuPillPosition(
-                                viewportSafePillPosition(
-                                  pos.clientX,
-                                  pos.clientY
-                                )
-                              );
-                              setContextMenuPillVisible(true);
-                            }, 500);
-                          }}
-                          onTouchMove={() => {
-                            if (longPressTimerRef.current) {
-                              clearTimeout(longPressTimerRef.current);
-                              longPressTimerRef.current = null;
-                            }
-                          }}
-                          onTouchEnd={() => {
-                            if (longPressTimerRef.current) {
-                              clearTimeout(longPressTimerRef.current);
-                              longPressTimerRef.current = null;
-                            }
-                            longPressTouchRef.current = null;
-                            // Give iOS time to finalise the selection before
-                            // measuring its geometry for the floating bar
-                            setTimeout(() => checkFormattingState(), 150);
-                          }}
-                          onMouseUp={checkFormattingState}
-                          onMouseDown={checkFormattingState}
-                          onKeyUp={(e) => {
-                            checkFormattingState();
-                            // Handle keyboard shortcuts
-                            if (e.ctrlKey || e.metaKey) {
-                              if (e.key === "b") {
-                                e.preventDefault();
-                                applyBold();
-                              } else if (e.key === "i") {
-                                e.preventDefault();
-                                applyItalic();
-                              } else if (e.key === "u") {
-                                e.preventDefault();
-                                applyUnderline();
-                              } else if (e.key === "z" && !e.shiftKey) {
-                                e.preventDefault();
-                                undo();
-                              } else if (e.key === "z" && e.shiftKey) {
-                                e.preventDefault();
-                                redo();
-                              }
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            checkFormattingState();
-
-                            // Handle Backspace and Delete keys for math equations
-                            if (e.key === "Backspace" || e.key === "Delete") {
-                              const selection = window.getSelection();
-                              if (selection && selection.rangeCount > 0) {
-                                const range = selection.getRangeAt(0);
-                                let element = range.commonAncestorContainer;
-
-                                // Walk up to find the element
-                                while (
-                                  element &&
-                                  element.nodeType !== Node.ELEMENT_NODE
-                                ) {
-                                  element = element.parentNode as Node;
-                                }
-
-                                if (element) {
-                                  let currentElement = element as Element;
-
-                                  // Check if we're inside a math equation
-                                  while (
-                                    currentElement &&
-                                    currentElement !== document.body
-                                  ) {
-                                    if (
-                                      currentElement.classList &&
-                                      currentElement.classList.contains(
-                                        "math-equation"
-                                      )
-                                    ) {
-                                      // We're inside a math equation - allow normal character deletion
-                                      // Only delete the entire equation if it becomes empty after this deletion
-
-                                      // Let the browser handle the normal deletion first
-                                      // We'll check if the equation becomes empty after the deletion
-                                      setTimeout(() => {
-                                        const mathEquation =
-                                          currentElement as Element;
-                                        const textContent =
-                                          mathEquation.textContent?.trim() ||
-                                          "";
-
-                                        // If the equation is now empty or only contains $ symbols, remove it
-                                        if (
-                                          textContent === "" ||
-                                          textContent === "$" ||
-                                          textContent === "$$"
-                                        ) {
-                                          mathEquation.remove();
-
-                                          // Trigger input event to update editor state
-                                          const inputEvent = new Event(
-                                            "input",
-                                            { bubbles: true }
-                                          );
-                                          (
-                                            e.target as HTMLElement
-                                          ).dispatchEvent(inputEvent);
-
-                                          // Update word count and save
-                                          if (activeSection) {
-                                            const editorElement =
-                                              document.querySelector(
-                                                "[contentEditable]"
-                                              ) as HTMLElement;
-                                            if (editorElement) {
-                                              const updatedContent =
-                                                editorElement.innerHTML;
-                                              handleSectionChange(
-                                                activeSection,
-                                                updatedContent
-                                              );
-                                            }
-                                          }
-                                        }
-                                      }, 0);
-
-                                      // Don't prevent default - let normal character deletion happen
-                                      return;
-                                    }
-                                    currentElement =
-                                      currentElement.parentElement as Element;
-                                  }
-
-                                  // Check if cursor is right before a math equation (for Backspace)
-                                  if (e.key === "Backspace") {
-                                    const nextSibling =
-                                      range.startContainer.nextSibling;
-                                    if (
-                                      nextSibling &&
-                                      nextSibling.nodeType === Node.ELEMENT_NODE
-                                    ) {
-                                      const nextElement =
-                                        nextSibling as Element;
-                                      if (
-                                        nextElement.classList &&
-                                        nextElement.classList.contains(
-                                          "math-equation"
-                                        )
-                                      ) {
-                                        e.preventDefault();
-                                        nextElement.remove();
-
-                                        // Trigger input event to update editor state
-                                        const inputEvent = new Event("input", {
-                                          bubbles: true,
-                                        });
-                                        (e.target as HTMLElement).dispatchEvent(
-                                          inputEvent
-                                        );
-
-                                        // Update word count and save
-                                        if (activeSection) {
-                                          const editorElement =
-                                            document.querySelector(
-                                              "[contentEditable]"
-                                            ) as HTMLElement;
-                                          if (editorElement) {
-                                            const updatedContent =
-                                              editorElement.innerHTML;
-                                            handleSectionChange(
-                                              activeSection,
-                                              updatedContent
-                                            );
-                                          }
-                                        }
-                                        return;
-                                      }
-                                    }
-                                  }
-
-                                  // Check if cursor is right after a math equation (for Delete)
-                                  if (e.key === "Delete") {
-                                    const prevSibling =
-                                      range.startContainer.previousSibling;
-                                    if (
-                                      prevSibling &&
-                                      prevSibling.nodeType === Node.ELEMENT_NODE
-                                    ) {
-                                      const prevElement =
-                                        prevSibling as Element;
-                                      if (
-                                        prevElement.classList &&
-                                        prevElement.classList.contains(
-                                          "math-equation"
-                                        )
-                                      ) {
-                                        e.preventDefault();
-                                        prevElement.remove();
-
-                                        // Trigger input event to update editor state
-                                        const inputEvent = new Event("input", {
-                                          bubbles: true,
-                                        });
-                                        (e.target as HTMLElement).dispatchEvent(
-                                          inputEvent
-                                        );
-
-                                        // Update word count and save
-                                        if (activeSection) {
-                                          const editorElement =
-                                            document.querySelector(
-                                              "[contentEditable]"
-                                            ) as HTMLElement;
-                                          if (editorElement) {
-                                            const updatedContent =
-                                              editorElement.innerHTML;
-                                            handleSectionChange(
-                                              activeSection,
-                                              updatedContent
-                                            );
-                                          }
-                                        }
-                                        return;
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-
-                            // Handle Enter key for better UX
-                            if (e.key === "Enter") {
-                              const selection = window.getSelection();
-                              if (selection && selection.rangeCount > 0) {
-                                const range = selection.getRangeAt(0);
-                                let element = range.commonAncestorContainer;
-
-                                // Walk up to find the element
-                                while (
-                                  element &&
-                                  element.nodeType !== Node.ELEMENT_NODE
-                                ) {
-                                  element = element.parentNode as Node;
-                                }
-
-                                if (element) {
-                                  let currentElement = element as Element;
-
-                                  // Check if we're in a header
-                                  while (
-                                    currentElement &&
-                                    currentElement !== document.body
-                                  ) {
-                                    if (
-                                      currentElement.tagName === "H1" ||
-                                      currentElement.tagName === "H2" ||
-                                      currentElement.tagName === "H3"
-                                    ) {
-                                      // In a header - create normal paragraph after
-                                      e.preventDefault();
-                                      const newDiv =
-                                        document.createElement("div");
-                                      newDiv.innerHTML = "&nbsp;";
-                                      currentElement.parentNode?.insertBefore(
-                                        newDiv,
-                                        currentElement.nextSibling
-                                      );
-
-                                      // Position cursor in new paragraph
-                                      const newRange = document.createRange();
-                                      newRange.setStart(newDiv, 0);
-                                      newRange.collapse(true);
-                                      selection.removeAllRanges();
-                                      selection.addRange(newRange);
-                                      return;
-                                    }
-                                    currentElement =
-                                      currentElement.parentElement as Element;
-                                  }
-
-                                  // Check if we're in a list item
-                                  currentElement = element as Element;
-                                  while (
-                                    currentElement &&
-                                    currentElement !== document.body
-                                  ) {
-                                    if (currentElement.tagName === "LI") {
-                                      // Check if this is the last list item and it's empty
-                                      const listElement =
-                                        currentElement.parentElement;
-                                      const isLastItem =
-                                        listElement &&
-                                        currentElement ===
-                                          listElement.lastElementChild;
-                                      const isEmpty =
-                                        currentElement.textContent?.trim() ===
-                                        "";
-
-                                      // Only exit list if it's the last item AND it's empty
-                                      // This allows normal Enter behavior for creating new list items
-                                      if (isLastItem && isEmpty) {
-                                        // Exit list by removing empty item and creating paragraph after the list
-                                        e.preventDefault();
-
-                                        // Remove the empty list item
-                                        listElement.removeChild(currentElement);
-
-                                        // Create normal paragraph after the list
-                                        const div =
-                                          document.createElement("div");
-                                        div.innerHTML = "&nbsp;";
-                                        listElement.parentNode?.insertBefore(
-                                          div,
-                                          listElement.nextSibling
-                                        );
-
-                                        // Position cursor in new paragraph
-                                        const newRange = document.createRange();
-                                        newRange.setStart(div, 0);
-                                        newRange.collapse(true);
-                                        selection.removeAllRanges();
-                                        selection.addRange(newRange);
-                                        return;
-                                      }
-                                      // For all other cases, let the default Enter behavior work
-                                      // (creates new list item)
-                                      break;
-                                    }
-                                    currentElement =
-                                      currentElement.parentElement as Element;
-                                  }
-                                }
-                              }
-                            }
-                          }}
-                          onFocus={checkFormattingState}
-                          onBlur={() => {
-                            // Reset formatting state when editor loses focus
-                            setFormattingState({
-                              bold: false,
-                              italic: false,
-                              underline: false,
-                              unorderedList: false,
-                              orderedList: false,
-                              h1: false,
-                              h2: false,
-                              h3: false,
-                              normal: false,
-                            });
-                          }}
-                          className="w-full min-h-[400px] p-4 focus:outline-none text-gray-900 leading-relaxed prose prose-sm max-w-none"
-                          style={{
-                            fontFamily: "inherit",
-                            lineHeight: "1.6",
-                          }}
-                          key={activeS.id}
-                        />
-                      </div>
+                      )}
+                      <TiptapEditor
+                        ref={tiptapEditorRef}
+                        key={activeS.id}
+                        content={cleanupSectionContent(activeS?.content || '') || '<p></p>'}
+                        onChange={handleTiptapUpdate}
+                        onSelectionChange={(_hasSelection, _rect) => checkFormattingState()}
+                        onTextCopied={handleEditorTextCopied}
+                        onContextMenu={(e) => {
+                          const selection = window.getSelection();
+                          if (selection && selection.rangeCount > 0) {
+                            const range = selection.getRangeAt(0).cloneRange();
+                            storedInsertRangeRef.current = range;
+                            const hasSelection = selection.toString().trim().length > 0;
+                            setContextMenuHasSelection(hasSelection);
+                            setContextMenuPillPosition(viewportSafePillPosition(e.clientX, e.clientY));
+                            setContextMenuPillVisible(true);
+                          }
+                        }}
+                        onTouchStart={(e) => {
+                          if (e.changedTouches.length === 0) return;
+                          const touch = e.changedTouches[0];
+                          longPressTouchRef.current = { clientX: touch.clientX, clientY: touch.clientY };
+                          longPressTimerRef.current = setTimeout(() => {
+                            longPressTimerRef.current = null;
+                            const pos = longPressTouchRef.current;
+                            if (!pos) return;
+                            const range = getRangeAtPoint(pos.clientX, pos.clientY);
+                            if (range) storedInsertRangeRef.current = range;
+                            setContextMenuPillPosition(viewportSafePillPosition(pos.clientX, pos.clientY));
+                            setContextMenuPillVisible(true);
+                          }, 500);
+                        }}
+                        onTouchMove={() => {
+                          if (longPressTimerRef.current) {
+                            clearTimeout(longPressTimerRef.current);
+                            longPressTimerRef.current = null;
+                          }
+                        }}
+                        onTouchEnd={() => {
+                          if (longPressTimerRef.current) {
+                            clearTimeout(longPressTimerRef.current);
+                            longPressTimerRef.current = null;
+                          }
+                          longPressTouchRef.current = null;
+                          setTimeout(() => checkFormattingState(), 150);
+                        }}
+                        wordCount={realTimeWordCount}
+                        onMathClick={() => setShowMathModal(true)}
+                        onChartClick={() => setShowChartModal(true)}
+                        onRewriteClick={() => openRewritePanel(false)}
+                        onLitReviewClick={() => {
+                          setIsLitReviewOpen(true);
+                          setIsAIDrawerOpen(false);
+                        }}
+                        citationCount={project?.citations?.length || 0}
+                        rewritePanelVisible={rewritePanelVisible}
+                        t={t}
+                      />
                     </div>
                   </div>
                 ) : (
@@ -6654,6 +5535,41 @@ title={t("deleteSection")}
                   >
                     Close
                   </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Project Confirmation Modal */}
+        {showDeleteProjectModal && (
+          <div className="fixed inset-0 bg-[hsl(var(--foreground))]/60 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] rounded-(--radius) shadow-[12px_12px_0_rgba(29,41,57,0.2)]">
+              <div className="p-6 border-b-[3px] border-[hsl(var(--border-strong))]">
+                <h3 className="text-xl font-semibold uppercase tracking-[0.2em] text-[hsl(var(--destructive))]">
+                  {t("deleteProjectTitle")}
+                </h3>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
+                  {t("deleteProjectConfirm")}
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteProjectModal(false)}
+                    disabled={isDeletingProject}
+                    className="flex-1 px-4 py-3 text-xs uppercase tracking-[0.18em]"
+                  >
+                    {t("cancel")}
+                  </Button>
+                  <button
+                    onClick={handleDeleteProject}
+                    disabled={isDeletingProject}
+                    className="flex-1 px-4 py-3 border-2 border-[hsl(var(--destructive))]/40 rounded-(--radius) text-xs font-semibold uppercase tracking-[0.18em] bg-[hsl(var(--destructive))] text-white hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform duration-150 disabled:opacity-50 disabled:translate-x-0 disabled:translate-y-0"
+                  >
+                    {isDeletingProject ? t("deleting") : t("deleteProject")}
+                  </button>
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@
 import { Link } from '@/i18n/navigation';
 import { Project, ProjectType } from '@/types';
 import { cn, formatDate } from '@/lib/utils';
-import { FileText, BookOpen, GraduationCap, FlaskConical } from 'lucide-react';
+import { FileText, BookOpen, GraduationCap, FlaskConical, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Card from './ui/Card';
 
@@ -23,9 +23,10 @@ const projectAccents: Record<ProjectType, string> = {
 
 interface ProjectCardProps {
   project: Project;
+  onDelete?: (id: string) => void;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+export default function ProjectCard({ project, onDelete }: ProjectCardProps) {
   const t = useTranslations('components.projectCard');
   const Icon = projectIcons[project.type];
   const accentClass = projectAccents[project.type];
@@ -33,60 +34,75 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const typeKey = project.type === 'essay' ? 'typeEssay' : project.type === 'thesis' ? 'typeThesis' : project.type === 'journal' ? 'typeJournal' : 'typeResearch';
 
   return (
-    <Link href={`/project/${project._id}`}>
-      <Card hover className="p-6 cursor-pointer space-y-6">
-        <div
-          className={`w-14 h-14 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] flex items-center justify-center ${accentClass}`}
+    <div className="relative group">
+      <Link href={`/project/${project._id}`}>
+        <Card hover className="p-6 cursor-pointer space-y-6">
+          <div
+            className={`w-14 h-14 rounded-(--radius) border-2 border-[hsl(var(--border-strong))] flex items-center justify-center ${accentClass}`}
+          >
+            <Icon size={24} />
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-xl font-bold text-[hsl(var(--foreground))] leading-tight line-clamp-2 uppercase tracking-[0.08em]">
+            {project.name}
+          </h3>
+          
+            <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              <span>{t(typeKey)}</span>
+              <span>&#8226;</span>
+              <span>{project.wordCount} {t('words')}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-1">
+              <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                {t('sections')}
+              </span>
+              <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
+                {project.sections.length}
+              </span>
+            </div>
+            <div className="space-y-1">
+              <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+                {t('citations')}
+              </span>
+              <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
+                {project.citations.length}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-1 border-t-2 border-[hsl(var(--border-strong))] pt-4">
+            <span className={cn('px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]', {
+              'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]': project.status === 'draft',
+              'bg-[hsl(var(--secondary))]/20 text-[hsl(var(--foreground))]': project.status === 'in_progress',
+              'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]': project.status === 'completed',
+              'bg-[hsl(var(--surface-muted))] text-[hsl(var(--foreground))]': project.status === 'archived',
+            })}>
+              {t(statusKey)}
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
+              {formatDate(new Date(project.lastEditedAt))}
+            </span>
+          </div>
+        </Card>
+      </Link>
+
+      {onDelete && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDelete(project._id);
+          }}
+          title={t('deleteProject')}
+          className="absolute top-3 right-3 p-1.5 rounded-(--radius) border border-transparent opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-[hsl(var(--destructive))]/10 hover:border-[hsl(var(--destructive))]/30 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--destructive))] cursor-pointer"
         >
-          <Icon size={24} />
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-xl font-bold text-[hsl(var(--foreground))] leading-tight line-clamp-2 uppercase tracking-[0.08em]">
-          {project.name}
-        </h3>
-        
-          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-            <span>{t(typeKey)}</span>
-            <span>&#8226;</span>
-            <span>{project.wordCount} {t('words')}</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="space-y-1">
-            <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              {t('sections')}
-            </span>
-            <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
-              {project.sections.length}
-            </span>
-          </div>
-          <div className="space-y-1">
-            <span className="block text-[0.7rem] uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              {t('citations')}
-            </span>
-            <span className="text-lg font-semibold text-[hsl(var(--foreground))]">
-              {project.citations.length}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between border-t-2 border-[hsl(var(--border-strong))] pt-4">
-          <span className={cn('px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] rounded-(--radius) border-2 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))]', {
-            'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]': project.status === 'draft',
-            'bg-[hsl(var(--secondary))]/20 text-[hsl(var(--foreground))]': project.status === 'in_progress',
-            'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]': project.status === 'completed',
-            'bg-[hsl(var(--surface-muted))] text-[hsl(var(--foreground))]': project.status === 'archived',
-          })}>
-            {t(statusKey)}
-          </span>
-          <span className="text-[10px] uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">
-            {formatDate(new Date(project.lastEditedAt))}
-          </span>
-        </div>
-      </Card>
-    </Link>
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
   );
 }
-
