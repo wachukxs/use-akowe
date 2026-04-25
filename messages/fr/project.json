@@ -2,7 +2,7 @@
   "loadingWorkspace": "Loading workspace",
   "words": "words",
   "target": "target",
-  "nextMilestone": "Next milestone",
+  "wordsToGo": "mots restants",
   "sections": "Sections",
   "totalCitations": "Total citations",
   "paperSections": "Paper Sections",

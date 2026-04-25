@@ -3545,7 +3545,7 @@ title={t("deleteSection")}
                       </span>
                     </div>
 
-                    {/* Progress Percentage and Next Milestone */}
+                    {/* Progress Percentage and Words Remaining */}
                     <div className="flex items-center justify-between">
                       <div className="text-2xl font-bold text-gray-900">
                         {Math.round(
@@ -3555,17 +3555,16 @@ title={t("deleteSection")}
                         %
                       </div>
                       <div className="text-right">
-                        <div className="text-sm text-gray-600">
-                          {t("nextMilestone")}
-                        </div>
-                        <div className="text-sm font-medium text-blue-600">
-                          {Math.ceil(
-                            ((localWordCount / (project.targetWordCount || 1)) *
-                              100) /
-                              25
-                          ) * 25}
-                          %
-                        </div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {Math.max(
+                            0,
+                            (project.targetWordCount || 0) - localWordCount
+                          ).toLocaleString()}
+                        </span>
+                        {' '}
+                        <span className="text-sm text-gray-500">
+                          {t("wordsToGo")}
+                        </span>
                       </div>
                     </div>
                   </div>

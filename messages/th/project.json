@@ -2,7 +2,7 @@
   "loadingWorkspace": "Loading workspace",
   "words": "words",
   "target": "target",
-  "nextMilestone": "Next milestone",
+  "wordsToGo": "คำที่เหลือ",
   "sections": "Sections",
   "totalCitations": "Total citations",
   "paperSections": "Paper Sections",
