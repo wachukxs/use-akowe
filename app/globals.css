@@ -453,8 +453,8 @@ body {
 
 /* Mobile Touch Optimizations */
 @media (max-width: 768px) {
-  /* Increase tap targets */
-  button, a, [role="button"] {
+  /* Increase tap targets for interactive controls only, not inline links */
+  button, [role="button"] {
     min-height: 44px;
   }
   
