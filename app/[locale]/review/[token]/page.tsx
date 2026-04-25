@@ -345,6 +345,20 @@ export default function ReviewPage({
     fetchReviewData();
   }, [token]);
 
+  // Refresh comments whenever the reviewer returns to this tab or window, so they
+  // always see the latest author replies without needing to reload the page.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchComments();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', fetchComments);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', fetchComments);
+    };
+  }, []);
+
   useEffect(() => {
     if (data && !activeSection && data.sections.length > 0) {
       setActiveSection(data.sections[0].id);

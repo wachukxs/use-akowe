@@ -43,6 +43,20 @@ export default function ReviewCommentsPanel({
     fetchComments();
   }, [projectId]);
 
+  // Refresh comments whenever the author returns to this tab or window, so they
+  // always see the latest reviewer feedback without having to reopen the panel.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') fetchComments();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', fetchComments);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', fetchComments);
+    };
+  }, []);
+
   async function fetchComments() {
     try {
       const res = await fetch(`/api/projects/${projectId}/comments`);
