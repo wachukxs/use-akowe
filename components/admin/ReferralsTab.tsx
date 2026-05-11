@@ -37,6 +37,7 @@ interface Influencer {
   email: string;
   referralCode: string;
   notes?: string;
+  hasProAccess: boolean;
   referralCount: number;
   qualityScore?: number;
   activationRate?: number;
@@ -167,6 +168,7 @@ export default function ReferralsTab() {
   const [affiliateEmailSent, setAffiliateEmailSent] = useState<string | null>(null);
   const [promotingUser, setPromotingUser] = useState<string | null>(null);
   const [userPromoted, setUserPromoted] = useState<string | null>(null);
+  const [togglingProAccess, setTogglingProAccess] = useState<string | null>(null);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -397,6 +399,27 @@ export default function ReferralsTab() {
       setError(err instanceof Error ? err.message : 'Failed to send affiliate email');
     } finally {
       setSendingAffiliateEmail(null);
+    }
+  };
+
+  const handleToggleProAccess = async (id: string, currentValue: boolean) => {
+    setTogglingProAccess(id);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/influencers/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hasProAccess: !currentValue }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update pro access');
+      }
+      fetchReferralData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update pro access');
+    } finally {
+      setTogglingProAccess(null);
     }
   };
 
@@ -1151,6 +1174,7 @@ export default function ReferralsTab() {
                   <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Activation</th>
                   <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Paid Conv.</th>
                   <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Notes</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Pro Access</th>
                   <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Added</th>
                   <th className="text-center py-2 sm:py-3 px-2 sm:px-4 text-xs uppercase">Actions</th>
                 </tr>
@@ -1228,6 +1252,30 @@ export default function ReferralsTab() {
                       </td>
                       <td className="py-2 sm:py-3 px-2 sm:px-4 text-[hsl(var(--muted-foreground))] text-[10px] sm:text-xs break-words">
                         {influencer.notes || '—'}
+                      </td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                        <button
+                          onClick={() => isFullAccess && handleToggleProAccess(influencer._id, influencer.hasProAccess)}
+                          disabled={!isFullAccess || togglingProAccess === influencer._id}
+                          title={
+                            !isFullAccess
+                              ? 'Read-only access'
+                              : influencer.hasProAccess
+                              ? 'Click to revoke pro access'
+                              : 'Click to grant pro access'
+                          }
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation ${
+                            influencer.hasProAccess
+                              ? 'bg-[hsl(var(--primary))]'
+                              : 'bg-[hsl(var(--border-strong))]'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                              influencer.hasProAccess ? 'translate-x-4' : 'translate-x-1'
+                            } ${togglingProAccess === influencer._id ? 'animate-pulse' : ''}`}
+                          />
+                        </button>
                       </td>
                       <td className="py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs">
                         {new Date(influencer.createdAt).toLocaleDateString()}

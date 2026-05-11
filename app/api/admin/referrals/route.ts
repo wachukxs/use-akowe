@@ -54,6 +54,7 @@ export async function GET() {
           email: influencer.email,
           referralCode: influencer.referralCode,
           notes: influencer.notes,
+          hasProAccess: influencer.hasProAccess ?? true,
           referralCount,
           qualityScore: qualityMetrics.qualityScore,
           activationRate: qualityMetrics.activationRate,

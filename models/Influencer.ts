@@ -6,6 +6,7 @@ export interface IInfluencer {
   email: string;
   referralCode: string;
   notes?: string; // Optional notes about the influencer
+  hasProAccess: boolean; // Whether this influencer gets free pro plan access
   // Quality scoring fields (cached for performance)
   qualityScore?: number; // Overall quality score (0-100)
   activationRate?: number; // Percentage of referrals who created at least 1 project
@@ -35,6 +36,10 @@ const InfluencerSchema = new Schema<IInfluencer>(
     },
     notes: {
       type: String,
+    },
+    hasProAccess: {
+      type: Boolean,
+      default: true,
     },
     // Quality scoring fields (cached for performance)
     qualityScore: {

@@ -5,6 +5,69 @@ import Influencer from '@/models/Influencer';
 import User from '@/models/User';
 import { requireFullAccess } from '@/lib/admin-auth';
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await requireFullAccess();
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Forbidden: full access required' },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid influencer ID' },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    if (typeof body.hasProAccess !== 'boolean') {
+      return NextResponse.json(
+        { error: 'hasProAccess must be a boolean' },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const influencer = await Influencer.findByIdAndUpdate(
+      id,
+      { hasProAccess: body.hasProAccess },
+      { new: true }
+    );
+
+    if (!influencer) {
+      return NextResponse.json(
+        { error: 'Influencer not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      message: `Pro access ${body.hasProAccess ? 'enabled' : 'disabled'} for ${influencer.name}`,
+      influencer: {
+        _id: influencer._id.toString(),
+        name: influencer.name,
+        email: influencer.email,
+        hasProAccess: influencer.hasProAccess,
+      },
+    });
+  } catch (error) {
+    console.error('Error updating influencer pro access:', error);
+    return NextResponse.json(
+      { error: 'Failed to update influencer' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

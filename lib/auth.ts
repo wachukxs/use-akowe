@@ -4,7 +4,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { cookies } from 'next/headers';
 import connectDB from './mongodb';
 import User from '@/models/User';
-import { isVIPUser } from './vip-users';
+import { isVIPUser, isInfluencerWithProAccess } from './vip-users';
 import { ensureUserReferralCode, createWithReferralCode, lookupReferralCode } from './referral';
 import { markLeadAsConverted } from './lead-conversion';
 import { markReferralClicksAsConverted } from './referral-click-conversion';
@@ -107,8 +107,9 @@ export const authOptions: NextAuthConfig = {
           // We'll rely on email uniqueness check which is already enforced
           // For more sophisticated fraud detection, we'd need to store IP/device info during OAuth flow
           
-          // VIP users get pro plan on signup, others get free
-          const initialPlan = isVIPUser(user.email) ? 'pro' : 'free';
+          // VIP users and influencers with pro access get pro plan on signup, others get free
+          const isInfluencerPro = await isInfluencerWithProAccess(user.email);
+          const initialPlan = (isVIPUser(user.email) || isInfluencerPro) ? 'pro' : 'free';
           // Create user with referral code, handling duplicate key errors
           existingUser = await createWithReferralCode(async (referralCode) => {
             return User.create({
@@ -122,7 +123,7 @@ export const authOptions: NextAuthConfig = {
             });
           });
           if (initialPlan === 'pro') {
-            console.log(`VIP user ${user.email} created with pro plan`);
+            console.log(`Complimentary pro granted to new user ${user.email} (VIP or influencer with pro access)`);
           }
           if (referredBy || referredByInfluencer) {
             console.log(`Google user ${user.email} signed up via referral`);
@@ -149,14 +150,14 @@ export const authOptions: NextAuthConfig = {
             }
           }
           
-          if (isVIPUser(user.email) && existingUser.plan === 'free') {
-            // Upgrade existing VIP users from free to pro
+          const isInfluencerPro = await isInfluencerWithProAccess(user.email);
+          const hasComplimentaryPro = isVIPUser(user.email) || isInfluencerPro;
+          if (hasComplimentaryPro && existingUser.plan === 'free') {
             await User.findByIdAndUpdate(existingUser._id, { plan: 'pro' });
-            console.log(`VIP user ${user.email} upgraded to pro plan`);
-          } else if (!isVIPUser(user.email) && (existingUser.plan === 'pro' || existingUser.plan === 'standard') && !existingUser.stripeSubscriptionId) {
-            // Downgrade non-VIP users who are on a paid plan but never paid (removed from VIP list)
+            console.log(`Complimentary pro granted to ${user.email} (VIP or influencer with pro access)`);
+          } else if (!hasComplimentaryPro && (existingUser.plan === 'pro' || existingUser.plan === 'standard') && !existingUser.stripeSubscriptionId) {
             await User.findByIdAndUpdate(existingUser._id, { plan: 'free' });
-            console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
+            console.log(`${user.email} downgraded to free plan (no longer VIP/influencer-pro, no Stripe subscription)`);
           }
         }
 
@@ -182,14 +183,16 @@ export const authOptions: NextAuthConfig = {
             }
           }
           
-          if (user.email && isVIPUser(user.email) && dbUser.plan === 'free') {
-            // Upgrade VIP users from free to pro
-            await User.findByIdAndUpdate(user.id, { plan: 'pro' });
-            console.log(`VIP user ${user.email} upgraded to pro plan`);
-          } else if (user.email && !isVIPUser(user.email) && (dbUser.plan === 'pro' || dbUser.plan === 'standard') && !dbUser.stripeSubscriptionId) {
-            // Downgrade non-VIP users who are on a paid plan but never paid (removed from VIP list)
-            await User.findByIdAndUpdate(user.id, { plan: 'free' });
-            console.log(`Former VIP user ${user.email} downgraded to free plan (no Stripe subscription)`);
+          if (user.email) {
+            const isInfluencerPro = await isInfluencerWithProAccess(user.email);
+            const hasComplimentaryPro = isVIPUser(user.email) || isInfluencerPro;
+            if (hasComplimentaryPro && dbUser.plan === 'free') {
+              await User.findByIdAndUpdate(user.id, { plan: 'pro' });
+              console.log(`Complimentary pro granted to ${user.email} (VIP or influencer with pro access)`);
+            } else if (!hasComplimentaryPro && (dbUser.plan === 'pro' || dbUser.plan === 'standard') && !dbUser.stripeSubscriptionId) {
+              await User.findByIdAndUpdate(user.id, { plan: 'free' });
+              console.log(`${user.email} downgraded to free plan (no longer VIP/influencer-pro, no Stripe subscription)`);
+            }
           }
         }
         
