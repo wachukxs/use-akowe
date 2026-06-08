@@ -633,10 +633,10 @@ function HomePageContent() {
             <h4 className="text-base font-semibold uppercase tracking-[0.18em] mb-4">
               {tHome("features.ethicalBadgeTitle")}
             </h4>
-            <div className="grid sm:grid-cols-3 gap-3 text-xs sm:text-sm uppercase tracking-[0.14em] sm:tracking-[0.18em]">
-              <p className="font-semibold">{tHome("features.ethicalNoFabricated")}</p>
-              <p className="font-semibold">{tHome("features.ethicalSupportsWriting")}</p>
-              <p className="font-semibold">{tHome("features.ethicalBuiltForIntegrity")}</p>
+            <div className="grid sm:grid-cols-3 gap-3 text-xs sm:text-sm tracking-[0.06em]">
+              <p className="font-normal italic" style={{ fontVariant: "small-caps" }}>{tHome("features.ethicalNoFabricated")}</p>
+              <p className="font-normal italic" style={{ fontVariant: "small-caps" }}>{tHome("features.ethicalSupportsWriting")}</p>
+              <p className="font-normal italic" style={{ fontVariant: "small-caps" }}>{tHome("features.ethicalBuiltForIntegrity")}</p>
             </div>
           </div>
         </section>
@@ -812,13 +812,13 @@ function HomePageContent() {
             {/* Free Plan */}
             <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 md:p-8 flex flex-col gap-6">
               <div className="space-y-2">
-                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                <span className="text-xs tracking-[0.06em] text-[hsl(var(--muted-foreground))]" style={{ fontVariant: "small-caps" }}>
                   {tHome("plans.freePlanLabel")}
                 </span>
                 <span className="text-4xl md:text-5xl font-bold">
                   {tHome("plans.freePlanPrice")}
                 </span>
-                <p className="text-[10px] uppercase tracking-[0.28em] text-[hsl(var(--muted-foreground))]">
+                <p className="text-[10px] tracking-[0.06em] text-[hsl(var(--muted-foreground))]" style={{ fontVariant: "small-caps" }}>
                   {tHome("plans.freePlanDesc")}
                 </p>
               </div>
@@ -860,7 +860,7 @@ function HomePageContent() {
                 {tHome("plans.standardPlanBadge")}
               </span>
               <div className="space-y-2">
-                <span className="text-xs uppercase tracking-[0.32em]">
+                <span className="text-xs tracking-[0.06em]" style={{ fontVariant: "small-caps" }}>
                   {tHome("plans.standardPlanLabel")}
                 </span>
                 <span className="text-4xl md:text-5xl font-bold">
@@ -914,7 +914,7 @@ function HomePageContent() {
                   {tHome("plans.standardPlanCta")}
                 </Button>
               </Link>
-              <p className="text-[10px] uppercase tracking-[0.24em] text-center">
+              <p className="text-[10px] tracking-[0.06em] text-center" style={{ fontVariant: "small-caps" }}>
                 {tHome("plans.standardPlanTagline")}
               </p>
             </div>
@@ -922,7 +922,7 @@ function HomePageContent() {
             {/* Pro Plan */}
             <div className="border-4 border-[hsl(var(--border-strong))] bg-[hsl(var(--surface))] p-5 md:p-8 flex flex-col gap-6">
               <div className="space-y-2">
-                <span className="text-xs uppercase tracking-[0.32em] text-[hsl(var(--muted-foreground))]">
+                <span className="text-xs tracking-[0.06em] text-[hsl(var(--muted-foreground))]" style={{ fontVariant: "small-caps" }}>
                   {tHome("plans.proPlanLabel")}
                 </span>
                 <span className="text-4xl md:text-5xl font-bold">
@@ -980,7 +980,7 @@ function HomePageContent() {
                   {tHome("plans.proPlanCta")}
                 </Button>
               </Link>
-              <p className="text-[10px] uppercase tracking-[0.24em] text-center text-[hsl(var(--muted-foreground))]">
+              <p className="text-[10px] tracking-[0.06em] text-center text-[hsl(var(--muted-foreground))]" style={{ fontVariant: "small-caps" }}>
                 {tHome("plans.proPlanTagline")}
               </p>
             </div>
