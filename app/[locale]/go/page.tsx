@@ -44,9 +44,11 @@ const TESTIMONIALS = [
   },
 ];
 
+type GTagFn = (...args: unknown[]) => void;
+
 function trackEvent(name: string, params?: Record<string, unknown>) {
-  if (typeof window !== "undefined" && (window as Window & { gtag?: Function }).gtag) {
-    (window as Window & { gtag: Function }).gtag("event", name, {
+  if (typeof window !== "undefined" && (window as Window & { gtag?: GTagFn }).gtag) {
+    (window as Window & { gtag: GTagFn }).gtag("event", name, {
       ...params,
       timestamp: Date.now(),
     });

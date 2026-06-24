@@ -266,7 +266,6 @@ function generateTemplateContent(page: KeywordPage): ContentResult {
 // ============================================
 function generateComparisonContent(page: KeywordPage): ContentResult {
   const term = extractCoreTerm(page);
-  const titleTerm = toTitleCase(term);
 
   // Try to extract the two things being compared from the keyword
   const vsParts = page.keyword.split(/\bvs\.?\b|\bversus\b|\bor\b|\bcompared to\b/i);
