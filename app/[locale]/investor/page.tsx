@@ -21,7 +21,6 @@ import {
   Layers,
   Presentation
 } from 'lucide-react';
-import Button from '@/components/ui/Button';
 
 interface SlideProps {
   children: React.ReactNode;
@@ -134,7 +133,6 @@ const DEFAULT_METRICS: PublicMetrics = {
 };
 
 function InvestorPageContent() {
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [metrics, setMetrics] = useState<PublicMetrics | null>(null);
   const searchParams = useSearchParams();
   const isPDFMode = searchParams?.get('pdf') === 'true';
@@ -187,34 +185,6 @@ function InvestorPageContent() {
     };
   }, [isPDFMode]);
 
-  const handleDownloadPDF = async () => {
-    setIsGeneratingPDF(true);
-    try {
-      const response = await fetch('/api/investor/export-pdf', {
-        method: 'GET',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'akowe-investor-pitch-deck.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      alert('Failed to generate PDF. Please try again.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
   return (
     <>
       <style jsx global>{`
@@ -264,15 +234,15 @@ function InvestorPageContent() {
       {/* Floating Download Button - Hidden in PDF mode */}
       {!isPDFMode && (
         <div className="fixed top-14 sm:top-20 right-2 sm:right-6 z-50">
-          <Button
-            onClick={handleDownloadPDF}
-            disabled={isGeneratingPDF}
-            className="px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+          <a
+            href="/akowe-investor-pitch-deck.pdf"
+            download="akowe-investor-pitch-deck.pdf"
+            className="inline-flex items-center justify-center border-2 font-semibold tracking-[0.08em] uppercase rounded-(--radius) bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-[hsl(var(--primary))] shadow-[6px_6px_0_rgba(29,41,57,0.16)] transition-transform duration-150 hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[8px_8px_0_rgba(29,41,57,0.18)] px-3 sm:px-6 py-2 sm:py-3 gap-1 sm:gap-2 text-xs sm:text-sm"
           >
             <Download size={16} className="sm:w-[18px] sm:h-[18px]" />
-            <span className="hidden sm:inline">{isGeneratingPDF ? 'Generating...' : 'Download PDF'}</span>
-            <span className="sm:hidden">{isGeneratingPDF ? '...' : 'PDF'}</span>
-          </Button>
+            <span className="hidden sm:inline">Download PDF</span>
+            <span className="sm:hidden">PDF</span>
+          </a>
         </div>
       )}
 
